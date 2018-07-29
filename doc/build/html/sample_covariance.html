@@ -1,0 +1,317 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Example 8: Computing covariance matrices &mdash; pymaster 0.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="genindex.html"/>
+        <link rel="search" title="Search" href="search.html"/>
+    <link rel="top" title="pymaster 0.1 documentation" href="index.html"/>
+        <link rel="prev" title="Example 7: Flat-sky fields" href="sample_flat.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> pymaster
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="pymaster.html">Python API documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sample_simple.html">Example 1: simple pseudo-Cl computation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sample_bins.html">Example 2: Bandpowers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sample_fields.html">Example 3: Fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sample_masks.html">Example 4: Masks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sample_workspaces.html">Example 5: Using workspaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sample_pureb.html">Example 6: Pure E and B</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sample_flat.html">Example 7: Flat-sky fields</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Example 8: Computing covariance matrices</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">pymaster</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Example 8: Computing covariance matrices</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/sample_covariance.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="example-8-computing-covariance-matrices">
+<h1>Example 8: Computing covariance matrices<a class="headerlink" href="#example-8-computing-covariance-matrices" title="Permalink to this headline">¶</a></h1>
+<p>This sample script showcases the ability of NaMaster to estimate the Gaussian covariance matrix for the pseudo-Cl estimator. This is currently only supported for spin-0 fields in the full sky</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">healpy</span> <span class="kn">as</span> <span class="nn">hp</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="kn">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">pymaster</span> <span class="kn">as</span> <span class="nn">nmt</span>
+
+<span class="c1">#This script showcases the ability of namaster to compute Gaussian</span>
+<span class="c1">#estimates of the covariance matrix. This is currently only</span>
+<span class="c1">#supported for spin-0 fields</span>
+<span class="c1">#A similar example for flat-sky fields can be found in test/sample_covariance_flat.py</span>
+
+<span class="c1">#HEALPix map resolution</span>
+<span class="n">nside</span><span class="o">=</span><span class="mi">256</span>
+
+<span class="c1">#We start by creating some synthetic masks and maps with contaminants.</span>
+<span class="c1">#Here we will focus on the auto-correlation of a spin-1 field.</span>
+<span class="c1">#a) Read and apodize mask</span>
+<span class="n">mask</span><span class="o">=</span><span class="n">nmt</span><span class="o">.</span><span class="n">mask_apodization</span><span class="p">(</span><span class="n">hp</span><span class="o">.</span><span class="n">read_map</span><span class="p">(</span><span class="s2">&quot;mask.fits&quot;</span><span class="p">,</span><span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">),</span><span class="mf">1.</span><span class="p">,</span><span class="n">apotype</span><span class="o">=</span><span class="s2">&quot;Smooth&quot;</span><span class="p">)</span>
+
+<span class="c1">#Let&#39;s now create a fictitious theoretical power spectrum to generate</span>
+<span class="c1">#Gaussian realizations:</span>
+<span class="n">larr</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">3</span><span class="o">*</span><span class="n">nside</span><span class="p">)</span>
+<span class="n">clarr</span><span class="o">=</span><span class="p">((</span><span class="n">larr</span><span class="o">+</span><span class="mf">1.</span><span class="p">)</span><span class="o">/</span><span class="mf">80.</span><span class="p">)</span><span class="o">**</span><span class="p">(</span><span class="o">-</span><span class="mf">1.1</span><span class="p">)</span><span class="o">+</span><span class="mf">1.</span>
+
+<span class="c1">#This routine generates a scalar Gaussian random field based on this</span>
+<span class="c1">#power spectrum</span>
+<span class="k">def</span> <span class="nf">get_sample_field</span><span class="p">()</span> <span class="p">:</span>
+    <span class="n">mp</span><span class="o">=</span><span class="n">hp</span><span class="o">.</span><span class="n">synfast</span><span class="p">(</span><span class="n">clarr</span><span class="p">,</span><span class="n">nside</span><span class="p">,</span><span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">nmt</span><span class="o">.</span><span class="n">NmtField</span><span class="p">(</span><span class="n">mask</span><span class="p">,[</span><span class="n">mp</span><span class="p">])</span>
+
+<span class="c1">#We also copy this function from sample_workspaces.py. It computes</span>
+<span class="c1">#power spectra given a pair of fields and a workspace.</span>
+<span class="k">def</span> <span class="nf">compute_master</span><span class="p">(</span><span class="n">f_a</span><span class="p">,</span><span class="n">f_b</span><span class="p">,</span><span class="n">wsp</span><span class="p">)</span> <span class="p">:</span>
+    <span class="n">cl_coupled</span><span class="o">=</span><span class="n">nmt</span><span class="o">.</span><span class="n">compute_coupled_cell</span><span class="p">(</span><span class="n">f_a</span><span class="p">,</span><span class="n">f_b</span><span class="p">)</span>
+    <span class="n">cl_decoupled</span><span class="o">=</span><span class="n">wsp</span><span class="o">.</span><span class="n">decouple_cell</span><span class="p">(</span><span class="n">cl_coupled</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">cl_decoupled</span>
+
+<span class="c1">#Let&#39;s generate one particular sample and its power spectrum.</span>
+<span class="k">print</span> <span class="s2">&quot;Field&quot;</span>
+<span class="n">f0</span><span class="o">=</span><span class="n">get_sample_field</span><span class="p">()</span>
+<span class="n">b</span><span class="o">=</span><span class="n">nmt</span><span class="o">.</span><span class="n">NmtBin</span><span class="p">(</span><span class="n">nside</span><span class="p">,</span><span class="n">nlb</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span> <span class="c1">#We will use 20 multipoles per bandpower.</span>
+<span class="k">print</span> <span class="s2">&quot;Workspace&quot;</span>
+<span class="n">w</span><span class="o">=</span><span class="n">nmt</span><span class="o">.</span><span class="n">NmtWorkspace</span><span class="p">()</span>
+<span class="n">w</span><span class="o">.</span><span class="n">compute_coupling_matrix</span><span class="p">(</span><span class="n">f0</span><span class="p">,</span><span class="n">f0</span><span class="p">,</span><span class="n">b</span><span class="p">)</span>
+<span class="n">cl_0</span><span class="o">=</span><span class="n">compute_master</span><span class="p">(</span><span class="n">f0</span><span class="p">,</span><span class="n">f0</span><span class="p">,</span><span class="n">w</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+<span class="c1">#Let&#39;s now compute the Gaussian estimate of the covariance!</span>
+<span class="k">print</span> <span class="s2">&quot;Covariance&quot;</span>
+<span class="c1">#First we generate a NmtCovarianceWorkspace object to precompute</span>
+<span class="c1">#and store the necessary coupling coefficients</span>
+<span class="n">cw</span><span class="o">=</span><span class="n">nmt</span><span class="o">.</span><span class="n">NmtCovarianceWorkspace</span><span class="p">()</span>
+<span class="n">cw</span><span class="o">.</span><span class="n">compute_coupling_coefficients</span><span class="p">(</span><span class="n">w</span><span class="p">,</span><span class="n">w</span><span class="p">)</span> <span class="c1">#&lt;- This is the time-consuming operation</span>
+<span class="n">covar</span><span class="o">=</span><span class="n">nmt</span><span class="o">.</span><span class="n">gaussian_covariance</span><span class="p">(</span><span class="n">cw</span><span class="p">,</span><span class="n">clarr</span><span class="p">,</span><span class="n">clarr</span><span class="p">,</span><span class="n">clarr</span><span class="p">,</span><span class="n">clarr</span><span class="p">)</span>
+
+<span class="c1">#Let&#39;s now compute the sample covariance</span>
+<span class="k">print</span> <span class="s2">&quot;Sample covariance&quot;</span>
+<span class="n">nsamp</span><span class="o">=</span><span class="mi">100</span>
+<span class="n">covar_sample</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">cl_0</span><span class="p">),</span><span class="nb">len</span><span class="p">(</span><span class="n">cl_0</span><span class="p">)])</span>
+<span class="n">mean_sample</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">cl_0</span><span class="p">))</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">nsamp</span><span class="p">)</span> <span class="p">:</span>
+    <span class="k">print</span> <span class="n">i</span>
+    <span class="n">f</span><span class="o">=</span><span class="n">get_sample_field</span><span class="p">()</span>
+    <span class="n">cl</span><span class="o">=</span><span class="n">compute_master</span><span class="p">(</span><span class="n">f</span><span class="p">,</span><span class="n">f</span><span class="p">,</span><span class="n">w</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">covar_sample</span><span class="o">+=</span><span class="n">cl</span><span class="p">[</span><span class="bp">None</span><span class="p">,:]</span><span class="o">*</span><span class="n">cl</span><span class="p">[:,</span><span class="bp">None</span><span class="p">]</span>
+    <span class="n">mean_sample</span><span class="o">+=</span><span class="n">cl</span>
+<span class="n">mean_sample</span><span class="o">/=</span><span class="n">nsamp</span>
+<span class="n">covar_sample</span><span class="o">=</span><span class="n">covar_sample</span><span class="o">/</span><span class="n">nsamp</span><span class="o">-</span><span class="n">mean_sample</span><span class="p">[</span><span class="bp">None</span><span class="p">,:]</span><span class="o">*</span><span class="n">mean_sample</span><span class="p">[:,</span><span class="bp">None</span><span class="p">]</span>
+
+<span class="c1">#Let&#39;s plot them:</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">();</span> <span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">covar</span><span class="p">,</span><span class="n">origin</span><span class="o">=</span><span class="s1">&#39;lower&#39;</span><span class="p">,</span><span class="n">interpolation</span><span class="o">=</span><span class="s1">&#39;nearest&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">();</span> <span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">covar_sample</span><span class="p">,</span><span class="n">origin</span><span class="o">=</span><span class="s1">&#39;lower&#39;</span><span class="p">,</span><span class="n">interpolation</span><span class="o">=</span><span class="s1">&#39;nearest&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">();</span> <span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">covar</span><span class="o">-</span><span class="n">covar_sample</span><span class="p">,</span><span class="n">origin</span><span class="o">=</span><span class="s1">&#39;lower&#39;</span><span class="p">,</span><span class="n">interpolation</span><span class="o">=</span><span class="s1">&#39;nearest&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+      
+        <a href="sample_flat.html" class="btn btn-neutral" title="Example 7: Flat-sky fields" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, David Alonso.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'0.1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

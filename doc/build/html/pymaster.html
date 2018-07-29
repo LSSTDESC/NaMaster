@@ -1,0 +1,1194 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Python API documentation &mdash; pymaster 0.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="genindex.html"/>
+        <link rel="search" title="Search" href="search.html"/>
+    <link rel="top" title="pymaster 0.1 documentation" href="index.html"/>
+        <link rel="next" title="Example 1: simple pseudo-Cl computation" href="sample_simple.html"/>
+        <link rel="prev" title="Welcome to pymaster’s documentation!" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> pymaster
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Python API documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sample_simple.html">Example 1: simple pseudo-Cl computation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sample_bins.html">Example 2: Bandpowers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sample_fields.html">Example 3: Fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sample_masks.html">Example 4: Masks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sample_workspaces.html">Example 5: Using workspaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sample_pureb.html">Example 6: Pure E and B</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sample_flat.html">Example 7: Flat-sky fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sample_covariance.html">Example 8: Computing covariance matrices</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">pymaster</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Python API documentation</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/pymaster.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-pymaster">
+<span id="python-api-documentation"></span><h1>Python API documentation<a class="headerlink" href="#module-pymaster" title="Permalink to this headline">¶</a></h1>
+<p><a class="reference internal" href="#module-pymaster" title="pymaster"><code class="xref py py-mod docutils literal"><span class="pre">pymaster</span></code></a> contains three basic classes:</p>
+<ul class="simple">
+<li><a class="reference internal" href="#pymaster.field.NmtField" title="pymaster.field.NmtField"><code class="xref py py-class docutils literal"><span class="pre">pymaster.field.NmtField</span></code></a></li>
+<li><a class="reference internal" href="#pymaster.bins.NmtBin" title="pymaster.bins.NmtBin"><code class="xref py py-class docutils literal"><span class="pre">pymaster.bins.NmtBin</span></code></a></li>
+<li><a class="reference internal" href="#pymaster.workspaces.NmtWorkspace" title="pymaster.workspaces.NmtWorkspace"><code class="xref py py-class docutils literal"><span class="pre">pymaster.workspaces.NmtWorkspace</span></code></a></li>
+<li><a class="reference internal" href="#pymaster.covariance.NmtCovarianceWorkspace" title="pymaster.covariance.NmtCovarianceWorkspace"><code class="xref py py-class docutils literal"><span class="pre">pymaster.covariance.NmtCovarianceWorkspace</span></code></a></li>
+</ul>
+<p>and a number of functions</p>
+<ul class="simple">
+<li><a class="reference internal" href="#pymaster.workspaces.deprojection_bias" title="pymaster.workspaces.deprojection_bias"><code class="xref py py-func docutils literal"><span class="pre">pymaster.workspaces.deprojection_bias()</span></code></a></li>
+<li><a class="reference internal" href="#pymaster.workspaces.compute_coupled_cell" title="pymaster.workspaces.compute_coupled_cell"><code class="xref py py-func docutils literal"><span class="pre">pymaster.workspaces.compute_coupled_cell()</span></code></a></li>
+<li><a class="reference internal" href="#pymaster.workspaces.compute_full_master" title="pymaster.workspaces.compute_full_master"><code class="xref py py-func docutils literal"><span class="pre">pymaster.workspaces.compute_full_master()</span></code></a></li>
+<li><a class="reference internal" href="#pymaster.covariance.gaussian_covariance" title="pymaster.covariance.gaussian_covariance"><code class="xref py py-func docutils literal"><span class="pre">pymaster.covariance.gaussian_covariance()</span></code></a></li>
+<li><a class="reference internal" href="#pymaster.utils.mask_apodization" title="pymaster.utils.mask_apodization"><code class="xref py py-func docutils literal"><span class="pre">pymaster.utils.mask_apodization()</span></code></a></li>
+<li><a class="reference internal" href="#pymaster.utils.synfast_spherical" title="pymaster.utils.synfast_spherical"><code class="xref py py-func docutils literal"><span class="pre">pymaster.utils.synfast_spherical()</span></code></a></li>
+</ul>
+<p><a class="reference internal" href="#module-pymaster" title="pymaster"><code class="xref py py-mod docutils literal"><span class="pre">pymaster</span></code></a> also comes with a flat-sky version with most of the same functionality:</p>
+<ul class="simple">
+<li><a class="reference internal" href="#pymaster.field.NmtFieldFlat" title="pymaster.field.NmtFieldFlat"><code class="xref py py-class docutils literal"><span class="pre">pymaster.field.NmtFieldFlat</span></code></a></li>
+<li><a class="reference internal" href="#pymaster.bins.NmtBinFlat" title="pymaster.bins.NmtBinFlat"><code class="xref py py-class docutils literal"><span class="pre">pymaster.bins.NmtBinFlat</span></code></a></li>
+<li><a class="reference internal" href="#pymaster.workspaces.NmtWorkspaceFlat" title="pymaster.workspaces.NmtWorkspaceFlat"><code class="xref py py-class docutils literal"><span class="pre">pymaster.workspaces.NmtWorkspaceFlat</span></code></a></li>
+<li><a class="reference internal" href="#pymaster.workspaces.deprojection_bias_flat" title="pymaster.workspaces.deprojection_bias_flat"><code class="xref py py-func docutils literal"><span class="pre">pymaster.workspaces.deprojection_bias_flat()</span></code></a></li>
+<li><a class="reference internal" href="#pymaster.workspaces.compute_coupled_cell_flat" title="pymaster.workspaces.compute_coupled_cell_flat"><code class="xref py py-func docutils literal"><span class="pre">pymaster.workspaces.compute_coupled_cell_flat()</span></code></a></li>
+<li><a class="reference internal" href="#pymaster.workspaces.compute_full_master_flat" title="pymaster.workspaces.compute_full_master_flat"><code class="xref py py-func docutils literal"><span class="pre">pymaster.workspaces.compute_full_master_flat()</span></code></a></li>
+<li><a class="reference internal" href="#pymaster.utils.mask_apodization_flat" title="pymaster.utils.mask_apodization_flat"><code class="xref py py-func docutils literal"><span class="pre">pymaster.utils.mask_apodization_flat()</span></code></a></li>
+<li><a class="reference internal" href="#pymaster.utils.synfast_flat" title="pymaster.utils.synfast_flat"><code class="xref py py-func docutils literal"><span class="pre">pymaster.utils.synfast_flat()</span></code></a></li>
+</ul>
+<p>Many of these function accept or return sets of power spectra (arrays with one element per angular multipole) or bandpowers (binned versions of power spectra). In all cases, these are returned and provided as 2D arrays with shape [n_cls][nl], where n_cls is the number of power spectra and nl is either the number of multipoles or bandpowers. In all cases, n_cls should correspond with the spins of the two fields being correlated, and the ordering is as follows:</p>
+<ul class="simple">
+<li>Two spin-0 fields: n_cls=1, [C_T1T2]</li>
+<li>One spin-0 field and one spin-2 field: n_cls=2, [C_TE,C_TB]</li>
+<li>Two spin-2 fields: n_cls=4, [C_E1E2,C_E1B2,C_E2B1,C_B1B2]</li>
+</ul>
+<p>All sky maps accepted and returned by these functions are in the form of HEALPix maps exclusively with RING ordering.</p>
+<span class="target" id="module-pymaster.field"></span><dl class="class">
+<dt id="pymaster.field.NmtField">
+<em class="property">class </em><code class="descclassname">pymaster.field.</code><code class="descname">NmtField</code><span class="sig-paren">(</span><em>mask</em>, <em>maps</em>, <em>templates=None</em>, <em>beam=None</em>, <em>purify_e=False</em>, <em>purify_b=False</em>, <em>n_iter_mask_purify=3</em>, <em>tol_pinv=1e-10</em><span class="sig-paren">)</span><a class="headerlink" href="#pymaster.field.NmtField" title="Permalink to this definition">¶</a></dt>
+<dd><p>An NmtField object contains all the information describing the fields to correlate, including their observed maps, masks and contaminant templates.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>mask</strong> – array containing a HEALPix map corresponding to the field’s mask.</li>
+<li><strong>maps</strong> – 2D array containing the observed maps for this field. The first dimension corresponds to the number of maps, which should be 1 for a spin-0 field and 2 for a spin-2 field.</li>
+<li><strong>templates</strong> – 3D array containing a set of contaminant templates for this field. This array should have shape [ntemp][nmap][npix], where ntemp is the number of templates, nmap should be 1 for spin-0 fields and 2 for spin-2 fields, and npix is the number of pixels per map. The best-fit contribution from each contaminant is automatically removed from the maps unless templates=None</li>
+<li><strong>beam</strong> – spherical harmonic transform of the instrumental beam (assumed to be rotationally symmetric - i.e. no m dependence). If None, no beam will be corrected for. Otherwise, this array should have 3*nside elements, corresponding to multipoles from 0 to 3*nside-1.</li>
+<li><strong>purify_e</strong> – use pure E-modes?</li>
+<li><strong>purify_b</strong> – use pure B-modes?</li>
+<li><strong>n_iter_mask_purify</strong> – number of iterations used to compute an accurate SHT of the mask when using E/B purification</li>
+<li><strong>tol_pinv</strong> – when computing the pseudo-inverse of the contaminant covariance matrix, all eigenvalues below tol_pinv * max_eval will be treated as singular values, where max_eval is the largest eigenvalue. Only relevant if passing contaminant templates that are likely to be highly correlated.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="pymaster.field.NmtField.get_maps">
+<code class="descname">get_maps</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pymaster.field.NmtField.get_maps" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a 2D array ([nmap][npix]) corresponding to the observed maps for this field. If the field was initialized with contaminant templates, the maps returned by this function have their best-fit contribution from these contaminants removed.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">2D array of HEALPix maps</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pymaster.field.NmtField.get_templates">
+<code class="descname">get_templates</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pymaster.field.NmtField.get_templates" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a 3D array ([ntemp][nmap][npix]) corresponding to the contaminant templates passed when initializing this field.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">3D array of HEALPix maps</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pymaster.field.NmtFieldFlat">
+<em class="property">class </em><code class="descclassname">pymaster.field.</code><code class="descname">NmtFieldFlat</code><span class="sig-paren">(</span><em>lx</em>, <em>ly</em>, <em>mask</em>, <em>maps</em>, <em>templates=None</em>, <em>beam=None</em>, <em>purify_e=False</em>, <em>purify_b=False</em>, <em>tol_pinv=1e-10</em><span class="sig-paren">)</span><a class="headerlink" href="#pymaster.field.NmtFieldFlat" title="Permalink to this definition">¶</a></dt>
+<dd><p>An NmtFieldFlat object contains all the information describing the flat-sky fields to correlate, including their observed maps, masks and contaminant templates.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>lx</strong><strong>,</strong><strong>ly</strong> (<em>float</em>) – size of the patch in the x and y directions (in radians)</li>
+<li><strong>mask</strong> – 2D array (nx,ny) containing a HEALPix map corresponding to the field’s mask.</li>
+<li><strong>maps</strong> – 2 2D arrays (nmaps,nx,ny) containing the observed maps for this field. The first dimension corresponds to the number of maps, which should be 1 for a spin-0 field and 2 for a spin-2 field.</li>
+<li><strong>templates</strong> – array of maps (ntemp,nmaps,nx,ny) containing a set of contaminant templates for this field. This array should have shape [ntemp][nmap][nx][ny], where ntemp is the number of templates, nmap should be 1 for spin-0 fields and 2 for spin-2 fields, and nx,ny define the patch. The best-fit contribution from each contaminant is automatically removed from the maps unless templates=None</li>
+<li><strong>beam</strong> – 2D array (2,nl) defining the FT of the instrumental beam (assumed to be rotationally symmetric). beam[0] should contain the values of l for which de beam is defined, with beam[1] containing the beam values. If None, no beam will be corrected for.</li>
+<li><strong>purify_e</strong> – use pure E-modes?</li>
+<li><strong>purify_b</strong> – use pure B-modes?</li>
+<li><strong>tol_pinv</strong> – when computing the pseudo-inverse of the contaminant covariance matrix, all eigenvalues below tol_pinv * max_eval will be treated as singular values, where max_eval is the largest eigenvalue. Only relevant if passing contaminant templates that are likely to be highly correlated.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="pymaster.field.NmtFieldFlat.get_maps">
+<code class="descname">get_maps</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pymaster.field.NmtFieldFlat.get_maps" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a 3D array ([nmap][ny][nx]) corresponding to the observed maps for this field. If the field was initialized with contaminant templates, the maps returned by this function have their best-fit contribution from these contaminants removed.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">3D array of flat-sky maps</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pymaster.field.NmtFieldFlat.get_templates">
+<code class="descname">get_templates</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pymaster.field.NmtFieldFlat.get_templates" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a 4D array ([ntemp][nmap][ny][nx]) corresponding to the contaminant templates passed when initializing this field.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">4D array of flat-sky maps</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<span class="target" id="module-pymaster.bins"></span><dl class="class">
+<dt id="pymaster.bins.NmtBin">
+<em class="property">class </em><code class="descclassname">pymaster.bins.</code><code class="descname">NmtBin</code><span class="sig-paren">(</span><em>nside</em>, <em>bpws=None</em>, <em>ells=None</em>, <em>weights=None</em>, <em>nlb=None</em>, <em>lmax=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pymaster.bins.NmtBin" title="Permalink to this definition">¶</a></dt>
+<dd><p>An NmtBin object defines the set of bandpowers used in the computation of the pseudo-Cl estimator. The definition of bandpowers is described in Section 3.6 of the scientific documentation.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>nside</strong> (<em>int</em>) – HEALPix nside resolution parameter of the maps you intend to correlate. The maximum multipole considered for bandpowers will be 3*nside-1.</li>
+<li><strong>ells</strong> (<em>array-like</em>) – array of integers corresponding to different multipoles</li>
+<li><strong>bpws</strong> (<em>array-like</em>) – array of integers that assign the multipoles in ells to different bandpowers</li>
+<li><strong>weights</strong> (<em>array-like</em>) – array of floats corresponding to the weights associated to each multipole in ells. The sum of weights within each bandpower is normalized to 1.</li>
+<li><strong>nlb</strong> (<em>int</em>) – integer value corresponding to a constant bandpower width. I.e. the bandpowers will be defined as consecutive sets of nlb multipoles from l=2 to l=lmax (see below) with equal weights. If this argument is provided, the values of ells, bpws and weights are ignored.</li>
+<li><strong>lmax</strong> (<em>int</em>) – integer value corresponding to the maximum multiple used by these bandpowers. If None, it will be set to 3*nside-1. In any case the actual maximum multipole will be chosen as the minimum of lmax, 3*nside-1 and the maximum element of ells.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="pymaster.bins.NmtBin.bin_cell">
+<code class="descname">bin_cell</code><span class="sig-paren">(</span><em>cls_in</em><span class="sig-paren">)</span><a class="headerlink" href="#pymaster.bins.NmtBin.bin_cell" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bins a power spectrum into bandpowers. This is carried out as a weighted average over the multipoles in each bandpower.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>cls_in</strong> (<em>array-like</em>) – 2D array of power spectra</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">array of bandpowers</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pymaster.bins.NmtBin.get_effective_ells">
+<code class="descname">get_effective_ells</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pymaster.bins.NmtBin.get_effective_ells" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns an array with the effective multipole associated to each bandpower. These are computed as a weighted average of the multipoles within each bandpower.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">effective multipoles for each bandpower</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pymaster.bins.NmtBin.get_ell_list">
+<code class="descname">get_ell_list</code><span class="sig-paren">(</span><em>ibin</em><span class="sig-paren">)</span><a class="headerlink" href="#pymaster.bins.NmtBin.get_ell_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns an array with the multipoles in the ibin-th bandpower</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>ibin</strong> (<em>int</em>) – bandpower index</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">multipoles associated with bandpower ibin</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pymaster.bins.NmtBin.get_n_bands">
+<code class="descname">get_n_bands</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pymaster.bins.NmtBin.get_n_bands" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the number of bandpowers stored in this object</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">number of bandpowers</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pymaster.bins.NmtBin.get_nell_list">
+<code class="descname">get_nell_list</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pymaster.bins.NmtBin.get_nell_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns an array with the number of multipoles in each bandpower stored in this object</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">number of multipoles per bandpower</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pymaster.bins.NmtBin.get_weight_list">
+<code class="descname">get_weight_list</code><span class="sig-paren">(</span><em>ibin</em><span class="sig-paren">)</span><a class="headerlink" href="#pymaster.bins.NmtBin.get_weight_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns an array with the weights associated to each multipole in the ibin-th bandpower</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>ibin</strong> (<em>int</em>) – bandpower index</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">weights associated to multipoles in bandpower ibin</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pymaster.bins.NmtBin.unbin_cell">
+<code class="descname">unbin_cell</code><span class="sig-paren">(</span><em>cls_in</em><span class="sig-paren">)</span><a class="headerlink" href="#pymaster.bins.NmtBin.unbin_cell" title="Permalink to this definition">¶</a></dt>
+<dd><p>Un-bins a set of bandpowers into a power spectrum. This is simply done by assigning a constant value for every multipole in each bandpower (corresponding to the value of that bandpower).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>cls_in</strong> (<em>array-like</em>) – array of bandpowers</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">array of power spectra</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pymaster.bins.NmtBinFlat">
+<em class="property">class </em><code class="descclassname">pymaster.bins.</code><code class="descname">NmtBinFlat</code><span class="sig-paren">(</span><em>l0</em>, <em>lf</em><span class="sig-paren">)</span><a class="headerlink" href="#pymaster.bins.NmtBinFlat" title="Permalink to this definition">¶</a></dt>
+<dd><p>An NmtBinFlat object defines the set of bandpowers used in the computation of the pseudo-Cl estimator. The definition of bandpowers is described in Section 3.6 of the scientific documentation. Note that currently pymaster only supports top-hat bandpowers for flat-sky power spectra.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>l0</strong> (<em>array-like</em>) – array of floats corresponding to the lower bound of each bandpower.</li>
+<li><strong>lf</strong> (<em>array-like</em>) – array of floats corresponding to the upper bound of each bandpower. lf should have the same shape as l0</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="pymaster.bins.NmtBinFlat.bin_cell">
+<code class="descname">bin_cell</code><span class="sig-paren">(</span><em>ells</em>, <em>cls_in</em><span class="sig-paren">)</span><a class="headerlink" href="#pymaster.bins.NmtBinFlat.bin_cell" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bins a power spectrum into bandpowers. This is carried out as a weighted average over the multipoles in each bandpower.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>ells</strong> (<em>array-like</em>) – multipole values at which the input power spectra are defined</li>
+<li><strong>cls_in</strong> (<em>array-like</em>) – 2D array of input power spectra</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">array of bandpowers</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pymaster.bins.NmtBinFlat.get_effective_ells">
+<code class="descname">get_effective_ells</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pymaster.bins.NmtBinFlat.get_effective_ells" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns an array with the effective multipole associated to each bandpower. These are computed as a weighted average of the multipoles within each bandpower.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">effective multipoles for each bandpower</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pymaster.bins.NmtBinFlat.get_n_bands">
+<code class="descname">get_n_bands</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pymaster.bins.NmtBinFlat.get_n_bands" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the number of bandpowers stored in this object</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">number of bandpowers</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pymaster.bins.NmtBinFlat.unbin_cell">
+<code class="descname">unbin_cell</code><span class="sig-paren">(</span><em>cls_in</em>, <em>ells</em><span class="sig-paren">)</span><a class="headerlink" href="#pymaster.bins.NmtBinFlat.unbin_cell" title="Permalink to this definition">¶</a></dt>
+<dd><p>Un-bins a set of bandpowers into a power spectrum. This is simply done by assigning a constant value for every multipole in each bandpower (corresponding to the value of that bandpower).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>cls_in</strong> (<em>array-like</em>) – array of bandpowers</li>
+<li><strong>ells</strong> (<em>array-like</em>) – array of multipoles at which the power spectra should be intepolated</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">array of power spectra</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<span class="target" id="module-pymaster.workspaces"></span><dl class="class">
+<dt id="pymaster.workspaces.NmtWorkspace">
+<em class="property">class </em><code class="descclassname">pymaster.workspaces.</code><code class="descname">NmtWorkspace</code><a class="headerlink" href="#pymaster.workspaces.NmtWorkspace" title="Permalink to this definition">¶</a></dt>
+<dd><p>NmtWorkspace objects are used to compute and store the coupling matrix associated with an incomplete sky coverage, and used in the MASTER algorithm. When initialized, this object is practically empty. The information describing the coupling matrix must be computed or read from a file afterwards.</p>
+<dl class="method">
+<dt id="pymaster.workspaces.NmtWorkspace.compute_coupling_matrix">
+<code class="descname">compute_coupling_matrix</code><span class="sig-paren">(</span><em>fl1</em>, <em>fl2</em>, <em>bins</em><span class="sig-paren">)</span><a class="headerlink" href="#pymaster.workspaces.NmtWorkspace.compute_coupling_matrix" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes coupling matrix associated with the cross-power spectrum of two NmtFields and an NmtBin binning scheme.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>fl1</strong><strong>,</strong><strong>fl2</strong> (<a class="reference internal" href="#pymaster.field.NmtField" title="pymaster.field.NmtField"><em>NmtField</em></a>) – fields to correlate</li>
+<li><strong>bin</strong> (<a class="reference internal" href="#pymaster.bins.NmtBin" title="pymaster.bins.NmtBin"><em>NmtBin</em></a>) – binning scheme</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pymaster.workspaces.NmtWorkspace.couple_cell">
+<code class="descname">couple_cell</code><span class="sig-paren">(</span><em>cl_in</em><span class="sig-paren">)</span><a class="headerlink" href="#pymaster.workspaces.NmtWorkspace.couple_cell" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convolves a set of input power spectra with a coupling matrix (see Eq. 6 of the C API documentation).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>cl_in</strong> – set of input power spectra. The number of power spectra must correspond to the spins of the two fields that this NmtWorkspace object was initialized with (i.e. 1 for two spin-0 fields, 2 for one spin-0 and one spin-2 field and 4 for two spin-2 fields).</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">coupled power spectrum</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pymaster.workspaces.NmtWorkspace.decouple_cell">
+<code class="descname">decouple_cell</code><span class="sig-paren">(</span><em>cl_in</em>, <em>cl_bias=None</em>, <em>cl_noise=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pymaster.workspaces.NmtWorkspace.decouple_cell" title="Permalink to this definition">¶</a></dt>
+<dd><p>Decouples a set of pseudo-Cl power spectra into a set of bandpowers by inverting the binned coupling matrix (se Eq. 4 of the C API documentation).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>cl_in</strong> – set of input power spectra. The number of power spectra must correspond to the spins of the two fields that this NmtWorkspace object was initialized with (i.e. 1 for two spin-0 fields, 2 for one spin-0 and one spin-2 field and 4 for two spin-2 fields).</li>
+<li><strong>cl_bias</strong> – bias to the power spectrum associated to contaminant residuals (optional). This can be computed through <code class="xref py py-func docutils literal"><span class="pre">pymaster.deprojection_bias()</span></code>.</li>
+<li><strong>cl_noise</strong> – noise bias (i.e. angular power spectrum of masked noise realizations).</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">set of decoupled bandpowers</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pymaster.workspaces.NmtWorkspace.read_from">
+<code class="descname">read_from</code><span class="sig-paren">(</span><em>fname</em><span class="sig-paren">)</span><a class="headerlink" href="#pymaster.workspaces.NmtWorkspace.read_from" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reads the contents of an NmtWorkspace object from a file (encoded using an internal binary format).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>fname</strong> (<em>str</em>) – input file name</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pymaster.workspaces.NmtWorkspace.write_to">
+<code class="descname">write_to</code><span class="sig-paren">(</span><em>fname</em><span class="sig-paren">)</span><a class="headerlink" href="#pymaster.workspaces.NmtWorkspace.write_to" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes the contents of an NmtWorkspace object to a file (encoded using an internal binary format).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>fname</strong> (<em>str</em>) – output file name</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pymaster.workspaces.NmtWorkspaceFlat">
+<em class="property">class </em><code class="descclassname">pymaster.workspaces.</code><code class="descname">NmtWorkspaceFlat</code><a class="headerlink" href="#pymaster.workspaces.NmtWorkspaceFlat" title="Permalink to this definition">¶</a></dt>
+<dd><p>NmtWorkspaceFlat objects are used to compute and store the coupling matrix associated with an incomplete sky coverage, and used in the flat-sky version of the MASTER algorithm. When initialized, this object is practically empty. The information describing the coupling matrix must be computed or read from a file afterwards.</p>
+<dl class="method">
+<dt id="pymaster.workspaces.NmtWorkspaceFlat.compute_coupling_matrix">
+<code class="descname">compute_coupling_matrix</code><span class="sig-paren">(</span><em>fl1, fl2, bins, ell_cut_x=[1.0, -1.0], ell_cut_y=[1.0, -1.0]</em><span class="sig-paren">)</span><a class="headerlink" href="#pymaster.workspaces.NmtWorkspaceFlat.compute_coupling_matrix" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes coupling matrix associated with the cross-power spectrum of two NmtFieldFlats and an NmtBinFlat binning scheme.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>fl1</strong><strong>,</strong><strong>fl2</strong> (<a class="reference internal" href="#pymaster.field.NmtFieldFlat" title="pymaster.field.NmtFieldFlat"><em>NmtFieldFlat</em></a>) – fields to correlate</li>
+<li><strong>bin</strong> (<a class="reference internal" href="#pymaster.bins.NmtBinFlat" title="pymaster.bins.NmtBinFlat"><em>NmtBinFlat</em></a>) – binning scheme</li>
+<li><strong>ell_cut_x</strong> (<em>float</em><em>(</em><em>2</em><em>)</em>) – remove all modes with ell_x in the interval [ell_cut_x[0],ell_cut_x[1]] from the calculation.</li>
+<li><strong>ell_cut_y</strong> (<em>float</em><em>(</em><em>2</em><em>)</em>) – remove all modes with ell_y in the interval [ell_cut_y[0],ell_cut_y[1]] from the calculation.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pymaster.workspaces.NmtWorkspaceFlat.couple_cell">
+<code class="descname">couple_cell</code><span class="sig-paren">(</span><em>ells</em>, <em>cl_in</em><span class="sig-paren">)</span><a class="headerlink" href="#pymaster.workspaces.NmtWorkspaceFlat.couple_cell" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convolves a set of input power spectra with a coupling matrix (see Eq. 6 of the C API documentation).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>ells</strong> – list of multipoles on which the input power spectra are defined</li>
+<li><strong>cl_in</strong> – set of input power spectra. The number of power spectra must correspond to the spins of the two fields that this NmtWorkspaceFlat object was initialized with (i.e. 1 for two spin-0 fields, 2 for one spin-0 and one spin-2 field and 4 for two spin-2 fields).</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">coupled power spectrum. The coupled power spectra are returned at the multipoles returned by calling <code class="xref py py-func docutils literal"><span class="pre">get_ell_sampling()</span></code> for any of the fields that were used to generate the workspace.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pymaster.workspaces.NmtWorkspaceFlat.decouple_cell">
+<code class="descname">decouple_cell</code><span class="sig-paren">(</span><em>cl_in</em>, <em>cl_bias=None</em>, <em>cl_noise=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pymaster.workspaces.NmtWorkspaceFlat.decouple_cell" title="Permalink to this definition">¶</a></dt>
+<dd><p>Decouples a set of pseudo-Cl power spectra into a set of bandpowers by inverting the binned coupling matrix (se Eq. 4 of the C API documentation).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>cl_in</strong> – set of input power spectra. The number of power spectra must correspond to the spins of the two fields that this NmtWorkspaceFlat object was initialized with (i.e. 1 for two spin-0 fields, 2 for one spin-0 and one spin-2 field and 4 for two spin-2 fields). These power spectra must be defined at the multipoles returned by <code class="xref py py-func docutils literal"><span class="pre">get_ell_sampling()</span></code> for any of the fields used to create the workspace.</li>
+<li><strong>cl_bias</strong> – bias to the power spectrum associated to contaminant residuals (optional). This can be computed through <code class="xref py py-func docutils literal"><span class="pre">pymaster.deprojection_bias_flat()</span></code>.</li>
+<li><strong>cl_noise</strong> – noise bias (i.e. angular power spectrum of masked noise realizations).</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">set of decoupled bandpowers</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pymaster.workspaces.NmtWorkspaceFlat.read_from">
+<code class="descname">read_from</code><span class="sig-paren">(</span><em>fname</em><span class="sig-paren">)</span><a class="headerlink" href="#pymaster.workspaces.NmtWorkspaceFlat.read_from" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reads the contents of an NmtWorkspaceFlat object from a file (encoded using an internal binary format).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>fname</strong> (<em>str</em>) – input file name</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pymaster.workspaces.NmtWorkspaceFlat.write_to">
+<code class="descname">write_to</code><span class="sig-paren">(</span><em>fname</em><span class="sig-paren">)</span><a class="headerlink" href="#pymaster.workspaces.NmtWorkspaceFlat.write_to" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes the contents of an NmtWorkspaceFlat object to a file (encoded using an internal binary format).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>fname</strong> (<em>str</em>) – output file name</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="pymaster.workspaces.compute_coupled_cell">
+<code class="descclassname">pymaster.workspaces.</code><code class="descname">compute_coupled_cell</code><span class="sig-paren">(</span><em>f1</em>, <em>f2</em>, <em>n_iter=3</em><span class="sig-paren">)</span><a class="headerlink" href="#pymaster.workspaces.compute_coupled_cell" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes the full-sky angular power spectra of two masked fields (f1 and f2) without aiming to deconvolve the mode-coupling matrix. Effectively, this is equivalent to calling the usual HEALPix anafast routine on the masked and contaminant-cleaned maps.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>f1</strong><strong>,</strong><strong>f2</strong> (<a class="reference internal" href="#pymaster.field.NmtField" title="pymaster.field.NmtField"><em>NmtField</em></a>) – fields to correlate</li>
+<li><strong>n_iter</strong> (<em>int</em>) – number of iterations for SHTs (optional)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">array of coupled power spectra</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pymaster.workspaces.compute_coupled_cell_flat">
+<code class="descclassname">pymaster.workspaces.</code><code class="descname">compute_coupled_cell_flat</code><span class="sig-paren">(</span><em>f1, f2, b, ell_cut_x=[1.0, -1.0], ell_cut_y=[1.0, -1.0]</em><span class="sig-paren">)</span><a class="headerlink" href="#pymaster.workspaces.compute_coupled_cell_flat" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes the angular power spectra of two masked flat-sky fields (f1 and f2) without aiming to deconvolve the mode-coupling matrix. Effectively, this is equivalent to computing the map FFTs and averaging over rings of wavenumber.  The returned power spectrum is defined at the multipoles returned by the method <code class="xref py py-func docutils literal"><span class="pre">get_ell_sampling()</span></code> of either f1 or f2.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>f1</strong><strong>,</strong><strong>f2</strong> (<a class="reference internal" href="#pymaster.field.NmtFieldFlat" title="pymaster.field.NmtFieldFlat"><em>NmtFieldFlat</em></a>) – fields to correlate</li>
+<li><strong>b</strong> (<a class="reference internal" href="#pymaster.bins.NmtBinFlat" title="pymaster.bins.NmtBinFlat"><em>NmtBinFlat</em></a>) – binning scheme defining output bandpower</li>
+<li><strong>ell_cut_x</strong> (<em>float</em><em>(</em><em>2</em><em>)</em>) – remove all modes with ell_x in the interval [ell_cut_x[0],ell_cut_x[1]] from the calculation.</li>
+<li><strong>ell_cut_y</strong> (<em>float</em><em>(</em><em>2</em><em>)</em>) – remove all modes with ell_y in the interval [ell_cut_y[0],ell_cut_y[1]] from the calculation.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">array of coupled power spectra</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pymaster.workspaces.compute_full_master">
+<code class="descclassname">pymaster.workspaces.</code><code class="descname">compute_full_master</code><span class="sig-paren">(</span><em>f1</em>, <em>f2</em>, <em>b</em>, <em>cl_noise=None</em>, <em>cl_guess=None</em>, <em>workspace=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pymaster.workspaces.compute_full_master" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes the full MASTER estimate of the power spectrum of two fields (f1 and f2). This is equivalent to successively calling:</p>
+<ul class="simple">
+<li><code class="xref py py-func docutils literal"><span class="pre">pymaster.NmtWorkspace.compute_coupling_matrix()</span></code></li>
+<li><code class="xref py py-func docutils literal"><span class="pre">pymaster.deprojection_bias()</span></code></li>
+<li><code class="xref py py-func docutils literal"><span class="pre">pymaster.compute_coupled_cell()</span></code></li>
+<li><code class="xref py py-func docutils literal"><span class="pre">pymaster.NmtWorkspace.decouple_cell()</span></code></li>
+</ul>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>f1</strong><strong>,</strong><strong>f2</strong> (<a class="reference internal" href="#pymaster.field.NmtField" title="pymaster.field.NmtField"><em>NmtField</em></a>) – fields to correlate</li>
+<li><strong>b</strong> (<a class="reference internal" href="#pymaster.bins.NmtBin" title="pymaster.bins.NmtBin"><em>NmtBin</em></a>) – binning scheme defining output bandpower</li>
+<li><strong>cl_noise</strong> – noise bias (i.e. angular power spectrum of masked noise realizations) (optional).</li>
+<li><strong>cl_guess</strong> – set of power spectra corresponding to a best-guess of the true power spectra of f1 and f2. Needed only to compute the contaminant cleaning bias (optional).</li>
+<li><strong>workspace</strong> (<a class="reference internal" href="#pymaster.workspaces.NmtWorkspace" title="pymaster.workspaces.NmtWorkspace"><em>NmtWorkspace</em></a>) – object containing the mode-coupling matrix associated with an incomplete sky coverage. If provided, the function will skip the computation of the mode-coupling matrix and use the information encoded in this object.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">set of decoupled bandpowers</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pymaster.workspaces.compute_full_master_flat">
+<code class="descclassname">pymaster.workspaces.</code><code class="descname">compute_full_master_flat</code><span class="sig-paren">(</span><em>f1, f2, b, cl_noise=None, cl_guess=None, ells_guess=None, workspace=None, ell_cut_x=[1.0, -1.0], ell_cut_y=[1.0, -1.0]</em><span class="sig-paren">)</span><a class="headerlink" href="#pymaster.workspaces.compute_full_master_flat" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes the full MASTER estimate of the power spectrum of two flat-sky fields (f1 and f2). This is equivalent to successively calling:</p>
+<ul class="simple">
+<li><code class="xref py py-func docutils literal"><span class="pre">pymaster.NmtWorkspaceFlat.compute_coupling_matrix()</span></code></li>
+<li><code class="xref py py-func docutils literal"><span class="pre">pymaster.deprojection_bias_flat()</span></code></li>
+<li><code class="xref py py-func docutils literal"><span class="pre">pymaster.compute_coupled_cell_flat()</span></code></li>
+<li><code class="xref py py-func docutils literal"><span class="pre">pymaster.NmtWorkspaceFlat.decouple_cell()</span></code></li>
+</ul>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>f1</strong><strong>,</strong><strong>f2</strong> (<a class="reference internal" href="#pymaster.field.NmtFieldFlat" title="pymaster.field.NmtFieldFlat"><em>NmtFieldFlat</em></a>) – fields to correlate</li>
+<li><strong>b</strong> (<a class="reference internal" href="#pymaster.bins.NmtBinFlat" title="pymaster.bins.NmtBinFlat"><em>NmtBinFlat</em></a>) – binning scheme defining output bandpower</li>
+<li><strong>cl_noise</strong> – noise bias (i.e. angular power spectrum of masked noise realizations) (optional).  This power spectrum should correspond to the bandpowers defined by b.</li>
+<li><strong>cl_guess</strong> – set of power spectra corresponding to a best-guess of the true power spectra of f1 and f2. Needed only to compute the contaminant cleaning bias (optional).</li>
+<li><strong>ells_guess</strong> – multipoles at which cl_guess is defined.</li>
+<li><strong>workspace</strong> (<a class="reference internal" href="#pymaster.workspaces.NmtWorkspaceFlat" title="pymaster.workspaces.NmtWorkspaceFlat"><em>NmtWorkspaceFlat</em></a>) – object containing the mode-coupling matrix associated with an incomplete sky coverage. If provided, the function will skip the computation of the mode-coupling matrix and use the information encoded in this object.</li>
+<li><strong>nell_rebin</strong> (<em>int</em>) – number of sub-intervals into which the base k-intervals will be sub-sampled to compute the coupling matrix</li>
+<li><strong>ell_cut_x</strong> (<em>float</em><em>(</em><em>2</em><em>)</em>) – remove all modes with ell_x in the interval [ell_cut_x[0],ell_cut_x[1]] from the calculation.</li>
+<li><strong>ell_cut_y</strong> (<em>float</em><em>(</em><em>2</em><em>)</em>) – remove all modes with ell_y in the interval [ell_cut_y[0],ell_cut_y[1]] from the calculation.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">set of decoupled bandpowers</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pymaster.workspaces.deprojection_bias">
+<code class="descclassname">pymaster.workspaces.</code><code class="descname">deprojection_bias</code><span class="sig-paren">(</span><em>f1</em>, <em>f2</em>, <em>cls_guess</em><span class="sig-paren">)</span><a class="headerlink" href="#pymaster.workspaces.deprojection_bias" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes the bias associated to contaminant removal to the cross-pseudo-Cl of two fields.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>f1</strong><strong>,</strong><strong>f2</strong> (<a class="reference internal" href="#pymaster.field.NmtField" title="pymaster.field.NmtField"><em>NmtField</em></a>) – fields to correlate</li>
+<li><strong>cls_guess</strong> – set of power spectra corresponding to a best-guess of the true power spectra of f1 and f2.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">deprojection bias power spectra.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pymaster.workspaces.deprojection_bias_flat">
+<code class="descclassname">pymaster.workspaces.</code><code class="descname">deprojection_bias_flat</code><span class="sig-paren">(</span><em>f1, f2, b, ells, cls_guess, ell_cut_x=[1.0, -1.0], ell_cut_y=[1.0, -1.0]</em><span class="sig-paren">)</span><a class="headerlink" href="#pymaster.workspaces.deprojection_bias_flat" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes the bias associated to contaminant removal to the cross-pseudo-Cl of two flat-sky fields. The returned power spectrum is defined at the multipoles returned by the method <code class="xref py py-func docutils literal"><span class="pre">get_ell_sampling()</span></code> of either f1 or f2.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>f1</strong><strong>,</strong><strong>f2</strong> (<a class="reference internal" href="#pymaster.field.NmtFieldFlat" title="pymaster.field.NmtFieldFlat"><em>NmtFieldFlat</em></a>) – fields to correlate</li>
+<li><strong>b</strong> (<a class="reference internal" href="#pymaster.bins.NmtBinFlat" title="pymaster.bins.NmtBinFlat"><em>NmtBinFlat</em></a>) – binning scheme defining output bandpower</li>
+<li><strong>ells</strong> – list of multipoles on which the proposal power spectra are defined</li>
+<li><strong>cls_guess</strong> – set of power spectra corresponding to a best-guess of the true power spectra of f1 and f2.</li>
+<li><strong>ell_cut_x</strong> (<em>float</em><em>(</em><em>2</em><em>)</em>) – remove all modes with ell_x in the interval [ell_cut_x[0],ell_cut_x[1]] from the calculation.</li>
+<li><strong>ell_cut_y</strong> (<em>float</em><em>(</em><em>2</em><em>)</em>) – remove all modes with ell_y in the interval [ell_cut_y[0],ell_cut_y[1]] from the calculation.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">deprojection bias power spectra.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pymaster.workspaces.uncorr_noise_deprojection_bias">
+<code class="descclassname">pymaster.workspaces.</code><code class="descname">uncorr_noise_deprojection_bias</code><span class="sig-paren">(</span><em>f1</em>, <em>map_var</em><span class="sig-paren">)</span><a class="headerlink" href="#pymaster.workspaces.uncorr_noise_deprojection_bias" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes the bias associated to contaminant removal in the presence of uncorrelated inhomogeneous noise to the auto-pseudo-Cl of a given field f1.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>f1</strong> (<a class="reference internal" href="#pymaster.field.NmtField" title="pymaster.field.NmtField"><em>NmtField</em></a>) – fields to correlate</li>
+<li><strong>map_cls_guess</strong> – array containing a HEALPix map corresponding to the local noise variance (in one sterad).</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">deprojection bias power spectra.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<span class="target" id="module-pymaster.covariance"></span><dl class="class">
+<dt id="pymaster.covariance.NmtCovarianceWorkspace">
+<em class="property">class </em><code class="descclassname">pymaster.covariance.</code><code class="descname">NmtCovarianceWorkspace</code><a class="headerlink" href="#pymaster.covariance.NmtCovarianceWorkspace" title="Permalink to this definition">¶</a></dt>
+<dd><p>NmtCovarianceWorkspace objects are used to compute and store the coupling coefficients needed to calculate the Gaussian covariance matrix under the Efstathiou approximation (astro-ph/0307515). When initialized, this object is practically empty. The information describing the coupling coefficients must be computed or read from a file afterwards.</p>
+<dl class="method">
+<dt id="pymaster.covariance.NmtCovarianceWorkspace.compute_coupling_coefficients">
+<code class="descname">compute_coupling_coefficients</code><span class="sig-paren">(</span><em>wa</em>, <em>wb</em><span class="sig-paren">)</span><a class="headerlink" href="#pymaster.covariance.NmtCovarianceWorkspace.compute_coupling_coefficients" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes coupling coefficients of the Gaussian covariance between the power spectra computed using wa and wb (two NmtWorkspace objects).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>wa</strong><strong>,</strong><strong>wb</strong> (<a class="reference internal" href="#pymaster.workspaces.NmtWorkspace" title="pymaster.workspaces.NmtWorkspace"><em>NmtWorkspace</em></a>) – workspaces used to compute the two power spectra whose covariance matrix you want to compute.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pymaster.covariance.NmtCovarianceWorkspace.read_from">
+<code class="descname">read_from</code><span class="sig-paren">(</span><em>fname</em><span class="sig-paren">)</span><a class="headerlink" href="#pymaster.covariance.NmtCovarianceWorkspace.read_from" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reads the contents of an NmtCovarianceWorkspace object from a file (encoded using an internal binary format).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>fname</strong> (<em>str</em>) – input file name</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pymaster.covariance.NmtCovarianceWorkspace.write_to">
+<code class="descname">write_to</code><span class="sig-paren">(</span><em>fname</em><span class="sig-paren">)</span><a class="headerlink" href="#pymaster.covariance.NmtCovarianceWorkspace.write_to" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes the contents of an NmtCovarianceWorkspace object to a file (encoded using an internal binary format).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>fname</strong> (<em>str</em>) – output file name</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pymaster.covariance.NmtCovarianceWorkspaceFlat">
+<em class="property">class </em><code class="descclassname">pymaster.covariance.</code><code class="descname">NmtCovarianceWorkspaceFlat</code><a class="headerlink" href="#pymaster.covariance.NmtCovarianceWorkspaceFlat" title="Permalink to this definition">¶</a></dt>
+<dd><p>NmtCovarianceWorkspaceFlat objects are used to compute and store the coupling coefficients needed to calculate the Gaussian covariance matrix under a flat-sky version the Efstathiou approximation (astro-ph/0307515). When initialized, this object is practically empty. The information describing the coupling coefficients must be computed or read from a file afterwards.</p>
+<dl class="method">
+<dt id="pymaster.covariance.NmtCovarianceWorkspaceFlat.compute_coupling_coefficients">
+<code class="descname">compute_coupling_coefficients</code><span class="sig-paren">(</span><em>wa</em>, <em>wb</em><span class="sig-paren">)</span><a class="headerlink" href="#pymaster.covariance.NmtCovarianceWorkspaceFlat.compute_coupling_coefficients" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes coupling coefficients of the Gaussian covariance between the power spectra computed using wa and wb (two NmtWorkspaceFlat objects).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>wa</strong><strong>,</strong><strong>wb</strong> (<a class="reference internal" href="#pymaster.workspaces.NmtWorkspaceFlat" title="pymaster.workspaces.NmtWorkspaceFlat"><em>NmtWorkspaceFlat</em></a>) – workspaces used to compute the two power spectra whose covariance matrix you want to compute.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pymaster.covariance.NmtCovarianceWorkspaceFlat.read_from">
+<code class="descname">read_from</code><span class="sig-paren">(</span><em>fname</em><span class="sig-paren">)</span><a class="headerlink" href="#pymaster.covariance.NmtCovarianceWorkspaceFlat.read_from" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reads the contents of an NmtCovarianceWorkspaceFlat object from a file (encoded using an internal binary format).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>fname</strong> (<em>str</em>) – input file name</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pymaster.covariance.NmtCovarianceWorkspaceFlat.write_to">
+<code class="descname">write_to</code><span class="sig-paren">(</span><em>fname</em><span class="sig-paren">)</span><a class="headerlink" href="#pymaster.covariance.NmtCovarianceWorkspaceFlat.write_to" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes the contents of an NmtCovarianceWorkspaceFlat object to a file (encoded using an internal binary format).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>fname</strong> (<em>str</em>) – output file name</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="pymaster.covariance.gaussian_covariance">
+<code class="descclassname">pymaster.covariance.</code><code class="descname">gaussian_covariance</code><span class="sig-paren">(</span><em>cw</em>, <em>cla1b1</em>, <em>cla1b2</em>, <em>cla2b1</em>, <em>cla2b2</em><span class="sig-paren">)</span><a class="headerlink" href="#pymaster.covariance.gaussian_covariance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes Gaussian covariance matrix for power spectra using the information precomputed in cw (a NmtCovarianceWorkspace object). cw should have been initialized using the two NmtWorkspace objects used to compute these power spectra. The notation above assumes that these two NmtWorkspace objects, wa and wb, were used to compute the power spectra of four fields: a1 and a2 for wa, b1 and b2 for wb. Then, claXbY above should be a prediction for the power spectrum between fields aX and bY. These predicted input power spectra should be defined for all ells &lt;=3*nside (where nside is the HEALPix resolution parameter of the fields that were correlated).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>cw</strong> (<a class="reference internal" href="#pymaster.covariance.NmtCovarianceWorkspace" title="pymaster.covariance.NmtCovarianceWorkspace"><em>NmtCovarianceWorkspace</em></a>) – workspaces containing the precomputed coupling coefficients.</li>
+<li><strong>cla1b1</strong> – prediction for the cross-power spectrum between a1 and b1.</li>
+<li><strong>cla1b2</strong> – prediction for the cross-power spectrum between a1 and b2.</li>
+<li><strong>cla2b1</strong> – prediction for the cross-power spectrum between a2 and b1.</li>
+<li><strong>cla2b2</strong> – prediction for the cross-power spectrum between a2 and b2.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pymaster.covariance.gaussian_covariance_flat">
+<code class="descclassname">pymaster.covariance.</code><code class="descname">gaussian_covariance_flat</code><span class="sig-paren">(</span><em>cw</em>, <em>larr</em>, <em>cla1b1</em>, <em>cla1b2</em>, <em>cla2b1</em>, <em>cla2b2</em><span class="sig-paren">)</span><a class="headerlink" href="#pymaster.covariance.gaussian_covariance_flat" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes Gaussian covariance matrix for flat-sky power spectra using the information precomputed in cw (a NmtCovarianceWorkspaceFlat object). cw should have been initialized using the two NmtWorkspaceFlat objects used to compute these power spectra. The notation above assumes that these two NmtWorkspaceFlat objects, wa and wb, were used to compute the power spectra of four fields: a1 and a2 for wa, b1 and b2 for wb. Then, claXbY above should be a prediction for the power spectrum between fields aX and bY. These predicted input power spectra should be defined in a sufficiently well sampled range of ells given themap properties from which the power spectra were computed. The values of ell at which they are sampled are given by larr.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>cw</strong> (<a class="reference internal" href="#pymaster.covariance.NmtCovarianceWorkspaceFlat" title="pymaster.covariance.NmtCovarianceWorkspaceFlat"><em>NmtCovarianceWorkspaceFlat</em></a>) – workspaces containing the precomputed coupling coefficients.</li>
+<li><strong>larr</strong> – values of ell at which the following power spectra are computed.</li>
+<li><strong>cla1b1</strong> – prediction for the cross-power spectrum between a1 and b1.</li>
+<li><strong>cla1b2</strong> – prediction for the cross-power spectrum between a1 and b2.</li>
+<li><strong>cla2b1</strong> – prediction for the cross-power spectrum between a2 and b1.</li>
+<li><strong>cla2b2</strong> – prediction for the cross-power spectrum between a2 and b2.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<span class="target" id="module-pymaster.utils"></span><dl class="function">
+<dt id="pymaster.utils.mask_apodization">
+<code class="descclassname">pymaster.utils.</code><code class="descname">mask_apodization</code><span class="sig-paren">(</span><em>mask_in</em>, <em>aposize</em>, <em>apotype='C1'</em><span class="sig-paren">)</span><a class="headerlink" href="#pymaster.utils.mask_apodization" title="Permalink to this definition">¶</a></dt>
+<dd><p>Apodizes a mask with an given apodization scale using different methods.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>mask_in</strong> – input mask, provided as an array of floats corresponding to a HEALPix map in RING order.</li>
+<li><strong>aposize</strong> – apodization scale in degrees.</li>
+<li><strong>apotype</strong> – apodization type. Three methods implemented: “C1”, “C2” and “Smooth”. See the description of the C-function nmt_apodize_mask in the C API documentation for a full description of these methods.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">apodized mask as a HEALPix map</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pymaster.utils.mask_apodization_flat">
+<code class="descclassname">pymaster.utils.</code><code class="descname">mask_apodization_flat</code><span class="sig-paren">(</span><em>mask_in</em>, <em>lx</em>, <em>ly</em>, <em>aposize</em>, <em>apotype='C1'</em><span class="sig-paren">)</span><a class="headerlink" href="#pymaster.utils.mask_apodization_flat" title="Permalink to this definition">¶</a></dt>
+<dd><p>Apodizes a flat-sky mask with an given apodization scale using different methods.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>mask_in</strong> – input mask, provided as a 2D array (ny,nx) of floats.</li>
+<li><strong>lx</strong> (<em>float</em>) – patch size in the x-axis (in radians)</li>
+<li><strong>ly</strong> (<em>float</em>) – patch size in the y-axis (in radians)</li>
+<li><strong>aposize</strong> – apodization scale in degrees.</li>
+<li><strong>apotype</strong> – apodization type. Three methods implemented: “C1”, “C2” and “Smooth”. See the description of the C-function nmt_apodize_mask in the C API documentation for a full description of these methods.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">apodized mask as a 2D array (ny,nx)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pymaster.utils.synfast_flat">
+<code class="descclassname">pymaster.utils.</code><code class="descname">synfast_flat</code><span class="sig-paren">(</span><em>nx</em>, <em>ny</em>, <em>lx</em>, <em>ly</em>, <em>cls</em>, <em>pol=False</em>, <em>beam=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pymaster.utils.synfast_flat" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generates a flat-sky Gaussian random field according to a given power spectrum. This function is the flat-sky equivalent of healpy’s synfast.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>nx</strong> (<em>int</em>) – number of pixels in the x-axis</li>
+<li><strong>ny</strong> (<em>int</em>) – number of pixels in the y-axis</li>
+<li><strong>lx</strong> (<em>float</em>) – patch size in the x-axis (in radians)</li>
+<li><strong>ly</strong> (<em>float</em>) – patch size in the y-axis (in radians)</li>
+<li><strong>cls</strong> (<em>array-like</em>) – array containing power spectra. If pol=False, cls should be a 1D array. If pol=True it should be a 2D array with 4 (TT,EE,BB,TE) or 6 (TT,EE,BB,TE,EB,TB) power spectra.</li>
+<li><strong>pol</strong> (<em>boolean</em>) – Set to True if you want to generate T, Q and U</li>
+<li><strong>array-like</strong> (<em>beam</em>) – 1D array containing the instrumental beam (the output map(s) will be convolved with it)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">1 or 3 2D arrays of size (ny,nx) containing the simulated maps</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pymaster.utils.synfast_spherical">
+<code class="descclassname">pymaster.utils.</code><code class="descname">synfast_spherical</code><span class="sig-paren">(</span><em>nside</em>, <em>cls</em>, <em>pol=False</em>, <em>beam=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pymaster.utils.synfast_spherical" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generates a full-sky Gaussian random field according to a given power spectrum. This function should produce outputs similar to healpy’s synfast.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>nside</strong> (<em>int</em>) – HEALpix resolution parameter</li>
+<li><strong>cls</strong> (<em>array-like</em>) – array containing power spectra. If pol=False, cls should be a 1D array. If pol=True it should be a 2D array with 4 (TT,EE,BB,TE) or 6 (TT,EE,BB,TE,EB,TB) power spectra.</li>
+<li><strong>pol</strong> (<em>boolean</em>) – Set to True if you want to generate T, Q and U</li>
+<li><strong>array-like</strong> (<em>beam</em>) – 1D array containing the instrumental beam (the output map(s) will be convolved with it)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">1 or 3 full-sky maps</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="sample_simple.html" class="btn btn-neutral float-right" title="Example 1: simple pseudo-Cl computation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="index.html" class="btn btn-neutral" title="Welcome to pymaster’s documentation!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, David Alonso.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'0.1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

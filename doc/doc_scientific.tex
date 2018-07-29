@@ -1,0 +1,958 @@
+\documentclass[a4paper,10pt]{article}
+\usepackage{graphicx} % Include figure files
+\usepackage{fullpage}
+\usepackage[usenames,dvipsnames,svgnames,table]{xcolor}
+\usepackage{amssymb,amsmath} 
+\usepackage[colorlinks=true,linkcolor=Blue,linktoc=page,citecolor=Red,urlcolor=BrickRed]{hyperref}
+%\usepackage{color}
+%\usepackage[utf8x]{inputenc}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{listings}
+%\usepackage{makeidx}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{epigraph}
+\usepackage{titling}
+%\renewcommand{\familydefault}{\sfdefault}
+\newcommand{\apj}{ApJ}
+\newcommand{\apjs}{ApJS}
+\newcommand{\mnras}{MNRAS}
+
+\pretitle{\begin{flushleft}\LARGE\bfseries\sffamily}
+\posttitle{\par\end{flushleft}\vskip 0.5em\vspace{-7ex}}
+\predate{\begin{flushleft}\sffamily\large}
+\postdate{\par\end{flushleft}\vskip 0.5em\vspace{-2ex}}
+\titleformat{\section}[hang]{\bfseries\sffamily\Large}
+{\thesection}
+{12pt}{\filright}
+
+\titleformat{\subsection}[hang]{\bfseries\sffamily}
+{\thesubsection}
+{12pt}{\filright}
+
+\titleformat{\subsubsection}[hang]{\bfseries}
+{\thesubsubsection}
+{12pt}{\filright}
+
+\newcommand{\Tr}{{\rm Tr}}
+\newcommand{\nv}{\hat{\bf n}}
+\newcommand{\wtj}[6]{\left(\begin{array}{ccc} #1 & #2 & #3\\#4 & #5 & #6\end{array} \right)}
+
+
+\title{NaMaster: Scientific Documentation}
+
+\begin{document}
+\maketitle
+\noindent\makebox[\linewidth]{\rule{\textwidth}{1pt}}
+\tableofcontents
+\noindent\makebox[\linewidth]{\rule{\textwidth}{1pt}}
+
+\section{Introduction}
+NaMaster is a C library, python module and standalone program to compute the pseudo-$C_\ell$ estimator of the angular power spectrum between two masked and contaminated fields (this is also the so-called ``MASTER'' algorithm). The contents of this scientific documentation describe the algorithm, drawing heavily from the methods presented by \cite{2002ApJ...567....2H} and \cite{2017MNRAS.465.1847E}, extending their results to arbitrary cross-correlations between spin-0 and spin-2 fields (see also \cite{2003ApJS..148..161K}).
+
+\section{Generalities and SHTs}
+Let ${\bf a}(\nv)$ be a spin-$s_a$ quantity defined on the sphere. Then we define its spherical harmonic coefficients as:
+\begin{equation}
+ {\bf a}_{\ell m}\equiv{\rm SHT}({\bf a}(\nv))^{s_a}_{\ell m}\equiv\int d\nv\,\hat{\sf Y}^{s_a\dag}_{\ell m}(\nv)\,{\bf a}(\nv),\hspace{12pt}
+ {\bf a}(\nv)={\rm SHT}^{-1}({\bf a}_{\ell m})^{s_a}_{\nv}\equiv\sum_{\ell m}\,\hat{\sf Y}^{s_a}_{\ell m}(\nv)\,{\bf a}_{\ell m}.
+\end{equation}
+Note that here we will use a vector notation, such that for a complex spin-$s_a$ field $a$ we form the vector ${\bf a}\equiv({\rm Re}(a),{\rm Im}(a))$. The harmonic coefficients above are decomposed in a similar manner into $E$ and $B$ modes: ${\bf a}_{\ell m}\equiv(a^E_{\ell m},a^B_{\ell m})$. The spherical harmonic operators $\hat{\sf Y}^s$ are therefore matrix that we define in the following subsection.
+
+\subsection{Spin-weighed spherical harmonics}
+  Let $\eth$ and $\bar{\eth}$ be the following complex differential operators defined on the sphere when acting on a spin-$s$ quantity $f_s$:
+  \begin{equation}
+    \eth f_s\equiv-(\sin\theta)^s\left(\partial_\theta+i\frac{\partial_\varphi}{\sin\theta}\right)(\sin\theta)^{-s}\,f_s(\theta,\varphi),\hspace{12pt}
+    \bar{\eth} f_s\equiv-(\sin\theta)^{-s}\left(\partial_\theta-i\frac{\partial_\varphi}{\sin\theta}\right)(\sin\theta)^{s}\,f_s(\theta,\varphi).
+  \end{equation}
+  The following properties can be easily derived for the action of these operators:
+  \begin{itemize}
+    \item If $f_s$ is a spin-$s$ quantity, $(f_s)^*$ is a spin-$(-s)$ quantity.
+    \item $\eth f_s$ is a spin-$(s+1)$ quantity, and $\bar{\eth} f_s$ is a spin-$(s-1)$ quantity.
+    \item $(\eth^nf_s)^*=\bar{\eth}^n(f_s)^*$
+    \item $\eth(f\,g)=f\eth g+g\eth f$
+    \item $\eth^2(f\,g)=f\eth^2g+g\eth^2f+\eth f\eth g$
+  \end{itemize}
+  
+  We start by defining the spin-weighed spherical harmonics with spin $s\geq0$:
+  \begin{equation}
+    _sY_{\ell m}\equiv \alpha_{\ell,s} \eth^s Y_{\ell m},\hspace{6pt}
+    _{-s}Y_{\ell m}\equiv \alpha_{\ell,s} (-1)^s\bar{\eth}^s Y_{\ell m},\hspace{6pt}
+    \alpha_{l,s}\equiv\sqrt{\frac{(\ell-s)!}{(\ell+s)!}},
+  \end{equation}
+  which have the property: $(_sY_{\ell m})^*=(-1)^{s+m}\,_{-s}Y_{\ell-m}$. We then define the $E$-mode and $B$-mode spherical harmonic vectors as:
+  \begin{align}
+    &_s{\bf Y}^E_{\ell m}\equiv {\bf D}^E_sY_{\ell m}
+     \equiv-\frac{\alpha_{\ell,s}}{2}\left(\begin{array}{c}
+                              \eth^s+\bar{\eth}^s\\
+                              -i(\eth^s-\bar{\eth}^s)
+                            \end{array}\right)Y_{\ell m}
+     \equiv-\frac{1}{2}\left(\begin{array}{c}
+                              _sY_{\ell m}+(-1)^s\,_{-s}Y_{\ell m}\\
+                              -i(_sY_{\ell m}-(-1)^s\,_{-s}Y_{\ell m})
+                            \end{array}\right) \\
+    &_s{\bf Y}^B_{\ell m}\equiv {\bf D}^B_sY_{\ell m}
+     \equiv-\frac{\alpha_{\ell,s}}{2}\left(\begin{array}{c}
+                              i(\eth^s-\bar{\eth}^s)\\
+                              \eth^s+\bar{\eth}^s
+                            \end{array}\right)Y_{\ell m}
+     \equiv-\frac{1}{2}\left(\begin{array}{c}
+                              i(_sY_{\ell m}-(-1)^s\,_{-s}Y_{\ell m})\\
+                              _sY_{\ell m}+(-1)^s\,_{-s}Y_{\ell m}
+                            \end{array}\right),
+  \end{align}
+  which also defines the differential operators ${\bf D}^{E,B}_s$. These functions, for  $s=0$ are simply ${\bf D}^{E}_0=(Y_{\ell m},0)$ and ${\bf D}^{B}_0=(0,Y_{\ell m})$.
+  
+  The matrix operator $\hat{\sf Y}^s_{\ell m}$ is then defined as having $_s{\bf Y}^{E,B}_{\ell m}$ as columns:
+  \begin{equation}
+    \hat{\sf Y}^s_{\ell m}\equiv\left(_s{\bf Y}^E_{\ell m},_s{\bf Y}^B_{\ell m},\right)
+    \equiv-\frac{1}{2}
+    \left(\begin{array}{cc}
+            _sY_{\ell m}+(-1)^s\,_{-s}Y_{\ell m}     & i(_sY_{\ell m}-(-1)^s\,_{-s}Y_{\ell m})\\                
+            -i(_sY_{\ell m}-(-1)^s\,_{-s}Y_{\ell m}) & _sY_{\ell m}+(-1)^s\,_{-s}Y_{\ell m}                
+          \end{array}\right)
+  \end{equation}
+
+  The matrices $\hat{\sf Y}^s_{\ell m}$ satisfy the following relations:
+  \begin{align}
+    \hat{\sf Y}^{s\dag}_{\ell m}&=(-1)^{m+s}\hat{\sf Y}^{-s}_{\ell -m}\\
+    \int d\nv \hat{\sf Y}^s_{\ell m}\hat{\sf Y}^{s\dag}_{\ell'm'}&=\hat{\sf 1}\delta_{\ell\ell'}\delta_{mm'}\\
+    \hat{\sf D}^s_{{\bf l}{\bf l}_1{\bf l}_2}&\equiv\int d\nv \left(\hat{\sf Y}^{s\dag}_{\bf l}(\nv)\,\hat{\sf Y}^{s}_{{\bf l}_1}(\nv)\right)\,\hat{\sf Y}^0_{{\bf l}_2}(\nv),\\
+    &=(-1)^{s+m}\sqrt{\frac{(2\ell+1)(2\ell_1+1)(2\ell_2+1)}{4\pi}}\wtj{\ell}{\ell_1}{\ell_2}{-m}{m_1}{m_2}\wtj{\ell}{\ell_1}{\ell_2}{s}{-s}{0}\,\hat{\sf d}_{\ell+\ell_1+\ell_2},\\
+    \hspace{12pt}&\hat{\sf d}^2_n=\frac{1}{2}\left(\begin{array}{cc}
+                                       1+(-1)^n & -i[1-(-1)^n]\\
+                                       i[1-(-1)^n] & 1+(-1)^n
+                                     \end{array}\right),
+  \end{align}
+  where we have abbreviated the pair $(\ell,m)$ as ${\bf l}$.
+
+  Finally, the following orthogonality relation for the Wigner 3$j$ symbols is useful:
+  \begin{equation}
+    \sum_{mm_1}\wtj{\ell}{\ell_1}{\ell_2}{m}{m_1}{m_2}\wtj{\ell}{\ell_1}{\ell_3}{m}{m_1}{m_3}=\frac{\delta_{\ell_2\ell_3}\delta_{m_2m_3}}{2\ell_2+1}
+  \end{equation}
+
+\subsection{$E$ and $B$ mode purification}
+  We define a field ${\bf f}$ to be a $B$ ($E$) mode if $({\bf D}^{E(B)}_s)^\dag{\bf f}=0$. At the same time, and under the definition of the dot product:
+  \begin{equation}
+    ({\bf f},{\bf g})\equiv\int d\nv\,{\bf f}^\dag{\bf g},
+  \end{equation}
+  we define a {\sl pure} $B$ ($E$) mode as a field that is orthogonal to all $E$ ($B$) modes.
+  
+  Since ${\bf D}^{E\dag}_s{\bf D}^B_s=0$, one can always generate a $B$ ($E$) mode by applying ${\bf D}^{B(E)}_s$ to a scalar field. It is then possible to show that $E$ and $B$ modes thus defined are orthogonal in the full sky:
+  \begin{equation}
+    ({\bf D}^E_s\varphi,{\bf D}^B_s\psi)=\int d\nv\,({\bf D}^E_s\varphi)^\dag{\bf D}^B_s\psi=0
+  \end{equation}
+  This can be done by integrating by parts and noting that the celestial sphere has no boundaries. On a cut sky, however, and for $s=2$, this is only true if the fields satisfy Neumann and Dirichlet boundary conditions simultaneously (i.e. vanishing value and first derivative on the boundary of the cut sky region).
+  
+  Let $w(\nv)$ be a sky window function defining the sky region to be analyzed (and the weight to be applied in each pixel). The standard pseudo $B$-mode of a field ${\bf P}$ is then given by
+  \begin{equation}
+    \tilde{B}_{\ell m}=\int d\nv\,w(\nv)\left(_s{\bf Y}^{B}_{\ell m}(\nv)\right)^\dag{\bf P}=\int d\nv\,w(\nv)({\bf D}^B_sY_{\ell m})^\dag{\bf P}(\nv),
+  \end{equation}
+  Now, since ${\bf D}^B_sY_{\ell m}$ is a $B$-mode, in the absence of $w$ this expresion would correspond to a projection that filters out all the $E$-modes from ${\bf P}$. However, $w(\nv){\bf D}^B_sY_{\ell m}$ is not a $B$-mode, and therefore $\tilde{B}_{\ell m}$ receives contributions from ambiguous $E$ modes (which then propagate into the variance of the pseudo-$C_\ell$ estimator of the power spectrum).
+  
+  The idea behind $B$-mode purification is to move $w$ to the right of ${\bf D}^B_s$, defining the field:
+  \begin{equation}
+   B^p_{\ell m}=\int d\nv\left({\bf D}^B_2(w\,Y_{\ell m})\right)^\dag\,{\bf P}(\nv).
+  \end{equation}
+  Since ${\bf D}^B_2(wY_{\ell m})$ is a $B$-mode quantity, $B^p_{\ell m}$ should receive contributions only from $B$-modes.
+  
+  Expanding ${\bf D}^B_2(wY_{\ell m})$, we can write $B^p_{\ell m}$ as:
+  \begin{equation}
+    B^p_{\ell m}=
+    \left(\tilde{P}_2\right)^B_{\ell m}+
+    2\frac{\alpha_{\ell,2}}{\alpha_{\ell,1}}\left(\tilde{P}_1\right)^B_{\ell m}+\alpha_{\ell,2}\left(\tilde{P}_2\right)^B_{\ell m},
+  \end{equation}
+  where $(f)^B_{\ell m}$ stands for the $B$-mode of field $f$, and we have defined the fields $\tilde{P}_n=(\eth^{2-n}w)^*(Q+iU)$, where $Q$ and $U$ are the real and imaginary parts of the field $P$.
+  
+  Note that the derivatives of $w$ can be computed as:
+  \begin{equation}
+    w
+    \rightarrow w_{\ell m}={\rm SHT}(w)
+    \rightarrow\,\left\{_nw^E_{\ell m}=(-1)^Hw_{\ell m}/\alpha_{\ell,n},\,_nw^B_{\ell m}=0\right\}
+    \rightarrow \eth^nw={\rm SHT}^{-1}(\{\,_nw^E_{\ell m},\,_nw^B_{\ell m}\})
+  \end{equation}
+
+
+\section{Contaminant cleaning}\label{sec:contaminant}
+  Let ${\bf a}$ be a random field defined on the sphere, let $v(\nv)$ a mask for ${\bf a}$ and let ${\bf f}^i$ be a set of $N_a$ contaminants of ${\bf a}$ such that the observed version of ${\bf a}$ be:
+  \begin{equation}
+    {\bf d}_a(\nv)={\bf a}^v(\nv)+\sum_{i=1}^{N_a}\alpha_i{\bf f}^i(\nv),
+  \end{equation}
+  where ${\bf a}^v(\nv)=v(\nv)\,{\bf a}(\nv)$ (note that we have implicitly applied the same mask to ${\bf f}^i$). The best-fit value for the coefficients $\alpha_i$ assuming the same weights for all points in ${\bf d}_a$ can be found as
+  \begin{equation}
+    \tilde{\alpha}_i=\sum_jM_{ij}\int d\nv\,{\bf f}^{j\dag}(\nv)\,{\bf d}_a(\nv),\hspace{12pt}
+    (\hat{\sf M}^{-1})_{ij}\equiv\int d\nv\,{\bf f}^{i\dag}(\nv)\,{\bf f}^j(\nv).
+  \end{equation}
+  Thus we can find a cleaned version of ${\bf a}$ as:
+  \begin{align}\nonumber
+    \tilde{\bf a}(\nv)&\equiv{\bf d}_a(\nv)-{\bf f}^i(\nv)\,M_{ij}\int d\nv'{\bf f}^{j\dag}(\nv'){\bf d}_a(\nv')\\\label{eq:deproject_real}
+                      &={\bf a}^v(\nv)-{\bf f}^i(\nv)\,M_{ij}\int d\nv'{\bf f}^{j\dag}(\nv'){\bf a}^v(\nv'),
+  \end{align}
+  where there is an implicit summation sign over $i$ and $j$ (we will omit these from now on).
+  
+  The harmonic coefficients of the cleaned and masked field are:
+  \begin{equation}
+   \tilde{\bf a}_{\ell m}={\bf a}^v_{\ell m}-{\bf f}^i_{\ell m}M_{ij}\sum_{\ell' m'}{\bf f}^{j\dag}_{\ell' m'}{\bf a}^{v}_{\ell' m'}.
+  \end{equation}
+  From now on we will simplify the notation by abbreviating the pair $\ell m$ as ${\bf l}$, so that the previous equation reads:
+  \begin{equation}\label{eq:deproject_harmonic}
+   \tilde{\bf a}_{\bf l}={\bf a}^v_{\bf l}-{\bf f}^i_{\bf l}M_{ij}\sum_{{\bf l}'}{\bf f}^{j\dag}_{{\bf l}'}{\bf a}^{v}_{{\bf l}'}.
+  \end{equation}
+
+  The harmonic coefficients for the masked field can be related to those of the unmasked one and the mask $v$ (understood as a spin-0 field) as:
+  \begin{equation}
+    {\bf a}^v_{\bf l}=\sum_{{\bf l}_1{\bf l}_2}\hat{\sf D}^{s_a}_{{\bf l}{\bf l}_1{\bf l}_2}{\bf a}_{{\bf l}_1}v_{{\bf l}_2}.
+  \end{equation}
+
+\section{Pseudo-$C_\ell$ estimators with mode deprojection}  
+  In what follows, for two fields ${\bf a}$ and ${\bf b}$ we will define their observed power spectrum as:
+  \begin{equation}
+    \tilde{\sf C}^{ab}_{\ell}\equiv\frac{1}{2\ell+1}\sum_m{\bf a}_{\ell m}{\bf b}^\dag_{\ell m}.
+  \end{equation}
+  This must not be confused with the true power spectrum defined as an ensemble average for isotropic fields:
+  \begin{equation}
+    \langle{\bf a}_{{\bf l}}{\bf b}^\dag_{{\bf l}'}\rangle\equiv\hat{\sf C}^{ab}_\ell\delta_{\ell\ell'}\delta_{mm'}.
+  \end{equation}
+
+
+  Now, let $\tilde{\bf a}$ and $\tilde{\bf b}$ be the contaminant-cleaned versions of two random fields ${\bf a}$ and ${\bf b}$ with contaminants ${\bf f}^i$ and ${\bf g}^j$ and masks $v$ and $w$ respectively, and let us define
+  \begin{equation}
+    (\hat{\sf N}^{-1})_{ij}\equiv\int d\nv\, {\bf g}^{i\dag}(\nv)\,{\bf g}^j(\nv).
+  \end{equation}
+
+  The observed power spectrum of the contaminant-cleaned maps can be written as:
+  \begin{align}\nonumber
+   \tilde{\sf C}^{\tilde{a}\tilde{b}}_\ell=&
+   \frac{1}{2\ell+1}\sum_m{\bf a}^v_{\ell m}{\bf b}^{w\dag}_{\ell m}-\frac{N^*_{ij}}{2\ell+1}\sum_m\sum_{{\bf l}'}{\bf a}^v_{{\bf l}}{\bf b}^{w\dag}_{{\bf l}'}{\bf g}^{j}_{{\bf l}'}{\bf g}^{i\dag}_{\bf l}-\\
+   &-\frac{M_{ij}}{2\ell+1}\sum_m\sum_{{\bf l}'}{\bf f}^{i}_{{\bf l}}{\bf f}^{j\dag}_{{\bf l}'}{\bf a}^v_{{\bf l}'}{\bf b}^{w\dag}_{\bf l}+\frac{M_{ij}N^*_{pq}}{2\ell+1}\sum_m\sum_{{\bf l}'{\bf l}''}{\bf f}^{i}_{{\bf l}}{\bf f}^{j\dag}_{{\bf l}'}{\bf a}^v_{{\bf l}'}{\bf b}^{w\dag}_{{\bf l}''}{\bf g}^{q}_{{\bf l}''}{\bf g}^{p\dag}_{\bf l}.
+  \end{align}
+  
+  In order to compute the bias of $\tilde{\sf C}^{\tilde{a}\tilde{b}}_\ell$ with respect to $\hat{\sf C}^{ab}_\ell$, we need to compute the ensemble average of the former, which we will write as:
+  \begin{equation}
+    \left\langle\tilde{\sf C}^{\tilde{a}\tilde{b}}_\ell\right\rangle=\hat{\sf F}^1_\ell-\hat{\sf F}^2_\ell-\hat{\sf F}^3_\ell+\hat{\sf F}^4_\ell,
+  \end{equation}
+  where:
+  \begin{align}
+    \hat{\sf F}^1_\ell&\equiv\frac{1}{2\ell+1}\sum_m\langle{\bf a}^v_{\ell m}{\bf b}^{w\dag}_{\ell m}\rangle,\hspace{12pt}
+    \hat{\sf F}^2_\ell\equiv\frac{N^*_{ij}}{2\ell+1}\sum_m\sum_{{\bf l}'}\langle{\bf a}^v_{{\bf l}}{\bf b}^{w\dag}_{{\bf l}'}{\bf g}^{j}_{{\bf l}'}{\bf g}^{i\dag}_{\bf l}\rangle\\
+    \hat{\sf F}^3_\ell&\equiv\frac{M_{ij}}{2\ell+1}\sum_m\sum_{{\bf l}'}\langle{\bf f}^{i}_{{\bf l}}{\bf f}^{j\dag}_{{\bf l}'}{\bf a}^v_{{\bf l}'}{\bf b}^{w\dag}_{\bf l}\rangle,\hspace{12pt}
+    \hat{\sf F}^4_\ell\equiv\frac{M_{ij}N^*_{pq}}{2\ell+1}\sum_m\sum_{{\bf l}'{\bf l}''}\langle{\bf f}^{i}_{{\bf l}}{\bf f}^{j\dag}_{{\bf l}'}{\bf a}^v_{{\bf l}'}{\bf b}^{w\dag}_{{\bf l}''}{\bf g}^{q}_{{\bf l}''}{\bf g}^{p\dag}_{\bf l}\rangle.
+  \end{align}
+  We will now compute the ensemble average of each of these terms.
+  
+  \subsection{$\hat{\sf F}^1_\ell$}
+    \begin{align}\nonumber
+      \hat{\sf F}^1_\ell&=\frac{1}{2\ell+1}\sum_{m{\bf l}_{1,2,3,4}}v_{{\bf l}_2}w^*_{{\bf l}_4}\hat{\sf D}^{s_a}_{{\bf l}{\bf l}_1{\bf l}_2}\langle{\bf a}_{{\bf l}_1}{\bf b}^\dag_{{\bf l}_3}\rangle\hat{\sf D}^{s_b\dag}_{{\bf l}{\bf l}_3{\bf l}_4}\\\nonumber
+      &=\frac{1}{2\ell+1}\sum_{m{\bf l}_{1,2,3}}v_{{\bf l}_2}w^*_{{\bf l}_3}\hat{\sf D}^{s_a}_{{\bf l}{\bf l}_1{\bf l}_2}\hat{\sf C}^{ab}_{{\bf l}_1}\hat{\sf D}^{s_b\dag}_{{\bf l}{\bf l}_1{\bf l}_3}\\\nonumber
+      &=\frac{1}{2\ell+1}\sum_{\ell_1{\bf l}_{2,3}}v_{{\bf l}_2}w^*_{{\bf l}_3}\frac{(2\ell+1)(2\ell_1+1)}{4\pi}\sqrt{(2\ell_2+1)(2\ell_3+1)}\wtj{\ell}{\ell_1}{\ell_2}{s_a}{-s_a}{0}\wtj{\ell}{\ell_1}{\ell_3}{s_b}{-s_b}{0}\\\nonumber
+      &\hspace{50pt}\hat{\sf d}^{s_a}_{\ell+\ell_1+\ell_2}\hat{\sf C}^{ab}_{\ell_1}\hat{\sf d}^{s_b\dag}_{\ell+\ell_1+\ell_3}\sum_{mm_1}\wtj{\ell}{\ell_1}{\ell_2}{-m}{m_1}{m_2}\wtj{\ell}{\ell_1}{\ell_3}{-m}{m_1}{m_3}\\\label{eq:master_transformation}
+      &=\sum_{\ell_1\ell_2}\frac{(2\ell_1+1)(2\ell_2+1)}{4\pi}\tilde{C}^{vw}_{\ell_2}\wtj{\ell}{\ell_1}{\ell_2}{s_a}{-s_a}{0}\wtj{\ell}{\ell_1}{\ell_2}{s_b}{-s_b}{0}\hat{\sf d}^{s_a}_{\ell+\ell_1+\ell_2}\hat{\sf C}^{ab}_{\ell_1}\hat{\sf d}^{s_b\dag}_{\ell+\ell_1+\ell_2}
+    \end{align}
+    
+    For $v=w=1$ this reduces to $\tilde{C}^{vw}_\ell=4\pi\delta_{\ell0}$ and:
+    \begin{align}\nonumber
+      \hat{\sf F}^1_\ell
+      &=\sum_{\ell_1\ell_2}(2\ell_1+1)(2\ell_2+1)\delta_{\ell_20}\wtj{\ell}{\ell_1}{\ell_2}{s_a}{-s_a}{0}\wtj{\ell}{\ell_1}{\ell_2}{s_b}{-s_b}{0}\hat{\sf d}^{s_a}_{\ell+\ell_1+\ell_2}\hat{\sf C}^{ab}_{\ell_1}\hat{\sf d}^{s_b\dag}_{\ell+\ell_1+\ell_2}\\\nonumber
+      &=\sum_{\ell_1}(2\ell_1+1)\wtj{\ell}{\ell_1}{0}{s_a}{-s_a}{0}\wtj{\ell}{\ell_1}{0}{s_b}{-s_b}{0}\hat{\sf d}^{s_a}_{\ell+\ell_1}\hat{\sf C}^{ab}_{\ell_1}\hat{\sf d}^{s_b\dag}_{\ell+\ell_1}\\\nonumber
+      &=\sum_{\ell_1}(2\ell_1+1)\delta_{\ell\ell_1}\frac{(-1)^{\ell-s_a}}{\sqrt{2\ell+1}}\delta_{\ell\ell_1}\frac{(-1)^{\ell-s_b}}{\sqrt{2\ell+1}}\hat{\sf d}^{s_a}_{\ell+\ell_1}\hat{\sf C}^{ab}_{\ell_1}\hat{\sf d}^{s_b\dag}_{\ell+\ell_1}\\\nonumber
+      &=\hat{\sf d}^{s_a}_{2\ell}\hat{\sf C}^{ab}_{\ell}\hat{\sf d}^{s_b\dag}_{2\ell}\\\nonumber
+      &=\hat{\sf C}^{ab}_{\ell}
+    \end{align}
+
+
+  \subsection{$\hat{\sf F}^2_\ell$}
+    \begin{align}\nonumber
+     \hat{\sf F}^2_\ell
+     &=N^*_{ij}\int d\nv\,d\nv'\,\frac{\sum_{m{\bf l}'{\bf l}_{1,2,3,4}}}{2\ell+1}\hat{\sf Y}^{s_a\dag}_{\bf l}(\nv)\hat{\sf Y}^{s_a}_{{\bf l}_1}(\nv)\langle{\bf a}_{{\bf l}_1}{\bf b}^\dag_{{\bf l}_3}\rangle\hat{\sf Y}^{s_b\dag}_{{\bf l}_3}(\nv')\hat{\sf Y}^{s_b}_{{\bf l}'}(\nv'){\bf g}^j_{{\bf l}'}{\bf g}^{i\dag}_{\bf l}v_{{\bf l}_2}w^*_{{\bf l}_4}Y_{{\bf l}_2}(\nv)Y^*_{{\bf l}_4}(\nv')\\\nonumber
+     &=N^*_{ij}\,\frac{\sum_m}{2\ell+1}\left\{\int d\nv\,v(\nv)\,\hat{\sf Y}^{s_a\dag}_{\bf l}(\nv)\left[\sum_{\ell_1m_1}\hat{\sf Y}^{s_a}_{{\bf l}_1}(\nv)\hat{\sf C}^{ab}_{\ell_1}\left(\int d\nv'\hat{\sf Y}^{s_b\dag}_{{\bf l}_1}(\nv'){\bf g}^j(\nv')w(\nv')\right)\right]{\bf g}^{i\dag}_{\bf l}\right\}\\\label{eq:bias_2}
+     &=N^*_{ij}\,\frac{\sum_m}{2\ell+1}{\rm SHT}\left\{v(\nv){\rm SHT}^{-1}\left[\hat{\sf C}^{ab}_{\ell_1}{\rm SHT}\left(w\,{\bf g}^j\right)^{s_b}_{{\bf l}_1}\right]^{s_a}_{\nv}\right\}^{s_a}_{\bf l}{\bf g}^{i\dag}_{\bf l}
+    \end{align}
+    
+    For $v=w=1$ this reduces to:
+    \begin{align}\nonumber
+     \hat{\sf F}^2_\ell
+     &=N^*_{ij}\,\frac{\sum_m}{2\ell+1}{\rm SHT}\left\{{\rm SHT}^{-1}\left[\hat{\sf C}^{ab}_{\ell_1}{\rm SHT}\left({\bf g}^j\right)^{s_b}_{{\bf l}_1}\right]^{s_a}_{\nv}\right\}^{s_a}_{\bf l}{\bf g}^{i\dag}_{\bf l}\\\nonumber
+     &=N^*_{ij}\,\hat{\sf C}^{ab}_{\ell}\frac{\sum_m{\bf g}^j_{\ell m}{\bf g}^{i\dag}_{\ell m}}{2\ell+1}\\\nonumber
+     &=N^*_{ij}\,\hat{\sf C}^{ab}_{\ell}\tilde{\sf C}^{g^jg^i}_\ell
+    \end{align}
+    
+  \subsection{$\hat{\sf F}^3_\ell$}
+    \begin{align}\nonumber
+     \hat{\sf F}^3_\ell
+     &=M_{ij}\int d\nv\,d\nv'\,\frac{\sum_{m{\bf l}'{\bf l}_{1,2,3,4}}}{2\ell+1}{\bf f}^i_{\bf l}{\bf f}^{j\dag}_{{\bf l}'}\hat{\sf Y}^{s_a\dag}_{\bf l'}(\nv')\hat{\sf Y}^{s_a}_{{\bf l}_3}(\nv')\langle{\bf a}_{{\bf l}_3}{\bf b}^\dag_{{\bf l}_1}\rangle\hat{\sf Y}^{s_b\dag}_{{\bf l}_1}(\nv)\hat{\sf Y}^{s_b}_{{\bf l}}(\nv)v_{{\bf l}_4}w^*_{{\bf l}_2}Y_{{\bf l}_2}(\nv)Y^*_{{\bf l}_4}(\nv')\\\nonumber
+     &=M_{ij}\frac{\sum_{m}}{2\ell+1}{\bf f}^i_{\bf l}\left\{\int d\nv\,w(\nv)\,\left[\sum_{\ell_1m_1}\left(\int d\nv'\,v(\nv'){\bf f}^{j\dag}(\nv')\hat{\sf Y}^{s_a}_{{\bf l}_1}(\nv')\right)\hat{\sf C}^{ab}_{\ell_1}\hat{\sf Y}^{s_b\dag}_{{\bf l}_1}(\nv)\right]\hat{\sf Y}^{s_b}_{{\bf l}}(\nv)\right\}\\\label{eq:bias_3}
+     &=M_{ij}\frac{\sum_{m}}{2\ell+1}{\bf f}^i_{\bf l}\,{\rm SHT}\left\{w(\nv)\,{\rm SHT}^{-1}\left[\hat{\sf C}^{ab\dag}_{\ell_1}{\rm SHT}\left(v\,{\bf f}^j\right)^{s_a}_{{\bf l}_1}\right]^{s_b}_{\nv}\right\}^{s_b\dag}_{\bf l}
+    \end{align}
+
+    For $v=w=1$ this reduces to:
+    \begin{align}\nonumber
+     \hat{\sf F}^3_\ell
+     &=M_{ij}\frac{\sum_{m}}{2\ell+1}{\bf f}^i_{\bf l}\,{\rm SHT}\left\{{\rm SHT}^{-1}\left[\hat{\sf C}^{ab\dag}_{\ell_1}{\rm SHT}\left({\bf f}^j\right)^{s_a}_{{\bf l}_1}\right]^{s_b}_{\nv}\right\}^{s_b\dag}_{\bf l}\\\nonumber
+     &=M_{ij}\frac{\sum_{m}{\bf f}^i_{\ell m}{\bf f}^{j\dag}_{\ell m}}{2\ell+1}\hat{\sf C}^{ab}_{\ell}\\\nonumber
+     &=M_{ij}\tilde{\sf C}^{f^if^j}_\ell\hat{\sf C}^{ab}_{\ell}
+    \end{align}
+    
+  \subsection{$\hat{\sf F}^4_\ell$}
+    \begin{align}\nonumber
+     \hat{\sf F}^4_\ell
+     &=\frac{M_{ij}N^*_{pq}}{2\ell+1}\int d\nv\,d\nv'\,\sum_{m{\bf l}'{\bf l}''{\bf l}_{1,2,3,4}}
+     {\bf f}^i_{\bf l}{\bf f}^{j\dag}_{{\bf l}'}\hat{\sf Y}^{s_a\dag}_{\bf l'}(\nv)\hat{\sf Y}^{s_a}_{{\bf l}_1}(\nv)\langle{\bf a}_{{\bf l}_1}{\bf b}^\dag_{{\bf l}_3}\rangle\hat{\sf Y}^{s_b\dag}_{{\bf l}_3}(\nv')\hat{\sf Y}^{s_b}_{{\bf l}''}(\nv'){\bf g}^q_{{\bf l}''}{\bf g}^{p\dag}_{\bf l}v_{{\bf l}_2}w^*_{{\bf l}_4}Y_{{\bf l}_2}(\nv)Y^*_{{\bf l}_4}(\nv')\\\nonumber
+     &=\frac{M_{ij}N^*_{pq}}{2\ell+1}\sum_{m}
+     {\bf f}^i_{\bf l}\left\{\int d\nv\,v(\nv)\,{\bf f}^{j\dag}(\nv)\left[\sum_{\ell_1m_1}\hat{\sf Y}^{s_a}_{{\bf l}_1}(\nv)\hat{\sf C}^{ab}_{\ell_1}\left(\int d\nv'\,\hat{\sf Y}^{s_b\dag}_{{\bf l}_1}(\nv'){\bf g}^q(\nv')w(\nv')\right)\right]\right\}{\bf g}^{p\dag}_{\bf l}\\\label{eq:bias_4}
+     &=M_{ij}N^*_{pq}
+     \left\{\int d\nv\,v(\nv)\,{\bf f}^{j\dag}(\nv)\,{\rm SHT}^{-1}\left[\hat{\sf C}^{ab}_{\ell_1}{\rm SHT}\left(w\,{\bf g}^q\right)^{s_b}_{{\bf l}_1}\right]^{s_a}_{\nv}\right\}\tilde{\sf C}^{f^ig^p}_\ell
+    \end{align}
+
+    For $v=w=1$ this reduces to:
+    \begin{align}\nonumber
+     \hat{\sf F}^4_\ell
+     &=M_{ij}N^*_{pq}\left\{\int d\nv\,{\bf f}^{j\dag}(\nv)\,{\rm SHT}^{-1}\left[\hat{\sf C}^{ab}_{\ell_1}{\rm SHT}\left({\bf g}^q\right)^{s_b}_{{\bf l}_1}\right]^{s_a}_{\nv}\right\}\tilde{\sf C}^{f^ig^p}_\ell\\\nonumber
+     &=M_{ij}N^*_{pq}\left\{\int d\nv\,\sum_{{\bf l}_2}{\bf f}^{j\dag}_{{\bf l}_2}\hat{\sf Y}^{s_a\dag}_{{\bf l}_2}(\nv)\,\sum_{{\bf l}_1}\hat{\sf Y}^{s_a}_{{\bf l}_1}(\nv)\hat{\sf C}^{ab}_{\ell_1}{\bf g}^q_{{\bf l}_1}\right\}\tilde{\sf C}^{f^ig^p}_\ell\\\nonumber
+     &=M_{ij}N^*_{pq}{\bf f}^{j\dag}_{{\bf l}_1}\hat{\sf C}^{ab}_{\ell_1}{\bf g}^q_{{\bf l}_1}\tilde{\sf C}^{f^ig^p}_\ell\\\nonumber
+     &=M_{ij}N^*_{pq}\left[\sum_{\ell_1}(2\ell_1+1){\rm Tr}\left(\hat{\sf C}^{ab}_{\ell_1}\tilde{\sf C}^{g^qf^j}_{\ell_1}\right)\right]\tilde{\sf C}^{f^ig^p}_\ell
+    \end{align}
+
+  \subsection{Final form of the estimator}
+    Putting together the results from Equations \ref{eq:master_transformation}, \ref{eq:bias_2}, \ref{eq:bias_3} and \ref{eq:bias_4}, we can write down an unbiased estimator for the pseudo-$C_\ell$ of the cut-sky maps free from contamination from ${\bf f}$ and ${\bf g}$:
+    \begin{align}\nonumber
+      \tilde{\sf C}^{ab}_\ell=&\tilde{\sf C}^{\tilde{a}\tilde{b}}_\ell+N^*_{ij}\,\frac{\sum_m}{2\ell+1}{\rm SHT}\left\{v(\nv){\rm SHT}^{-1}\left[\hat{\sf C}^{ab}_{\ell_1}{\rm SHT}\left(w\,{\bf g}^j\right)^{s_b}_{{\bf l}_1}\right]^{s_a}_{\nv}\right\}^{s_a}_{\bf l}{\bf g}^{i\dag}_{\bf l}+\\\nonumber
+      &+M_{ij}\frac{\sum_{m}}{2\ell+1}{\bf f}^i_{\bf l}\,{\rm SHT}\left\{w(\nv)\,{\rm SHT}^{-1}\left[\hat{\sf C}^{ab\dag}_{\ell_1}{\rm SHT}\left(v\,{\bf f}^j\right)^{s_a}_{{\bf l}_1}\right]^{s_b}_{\nv}\right\}^{s_b\dag}_{\bf l}-\\\label{eq:unbiased_pcl}
+      &-M_{ij}N^*_{pq}\left\{\int d\nv\,v(\nv)\,{\bf f}^{j\dag}(\nv)\,{\rm SHT}^{-1}\left[\hat{\sf C}^{ab}_{\ell_1}{\rm SHT}\left(w\,{\bf g}^q\right)^{s_b}_{{\bf l}_1}\right]^{s_a}_{\nv}\right\}\tilde{\sf C}^{f^ig^p}_\ell
+    \end{align}
+
+    Once $\tilde{\sf C}^{ab}$ is calculated, it can be corrected for the effects of masking by inverting the linear transformation in Eq \ref{eq:master_transformation}. This transformation can be written explicitly by first transforming the power spectrum matrices into vectors $_v{\sf C}$. E.g. for $s_a=s_b=2$ we transform:
+    \begin{equation}
+      \hat{\sf C}^{ab}_\ell\equiv\left(
+      \begin{array}{cc}
+        C^{E_aE_b}_\ell & C^{E_aB_b}_\ell \\
+        C^{B_aE_b}_\ell & C^{B_aB_b}_\ell
+      \end{array}\right)
+      \hspace{12pt}\text{into}\hspace{12pt}
+      _v\hat{\sf C}^{ab}_\ell\equiv\left(
+      \begin{array}{c}
+        C^{E_aE_b}_\ell\\
+        C^{E_aB_b}_\ell\\
+        C^{B_aE_b}_\ell\\
+        C^{B_aB_b}_\ell
+      \end{array}\right).
+    \end{equation}
+    We can then write, in general:
+    \begin{equation}\label{eq:cell_coupled}
+      _v\tilde{\sf C}^{ab}_\ell=\sum_{\ell'}{\sf M}^{s_as_b}_{\ell\ell'}\cdot\,_v\hat{\sf C}^{ab}_{\ell'},
+    \end{equation}
+    where:
+    \begin{align}
+      &{\sf M}^{00}_{\ell\ell'}=\frac{2\ell'+1}{4\pi}\sum_{\ell''}(2\ell''+1)C^{vw}_{\ell''}\wtj{\ell}{\ell'}{\ell''}{0}{0}{0}^2\\
+      &{\sf M}^{02}_{\ell\ell'}=M^{0+}_{\ell\ell'}\,\hat{\sf 1},
+      \hspace{12pt}
+      M^{0+}_{\ell\ell'}=\frac{2\ell'+1}{4\pi}\sum_{\ell''}(2\ell''+1)C^{vw}_{\ell''}\wtj{\ell}{\ell'}{\ell''}{0}{0}{0}\wtj{\ell}{\ell'}{\ell''}{2}{-2}{0}\\
+      &{\sf M}^{22}_{\ell\ell'}=\left(
+      \begin{array}{cccc}
+        M^{++}_{\ell\ell'} &0 &0&M^{--}_{\ell\ell'}\\
+        0&M^{++}_{\ell\ell'} &-M^{--}_{\ell\ell'}&0\\
+        0&-M^{--}_{\ell\ell'} &M^{++}_{\ell\ell'}&0\\
+        M^{--}_{\ell\ell'} &0 &0&M^{++}_{\ell\ell'}
+      \end{array}\right)\\
+      & \hspace{12pt}M^{\pm\pm}_{\ell\ell'}=\frac{2\ell'+1}{4\pi}\sum_{\ell''}(2\ell''+1)C^{vw}_{\ell''}\wtj{\ell}{\ell'}{\ell''}{2}{-2}{0}^2\frac{1\pm(-1)^{\ell+\ell'+\ell''}}{2}
+    \end{align}
+    
+    If either the $B$ or $E$ modes of a spin-2 field has been purified, the equations above must be modified by carrying out the following modification in the equations above:
+    \begin{align}
+      &\wtj{\ell}{\ell'}{\ell''}{2}{-2}{0}\longrightarrow\\\nonumber
+      &\wtj{\ell}{\ell'}{\ell''}{2}{-2}{0}+2\sqrt{\frac{(\ell+1)!(\ell-2)!(\ell''+1)!}{(\ell-1)!(\ell+2)!(\ell''-1)!}}\wtj{\ell}{\ell'}{\ell''}{1}{-2}{1}+\sqrt{\frac{(\ell-2)!(\ell''+2)!}{(\ell+2)!(\ell''-2)!}}\wtj{\ell}{\ell'}{\ell''}{0}{-2}{2}.
+    \end{align}
+    This change must be applied to the corresponding factors of $\wtj{\ell}{\ell'}{\ell''}{2}{-2}{0}$.
+
+
+\subsection{Beam}
+  Adding the effect of a beam amounts to redefining:
+  \begin{equation}
+    \mathsf{M}^{s_as_b}_{\ell_1\ell_2}\rightarrow\mathsf{M}^{s_as_b}_{\ell_1\ell_2}\,b^{ab}_{\ell_2},
+  \end{equation}
+  where $b^{ab}_\ell$ is the product of the harmonic transform of the beams for maps $a$ and $b$.
+    
+\subsection{Computing $\langle\tilde{C}^N_l\rangle$}
+Consider the case where the window function is just a flat top-hat multiplied by the inverse variance of the noise:
+\begin{equation}
+  W(\nv)\equiv\Theta(\nv)\frac{\bar{\sigma}_N^2}{\sigma_N^2(\nv)},
+\end{equation}
+where $\sigma_N^2(\nv)$ is the variance per sterad at each point and $\bar{\sigma}^2_N$ is its sky-averaged value.
+
+For uncorrelated noise, we can write $N(\nv)$ as
+\begin{equation}
+ N(\nv)=u(\nv)\,\sigma_N(\nv)
+\end{equation}
+where $u(\nv)$ is a white GRF with power spectrum $C^u_l=1$. In this case, the noise pseudo-$C_l$ can be estimated theoretically:
+\begin{equation}
+ \langle\tilde{C}_l^N\rangle=\frac{1}{4\pi}\int d\Omega\,\sigma_N^2(\nv)W^2(\nv)=
+ \frac{\bar{\sigma}_N^2}{4\pi}\int d\Omega\, \Theta(\nv)\frac{\bar{\sigma}_N^2}{\sigma_N^2(\nv)}=
+ f_{\rm sky}\,\bar{\sigma}_N^2\overline{\left(\frac{\bar{\sigma}_N^2}{\sigma^2_N}\right)}
+\end{equation}
+
+\subsection{Binning into bandpowers}
+  Given the loss of information implicit in masking the originally full-sky field, it is in general not possible to invert Eq. \ref{eq:cell_coupled} directly. De usual approach to doing so is by binning the pseudo-$C_\ell$ into bandpowers. A bandpower $b$ is defined by a set of $N_b$ multipoles $\vec{\ell}_b\equiv(\ell_b^1,...,\ell_b^{N_k})$ and a set of weights $\vec{w}_b\equiv(w_b^1,...,w_b^{N_b})$ normalized such that $\sum_{i=1}^{N_b}w_b^i=1$. The $b-$th bandpower for the coupled pseudo-$C_\ell$ is then defined as:
+  \begin{equation}
+    _v\tilde{\sf B}_b \equiv\sum_{i=1}^{N_b}w_b^i\,_v\tilde{\sf C}_{\ell_b^i}
+    =\sum_{i=1}^{N_b}w_b^i\sum_{\ell'}{\sf M}^{s_as_b}_{\ell_b^i\ell'}\,_v\hat{\sf C}_\ell.
+  \end{equation}
+  One then proceeds by assuming that the true power spectrum is a step-wise function, taking constant values over the multipoles corresponding to each bandpower: $_v\hat{\sf C}_\ell=\sum_b\,_v\hat{\sf B}_b\Theta(\ell\in\vec{\ell}_b)$ (where $\Theta$ is a binary step function). The previous equation then reads:
+  \begin{equation}
+   _v\tilde{\sf B}_b=\sum_{b'}\mathcal{M}_{bb'}\,_v\hat{\sf B}_{bb'}\equiv\sum_{b'}\left(\sum_{\ell\in\vec{\ell}_b}\sum_{\ell'\in\vec{\ell}_{b'}}w_b^\ell{\sf M}_{\ell\ell'}\right)\,_v\hat{\sf B}_{b'},
+  \end{equation}
+  which defines the binned coupling matrix $\mathcal{M}_{bb'}$. The decoupled bandpowers are then estimated by inverting $\mathcal{M}$:
+  \begin{equation}
+    _v\hat{\sf B}_b=\sum_{b'}\left(\mathcal{M}\right)^{-1}_{bb'}\,_v\tilde{\sf B}_{b'}.
+  \end{equation}
+
+  Note that, since this procedure is based on the assumption that the true power spectrum is step-wise constant, the bandpowers computed this way should be compared with the theoretical prediction subjected to the same type of transformation. I.e. the theoretical prediction for the bandpowers is:
+  \begin{equation}
+    _v\bar{\sf B}_b=\sum_{b'}\left(\mathcal{M}\right)^{-1}_{bb'}\sum_{\ell'\in\vec{\ell}_{b'}}w_{b'}^{\ell'}\sum_{\ell''}{\sf M}_{\ell'\ell''}\,_v\bar{\sf C}_{\ell''},
+  \end{equation}
+  where we the overline $\bar{\,}$ denotes theoretical predictions.
+
+\section{Gaussian covariance matrices}
+  For three scalar fields $a$, $b$, $c$ and $d$, with masks $w^a$, $w^b$, $w^c$ and $w^d$, the covariance matrix element between the coupled pseudo-$C_\ell$ for $(a,b)$ and $(c,d)$ is given by:
+  \begin{equation}
+    \left\langle\Delta\tilde{C}^{ab}_\ell\Delta\tilde{C}^{cd}_{\ell'}\right\rangle=\sum_{mm'}\sum_{{\bf l}_1{\bf l}_2}\left(C^{ac}_{\ell_1}C^{bd}_{\ell_2}W^a_{{\bf l}{\bf l}_1}W^b_{{\bf l}{\bf l}_2}W^c_{{\bf l}{\bf l}_1}W^d_{{\bf l}{\bf l}_2}+C^{ad}_{\ell_1}C^{bc}_{\ell_2}W^a_{{\bf l}{\bf l}_1}W^b_{{\bf l}{\bf l}_2}W^c_{{\bf l}{\bf l}_2}W^d_{{\bf l}{\bf l}_1}\right)
+  \end{equation}
+  Under the approximation $C^{ac}_{\ell_1}C^{bd}_{\ell_2}\rightarrow C^{ac}_{(\ell}C^{bd}_{\ell')}$\footnote{The approximation made by e.g. \cite{2004MNRAS.349..603E,2005MNRAS.360.1262B} is $C^{ac}_{\ell_1}C^{bd}_{\ell_2}\rightarrow \sqrt{C^{ac}_{\ell}C^{ac}_{\ell'}C^{bd}_{\ell}C^{bd}_{\ell'}}$, however this is not possible for possibly-negative cross-correlations, which motivates the arithmetic rather than geometrical mean used here.}, where $X_{(a}Y_{b)}\equiv(X_aY_b+X_bY_a)/2$, this gets simplified to:
+  \begin{equation}
+    \left\langle\Delta\tilde{C}^{ab}_\ell\Delta\tilde{C}^{cd}_{\ell'}\right\rangle\simeq
+    C^{ac}_{(\ell}C^{bd}_{\ell')}\,\Xi_{\ell\ell'}(w^aw^c,w^bw^d)+C^{ad}_{(\ell}C^{bc}_{\ell')}\,\Xi_{\ell\ell'}(w^aw^d,w^bw^c).
+  \end{equation}
+  Here:
+  \begin{equation}
+    \Xi_{\ell\ell'}(\phi,\psi)\equiv\sum_{\ell_1}\frac{2\ell_1+1}{4\pi}\wtj{\ell}{\ell'}{\ell_1}{0}{0}{0}^2C^{\phi\psi}_{\ell_1}.
+  \end{equation}
+  
+  Finally, we can compute the covariance of the coupled bandpowers by averaging within each bandpower:
+  \begin{equation}
+    {\rm Cov}^{(ab),(cd)}_{kk'}\equiv\left\langle\Delta\,_v\tilde{\sf B}^{ab}_k\Delta\,_v\tilde{\sf B}^{cd}_{k'}\right\rangle=\sum_{\ell\in k}\sum_{\ell'\in k'}w_k^\ell w_{k'}^{\ell'}\left\langle\Delta\tilde{C}^{ab}_\ell\Delta\tilde{C}^{cd}_{\ell'}\right\rangle,
+  \end{equation}
+  and the covariance of the uncoupled bandpowers is given by the linear transformation:
+  \begin{equation}
+    \left\langle\left(\Delta\,_v\hat{\sf B}^{ab}\right)\left(\Delta\,_v\hat{\sf B}^{cd}\right)^T\right\rangle=({\cal M}_{ab})^{-1}{\rm Cov}^{(ab),(cd)}\left(({\cal M}_{cd})^{-1}\right)^T
+  \end{equation}
+
+
+
+
+
+\section{Flat-sky}
+  \subsection{Fourier transforms}
+    In the flat sky we will write the directional vector $\nv$ as ${\bf x}$. Let ${\bf a}({\bf x})$ be a spin-$s_a$ quantity. Under the approximation $\sin\theta\sim1$, $\Delta\theta\rightarrow -\Delta x$, $\Delta\varphi\rightarrow\Delta y$, the differential operator $\eth$ now takes the form:
+    \begin{equation}
+      \eth= (\partial_x-i\partial_y),\hspace{12pt}\bar{\eth}= (\partial_x+i\partial_y),
+    \end{equation}
+    and acts on a plane wave $e^{i{\bf k}{\bf x}}$ as:
+    \begin{equation}
+      \eth^s e^{i{\bf k}{\bf x}}=(ik)^se^{-i\,s\varphi_k}e^{i{\bf k}{\bf x}},\hspace{12pt}
+      \bar{\eth}e^{i{\bf k}{\bf x}}=(ik)^se^{i\,s\varphi_k}e^{i{\bf k}{\bf x}}
+    \end{equation}
+
+    Let us define the basis functions:
+    \begin{equation}
+      \,_s{\cal Y}_{\bf k}({\bf x})\equiv k^{-s}\eth^se^{i{\bf k}{\bf x}}=i^s\,e^{-is\varphi_k}e^{i{\bf k}{\bf x}},\hspace{12pt}\,
+      _{-s}{\cal Y}_{\bf k}({\bf x})\equiv (-k)^{-s}\bar{\eth}^se^{i{\bf k}{\bf x}}=(-i)^se^{is\varphi_k}e^{i{\bf k}{\bf x}},
+    \end{equation}
+    and the spin-$s$ Fourier coefficients:
+    \begin{align}
+      a({\bf x})  =\int\frac{d{\bf l}^2}{2\pi}\,_s{\cal Y}_{\bf l}({\bf x})_sa_{\bf l},\hspace{12pt}
+      a^*({\bf x})=\int\frac{d{\bf l}^2}{2\pi}\,_{-s}{\cal Y}_{\bf l}({\bf x})_{-s}a_{\bf l},\\
+      \,_sa_{\bf l}\equiv\int\frac{d{\bf x}^2}{2\pi}\,_s{\cal Y}^*_{\bf l}({\bf x})a({\bf x}),\hspace{12pt}
+      \,_{-s}a_{\bf l}\equiv\int\frac{d{\bf x}^2}{2\pi}\,_{-s}{\cal Y}^*_{\bf l}({\bf x})a^*({\bf x}).
+    \end{align}
+    The $E$ and $B$-mode coefficients are then defined as:
+    \begin{align}
+      _sE_{\bf l}\equiv-\frac{1}{2}\left[_sa_{\bf l}+(-1)^s\,_{-s}a_{\bf l}\right],\hspace{12pt}
+      i\,_sB_{\bf l}\equiv-\frac{1}{2}\left[_sa_{\bf l}-(-1)^s\,_{-s}a_{\bf l}\right].
+    \end{align}
+    Note the preceding $(-)$ sign. For scalar fields ($s\equiv0$) the $E$ and $B$ modes are defined omitting that sign.
+    
+    Let us now write $a$ as a vector such that in real space ${\bf a}({\bf x})\equiv({\rm Re}(a),{\rm Im}(a))$, and in Fourier space ${\bf a}_{\bf l}\equiv(\,_sE_{\bf l},\,_sB_{\bf l})$. We can rewrite the equations above in vectorial form:
+    \begin{equation}
+      {\bf a}({\bf x})\equiv\int\frac{d{\bf l}^2}{2\pi}\,_s{\sf E}_{\bf l}({\bf x}){\bf a}_{\bf l},\hspace{12pt}{\bf a}_{\bf l}\equiv\int\frac{d{\bf x}^2}{2\pi}\,_s{\sf E}^\dag_{\bf l}({\bf x}){\bf a}({\bf x}),
+    \end{equation}
+    where we have defined the matrix basis functions:
+    \begin{align}
+      \,_s{\sf E}_{\bf l}({\bf x})
+      &\equiv-\frac{1}{2}
+      \left(\begin{array}{cc}
+                 \,_s{\cal Y}_{\bf l}+(-1)^s\,_{-s}{\cal Y}_{\bf l}  & i(\,_s{\cal Y}_{\bf l}-(-1)^s\,_{-s}{\cal Y}_{\bf l}) \\
+              -i(\,_s{\cal Y}_{\bf l}-(-1)^s\,_{-s}{\cal Y}_{\bf l}) &   \,_s{\cal Y}_{\bf l}+(-1)^s\,_{-s}{\cal Y}_{\bf l}
+            \end{array}\right)\\
+      &=-\frac{1}{2l^s}
+      \left(\begin{array}{cc}
+                 \eth^s+\bar{\eth}^s & i(\eth^s-\bar{\eth}^s) \\
+              -i(\eth^s-\bar{\eth}^s) &  \eth^s+\bar{\eth}^s
+            \end{array}\right)e^{i{\bf l}{\bf x}}\\
+      &=-i^s
+      \left(\begin{array}{cc}
+               \cos(s\varphi_l) & \sin(s\varphi_l) \\
+              -\sin(s\varphi_l) & \cos(s\varphi_l)
+            \end{array}\right)e^{i{\bf l}{\bf x}}\\
+      &=-i^s{\sf R}^\dag(s\varphi_l)e^{i{\bf l}{\bf x}},
+    \end{align}
+    where ${\sf R}(\varphi)$ is a rotation matrix.
+    
+    Thus:
+    \begin{align}
+      \left(\begin{array}{c}
+       Q({\bf x}) \\ U({\bf x})
+      \end{array}\right)
+      &=-i^s
+      \int\frac{d{\bf l}^2}{2\pi}
+      \left(\begin{array}{cc}
+              \cos(s\varphi_l) & \sin(s\varphi_l) \\
+             -\sin(s\varphi_l) & \cos(s\varphi_l) \\
+            \end{array}\right)
+      \left(\begin{array}{c}
+       _sE_{\bf l} \\ _sB_{\bf l}
+      \end{array}\right)e^{i{\bf l}{\bf x}}\\
+      \left(\begin{array}{c}
+       _sE_{\bf l} \\ _sB_{\bf l}
+      \end{array}\right)
+      &=-(-i)^s
+      \left(\begin{array}{cc}
+              \cos(s\varphi_l) & -\sin(s\varphi_l) \\
+              \sin(s\varphi_l) &  \cos(s\varphi_l) \\
+            \end{array}\right)
+      \left(\begin{array}{c}
+       Q_{\bf l} \\ U_{\bf l}
+      \end{array}\right),
+    \end{align}
+    where $Q_{\bf l}$ and $U_{\bf l}$ are the standard Fourier transforms of $Q$ and $U$.
+    
+    The functions $\,_s{\sf E}_{\bf l}({\bf x})$ satisfy the following orthogonality and completeness relations:
+    \begin{equation}
+      \int \frac{d{\bf x}^2}{(2\pi)^2}\,_s{\sf E}_{\bf l}({\bf x})_s{\sf E}^\dag_{{\bf l}'}({\bf x})={\sf 1}\,\delta({\bf l}-{\bf l}'),\hspace{12pt}
+      \int \frac{d{\bf l}^2}{(2\pi)^2}\,_s{\sf E}_{\bf l}({\bf x})_s{\sf E}^\dag_{{\bf l}}({\bf x}')={\sf 1}\,\delta({\bf x}-{\bf x}').
+    \end{equation}
+
+  \subsection{Pseudo-$C_\ell$ estimator - continuum limit}
+    The Fourier coefficients of the masked field are:
+    \begin{align}
+      {\bf a}^v_{\bf l}&=\int\int\frac{d{\bf k}^2d{\bf q}^2}{2\pi}\left[\int\frac{d{\bf x}^2}{(2\pi)^2}\,_{s_a}{\sf E}^\dag_{\bf l}({\bf x})\,_{s_a}{\sf E}_{\bf k}({\bf x})\,_0E_{\bf q}({\bf x})\right]{\bf a}_{\bf k}\,v_{\bf q}\\
+                       &=\int\frac{d{\bf k}^2}{2\pi}{\sf R}\left(s_a(\varphi_\ell-\varphi_k)\right)\,{\bf a}_{\bf k}v_{{\bf l}-{\bf k}},
+    \end{align}
+    which, for instance, in the case of a spin-$2$ field, read:
+    \begin{equation}\label{eq:pseudo_flat_eb}
+     \left(
+     \begin{array}{c}
+      E^v_{\bf l} \\ B^v_{\bf l}
+     \end{array}\right)
+     =\int\frac{d{\bf k}^2}{2\pi}v_{{\bf l}-{\bf k}}
+     \left(
+     \begin{array}{cc}
+       \cos2\Delta\varphi & -\sin2\Delta\varphi \\
+       \sin2\Delta\varphi &  \cos2\Delta\varphi
+     \end{array}\right)\,\left(
+     \begin{array}{c}
+      E_{\bf k} \\ B_{\bf k}
+     \end{array}\right),
+    \end{equation}
+    where $\Delta\varphi\equiv\varphi_\ell-\varphi_k$. Then, the covariance of the Fourier coefficients of two masked fields is:
+    \begin{align}
+      \left\langle{\bf a}^v_{\bf l}\,{\bf b}^{w\dag}_{\bf l}\right\rangle
+      &=\int\int\frac{d{\bf k}^2d{\bf q}^2}{(2\pi)^2}{\sf R}(s_a(\varphi_\ell-\varphi_k))\left\langle{\bf a}_{\bf k}{\bf b}^\dag_{\bf q}\right\rangle{\sf R}^\dag(s_b(\varphi_\ell-\varphi_q))v_{{\bf l}-{\bf k}}w^*_{{\bf l}-{\bf q}}\\
+      &=\int\frac{d{\bf k}^2}{(2\pi)^2}{\sf R}(s_a\Delta\varphi){\sf C}^{ab}_k{\sf R}^\dag(s_b\Delta\varphi)v_{{\bf l}-{\bf k}}w^*_{{\bf l}-{\bf k}}.
+    \end{align}
+    
+    The pseudo-$C_\ell$ is defined as the nomalized angular average of ${\bf a}_{\bf l}{\bf b}^\dag_{\bf l}$:
+    \begin{align}
+      \tilde{\sf C}^{ab}_\ell
+      &\equiv\frac{(2\pi)^2}{S}\int\frac{d\varphi_\ell}{2\pi}\left\langle{\bf a}^v_{\bf l}\,{\bf b}^{w\dag}_{\bf l}\right\rangle\\
+      &=\int\frac{kdk\,qdq}{(2\pi)^2}\left[\frac{(2\pi)^2}{S}\int\frac{d\varphi_q}{2\pi}v_{{\bf q}}w^*_{{\bf q}}
+      \int d\varphi_\ell d\varphi_k{\sf R}(s_a\Delta\varphi){\sf C}^{ab}_k{\sf R}^\dag(s_b\Delta\varphi)\delta({\bf q}-{\bf l}+{\bf k})\right],
+    \end{align}
+    where $S$ is the observed sky area (in sterad), and where we have eliminated the dependence on ${\bf l}-{\bf k}$ by introducing an additional integral over $d{\bf q}^2\delta({\bf q}-{\bf l}+{\bf k})$.
+    
+    As shown in \cite{2016arXiv161204664A}, these expressions can be simplified through the following steps:
+    \begin{enumerate}
+     \item Substitute
+       \begin{equation}
+         \delta({\bf q}-{\bf l}+{\bf k})\rightarrow\int\frac{d{\bf r}^2}{(2\pi)^2}e^{i({\bf q}-{\bf l}+{\bf k}){\bf r}}
+       \end{equation}
+     \item Integrate over the angular parts of ${\bf r}$, ${\bf l}$ and ${\bf k}$ using the following relation:
+       \begin{equation}
+        \int_0^{2\pi} d\varphi\,e^{i\,x\,\cos\varphi}e^{i\,n\varphi}=2\pi\,i^n\,J_n(x),
+       \end{equation}
+       where $J_n$ is the cylindrical Bessel function of order $n$.
+     \item Integrate over the angular part of ${\bf q}$, defining the pseudo-power spectrum of the masks:
+       \begin{equation}
+         \tilde{C}^{vw}_q\equiv\frac{(2\pi)^2}{S}\int d\varphi_qv_{\bf q}w^*_{\bf q}
+       \end{equation}
+     \item Solve the last isolated integral over the radial part of ${\bf r}$ by using the following relation:
+       \begin{equation}
+         \int_0^\infty dr\,r\,J_0(qr)\,J_n(kr)\,J_n(\ell r)=\frac{\cos n\theta}{\pi k\ell\sin\theta},
+       \end{equation}
+       where $\theta$ is the angle between sides $\ell$ and $k$ of the triangle formed by three sides of length $q$, $\ell$ and $k$.
+     \item Make the change of variables $q^2(\ell,k,\theta)\equiv\ell^2+k^2-2k\ell\cos\theta$ to simplify the integral over the radial part of ${\bf q}$.
+    \end{enumerate}
+    
+    This yields the following relation analogous to Eq. \ref{eq:cell_coupled}:
+    \begin{equation}
+      \,_v\tilde{\sf C}^{ab}_\ell=\int_0^{\infty} dk\, {\sf M}^{s_as_b}_{\ell k}\cdot\,_v\hat{\sf C}^{ab}_k,
+    \end{equation}
+    where:
+    \begin{align}
+      &{\sf M}^{00}_{\ell k}=\frac{k}{2\pi}\int_0^\pi \frac{d\theta}{\pi}\,\tilde{C}^{vw}_{q(\ell,k,\theta)}\\
+      &{\sf M}^{02}_{\ell\ell'}=M^{0+}_{\ell\ell'}\,\hat{\sf 1},
+      \hspace{12pt}
+      M^{0+}_{\ell k}=\frac{k}{2\pi}\int_0^\pi \frac{d\theta}{\pi}\,\tilde{C}^{vw}_{q(\ell,k,\theta)}\cos2\theta\\
+      &{\sf M}^{22}_{\ell\ell'}=\left(
+      \begin{array}{cccc}
+        M^{++}_{\ell\ell'} &0 &0&M^{--}_{\ell\ell'}\\
+        0&M^{++}_{\ell\ell'} &-M^{--}_{\ell\ell'}&0\\
+        0&-M^{--}_{\ell\ell'} &M^{++}_{\ell\ell'}&0\\
+        M^{--}_{\ell\ell'} &0 &0&M^{++}_{\ell\ell'}
+      \end{array}\right),
+      \hspace{12pt}M^{\pm\pm}_{\ell\ell'}=\frac{k}{2\pi}\int_0^\pi \frac{d\theta}{\pi}\,\tilde{C}^{vw}_{q(\ell,k,\theta)}\frac{1\pm\cos4\theta}{2}.
+    \end{align}
+    These can also be expressed as integrals over $q$:
+    \begin{align}
+      &M^{00}_{\ell k}=\frac{k}{2\pi}\int\frac{q\,dq}{2\pi}\tilde{C}^{vw}_qF(\ell,k,q)\\
+      &M^{0+}_{\ell k}=\frac{k}{2\pi}\int\frac{q\,dq}{2\pi}\tilde{C}^{vw}_qF(\ell,k,q)\frac{\ell^4+k^4+q^4-2k^2q^2-2\ell^2q^2}{2k^2\ell^2}\\
+      &M^{++}_{\ell k}=\frac{k}{2\pi}\int\frac{q\,dq}{2\pi}\tilde{C}^{vw}_qF(\ell,k,q)\left[\frac{\ell^4+k^4+q^4-2k^2q^2-2\ell^2q^2}{2k^2\ell^2}\right]^2\\
+      &M^{--}_{\ell k}=\frac{k}{2\pi}\int\frac{q\,dq}{2\pi}\tilde{C}^{vw}_qF(\ell,k,q)\left(1-\left[\frac{\ell^4+k^4+q^4-2k^2q^2-2\ell^2q^2}{2k^2\ell^2}\right]^2\right),
+    \end{align}
+    where
+    \begin{equation}
+     F(\ell,k,q)\equiv\left\{
+          \begin{array}{cl}
+            4\,(2\ell^2k^2+2k^2q^2+2q^2\ell^2-\ell^4-k^4-q^4)^{-1/2} & {\rm if} |k-q|<\ell<k+q\\
+            0 & {\rm otherwise}
+          \end{array}\right.
+    \end{equation}
+    
+    Since in the flat-sky limit $\ell$ is a continuous variable, we define bandpowers $_v{\sf B}_b$ as averages over a given interval in $\ell$, $[\ell_b^i,\ell_b^0]$:
+    \begin{equation}
+      \,_v\tilde{\sf B}_b\equiv N_b\int_{\ell_b^i}^{\ell_b^f} \frac{d\ell}{\ell_b^f-\ell_b^i}\,_v\tilde{\sf C}_\ell.
+    \end{equation}
+    The binned coupling matrix is therefore given by:
+    \begin{equation}
+      \mathcal{M}_{bb'}\equiv\int^{\ell_b^f}_{\ell_b^i} \frac{d\ell}{\ell_b^f-\ell_b^i}\int^{\ell_b'^f}_{\ell_b'^i} d\ell'\,{\sf M}_{\ell\ell'}
+    \end{equation}
+
+  \subsection{Pseudo-$C_\ell$ estimator - discrete formalism}
+    The main complication in using the pseudo-$C_\ell$ formalism in the continuum limit is the need to compute the angle-averaged mask pseudo power spectrum $C^{vw}_\ell$. Flat fields are most easily analyzed when pixelized in a Cartesian grid, and under this setup the mask power spectrum is not a well defined quantity for infinitesitally small intervals of $\ell$. This leads to non-negligible biases and poor performance \cite{2016arXiv161204664A} due to the need to use highly resolved finite intervals to compute the integrals presented in the previous section. This motivates the discrete formalism described here, which connects directy with the data storage format of flat-sky maps.
+  
+    We will discuss the flat-sky pseudo-$C_\ell$ algorithm starting from a pixelized representation of the sky map.
+    Let the patch of sky under inspection be contained by a rectangle of sides $L_x$ and $L_y$ (in units of radians),
+    and let us discretize this rectangle by dividing it into an $N_x\times N_y$ grid with pixels of area
+    $\Delta{\bf x}^2\equiv\Delta x\Delta y\equiv (L_x/N_x)(L_y/N_y)$. Each pixel in this grid is then labelled by a
+    pair of integers ${\bf n}\equiv(n_x,n_y)$, and is assigned coordinates ${\bf x}_{\bf n}\equiv(n_x\Delta x,n_y\Delta y)$.
+    The each component of the pixelized map ${\bf a}({\bf x})$ is therefore defined for
+    $n_x\in[0,N_x-1],\,\,n_y\in[0,N_y-1]$.
+    
+    In this scenario, the spin Fourier transform of the pixelized field can be computed as its discrete Fourier transform:
+    \begin{equation}
+      {\bf a}_{\bf k}\equiv {\rm DFT}\left({\bf a}\right)^{s_a}_{\bf k}\equiv\sum_{\bf x}\frac{\Delta{\bf x}^2}{2\pi}\,_{s_a}{\sf E}_{\bf k}({\bf x}){\bf a}_{\bf x},
+    \end{equation}
+    where the wavenumber ${\bf k}$ is now discretized as ${\bf k}=(j_x\Delta k_x,j_y\Delta k_y)$, the integers
+    $j_{(x,y)}$ run from $-N_{(x,y)}/2$ tof $N_{(x,y)}/2-1$\footnote{This is the valid domain when $N_{(x,y)}$ is even.
+    For odd $N_{(x,y)}$ the interval becomes $[-(N_{(x,y)}-1)/2,(N_{(x,y)}-1)/2]$} and the pixel size is
+    $\Delta k_{(x,y)}\equiv2\pi/L_{(x,y)}$.
+    
+    The following properties of the DFT are worth remembering:
+    \begin{itemize}
+     \item Periodicity: ${\bf a}_{(k_x,k_y)}={\bf a}_{(k_x+N_x\Delta k_x,k_y)}={\bf a}_{(k_x,k_y+N_y\Delta k_y)}={\bf a}_{(k_x+N_x\Delta k_x,k_y+N_y\Delta k_y)}$
+     \item The power spectrum of the DFT is defined as:
+           \begin{equation}
+             \langle{\bf a}_{\bf l}{\bf b}^\dag_{\bf k}\rangle\equiv\frac{\delta_{{\bf l},{\bf k}}}{\Delta{\bf k}^2}{\sf C}^{ab}_{\bf l}
+           \end{equation}
+     \item For a real-valued scalar $a$, its DFT satisfies $a^*_{{\bf k}_{\bf j}}=a^{}_{{\bf k}_{{\bf N}-{\bf j}}}$ (where ${\bf N}\equiv(N_x,N_y)$).
+     \item The orthogonality relation of the basis functions now takes the form:
+           \begin{equation}
+             \sum_{\bf x}\,_sE^\dag_{\bf l}({\bf x})\,_sE_{\bf k}({\bf x})=N_xN_y\delta_{{\bf l},{\bf k}}\hat{\sf 1}
+           \end{equation}
+    \end{itemize}
+
+    Using the properties above one can prove that the Fourier coefficients of a masked field are:
+    \begin{equation}
+      {\bf a}^v_{\bf l}\equiv\left(v({\bf x}){\bf a}({\bf x})\right)_{\bf l}=\sum_{\bf k}\frac{\Delta{\bf k}^2}{2\pi}{\sf R}(s_a(\varphi_{\bf l}-\varphi_{\bf k})){\bf a}_{\bf k}v_{{\bf l}-{\bf k}},
+    \end{equation}
+    and we can easily find the following relation for the covariance of two masked fields at the same wavenumber:
+    \begin{equation}
+      \left\langle{\bf a}^v_{\bf l}{\bf b}^{w\dag}_{\bf l}\right\rangle=\sum_{\bf k}\frac{\Delta{\bf k}^2}{(2\pi)^2}{\sf R}(s_a\Delta\varphi){\sf C}^{ab}_{\bf k}{\sf R}^\dag(s_b\Delta\varphi)\,v_{{\bf l}-{\bf k}}w^*_{{\bf l}-{\bf k}}
+    \end{equation}
+    
+    At this stage it is natural to connect directly with the final bandpowers (since there is no natural minimal binning as in the case of the full-sky multipoles). In this case we will define a bandpower ${\sf B}_b$, indexed by an integer $b$ as the average of the covariance above over a set of ${\bf l}$ values $S_b$:
+    \begin{equation}
+      \,_v{\sf B}^{ab}_b\equiv\frac{\Delta{\bf k}^2}{N_b}\sum_{{\bf l}\in S_b}{\bf a}^v_{\bf l}{\bf b}^{w\dag}_{\bf l},
+    \end{equation}
+    where $N_b$ is the number of Fourier-space pixels covered by $S_b$. The bandpowers are related to the true power spectrum through:
+    \begin{equation}
+      \langle\,_v{\sf B}^{ab}_b\rangle=\sum_{{\bf l}\in S_b}N_b^{-1}\sum_{\bf k}{\sf M}^{s_a\,s_b}_{{\bf l}{\bf k}}\cdot\,_v\hat{\sf C}^{ab}_{\bf k},
+    \end{equation}    
+    where the un-binned mode-coupling matrix is:
+    \begin{align}
+      & M^{00}_{{\bf l}\,{\bf k}}\equiv\frac{(2\pi)^2}{L_x^2L_y^2}v_{{\bf l}-{\bf k}}w^*_{{\bf l}-{\bf k}},\\
+      & {\sf M}^{02}_{{\bf l}\,{\bf k}}\equiv\frac{(2\pi)^2}{L_x^2L_y^2}v_{{\bf l}-{\bf k}}w^*_{{\bf l}-{\bf k}}
+      \left(
+      \begin{array}{cc}
+        \cos2\Delta\varphi & -\sin2\Delta\varphi \\
+        \sin2\Delta\varphi &  \cos2\Delta\varphi
+      \end{array}
+      \right)\\
+      & {\sf M}^{22}_{{\bf l}\,{\bf k}}\equiv\frac{(2\pi)^2}{L_x^2L_y^2}v_{{\bf l}-{\bf k}}w^*_{{\bf l}-{\bf k}}
+      \left(
+      \begin{array}{cccc}
+        \cos^22\Delta\varphi & -\cos2\Delta\varphi\sin2\Delta\varphi & -\cos2\Delta\varphi\sin2\Delta\varphi & \sin^22\Delta\varphi\\
+        \cos2\Delta\varphi\sin2\Delta\varphi & \cos^22\Delta\varphi & -\sin^22\Delta\varphi & -\cos2\Delta\varphi\sin2\Delta\varphi\\
+        \cos2\Delta\varphi\sin2\Delta\varphi & -\sin^22\Delta\varphi & \cos^22\Delta\varphi & -\cos2\Delta\varphi\sin2\Delta\varphi\\
+        \sin^22\Delta\varphi &  \cos2\Delta\varphi\sin2\Delta\varphi & \cos2\Delta\varphi\sin2\Delta\varphi & \cos^22\Delta\varphi\\
+      \end{array}
+      \right)
+    \end{align}
+    The mode-coupling matrix for the bandpowers is therefore given by:
+    \begin{equation}
+      \mathcal{M}^{s_as_b}_{bb'}=\sum_{{\bf l}\in S_b}N_b^{-1}\sum_{{\bf k}\in S_{b'}}{\sf M}^{s_as_b}_{{\bf l}\,{\bf k}},
+    \end{equation}
+    
+    
+    
+    
+  \subsection{Contaminant cleaning}
+    Using the same notation as in Section \ref{sec:contaminant}, the contaminant-cleaned version of ${\bf a}$ is (c.f. Eqs. \ref{eq:deproject_real} \ref{eq:deproject_harmonic}):
+    \begin{equation}
+      \tilde{\bf a}({\bf x})={\bf a}^v({\bf x})-{\bf f}^i({\bf x})M_{ij}\sum_{\bf x}\Delta{\bf x}^2\,{\bf f}^{j\dag}({\bf x}'){\bf a}^v({\bf x}'),\hspace{12pt}
+      \tilde{\bf a}_{\bf l}={\bf a}^v_{\bf l}-{\bf f}^i_{\bf l}M_{ij}\sum_{\bf k}\Delta{\bf k}^2\,{\bf f}^{j\dag}_{\bf k}{\bf a}^v_{\bf k},
+    \end{equation}
+    and the unbiased pseudo-$C_\ell$ estimator takes the form (c.f. Eq. \ref{eq:unbiased_pcl}):
+    \begin{align}\nonumber
+      \left\langle\tilde{\bf a}_{\bf l}\tilde{\bf b}_{\bf l}^\dag\right\rangle=&\left\langle{\bf a}^v_{\bf l}{\bf b}^{w\dag}_{\bf l}\right\rangle+N^*_{ij}\,{\rm DFT}\left\{v({\bf x}){\rm DFT}^{-1}\left[\hat{\sf C}^{ab}_{\ell_1}{\rm DFT}\left(w\,{\bf g}^j\right)^{s_b}_{{\bf l}_1}\right]^{s_a}_{\bf x}\right\}^{s_a}_{\bf l}{\bf g}^{i\dag}_{\bf l}+\\\nonumber
+      &+M_{ij}{\bf f}^i_{\bf l}\,{\rm DFT}\left\{w({\bf x})\,{\rm DFT}^{-1}\left[\hat{\sf C}^{ab\dag}_{\ell_1}{\rm DFT}\left(v\,{\bf f}^j\right)^{s_a}_{{\bf l}_1}\right]^{s_b}_{\bf x}\right\}^{s_b\dag}_{\bf l}-\\
+      &-M_{ij}N^*_{pq}\left\{\sum_{\bf x} \Delta{\bf x}^D\,v({\bf x})\,{\bf f}^{j\dag}({\bf x})\,{\rm DFT}^{-1}\left[\hat{\sf C}^{ab}_{\ell_1}{\rm DFT}\left(w\,{\bf g}^q\right)^{s_b}_{{\bf l}_1}\right]^{s_a}_{\bf x}\right\}\,{\bf f}^i_{\bf l}{\bf g}^{p\dag}_{\bf l}
+    \end{align}
+
+
+  \subsection{$E$ and $B$ purification}
+    The analogue equations for the pure $B$ mode component in the flat-sky approximation are:
+    \begin{equation}
+      B^p_{\bf l}=\left(\tilde{P}_2\right)^B_{\bf l}+2\ell^{-1}\left(\tilde{P}_1\right)^B_{\bf l}+\ell^{-2}\left(\tilde{P}_0\right)^B_{\bf l},
+    \end{equation}
+    (and a similar relation for the pure $E$ component), where $P_n=(\eth^{2-n}w)^*(Q+iU)$, and $w$ is the sky mask. The derivatives of $w$
+    can be taken by using the following relation:
+    \begin{align}
+      &\eth^nw({\bf x})=\int\frac{d{\bf l}^2}{2\pi}\eth^ne^{i{\bf l}{\bf x}}w_{\bf l}=\int\frac{d{\bf l}^2}{2\pi}\,_n{\cal Y}_{\bf k}({\bf x})\,(l^nw_{\bf l})\hspace{6pt}
+      \longrightarrow\hspace{6pt}\,_nw_{\bf l}=\ell^nw_{\bf l}\\
+      &(\eth^nw({\bf x}))*=\bar{\eth}^nw({\bf x})=\int\frac{d{\bf l}^2}{2\pi}\,_{-n}{\cal Y}_{\bf k}({\bf x})\,((-l)^nw_{\bf l})\hspace{6pt}
+      \longrightarrow\hspace{6pt}\,_{-n}w_{\bf l}=(-1)^n\ell^nw_{\bf l}\\
+      &((\eth^nw({\bf x}))^E,(\eth^nw({\bf x}))^B)=(-\ell^nw_{\bf l},0)
+    \end{align}
+    
+    Note that a mathematically simpler relation for the pure components is:
+    \begin{equation}
+      B^p_{\bf l}=\int\frac{d{\bf k}^2}{2\pi}B_{\bf k}w_{{\bf l}-{\bf k}}\frac{k^2}{\ell^2}
+    \end{equation}
+    (and similarly for $E^p_{\bf l}$). Comparing with Eq. \ref{eq:pseudo_flat_eb}, we see that the key to work out the expressions for the pure-$E$ and $B$ coupling matrices is to substitute all factors of $\cos2\Delta\varphi$ for $k^2/\ell^2$, and all factors of $\sin2\Delta\varphi$ for 0.
+    
+  \subsection{Gaussian covariance}
+    Using approximations similar to those described in the full-sky case (see previous section), we can prove that the Gaussian covariance matrix for the coupled bandpowers of 4 scalar fields $a$, $b$, $c$ and $d$ is given by:
+    \begin{equation}
+      \left\langle \Delta{\sf B}^{ab}_q \Delta{\sf B}^{cd}_{q'}\right\rangle=
+      {\sf B}^{ac}_{(q}{\sf B}^{bd}_{q')}\,\Xi_{qq'}(w^aw^c,w^bw^d)+{\sf B}^{ad}_{(q}{\sf B}^{bc}_{q')}\,\Xi_{qq'}(w^aw^d,w^bw^c),
+    \end{equation}
+    where
+    \begin{equation}
+      \Xi_{qq'}(\phi,\psi)=\sum_{{\bf l}\in S_q}N_q^{-1}\sum_{{\bf l}'\in S_{q'}}N_{q'}^{-1}\frac{(2\pi)^2}{L_x^2L_y^2}\phi_{{\bf l}-{\bf l}'}\psi^*_{{\bf l}-{\bf l}'}.
+    \end{equation}
+
+
+    
+\begin{thebibliography}{}
+ \bibitem{2002ApJ...567....2H} Hivon, E., G{\'o}rski, K.~M., Netterfield, C.~B., et al.\ 2002, \apj, 567, 2 
+ \bibitem{2017MNRAS.465.1847E} Elsner, F., Leistedt, B., \& Peiris, H.~V.\ 2017, \mnras, 465, 1847 
+ \bibitem{2003ApJS..148..161K} Kogut, A., Spergel, D.~N., Barnes, C., et al.\ 2003, \apjs, 148, 161 
+ \bibitem{2016arXiv161204664A} Asgari, M., Taylor, A., Joachimi, B., \& Kitching, T.~D.\ 2016, arXiv:1612.04664 
+ \bibitem{2004MNRAS.349..603E} Efstathiou, G.\ 2004, \mnras, 349, 603
+ \bibitem{2005MNRAS.360.1262B} Brown, M.~L., Castro, P.~G., \& Taylor, A.~N.\ 2005, \mnras, 360, 1262 
+\end{thebibliography}
+
+\end{document}
+
+
+\subsection{Bandpowers}
+Consider the case where you want to compute the power spectrum in band-powers given by
+\begin{equation}
+  \mathbf{B}^{ab}_k\equiv\frac{1}{N_k}\sum_{\ell=\ell_k}^{\ell_k+N_k-1} f(\ell)\,\mathbf{C}^{ab}_\ell,
+\end{equation}
+then Eq. \ref{eq:pcl_gen} above becomes
+\begin{equation}\label{eq:pcl_bin}
+  \langle\tilde{\mathbf{B}}^{ab}_k\rangle=\sum_{k'}\mathsf{M}^{B,s_as_b}_{k k'}\cdot\mathbf{B}^{ab}_{k'}+
+  \langle\tilde{\mathsf{N}}^{B,ab}_k\rangle
+\end{equation}
+where the binned coupling matrix $\mathsf{M}^{B,s_as_b}$ is
+\begin{equation}
+  \mathsf{M}^{B,s_as_b}_{k_1,k_2}\equiv\frac{1}{N_{k_1}}\sum_{\ell_1=\ell_{k_1}}^{\ell_{k_1}+N_{k_1}-1}\sum_{\ell_2=\ell_{k_2}}^{\ell_{k_2}+N_{k_2}-1}\frac{f(\ell_1)}{f(\ell_2)}
+  \mathsf{M}^{s_as_b}_{\ell_1\ell_2}
+\end{equation}
+
+\section{Mode deprojection}
+Let ${\bf t}$ be a set of contaminant templates such that we can write:
+\begin{equation}
+  {\bf d}={\bf s}+{\bf n}+\hat{\bf t}\cdot{\bf a}.
+\end{equation}
+A maximum-likelihood estimate for ${\bf a}$ can be found as
+\begin{equation}
+ \tilde{\bf a}=(\hat{\bf t}^T\hat{\bf C}^{-1}\hat{\bf t})^{-1}\hat{\bf t}\hat{\bf C}^{-1}{\bf d}
+\end{equation}
+
+
+\section{Minimum variance quadratic estimator}
+
+Let ${\bf d}_1$ and ${\bf d}_2$ be the data, given as a pixelized full-sky maps,
+with covariance matrix
+\begin{equation}
+ \langle{\bf d}_1\,{\bf d}^T_1\rangle\equiv C^{12}(\hat{\mu})\equiv
+ S^{12}(\hat{\mu})+N^{12}(\hat{\mu})=
+ \sum_\ell C^{12}_\ell\,P_\ell(\hat{\mu})+N^{12}(\hat{\mu}),
+\end{equation}
+where $\hat{\mu}={\bf n}\,{\bf n}^T$, ${\bf n}$ is the vector of unit vectors
+containing the angular coordinates to each pixel and $P_\ell(x)\equiv (2\ell+1)
+L_\ell(x)/(4\pi)$, where $L_\ell$ are the Legendre polynomials. Note that we can
+expand $P_\ell$ as
+\begin{equation}
+  P_\ell(\hat{\mu})\equiv\sum_{m=-\ell}^\ell
+  Y_{\ell m}({\bf n})\cdot Y^\dag_{\ell m}({\bf n}).
+\end{equation}
+
+We will parametrize the power spectrum with a set of step functions, such that
+\begin{equation}
+ C^{12}_\ell=\sum_b c_b\,\Theta_b(\ell),\hspace{12pt}\leftarrow\hspace{12pt}
+ \Theta_b(\ell)=1\,{\rm if}\,\ell\in[\ell^b_{\rm min},\ell^b_{\rm max}),
+ \,\,0\,{\rm otherwise},
+\end{equation}
+thus we can write
+\begin{equation}
+  C^{12}(\hat{\mu})=\sum_b\,c_b\,Q_b(\hat{\mu})+N^{12}(\hat{\mu}),
+  \hspace{6pt}{\rm with}\hspace{6pt}
+  Q_b(\mu)=\sum_\ell\Theta_b(\ell)P_\ell(\mu).
+\end{equation}
+
+Let us write the most general quadratic estimator for the coefficients $c_b$:
+\begin{equation}
+ \tilde{c}_b\equiv {\bf d}^T_1\hat{E}_b{\bf d}_2-B_b.
+\end{equation}
+The mean value of $\tilde{c}_b$ is:
+\begin{equation}
+ \langle\tilde{c}_b\rangle=\sum_a c_a\Tr(\hat{E}_b\,\hat{Q}_a)+
+ \Tr(\hat{E_b}\hat{N}^{12})-B_b,
+\end{equation}
+and therefore we can remove the noise bias by defining
+\begin{equation}
+  B_b\equiv\Tr(\hat{E_b}\hat{N}^{12}).
+\end{equation}
+
+The covariance matrix of this estimator is:
+\begin{equation}
+ \left\langle(\tilde{c}_a-\langle\tilde{c}_a\rangle)\,
+ (\tilde{c}_b-\langle\tilde{c}_b\rangle)\right\rangle=
+ \Tr(\hat{C}^{11}\hat{E}_a\hat{C}^{22}\hat{E}_b),
+\end{equation}
+where we have approximated $C_\ell^{12}\ll[C_\ell^{11},C_\ell^{22}]$. Minimizing
+the variance of $\tilde{c}_a$ under the constrain that the coupling matrix
+$W_{ab}\equiv\Tr(\hat{E}_b\,\hat{Q}_a)$ have unit diagonal, we find the following
+minimization problem:
+\begin{equation}
+  L=\Tr\left[\hat{E}_b\hat{C}^{11}\hat{E}_b\hat{C}^{22}-
+  2(\lambda\hat{E}_b\hat{Q}_b-1)\right],
+\end{equation}
+where $\lambda$ is the lagrange multiplier related to the constraint. The solution
+to this problem is:
+\begin{equation}
+ \hat{E}_b=\frac{\hat{C}_{11}^{-1}\hat{Q}_b\hat{C}_{22}^{-1}}
+ {\Tr(\hat{C}^{-1}_{11}\hat{Q}_b\hat{C}^{-1}_{22}\hat{Q}_b)}.
+\end{equation}
+
+Thus, a decoupled, unbiased and minimum-variance estimator, $\hat{c}_b$, for
+$c_b$ can be found as:
+\begin{equation}
+ {\bf d}^T_1\hat{C}^{-1}_{11}\hat{Q}_b\hat{C}^{-1}_{22}{\bf d}_2-
+ \Tr(\hat{C}^{-1}_{11}\hat{Q}_b\hat{C}^{-1}_{22}\hat{N})
+ =\sum_a \hat{c}_a\Tr(\hat{C}^{-1}_{11}\hat{Q}_b\hat{C}^{-1}_{22}\hat{Q}_a).
+\end{equation}
+Note that this estimator requires a guess for the covariance matrix of the data
+$C^{ij}(\hat{\mu})$, and exact minimum variance will only be attained for the true
+covariance (which itself depends on the power spectrum coefficients $c_b$).
+The choice of prior covariance will define the type of estimator. Note that this
+formalism immediately encompasses cut-skies by setting to zero all elements of the
+full covariance matrix involving unobserved pixels (this would correspond to the
+limit of infinite uncorrelated noise for those pixels).
+\subsection{Strategies for the different terms}
+\begin{itemize}
+\item $\hat{C}^{-1}_{ii}\,{\bf d}_i$. This term can be computed by solving the
+linear system:
+\begin{equation}
+  \hat{C}_{ii}{\bf z}_i={\bf d}_i
+\end{equation}
+via conjugate gradients. The action of $\hat{C}=\hat{S}+\hat{N}$ can be computed as
+follows:
+\begin{align}
+ [\hat{S}{\bf z}](\nv_1)&\equiv\sum_{\nv_2}S(\nv_1\cdot\nv_2)z(\nv_2)\\
+                        &=\frac{1}{\Delta\Omega}\int d\nv_2\sum_{\ell m}C_\ell
+                          Y^*_{\ell m}(\nv_1)Y^*_{\ell m}(\nv_1)\,\tilde{z}(\nv_2)\\
+                        &=\frac{1}{\Delta\Omega}\sum_{\ell m} Y^*_{\ell m}(\nv_1)
+                        C_\ell \tilde{z}_{\ell m}\\
+                        &=\frac{1}{\Delta\Omega}
+{\rm SHT}^{-1}\left[C_\ell\,{\rm SHT}[\tilde{z}(\nv)]_{\ell m}\right],
+\end{align}
+where $\tilde{z}$ is the extension of $z$ to the whole sphere, with $\tilde{z}=0$ in
+all unobserved pixels.
+
+In most cases the noise power spectrum will be white, in which case $\hat{N}{\bf z}$
+is just $\sum_{\nv}\sigma_N^2(\nv)z(\nv)$, with $\sigma^2(\nv)$ the per-pixel
+variance.
+
+Note that this procedure works for any $\hat{C}^{-1}{\bf v}$-type operation
+(see below).
+
+\item ${\bf d}^T_1\hat{C}^{-1}_{11}\hat{Q}_b\hat{C}^{-1}_{22}{\bf d}_2$. With
+${\bf z}_i$ defined as above, this is just:
+\begin{align}
+ {\bf z}^T_i\hat{Q}_b{\bf z}_j=
+ \frac{1}{(\Delta\Omega)^2}\sum_\ell\Theta_b(\ell)
+ \sum_m(\tilde{z}^{i}_{\ell m})^*\tilde{z}^{i}_{\ell m}
+\end{align}
+\item $\Tr(\hat{C}^{-1}_{11}\hat{Q}_b\hat{C}^{-1}_{22}\hat{Q}_a)$. Let ${\bf v}$ be a random
+vector with covariance $\langle {\bf v}{\bf v}^T\rangle=\hat{1}$, then one can
+calculate traces by averaging over realizations of such
+vectors:
+ \begin{equation}
+   \Tr{\hat{A}}=\left\langle {\bf v}^T\hat{A}{\bf v}\right\rangle.
+ \end{equation}
+ Then, the only thing to bear in mind in order to compute the trace above is that the action of the
+ $\hat{Q}_a$ operator is:
+ \begin{equation}
+   \left(\hat{Q}_a{\bf v}\right)_{\nv}=\frac{1}{\Delta\Omega}{\rm SHT}^{-1}
+   \left[\Theta_b(\ell){\rm SHT}\left[\tilde{v}\right]\right]_{\nv},
+ \end{equation}
+ where, as before $\tilde{v}$ is the extension of $v$ with zeros in all unobserved pixels.
+
+ In order to minimize the number of operations needed to compute this trace we can compute
+ it as:
+ \begin{equation}
+   \Tr(\hat{C}^{-1}_{11}\hat{Q}_b\hat{C}^{-1}_{22}\hat{Q}_a)=
+   \left\langle(\hat{C}^{-1}_{11}\,{\bf v})^T\hat{Q}_b(\hat{C}^{-1}_{22}\hat{Q}_a\,{\bf v})\right\rangle
+ \end{equation}
+
+\end{itemize}
+
+%\subsection{Computing $\langle\tilde{C}^N_l\rangle$}
+%Consider the case where the window function is just a flat top-hat multiplied by the inverse variance of the noise:
+%\begin{equation}
+%  W(\nv)\equiv\Theta(\nv)\frac{\bar{\sigma}_N^2}{\sigma_N^2(\nv)},
+%\end{equation}
+%where $\sigma_N^2(\nv)$ is the variance per sterad at each point and $\bar{\sigma}^2_N$ is its sky-averaged value.
+%
+%For uncorrelated noise, we can write $N(\nv)$ as
+%\begin{equation}
+% N(\nv)=u(\nv)\,\sigma_N(\nv)
+%\end{equation}
+%where $u(\nv)$ is a white GRF with power spectrum $C^u_l=1$. In this case, the noise pseudo-$C_l$ can be estimated theoretically:
+%\begin{equation}
+% \langle\tilde{C}_l^N\rangle=\frac{1}{4\pi}\int d\Omega\,\sigma_N^2(\nv)W^2(\nv)=
+% \frac{\bar{\sigma}_N^2}{4\pi}\int d\Omega\, \Theta(\nv)\frac{\bar{\sigma}_N^2}{\sigma_N^2(\nv)}=
+% f_{\rm sky}\,\bar{\sigma}_N^2\overline{\left(\frac{\bar{\sigma}_N^2}{\sigma^2_N}\right)}
+%\end{equation}

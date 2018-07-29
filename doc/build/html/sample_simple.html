@@ -1,0 +1,289 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Example 1: simple pseudo-Cl computation &mdash; pymaster 0.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="genindex.html"/>
+        <link rel="search" title="Search" href="search.html"/>
+    <link rel="top" title="pymaster 0.1 documentation" href="index.html"/>
+        <link rel="next" title="Example 2: Bandpowers" href="sample_bins.html"/>
+        <link rel="prev" title="Python API documentation" href="pymaster.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> pymaster
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="pymaster.html">Python API documentation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Example 1: simple pseudo-Cl computation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sample_bins.html">Example 2: Bandpowers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sample_fields.html">Example 3: Fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sample_masks.html">Example 4: Masks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sample_workspaces.html">Example 5: Using workspaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sample_pureb.html">Example 6: Pure E and B</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sample_flat.html">Example 7: Flat-sky fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sample_covariance.html">Example 8: Computing covariance matrices</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">pymaster</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Example 1: simple pseudo-Cl computation</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/sample_simple.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="example-1-simple-pseudo-cl-computation">
+<h1>Example 1: simple pseudo-Cl computation<a class="headerlink" href="#example-1-simple-pseudo-cl-computation" title="Permalink to this headline">¶</a></h1>
+<p>This sample script shows the simplest way to compute the cross-power spectrum between two fields</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">healpy</span> <span class="kn">as</span> <span class="nn">hp</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="kn">as</span> <span class="nn">plt</span>
+
+<span class="c1">#Import the NaMaster python wrapper</span>
+<span class="kn">import</span> <span class="nn">pymaster</span> <span class="kn">as</span> <span class="nn">nmt</span>
+
+<span class="c1"># Simple example showcasing the use of NaMaster to compute the pseudo-Cl</span>
+<span class="c1"># estimator of the angular cross-power spectrum of a spin-0 field and a</span>
+<span class="c1"># spin-2 field</span>
+
+<span class="c1">#HEALPix resolution parameter used here</span>
+<span class="n">nside</span><span class="o">=</span><span class="mi">256</span>
+
+<span class="c1">#Read mask and apodize it on a scale of ~1deg</span>
+<span class="n">mask</span><span class="o">=</span><span class="n">nmt</span><span class="o">.</span><span class="n">mask_apodization</span><span class="p">(</span><span class="n">hp</span><span class="o">.</span><span class="n">read_map</span><span class="p">(</span><span class="s2">&quot;mask.fits&quot;</span><span class="p">,</span><span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">),</span><span class="mf">1.</span><span class="p">,</span><span class="n">apotype</span><span class="o">=</span><span class="s2">&quot;Smooth&quot;</span><span class="p">)</span>
+<span class="n">hp</span><span class="o">.</span><span class="n">mollview</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span><span class="n">coord</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;G&#39;</span><span class="p">,</span><span class="s1">&#39;C&#39;</span><span class="p">],</span><span class="n">title</span><span class="o">=</span><span class="s1">&#39;Apodized mask&#39;</span><span class="p">);</span> <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+<span class="c1">#Read healpix maps and initialize a spin-0 and spin-2 field</span>
+<span class="n">f_0</span><span class="o">=</span><span class="n">nmt</span><span class="o">.</span><span class="n">NmtField</span><span class="p">(</span><span class="n">mask</span><span class="p">,[</span><span class="n">hp</span><span class="o">.</span><span class="n">read_map</span><span class="p">(</span><span class="s2">&quot;maps.fits&quot;</span><span class="p">,</span><span class="n">field</span><span class="o">=</span><span class="mi">0</span>  <span class="p">,</span><span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">)])</span>
+<span class="n">f_2</span><span class="o">=</span><span class="n">nmt</span><span class="o">.</span><span class="n">NmtField</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span><span class="n">hp</span><span class="o">.</span><span class="n">read_map</span><span class="p">(</span><span class="s2">&quot;maps.fits&quot;</span><span class="p">,</span><span class="n">field</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">],</span><span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">))</span>
+
+<span class="c1">#Initialize binning scheme with 4 ells per bandpower</span>
+<span class="n">b</span><span class="o">=</span><span class="n">nmt</span><span class="o">.</span><span class="n">NmtBin</span><span class="p">(</span><span class="n">nside</span><span class="p">,</span><span class="n">nlb</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+
+<span class="c1">#Compute MASTER estimator</span>
+<span class="c1">#spin-0 x spin-0</span>
+<span class="n">cl_00</span><span class="o">=</span><span class="n">nmt</span><span class="o">.</span><span class="n">compute_full_master</span><span class="p">(</span><span class="n">f_0</span><span class="p">,</span><span class="n">f_0</span><span class="p">,</span><span class="n">b</span><span class="p">)</span>
+<span class="c1">#spin-0 x spin-2</span>
+<span class="n">cl_02</span><span class="o">=</span><span class="n">nmt</span><span class="o">.</span><span class="n">compute_full_master</span><span class="p">(</span><span class="n">f_0</span><span class="p">,</span><span class="n">f_2</span><span class="p">,</span><span class="n">b</span><span class="p">)</span>
+<span class="c1">#spin-2 x spin-2</span>
+<span class="n">cl_22</span><span class="o">=</span><span class="n">nmt</span><span class="o">.</span><span class="n">compute_full_master</span><span class="p">(</span><span class="n">f_2</span><span class="p">,</span><span class="n">f_2</span><span class="p">,</span><span class="n">b</span><span class="p">)</span>
+
+<span class="c1">#Plot results</span>
+<span class="n">ell_arr</span><span class="o">=</span><span class="n">b</span><span class="o">.</span><span class="n">get_effective_ells</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">ell_arr</span><span class="p">,</span><span class="n">cl_00</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="s1">&#39;r-&#39;</span><span class="p">,</span><span class="n">label</span><span class="o">=</span><span class="s1">&#39;TT&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">ell_arr</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">fabs</span><span class="p">(</span><span class="n">cl_02</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span><span class="s1">&#39;g-&#39;</span><span class="p">,</span><span class="n">label</span><span class="o">=</span><span class="s1">&#39;TE&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">ell_arr</span><span class="p">,</span><span class="n">cl_22</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="s1">&#39;b-&#39;</span><span class="p">,</span><span class="n">label</span><span class="o">=</span><span class="s1">&#39;EE&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">ell_arr</span><span class="p">,</span><span class="n">cl_22</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span><span class="s1">&#39;y-&#39;</span><span class="p">,</span><span class="n">label</span><span class="o">=</span><span class="s1">&#39;BB&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">loglog</span><span class="p">();</span> <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;$</span><span class="se">\\</span><span class="s1">ell$&#39;</span><span class="p">,</span><span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">);</span> <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;$C_</span><span class="se">\\</span><span class="s1">ell$&#39;</span><span class="p">,</span><span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">);</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s1">&#39;upper right&#39;</span><span class="p">,</span><span class="n">ncol</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span><span class="n">labelspacing</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="sample_bins.html" class="btn btn-neutral float-right" title="Example 2: Bandpowers" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="pymaster.html" class="btn btn-neutral" title="Python API documentation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, David Alonso.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'0.1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>
