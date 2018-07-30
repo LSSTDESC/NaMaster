@@ -1,21 +1,12 @@
 \RequirePackage{docswitch}
-% \flag is set by the user, through the makefile:
-%    make note
-%    make apj
-% etc.
 \setjournal{\flag}
 
-\documentclass[\docopts]{\docclass}
+\documentclass[usenatbib]{mnrasb}
 
-% You could also define the document class directly
-%\documentclass[]{emulateapj}
 
 % Custom commands from LSST DESC, see texmf/styles/lsstdesc_macros.sty
 \usepackage{lsstdesc_macros}
-
 \usepackage{graphicx}
-\graphicspath{{./}{./figures/}}
-\bibliographystyle{apj}
 
 % Add your own macros here:
 \usepackage{lipsum}
@@ -40,6 +31,7 @@ breaklines=true,        % sets automatic line breaking
 breakatwhitespace=false,    % sets if automatic breaks should only happen at whitespace
 escapeinside={\%*}{*)}          % if you want to add a comment within your code
 }
+%\usepackage[colorlinks,linkcolor=red,citecolor=blue,urlcolor=blue ]{hyperref}
 \newcommand{\nv}{\hat{\bf n}}
 \newcommand{\wtj}[6]{\left(\begin{array}{ccc} #1 & #2 & #3\\#4 & #5 & #6\end{array} \right)}
 \newcommand{\todo}[1]{{\bf TODO: #1}}
@@ -58,8 +50,6 @@ escapeinside={\%*}{*)}          % if you want to add a comment within your code
 
 
 
-% ======================================================================
-
 \begin{document}
 
 \title{A unified pseudo-$C_\ell$ framework}
@@ -70,13 +60,9 @@ escapeinside={\%*}{*)}          % if you want to add a comment within your code
   The pseudo-$C_\ell$ provides a fast and simpler alternative to the optimal quadratic estimator to compute angular power spectra. The algorithm can be extended to deal with contaminant deprojection and $E/B$ purification, and can therefore be applied in a wide variety of scenarios of interest for current and future cosmological observations. This paper presents \nmt, a public, validated, robust, accurate and easy-to-use software package that, for the first time, provides a unified framework to compute angular cross-power spectra of any pair of spin-0 or spin-2 fields, contaminated by an arbitrary number of linear systematics and requiring $B$- or $E$-mode purification, both in the sphere or in the flat-sky approximation. We describe the mathematical background of the estimator, including all the features above, and its software implementation in \nmt. We construct a validation suite that aims to resemble the types of observations that next-generation large-scale structure and ground-based CMB experiments will face, and use it to show that the code is able to recover the input power spectra in the most complex scenarios with no detectable bias. \nmt~can be found at \url{add_url}, and is provided with comprehensive documentation and a number of code examples to maximize its usefulness in the community.
 \end{abstract}
 
-% Keywords are ignored in the LSST DESC Note style:
 \dockeys{methods: data analysis -- methods: numerical}
 
 \maketitlepost
-
-% ----------------------------------------------------------------------
-% {% raw %}
 
   \section{Introduction}\label{sec:intro}
     Two-point functions have proven to be the most useful summary statistic for cosmology in terms of data compression, due to the near-Gaussian nature of the modes of the cosmic density field that can be easily analyzed to extract cosmological information~\citep{1995PhRvL..74.4369B,1997PhRvD..55.5895T,2001PhRvD..64f3001T}. Since the only true observables in any astronomical dataset are the intensity and polarization as a function of frequency $\nu$ and sky position $\nv$, angular 2-point correlators play a particularly central role in most cosmological analyses, both in the form of configuration-space two-point correlation functions $\xi(\theta)$ and as Fourier/harmonic-space power spectra $C_\ell$ \citep{2012MNRAS.427.1891A,2011PhRvD..84f3505B}. Although correlation functions are often easier to estimate from complex observations~\citep{1993ApJ...412...64L}, a far higher level of data compression and decorrelation can be obtained through $C_\ell$s. This, together with other advantages associated with power spectra (e.g. clearer separation between linear and non-linear scales, as well as Gaussian and non-Gaussian modes~\citep{2008PhRvD..77j3013H}) has motivated a large body of literature aimed at designing optimal and efficient power spectrum estimators.
@@ -434,8 +420,6 @@ escapeinside={\%*}{*)}          % if you want to add a comment within your code
         and similarly for $E$ modes. Comparing with Eq. \ref{eq:flat_coup} (where  ${\sf R}$ is defined in Eq. \ref{eq:flat_sht}), it is easy to see that the key to work out the expressions for the pure-$E$ and $B$ coupling matrices is simply to replace all factors of ${\rm c}$ and ${\rm s}$ with $k^2/\ell^2$ and 0 respectively in Equations \ref{eq:m02_flat} and \ref{eq:m22_flat}. Again, under the assumption that purification takes place after contaminant deprojection, the only modification to the expression for the deprojection bias is to make sure that all functions of ${\bf l}$ in Eq. \ref{eq:dpbias_flat} are consistently purified (but not any of the other fields appearing there or in Eqs. \ref{eq:dp.g.aux_flat} and \ref{eq:dp.f.aux_flat}).
 
 
-% ----------------------------------------------------------------------
-
   \section{Code structure}\label{sec:structure}
     All of the methods described above have been implemented in a software package called \nmt\footnote{The code source is hosted in \url{add_url}, and its documentation can be found at \url{http://namaster.readthedocs.io/}.}. We briefly describe the code structure here.
     
@@ -543,7 +527,7 @@ cl_decoupled=wsp.decouple_cell(cl_coupled,
           \item {\bf Contaminants:} we contaminate the signal maps described above with several different types of residuals. Maps of these are shown in the 4 bottom panels of Figure~\ref{fig:lss_mocks_sph} and Figure~\ref{fig:lss_mocks_flat}, and their impact on the angular power spectrum is presented in Fig. \ref{fig:lss_cont_cls} for the full-sky case.
           \begin{itemize}
             \item {\sl Dust.} For the full-sky suite, we include a linear contaminant for $\delta_g$ proportional to the fluctuations around the mean of the dust reddening map of~\citet{1998wfsc.conf..297S}. This contamination affects mostly the largest scales, and simulates the effect of an imperfect correction of the dust absorption on the galaxy number density. The amplitude of the dust fluctuations is chosen so that their power spectrum within the unmasked region be $\sim20\%$ of the galaxy power spectrum at $\ell\sim120$. For the flat-sky suite, we generate a flat-sky Gaussian realization of a field with a power spectrum $C_\ell\propto\ell^{-2.4}$, corresponding to the large-$\ell$ behaviour of the full-sky dust map. The amplitude was chosen such that the contaminant power spectrum be $\sim10\%$ of the signal at $\ell\sim400$.
-            \item {\sl Stars.} We add a second contaminant to $\delta_g$ associated with star contamination. For the full-sky realizations this contaminant is proportional to the fluctuation around the mean of a star density map generated using the LSST {\tt CatSim} catalog~\citet{2014SPIE.9150E..14C}. We modify this contaminant slightly by adding a white-noise component that dominates the small-scale spectrum beyond $\ell\simeq400$. We do this in order to simulate the noise-like distribution of stars on small scales as well as to include a contaminant source that, unlike dust, can surpass the signal on small scales. The amplitude of this contaminant is chosen such that its power spectrum is about 3\% of the signal at $\ell\sim400$.
+            \item {\sl Stars.} We add a second contaminant to $\delta_g$ associated with star contamination. For the full-sky realizations this contaminant is proportional to the fluctuation around the mean of a star density map generated using the LSST {\tt CatSim} catalog~\citep{2014SPIE.9150E..14C}. We modify this contaminant slightly by adding a white-noise component that dominates the small-scale spectrum beyond $\ell\simeq400$. We do this in order to simulate the noise-like distribution of stars on small scales as well as to include a contaminant source that, unlike dust, can surpass the signal on small scales. The amplitude of this contaminant is chosen such that its power spectrum is about 3\% of the signal at $\ell\sim400$.
             \item {\sl PSF fluctuations.} We add a large-scale contaminant for weak lensing in the form of fluctuations in the image point-spread function (PSF) with a characteristic scale corresponding to the telescope field of view. We generate this contaminant as a spin-2 field with equal $E$ and $B$-mode amplitude and a power spectrum
             \begin{equation}
               C^{EE}_\ell=C^{BB}_\ell\propto\left[2\frac{J_1(\ell\theta_{\rm FoV})}{\ell\theta_{\rm FoV}}\right]^2,
@@ -715,6 +699,7 @@ We would like to thank Rupert Allison, Jo Dunkley, Franz Elsner, Boris Leistedt,
 
 \input{desc-tex/ack/standard}
 
+\bibliographystyle{mnrasb}
 \bibliography{main}
 
 \appendix
@@ -978,10 +963,6 @@ We would like to thank Rupert Allison, Jo Dunkley, Franz Elsner, Boris Leistedt,
 \label{app:full_sky_nside}
 We checked that \texttt{NaMaster} returns unbiased power-spectra for all possible values of $N_{side}$. We show here some examples for 100 realisations of $N_{side}=128$ and $N_{side}=4096$.
 
-% Don't change these lines
-\bsp	% typesetting comment
-
+\bsp
 
 \end{document}
-
-% ======================================================================
