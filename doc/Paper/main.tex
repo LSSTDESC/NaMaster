@@ -504,33 +504,6 @@ cl_decoupled=wsp.decouple_cell(cl_coupled,
   \section{Code performance and validation} \label{sec:validation}
     The core of our code-validation suite is based on two science examples. These examples are not meant to be realistic mocks of actual data, however, they do contain the dynamic range and noise-levels of a typical experimental set-up that we expect in the next decade, while providing us with an exact, known true power spectrum to compare against. This section presents these two examples and the results of this validation in terms of accuracy and computational performance. Results will be presented for both full-sky and flat-sky realizations.
 
-\todo{this is our to-do list as per Anze's initial proposal}
-\begin{itemize}
-\item Present CMB and LSS setups.
-\item Assuming diagonal covariance from scatter, show that mean signal
-  without contaminants agrees with predictions.
-
-\item With CMB: show bias without template projection and no-bias with
-  template projection. Show improvement with B-mode purification
-
-\item With LSS: show bias without template projection and no-bias with
-  template projection. Show that taking uniform weighting over the
-  mask vs down-weighting noisier data makes a difference, but a very
-  small one. Argue that optimal estimation difference will be equally
-  small.
-  
-\item Plots of  the bandpower response functions of
-  Eq.~\ref{eq:bpresponse} for both cases.
-
-\item Make a histogram of $\chi^2$ using Gaussian covariance for 100 realisations. Comment.
-
-\item Test 2D code by making gnomonic projections of the LSST maps over 10 deg patches and show that it is unbiased.
-
-\item Show strong scaling plot (fixed problem, increasing
-  resources). The plot should show timings of pure PCL vs with enabled
-  bells and whistles.
-\end{itemize}
-
     \subsection{Validation suite} \label{ssec:validation.suite}
       We base our validation suite on two science cases of relevance for the most relevant next-generation cosmology experiments. We describe these here.
       
@@ -724,35 +697,28 @@ cl_decoupled=wsp.decouple_cell(cl_coupled,
       Again, we quantify the presence of a bias in the estimator by studying the distribution of the $\chi^2$ values across simulations. In analogy with Figures \ref{fig:lss_val_chi2} and \ref{fig:cmb_val_chi2}, these are shown in the upper and lower panels of figure \ref{fig:val_chi2_flat} for the LSS and CMB suites respectively. In all cases the distributions (blue histograms) agree well with the expected $\chi^2$ distribution (solid lines) for the appropriate number of degrees of freedom (vertical dashed lines). The $\chi^2$ values of the mean residuals shown in the lower panels of Fig. \ref{fig:val_cls_flat} and marked by vertical dot-dashed lines in Fig. \ref{fig:val_chi2_flat} have PTE values above $10\%$. We therefore do not observe any significant bias in the estimator, proving \nmt's usefulness in the analysis of current and next-generation experiments in situations requiring the use of the flat-sky approximation.
  
   \section{Discussion}\label{sec:discussion}
-    \lipsum[4]
-
-    \lipsum[5]
-
-    \lipsum[6]
-
+    The pseudo-$C_\ell$ power spectrum estimator is one particular example of quadratic minimum-variance estimators as presented by \todo{cite tegmark} in which the proposal covariance matrix of the data is assumed to be diagonal in real space. This allows us to significantly reduce the computational complexity of the problem, from ${\cal O}(N_{\rm pix}^3)$ to ${\cal O}(N_{\rm pix}^{3/2})$ through both analytical and numerical simplifications, as described in Section \ref{sec:maths}. A number of techniques that are naturally included in the standard quadratic estimator, such as mode deprojection and $B$-mode purification, can also be implemented in the standard pseudo-$C_\ell$ algorithm without altering the computational complexity of the method. Although this speed boost is achieved at the expense of optimality (in terms of the estimator's variance), the degradation in sensitivity will be small or negligible as long as the data does not deviate significantly from the diagonal assumption. This implies that the pseudo-$C_\ell$ approach is a good choice for non-steep power spectra for which the typical correlation length is smaller than the mask structure, and in general on small scales, where the impact of the power spectrum shape drops as the number of available modes increases \todo{cite stuff}. As we have argued, this will be the case for a wide range of relevant science cases pursued by next-generation cosmological observations.
+    
+    This paper presents \nmt, the first robust, validated and easy-to-use power spectrum estimation software package that implements the pseudo-$C_\ell$ method including all its generalizations (flat-sky, deprojection and purification). We have described the steps taken to validate the code, showing that it is able to provide unbiased results in a wide variety of scenarios. In particular, we have constructed a realistic validation suite that resembles the type of data, masks and contaminants that will affect future wide-area optical galaxy surveys and ground-based CMB polarization experiments. As shown in Section \ref{sec:validation}, we are able to recover the input power spectrum in all cases (which include varying degrees of contamination, purification, different spins etc.) with no detectable bias down to $\lesssim1/30$-th of the statistical uncertainties.
+    
+    Although \nmt~is intended to make power spectrum estimation as easy as possibe, some tasks are too dependent upon the properties of the data to be analyized to automatize them in a general way, and users are therefore in charge of them. We list the most important of these here:
+    \begin{itemize}
+      \item \nmt~operates directly on {\sl maps}. Galaxy survey data, however, are normally provided in the form of object catalogs, and the conversion those into the desired maps (e.g. galaxy overdensity or shear) must be done externally. 
+      \item $E/B$ purification can only be carried out in the context of pseudo-$C_\ell$ estimators when the mask is differentiable up to its second derivatives, which can usually be achieved with an appropriate apodization. Although \nmt~provides tools to carry our this type of operations, some of the properties of the input mask (e.g. sharp corners) will in general spoil differentiability even after apodization. Users must therefore take care to inspect the mask derivatives before making use of \nmt's purification feature.
+      \item A crucial part of any quadratic power spectrum estimation is the removal of noise bias in the auto-correlation of a given dataset. Although we have provided analytic formulas to estimate this bias in certain simple scenarios (see Section \ref{ssec:maths.beam_noise}), these are often not applicable. Users must therefore make sure that a sufficiently accurate estimate of the noise bias can be achieved (e.g. through simulations) or to use only cross-correlation data.
+      \item Contaminant deprojection will be able to provide an accurate estimate of the power spectrum as long as two conditions are met. First, users must be able to provide a comprehensive list of possible contaminants as would be observed in their data (e.g. beam-smoothed, mean-subtracted etc.). Second, a good estimate of the underlying signal power spectra must be provided in order to calculate and subtract the deprojection bias. We have outlined a possible iterative process to do so in Section \ref{ssec:maths.deproj}.
+    \end{itemize}
+    
+    \nmt is open-source software and publicly available at \url{add_url}. To maximize the usefulness of this software for the community, it is accompanied by an extensive documentation and example code\footnote{See \url{add_url}.}. \nmt~is written in {\tt C} and {\tt OpenMP}-parallelized to maximize its performance, although we encourage its use through the companion {\tt python} wrapper, the fastest-growing language of choice in the analysis of astronomical data.
 
 
 \subsection*{Acknowledgements}
-We would like to thank Rupert Allison, Franz Elsner, Boris Leistedt, Mathew Madhavacheril, Sigurd N\ae ss, Hiranya Peiris, Naomi Robertson and Louis Thibaut for useful comments and discussions. Remember to acknowledge NERSC and the DOE.
-%%% Here is where you should add your specific acknowledgments, remembering that some standard thanks will be added via the \code{desc-tex/ack/*.tex} and \code{contributions.tex} files.
+We would like to thank Rupert Allison, Jo Dunkley, Franz Elsner, Boris Leistedt, Thibaut Louis, Mathew Madhavacheril, Sigurd N\ae ss, Hiranya Peiris, Naomi Robertson and Ben Thorne for useful comments and discussions. DA acknowledges support from the Beecroft trust and from the Science and Technology Facilities Council (STFC) through an Ernest Rutherford Fellowship, grant reference ST/P004474/1.
 
-%This paper has undergone internal review in the LSST Dark Energy Science Collaboration. % REQUIRED if true
+\input{contributions}
 
-\input{contributions} % Standard papers only: author contribution statements. For examples, see http://blogs.nature.com/nautilus/2007/11/post_12.html
+\input{desc-tex/ack/standard}
 
-% This work used TBD kindly provided by Not-A-DESC Member and benefitted from comments by Another Non-DESC person.
-
-% Standard papers only: A.B.C. acknowledges support from grant 1234 from ...
-
-\input{desc-tex/ack/standard} % also available: key standard_short
-
-% This work used some telescope which is operated/funded by some agency or consortium or foundation ...
-
-% We acknowledge the use of An-External-Tool-like-NED-or-ADS.
-
-%{\it Facilities:} \facility{LSST}
-
-% Include both collaboration papers and external citations:
 \bibliography{main}
 
 \appendix
