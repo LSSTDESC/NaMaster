@@ -12,6 +12,7 @@ nsims=1000
 prefix_pure="tests_sph/run_pure01_ns%d_cont1"%nside
 prefix_nopu="tests_sph/run_pure00_ns%d_cont1"%nside
 prefix_noco="tests_sph/run_pure01_ns%d_cont0"%nside
+prefix_nodb="tests_sph/run_pure01_ns%d_cont1_no_debias"%nside
 
 def tickfs(ax,x=True,y=True) :
     if x :
@@ -32,6 +33,7 @@ print "Reading"
 clEE_pure=[]; clEB_pure=[]; clBB_pure=[];
 clEE_nopu=[]; clEB_nopu=[]; clBB_nopu=[];
 clEE_noco=[]; clEB_noco=[]; clBB_noco=[];
+clEE_nodb=[]; clEB_nodb=[]; clBB_nodb=[];
 for i in np.arange(nsims) :
     ll,ccee,cceb,ccbe,ccbb=read_cls(prefix_pure+"_cl_%04d.txt"%(i+1))
     clEE_pure.append(ccee); clEB_pure.append(cceb); clBB_pure.append(ccbb);
@@ -39,9 +41,12 @@ for i in np.arange(nsims) :
     clEE_nopu.append(ccee); clEB_nopu.append(cceb); clBB_nopu.append(ccbb);
     ll,ccee,cceb,ccbe,ccbb=read_cls(prefix_noco+"_cl_%04d.txt"%(i+1))
     clEE_noco.append(ccee); clEB_noco.append(cceb); clBB_noco.append(ccbb);
+    ll,ccee,cceb,ccbe,ccbb=read_cls(prefix_nodb+"_cl_%04d.txt"%(i+1))
+    clEE_nodb.append(ccee); clEB_nodb.append(cceb); clBB_nodb.append(ccbb);
 clEE_pure=np.array(clEE_pure); clEB_pure=np.array(clEB_pure); clBB_pure=np.array(clBB_pure); 
 clEE_nopu=np.array(clEE_nopu); clEB_nopu=np.array(clEB_nopu); clBB_nopu=np.array(clBB_nopu);
 clEE_noco=np.array(clEE_noco); clEB_noco=np.array(clEB_noco); clBB_noco=np.array(clBB_noco);
+clEE_nodb=np.array(clEE_nodb); clEB_nodb=np.array(clEB_nodb); clBB_nodb=np.array(clBB_nodb);
 
 print "Computing statistics"
 def compute_stats(y,y_th) :
@@ -59,6 +64,9 @@ clBB_pure_mean,clBB_pure_cov,clBB_pure_icov,clBB_pure_chi2r,clBB_pure_chi2all=co
 clEE_noco_mean,clEE_noco_cov,clEE_noco_icov,clEE_noco_chi2r,clEE_noco_chi2all=compute_stats(clEE_noco,clEE_th)
 clEB_noco_mean,clEB_noco_cov,clEB_noco_icov,clEB_noco_chi2r,clEB_noco_chi2all=compute_stats(clEB_noco,clEB_th)
 clBB_noco_mean,clBB_noco_cov,clBB_noco_icov,clBB_noco_chi2r,clBB_noco_chi2all=compute_stats(clBB_noco,clBB_th)
+clEE_nodb_mean,clEE_nodb_cov,clEE_nodb_icov,clEE_nodb_chi2r,clEE_nodb_chi2all=compute_stats(clEE_nodb,clEE_th)
+clEB_nodb_mean,clEB_nodb_cov,clEB_nodb_icov,clEB_nodb_chi2r,clEB_nodb_chi2all=compute_stats(clEB_nodb,clEB_th)
+clBB_nodb_mean,clBB_nodb_cov,clBB_nodb_icov,clBB_nodb_chi2r,clBB_nodb_chi2all=compute_stats(clBB_nodb,clBB_th)
 m_pure,cov_pure,icov_pure,chi2r_pure,chi2all_pure=compute_stats(np.vstack((clEE_pure.T,clEB_pure.T,clBB_pure.T)).T,
                                                            np.vstack((clEE_th,clEB_th,clBB_th)).flatten())
 m_noco,cov_noco,icov_noco,chi2r_noco,chi2all_noco=compute_stats(np.vstack((clEE_noco.T,clEB_noco.T,clBB_noco.T)).T,
@@ -135,9 +143,11 @@ ic+=1
 ax.plot(l_th,clEB_pure_mean,label='$EB$',c=cols[ic]);
 ic+=1
 ax.plot(l_th,clBB_pure_mean,label='$BB$',c=cols[ic]);
+ax.plot(l_th,np.fabs(clBB_nodb_mean),'-.',
+        label='$BB,\\,\\,{\\rm no\\,\\,debias}$',c=cols[ic]);
 ax.plot(l_th,clBB_th,'--',c=cols[ic]);
 ic+=1
-ax.set_ylim([2E-8,7E-3])
+ax.set_ylim([2E-8,1.3E-2])
 ax.legend(loc='upper left',frameon=False,fontsize=14,ncol=3,labelspacing=0.1)
 ax.set_xlim([0,515])
 ax.set_yscale('log');

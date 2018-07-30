@@ -24,6 +24,10 @@ parser.add_option('--plot', dest='plot_stuff', default=False, action='store_true
                   help='Set if you want to produce plots')
 parser.add_option('--wo-pureb', dest='wo_pureb', default=False, action='store_true',
                   help='Set if you don\'t want to purify B-modes')
+parser.add_option('--no-deproject',dest='no_deproject',default=False,action='store_true',
+                  help='Set if you will include contaminants but won\'t clean them')
+parser.add_option('--no-debias',dest='no_debias',default=False,action='store_true',
+                  help='Set if you will include contaminants, clean them but won\'t correct for the bias')
 (o, args) = parser.parse_args()
 
 nsims=o.isim_end-o.isim_ini+1
@@ -34,6 +38,10 @@ w_pureb=not o.wo_pureb
 predir="tests_sph"
 os.system("mkdir -p "+predir)
 prefix=predir+"/run_pure0%d_ns%d_cont%d"%(w_pureb,o.nside_out,w_cont)
+if o.no_deproject :
+    prefix+="_no_deproj"
+if o.no_debias :
+    prefix+="_no_debias"
 
 #Read theory power spectra
 def read_cl_camb(fname) :
@@ -89,8 +97,12 @@ def get_fields() :
                         o.nside_out,new=True,verbose=False,pol=True)
     if w_cont :
         sq+=np.sum(fgp,axis=0)[0,:]; su+=np.sum(fgp,axis=0)[1,:]
-        ff2=nmt.NmtField(mask,[sq,su],templates=fgp,beam=beam,
-                         purify_e=False,purify_b=w_pureb,n_iter_mask_purify=10)
+        if o.no_deproject :
+            ff2=nmt.NmtField(mask,[sq,su],beam=beam,
+                             purify_e=False,purify_b=w_pureb,n_iter_mask_purify=10)
+        else :
+            ff2=nmt.NmtField(mask,[sq,su],templates=fgp,beam=beam,
+                             purify_e=False,purify_b=w_pureb,n_iter_mask_purify=10)
     else :
         ff2=nmt.NmtField(mask,[sq,su],beam=beam,
                          purify_e=False,purify_b=w_pureb,n_iter_mask_purify=10)
@@ -118,7 +130,7 @@ if not os.path.isfile(prefix+"_clb22.npy") :
     #Compute noise bias
     clb22=w22.couple_cell([nlee/beam**2,0*nlee,0*nlbb,nlbb/beam**2])
     #Compute deprojection bias
-    if w_cont :
+    if w_cont and (not o.no_deproject) and (not o.no_debias):
         #Signal contribution
         clb22+=nmt.deprojection_bias(f2,f2,[clee*beam**2+nlee,0*clee,0*clbb,clbb*beam**2+nlbb])
     np.save(prefix+"_clb22",clb22)
