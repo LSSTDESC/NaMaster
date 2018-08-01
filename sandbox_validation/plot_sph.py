@@ -107,44 +107,45 @@ plt.colorbar(im)
 plt.savefig("plots_paper/val_covar_lss_sph.pdf",bbox_inches='tight')
 
 #Plot residuals
-cols=plt.cm.rainbow(np.linspace(0,1,60))
+cols=plt.cm.rainbow(np.linspace(0,1,6))
 plot_dirty=True
 fig=plt.figure()
 ax=fig.add_axes((0.12,0.4,0.78,0.55))
 ic=0
 
-ax.plot(l_th,clTT_clean_mean,label='$\\delta\\times\\delta$',c=cols[ic],alpha=0.7); ic+=4
-if plot_dirty : 
-   ax.plot(l_th,clTT_dirty_mean,'-.',c=cols[ic],alpha=0.3);
+ax.plot(l_th,clTT_clean_mean,label='$\\delta\\times\\delta$',c=cols[ic],alpha=0.45);
+#if plot_dirty : 
+#   ax.plot(l_th,clTT_dirty_mean,'-.',c=cols[ic],alpha=0.3);
 ax.plot(l_th,clTT_th,'--',c=cols[ic]); 
-ic+=6
-ax.plot(l_th,clTE_clean_mean,label='$\\delta\\times\\gamma_E$',c=cols[ic],alpha=0.7); ic+=4
-if plot_dirty :
-    ax.plot(l_th,clTE_dirty_mean,'-.',c=cols[ic],alpha=0.3); 
+ic+=1
+ax.plot(l_th,clTE_clean_mean,label='$\\delta\\times\\gamma_E$',c=cols[ic],alpha=0.45);
+#if plot_dirty :
+#    ax.plot(l_th,clTE_dirty_mean,'-.',c=cols[ic],alpha=0.3); 
 ax.plot(l_th,clTE_th,'--',c=cols[ic]);
-ic+=6
-ax.plot(l_th,clTB_clean_mean,label='$\\delta\\times\\gamma_B$',c=cols[ic],alpha=0.7); ic+=4
+ic+=1
+ax.plot(l_th,clTB_clean_mean,label='$\\delta\\times\\gamma_B$',c=cols[ic],alpha=0.45); 
 if plot_dirty :
-    ax.plot(l_th,clTB_dirty_mean,'-.',c=cols[ic],alpha=0.3);
+    pass
+#    ax.plot(l_th,clTB_dirty_mean,'-.',c=cols[ic],alpha=0.3);
 else :
     ax.plot([-1,-1],[-1,-1],'k-' ,label='${\\rm Sims}$')
-ic+=6
-ax.plot(l_th,clEE_clean_mean,label='$\\gamma_E\\times\\gamma_E$',c=cols[ic],alpha=0.7); ic+=4
-if plot_dirty :
-    ax.plot(l_th,clEE_dirty_mean,'-.',c=cols[ic],alpha=0.3);
+ic+=1
+ax.plot(l_th,clEE_clean_mean,label='$\\gamma_E\\times\\gamma_E$',c=cols[ic],alpha=0.45);
+#if plot_dirty :
+#    ax.plot(l_th,clEE_dirty_mean,'-.',c=cols[ic],alpha=0.3);
 ax.plot(l_th,clEE_th,'--',c=cols[ic]);
-ic+=6
-ax.plot(l_th,clEB_clean_mean,label='$\\gamma_E\\times\\gamma_B$',c=cols[ic],alpha=0.7); ic+=4
-if plot_dirty :
-    ax.plot(l_th,clEB_dirty_mean,'-.',c=cols[ic],alpha=0.3);
-ic+=6
-ax.plot(l_th,clBB_clean_mean,label='$\\gamma_B\\times\\gamma_B$',c=cols[ic],alpha=0.7); ic+=4
-if plot_dirty :
-    ax.plot(l_th,clBB_dirty_mean,'-.',c=cols[ic],alpha=0.3);
-ic+=6
+ic+=1
+ax.plot(l_th,clEB_clean_mean,label='$\\gamma_E\\times\\gamma_B$',c=cols[ic],alpha=0.45);
+#if plot_dirty :
+#    ax.plot(l_th,clEB_dirty_mean,'-.',c=cols[ic],alpha=0.3);
+ic+=1
+ax.plot(l_th,clBB_clean_mean,label='$\\gamma_B\\times\\gamma_B$',c=cols[ic],alpha=0.45);
+#if plot_dirty :
+#    ax.plot(l_th,clBB_dirty_mean,'-.',c=cols[ic],alpha=0.3);
+ic+=1
 if plot_dirty : 
     ax.plot([-1,-1],[-1,-1],'k-' ,label='${\\rm Sims}$')
-    ax.plot([-1,-1],[-1,-1],'k-.' ,label='${\\rm No\\,\\,deproj.}$')
+    #ax.plot([-1,-1],[-1,-1],'k-.' ,label='${\\rm No\\,\\,deproj.}$')
 ax.plot([-1,-1],[-1,-1],'k--',label='${\\rm Input}$')
 if plot_dirty : 
     ax.set_ylim([1E-13,5E-4])
