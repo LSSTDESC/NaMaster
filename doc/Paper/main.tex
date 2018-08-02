@@ -671,6 +671,21 @@ cl_decoupled=wsp.decouple_cell(cl_coupled,
       
       Again, we quantify the presence of a bias in the estimator by studying the distribution of the $\chi^2$ values across simulations. In analogy with Figures \ref{fig:lss_val_chi2} and \ref{fig:cmb_val_chi2}, these are shown in the upper and lower panels of figure \ref{fig:val_chi2_flat} for the LSS and CMB suites respectively. In all cases the distributions (blue histograms) agree well with the expected $\chi^2$ distribution (solid lines) for the appropriate number of degrees of freedom (vertical dashed lines). The $\chi^2$ values of the mean residuals shown in the lower panels of Fig. \ref{fig:val_cls_flat} and marked by vertical dot-dashed lines in Fig. \ref{fig:val_chi2_flat} have PTE values above $10\%$. We therefore do not observe any significant bias in the estimator, proving \nmt's usefulness in the analysis of current and next-generation experiments in situations requiring the use of the flat-sky approximation.
  
+ \subsection{Performance and scalability}
+ \label{ssec:scalability}
+     One of the known advantages of the pseudo-$C_{\ell}$ estimator is that it is usually much faster that other known estimators~\citep{2017MNRAS.465.1847E} since the complexity scales as $\mathcal{O}(\ell_{max}^{3})$, where $\ell_{max}$ is the maximum multipole at which the power-spectra are calculated. In this section we will show that \nmt follows this same scaling with $\ell_{max}$, and we will also study how the code behaves when the number of parallel threads is changed.
+     
+     We first focus on checking the dependence of the execution time with $\ell_{max}$. We compute the full-sky angular auto and cross-power spectra of a spin-0 and a spin-2 field, with no foreground contamination. We change the resolution of the \texttt{HEALPix} maps by varying the $N_{side}$ parameter in the range [16, 2048], and we calculate the power-spectra up to $\ell_{max}=3N_{side}$. We use one interactive Cori-Haswell node at the National Energy Research Scientific Computing Center (NERSC). This kind of nodes have two 16-core Intel Xeon (E5-2698 v3) processors at 2.3 GHz, and 128 GB DDR4 of RAM. Each core supports two hyper-threads, so we end up executing the code using 64 \texttt{OpenMP} threads. In Figure~\ref{fig:scaling_lmax} we can see the results for this test. We show the results for the auto-power spectra for the spin-0 and spin-2 fields (Data 00, and Data 22, respectively), as well as the results for the cross-power spectra (Data 20). In all cases when we compare with the reference line $\propto \ell_{max}^{3}$ we can see that the code scales as expected. We fixed the proportionality constant for the reference line using the timing of the auto-power of the spin-0 field at $\ell_{max}=96$.  We can also see that for very small $N_{side}$ data handling time starts to be comparable to the pure power-spectra computation time, increasing the expected execution time.
+     
+     \begin{figure}
+     \centering
+     \includegraphics[width=0.9\columnwidth]{time_scaling}
+     \caption{Computing time for the auto-power spectra of full-sky spin-0 (data 00, hollow circles), and spin-2 (data 22, solid triangles) foreground-free maps, as wells as their cross-power (data 02, solid circles) as a function of $\ell_{max}$. We include the expected scaling for the pseudo-$C_{\ell}$ estimator (solid line) and force it to go through the point for the spin-0 auto-power at $\ell=96$ showing remarkable agreement.}
+     \label{fig:scaling_lmax}
+     \end{figure}
+     
+     
+     
   \section{Discussion}\label{sec:discussion}
     The pseudo-$C_\ell$ power spectrum estimator is one particular example of quadratic minimum-variance estimators as presented by \cite{1997PhRvD..55.5895T} in which the proposal covariance matrix of the data is assumed to be diagonal in real space. This allows us to significantly reduce the computational complexity of the problem, from ${\cal O}(N_{\rm pix}^3)$ to ${\cal O}(N_{\rm pix}^{3/2})$ through both analytical and numerical simplifications, as described in Section \ref{sec:maths}. A number of techniques that are naturally included in the standard quadratic estimator, such as mode deprojection and $B$-mode purification, can also be implemented in the standard pseudo-$C_\ell$ algorithm without altering the computational complexity of the method. Although this speed boost is achieved at the expense of optimality (in terms of the estimator's variance), the degradation in sensitivity will be small or negligible as long as the data does not deviate significantly from the diagonal assumption. This implies that the pseudo-$C_\ell$ approach is a good choice for non-steep power spectra for which the typical correlation length is smaller than the mask structure, and in general on small scales, where the impact of the power spectrum shape drops as the number of available modes increases \citep{2004MNRAS.349..603E,2006MNRAS.370..343E}. As we have argued, this will be the case for a wide range of relevant science cases pursued by next-generation cosmological observations.
     
@@ -688,7 +703,8 @@ cl_decoupled=wsp.decouple_cell(cl_coupled,
 
 
 \subsection*{Acknowledgements}
-We would like to thank Rupert Allison, Jo Dunkley, Franz Elsner, Boris Leistedt, Thibaut Louis, Mathew Madhavacheril, Sigurd N\ae ss, Hiranya Peiris, Naomi Robertson and Ben Thorne for useful comments and discussions. DA acknowledges support from the Beecroft trust and from the Science and Technology Facilities Council (STFC) through an Ernest Rutherford Fellowship, grant reference ST/P004474/1.
+We would like to thank Rupert Allison, Jo Dunkley, Franz Elsner, Boris Leistedt, Thibaut Louis, Mathew Madhavacheril, Sigurd N\ae ss, Hiranya Peiris, Naomi Robertson and Ben Thorne for useful comments and discussions. DA acknowledges support from the Beecroft trust and from the Science and Technology Facilities Council (STFC) through an Ernest Rutherford Fellowship, grant reference ST/P004474/1. This research used resources of the National Energy Research Scientific Computing Center (NERSC), a U.S. Department of Energy Office of Science User Facility operated under Contract No. DE-AC02-05CH11231.
+
 
 \input{contributions}
 
