@@ -684,7 +684,7 @@ cl_decoupled=wsp.decouple_cell(cl_coupled,
      \label{fig:scaling_lmax}
      \end{figure}
      
-     
+  \todo{Scaling with number of threads}   
      
   \section{Discussion}\label{sec:discussion}
     The pseudo-$C_\ell$ power spectrum estimator is one particular example of quadratic minimum-variance estimators as presented by \cite{1997PhRvD..55.5895T} in which the proposal covariance matrix of the data is assumed to be diagonal in real space. This allows us to significantly reduce the computational complexity of the problem, from ${\cal O}(N_{\rm pix}^3)$ to ${\cal O}(N_{\rm pix}^{3/2})$ through both analytical and numerical simplifications, as described in Section \ref{sec:maths}. A number of techniques that are naturally included in the standard quadratic estimator, such as mode deprojection and $B$-mode purification, can also be implemented in the standard pseudo-$C_\ell$ algorithm without altering the computational complexity of the method. Although this speed boost is achieved at the expense of optimality (in terms of the estimator's variance), the degradation in sensitivity will be small or negligible as long as the data does not deviate significantly from the diagonal assumption. This implies that the pseudo-$C_\ell$ approach is a good choice for non-steep power spectra for which the typical correlation length is smaller than the mask structure, and in general on small scales, where the impact of the power spectrum shape drops as the number of available modes increases \citep{2004MNRAS.349..603E,2006MNRAS.370..343E}. As we have argued, this will be the case for a wide range of relevant science cases pursued by next-generation cosmological observations.
