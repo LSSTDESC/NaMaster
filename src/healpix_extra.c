@@ -809,7 +809,7 @@ void he_anafast(flouble **maps_1,flouble **maps_2,
 		int nside,int lmax,int iter)
 {
   fcomplex **alms_1,**alms_2;
-  int i1,lmax_here=3*nside-1;
+  int i1,lmax_here=NMT_MAX(lmax,3*nside-1);
   int nmaps_1=1, nmaps_2=1;
   if(pol_1) nmaps_1=2;
   if(pol_2) nmaps_2=2;

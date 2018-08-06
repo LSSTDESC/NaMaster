@@ -13,7 +13,7 @@ int *test_get_sequence(int n0,int nf)
   return seq;
 }
 
-void test_compare_arrays(int n,double *y,int narr,int iarr,char *fname)
+void test_compare_arrays(int n,double *y,int narr,int iarr,char *fname,double rtol)
 {
   int ii;
   FILE *fi=fopen(fname,"r");
@@ -22,19 +22,19 @@ void test_compare_arrays(int n,double *y,int narr,int iarr,char *fname)
     int j;
     double xv,yv,dum;
     int stat=fscanf(fi,"%lf",&xv);
-    ASSERT_EQUAL(stat,1);
+    ASSERT_EQUAL(1,stat);
     for(j=0;j<narr;j++) {
       stat=fscanf(fi,"%lE",&dum);
-      ASSERT_EQUAL(stat,1);
+      ASSERT_EQUAL(1,stat);
       if(j==iarr)
 	yv=dum;
     }
-    ASSERT_DBL_NEAR_TOL(yv,y[ii],fmax(fabs(yv),fabs(y[ii]))*1E-3);
+    ASSERT_DBL_NEAR_TOL(yv,y[ii],fmax(fabs(yv),fabs(y[ii]))*rtol);
   }
   fclose(fi);
 }
 
-CTEST_SKIP(nmt,drc3jj) {
+CTEST(nmt,drc3jj) {
   int sizew=1000;
   double *w3=my_malloc(sizew*sizeof(double));
   int r,l1min,l1max;
@@ -71,7 +71,7 @@ CTEST_SKIP(nmt,drc3jj) {
   free(w3);
 }
 
-CTEST_SKIP(nmt,mp_pinv) {
+CTEST(nmt,mp_pinv) {
   gsl_matrix *M=gsl_matrix_alloc(3,3);
 
   //Non-degenerate matrix
@@ -123,7 +123,7 @@ CTEST_SKIP(nmt,mp_pinv) {
 #define M2_POISSONL 1000. //variance top hat
 #define M2_POISSONS 0.5 //variance top hat
 #define M2_GAUSS 1. //variance Gaussian
-CTEST_SKIP(nmt,rngs) {
+CTEST(nmt,rngs) {
   gsl_rng *r=init_rng(1234);
   int ii;
   double m_01=0,s_01=0;
@@ -178,14 +178,14 @@ CTEST_SKIP(nmt,rngs) {
   end_rng(r);
 }
 
-CTEST_SKIP(nmt,my_linecount) {
+CTEST(nmt,my_linecount) {
   FILE *f=my_fopen("test/cls.txt","r");
   int cnt=my_linecount(f);
   ASSERT_EQUAL(cnt,768);
   fclose(f);
 }
 
-CTEST_SKIP(nmt,errors) {
+CTEST(nmt,errors) {
   set_error_policy(THROW_ON_ERROR);
 
   printf("\nError messages expected: \n");

@@ -4,8 +4,103 @@
 #include "nmt_test_utils.h"
 #include <chealpix.h>
 
-CTEST(nmt,he_io) {
+CTEST(nmt,alm2cl)
+{
+  int ii;
+  long nside=256;
+  int lmax=3*nside-1;
+  long npix=he_nside2npix(nside);
+  double **maps=my_malloc(3*sizeof(double *));
+  fcomplex **alms=my_malloc(3*sizeof(fcomplex *));
+  double **cls=my_malloc(7*sizeof(double *));
+  
+  for(ii=0;ii<7;ii++)
+    cls[ii]=my_malloc((lmax+1)*sizeof(double));
 
+  //Read data
+  for(ii=0;ii<3;ii++) {
+    long ns;
+    maps[ii]=he_read_healpix_map("test/maps.fits",&ns,ii);
+    ASSERT_EQUAL(nside,ns);
+    alms[ii]=my_malloc(he_nalms(lmax)*sizeof(fcomplex));
+  }
+
+  //SHT
+  he_map2alm(nside,lmax,1,0,maps,alms,3);
+  he_map2alm(nside,lmax,1,2,&(maps[1]),&(alms[1]),3);
+
+  //Power spectra
+  he_alm2cl(&(alms[0]),&(alms[0]),0,0,&(cls[0]),lmax);
+  he_alm2cl(&(alms[0]),&(alms[1]),0,1,&(cls[1]),lmax);
+  he_alm2cl(&(alms[1]),&(alms[1]),1,1,&(cls[3]),lmax);
+  for(ii=0;ii<7;ii++)
+    test_compare_arrays(lmax+1,cls[ii],7,ii,"test/benchmarks/cls_afst.txt",1E-5);
+
+  //Anafast
+  he_anafast(&(maps[0]),&(maps[0]),0,0,&(cls[0]),nside,lmax,3);
+  he_anafast(&(maps[0]),&(maps[1]),0,1,&(cls[1]),nside,lmax,3);
+  he_anafast(&(maps[1]),&(maps[1]),1,1,&(cls[3]),nside,lmax,3);
+  for(ii=0;ii<7;ii++)
+    test_compare_arrays(lmax+1,cls[ii],7,ii,"test/benchmarks/cls_afst.txt",1E-5);
+  
+  for(ii=0;ii<3;ii++) {
+    free(maps[ii]);
+    free(alms[ii]);
+  }
+
+  for(ii=0;ii<7;ii++)
+    free(cls[ii]);
+
+  free(cls);
+  free(maps);
+  free(alms);
+}  
+
+CTEST(nmt,he_sht) {
+  int ii;
+  int nmaps=34;
+  long nside=16;
+  long npix=he_nside2npix(nside);
+  double **maps=my_malloc(2*nmaps*sizeof(double *));
+  fcomplex **alms=my_malloc(2*nmaps*sizeof(fcomplex *));
+
+  for(ii=0;ii<2*nmaps;ii++) {
+    maps[ii]=my_calloc(npix,sizeof(double));
+    alms[ii]=my_malloc(he_nalms(3*nside)*sizeof(fcomplex));
+  }
+
+  //Direct SHT
+  //Single SHT, spin-0
+  he_map2alm(nside,3*nside,1,0,maps,alms,0);
+  //Several SHTs, spin-0
+  he_map2alm(nside,3*nside,nmaps,0,maps,alms,0);
+  //Single SHT, spin-2
+  he_map2alm(nside,3*nside,1,2,maps,alms,0);
+  //Several SHTs, spin-2
+  he_map2alm(nside,3*nside,nmaps,2,maps,alms,0);
+  //Several SHTs, spin-2, iterate
+  he_map2alm(nside,3*nside,nmaps,2,maps,alms,3);
+
+  //Inverse SHT
+  //Single SHT, spin-0
+  he_alm2map(nside,3*nside,1,0,maps,alms);
+  //Several SHTs, spin-0
+  he_alm2map(nside,3*nside,nmaps,0,maps,alms);
+  //Single SHT, spin-2
+  he_alm2map(nside,3*nside,1,2,maps,alms);
+  //Several SHTs, spin-2
+  he_alm2map(nside,3*nside,nmaps,2,maps,alms);
+
+  for(ii=0;ii<nmaps;ii++) {
+    free(maps[ii]);
+    free(alms[ii]);
+  }
+  
+  free(maps);
+  free(alms);
+}
+
+CTEST(nmt,he_io) {
   set_error_policy(THROW_ON_ERROR);
 
   printf("\nError messages expected: \n");
