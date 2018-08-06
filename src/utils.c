@@ -1,5 +1,10 @@
 #include "utils.h"
 
+#include <setjmp.h>
+jmp_buf exception_buffer;
+int exception_status;
+int error_policy=EXIT_ON_ERROR;
+
 int my_linecount(FILE *f)
 {
   int i0=0;
@@ -8,6 +13,11 @@ int my_linecount(FILE *f)
     i0++;
   }
   return i0;
+}
+
+void set_error_policy(int i)
+{
+  error_policy=i;
 }
 
 void report_error(int level,char *fmt,...)
@@ -21,7 +31,10 @@ void report_error(int level,char *fmt,...)
   
   if(level) {
     fprintf(stderr," Fatal error: %s",msg);
-    exit(level);
+    if(error_policy==EXIT_ON_ERROR)
+      exit(level);
+    else
+      throw(level);
   }
   else
     fprintf(stderr," Warning: %s",msg);

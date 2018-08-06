@@ -34,18 +34,96 @@ void test_compare_arrays(int n,double *y,int narr,int iarr,char *fname)
   fclose(fi);
 }
 
-CTEST(nmt,my_linecount) {
-  FILE *f=my_fopen("test/cls.txt","r");
-  int cnt=my_linecount(f);
-  ASSERT_EQUAL(cnt,768);
-  fclose(f);
+CTEST(nmt,drc3jj) {
+  int sizew=1000;
+  double *w3=my_malloc(sizew*sizeof(double));
+  int r,l1min,l1max;
+
+  r=drc3jj(2,3,0,0,&l1min,&l1max,w3,sizew);
+  ASSERT_EQUAL(r,0);
+  ASSERT_EQUAL(l1max,2+3);
+  ASSERT_EQUAL(l1min,1);
+  ASSERT_DBL_NEAR_TOL(-sqrt(3./35.),w3[0],1E-10);
+  ASSERT_DBL_NEAR_TOL(0,w3[1],1E-10);
+  ASSERT_DBL_NEAR_TOL(2/sqrt(105.),w3[2],1E-10);
+  ASSERT_DBL_NEAR_TOL(0,w3[3],1E-10);
+  ASSERT_DBL_NEAR_TOL(-sqrt(10./231.),w3[4],1E-10);
+
+  r=drc3jj(100,200,2,-2,&l1min,&l1max,w3,sizew);
+  ASSERT_EQUAL(r,0);
+  ASSERT_EQUAL(l1max,100+200);
+  ASSERT_EQUAL(l1min,100);
+  ASSERT_DBL_NEAR_TOL(0.0139534,w3[0],1E-5);
+  ASSERT_DBL_NEAR_TOL(-0.00192083,w3[30],1E-5);
+  ASSERT_DBL_NEAR_TOL(0.000639717,w3[54],1E-5);
+  ASSERT_DBL_NEAR_TOL(0.000648742,w3[131],1E-5);
+
+  set_error_policy(THROW_ON_ERROR);
+  printf("\nError messages expected: \n");
+  try { r=drc3jj(100,200,2,-2,&l1min,&l1max,w3,100); }
+  catch(1) {}
+  ASSERT_EQUAL(exception_status,1);
+  try { r=drc3jj(2,3,3,0,&l1min,&l1max,w3,sizew); }
+  catch(1) {}
+  ASSERT_EQUAL(exception_status,1);
+  
+  set_error_policy(EXIT_ON_ERROR);
+  free(w3);
+}
+
+CTEST(nmt,mp_pinv) {
+  gsl_matrix *M=gsl_matrix_alloc(3,3);
+
+  //Non-degenerate matrix
+  gsl_matrix_set(M,0,0,14.);
+  gsl_matrix_set(M,0,1,2.);
+  gsl_matrix_set(M,0,2,13.);
+  gsl_matrix_set(M,1,0,2.);
+  gsl_matrix_set(M,1,1,1.);
+  gsl_matrix_set(M,1,2,2.);
+  gsl_matrix_set(M,2,0,13.);
+  gsl_matrix_set(M,2,1,2.);
+  gsl_matrix_set(M,2,2,13.);
+  moore_penrose_pinv(M,1E-5);
+  ASSERT_DBL_NEAR_TOL( 1.   ,gsl_matrix_get(M,0,0),1E-5);
+  ASSERT_DBL_NEAR_TOL( 0.   ,gsl_matrix_get(M,0,1),1E-5);
+  ASSERT_DBL_NEAR_TOL(-1.   ,gsl_matrix_get(M,0,2),1E-5);
+  ASSERT_DBL_NEAR_TOL( 0.   ,gsl_matrix_get(M,1,0),1E-5);
+  ASSERT_DBL_NEAR_TOL(13./9.,gsl_matrix_get(M,1,1),1E-5);
+  ASSERT_DBL_NEAR_TOL(-2./9.,gsl_matrix_get(M,1,2),1E-5);
+  ASSERT_DBL_NEAR_TOL(-1.   ,gsl_matrix_get(M,2,0),1E-5);
+  ASSERT_DBL_NEAR_TOL(-2./9.,gsl_matrix_get(M,2,1),1E-5);
+  ASSERT_DBL_NEAR_TOL(10./9.,gsl_matrix_get(M,2,2),1E-5);
+  
+  //Degenerate matrix
+  gsl_matrix_set(M,0,0,1.);
+  gsl_matrix_set(M,0,1,0.);
+  gsl_matrix_set(M,0,2,1.);
+  gsl_matrix_set(M,1,0,0.);
+  gsl_matrix_set(M,1,1,1.);
+  gsl_matrix_set(M,1,2,1.);
+  gsl_matrix_set(M,2,0,1.);
+  gsl_matrix_set(M,2,1,1.);
+  gsl_matrix_set(M,2,2,2.);
+  moore_penrose_pinv(M,1E-5);
+  ASSERT_DBL_NEAR_TOL( 5./9.,gsl_matrix_get(M,0,0),1E-5);
+  ASSERT_DBL_NEAR_TOL(-4./9.,gsl_matrix_get(M,0,1),1E-5);
+  ASSERT_DBL_NEAR_TOL( 1./9.,gsl_matrix_get(M,0,2),1E-5);
+  ASSERT_DBL_NEAR_TOL(-4./9.,gsl_matrix_get(M,1,0),1E-5);
+  ASSERT_DBL_NEAR_TOL( 5./9.,gsl_matrix_get(M,1,1),1E-5);
+  ASSERT_DBL_NEAR_TOL( 1./9.,gsl_matrix_get(M,1,2),1E-5);
+  ASSERT_DBL_NEAR_TOL( 1./9.,gsl_matrix_get(M,2,0),1E-5);
+  ASSERT_DBL_NEAR_TOL( 1./9.,gsl_matrix_get(M,2,1),1E-5);
+  ASSERT_DBL_NEAR_TOL( 2./9.,gsl_matrix_get(M,2,2),1E-5);
+
+  gsl_matrix_free(M);
 }
 
 #define M2_01 1./12. //variance top hat
 #define M2_POISSONL 1000. //variance top hat
 #define M2_POISSONS 0.5 //variance top hat
 #define M2_GAUSS 1. //variance Gaussian
-CTEST(nmt,rnging) {
+CTEST(nmt,rngs) {
   gsl_rng *r=init_rng(1234);
   int ii;
   double m_01=0,s_01=0;
@@ -96,4 +174,35 @@ CTEST(nmt,rnging) {
   ASSERT_DBL_NEAR_TOL(s_gaussm,sqrt((4-M_PI)*M2_GAUSS/4.),3./sqrt(NNO_RNG+0.));
   ASSERT_DBL_NEAR_TOL(m_gaussp,0,20.*sqrt(M2_01/NNO_RNG));
   ASSERT_DBL_NEAR_TOL(s_gaussp,sqrt(M2_01),1.6/sqrt(NNO_RNG+0.));
+
+  end_rng(r);
+}
+
+CTEST(nmt,my_linecount) {
+  FILE *f=my_fopen("test/cls.txt","r");
+  int cnt=my_linecount(f);
+  ASSERT_EQUAL(cnt,768);
+  fclose(f);
+}
+
+CTEST(nmt,errors) {
+  set_error_policy(THROW_ON_ERROR);
+
+  printf("\nError messages expected: \n");
+
+  //File doesn't exist
+  try { FILE *f=my_fopen("test/cls.txtb","r"); }
+  catch(1) {}
+  ASSERT_EQUAL(exception_status,1);
+
+  //Wrong allocation params
+  try { my_malloc(-1); }
+  catch(1) {}
+  ASSERT_EQUAL(exception_status,1);
+
+  try { my_calloc(-1,-1); }
+  catch(1) {}
+  ASSERT_EQUAL(exception_status,1);
+
+  set_error_policy(EXIT_ON_ERROR);
 }

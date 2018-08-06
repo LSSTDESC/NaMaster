@@ -2,6 +2,19 @@
 #define _NM_UTILS_
 #include "namaster.h"
 
+#include <setjmp.h>
+
+#define EXIT_ON_ERROR 0
+#define THROW_ON_ERROR 1
+extern jmp_buf exception_buffer;
+extern int exception_status;
+extern int error_policy;
+
+#define try if ((exception_status = setjmp(exception_buffer)) == 0)
+#define catch(val) else if (exception_status == val)
+#define throw(val) longjmp(exception_buffer,val)
+#define finally else
+
 //Defined in utils.c
 gsl_rng *init_rng(unsigned int seed);
 double rng_01(gsl_rng *rng);
@@ -11,6 +24,7 @@ void rng_delta_gauss(double *module,double *phase,
 void rng_gauss(gsl_rng *rng,double *r1,double *r2);
 void end_rng(gsl_rng *rng);
 int my_linecount(FILE *f);
+void set_error_policy(int i);
 void report_error(int level,char *fmt,...);
 void *my_malloc(size_t size);
 void *my_calloc(size_t nmemb,size_t size);
