@@ -22,7 +22,7 @@ void he_write_healpix_map(flouble **tmap,int nfields,long nside,char *fname)
     tunit[ii]=my_malloc(256);
     sprintf(ttype[ii],"map %d",ii+1);
     sprintf(tform[ii],"1E");
-    sprintf(tunit[ii],"uK");
+    sprintf(tunit[ii],"  ");
   }
 
   fits_create_file(&fptr,fname,&status);
@@ -434,7 +434,7 @@ void he_in_ring(int nside,int iz,flouble phi0,flouble dphi,
   int nir_here;
   flouble phi_low,phi_hi,shift;
 
-  conservative=1;//Do we take intersected pixels which
+  conservative=1;//Do we take intersected pixels whose
                  //centers do not fall within range?
   take_all=0;//Take all pixels in ring?
   to_top=0;

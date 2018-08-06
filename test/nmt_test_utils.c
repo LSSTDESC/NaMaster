@@ -34,7 +34,7 @@ void test_compare_arrays(int n,double *y,int narr,int iarr,char *fname)
   fclose(fi);
 }
 
-CTEST(nmt,drc3jj) {
+CTEST_SKIP(nmt,drc3jj) {
   int sizew=1000;
   double *w3=my_malloc(sizew*sizeof(double));
   int r,l1min,l1max;
@@ -62,16 +62,16 @@ CTEST(nmt,drc3jj) {
   printf("\nError messages expected: \n");
   try { r=drc3jj(100,200,2,-2,&l1min,&l1max,w3,100); }
   catch(1) {}
-  ASSERT_EQUAL(exception_status,1);
+  ASSERT_EQUAL(1,exception_status);
   try { r=drc3jj(2,3,3,0,&l1min,&l1max,w3,sizew); }
   catch(1) {}
-  ASSERT_EQUAL(exception_status,1);
+  ASSERT_EQUAL(1,exception_status);
   
   set_error_policy(EXIT_ON_ERROR);
   free(w3);
 }
 
-CTEST(nmt,mp_pinv) {
+CTEST_SKIP(nmt,mp_pinv) {
   gsl_matrix *M=gsl_matrix_alloc(3,3);
 
   //Non-degenerate matrix
@@ -123,7 +123,7 @@ CTEST(nmt,mp_pinv) {
 #define M2_POISSONL 1000. //variance top hat
 #define M2_POISSONS 0.5 //variance top hat
 #define M2_GAUSS 1. //variance Gaussian
-CTEST(nmt,rngs) {
+CTEST_SKIP(nmt,rngs) {
   gsl_rng *r=init_rng(1234);
   int ii;
   double m_01=0,s_01=0;
@@ -178,14 +178,14 @@ CTEST(nmt,rngs) {
   end_rng(r);
 }
 
-CTEST(nmt,my_linecount) {
+CTEST_SKIP(nmt,my_linecount) {
   FILE *f=my_fopen("test/cls.txt","r");
   int cnt=my_linecount(f);
   ASSERT_EQUAL(cnt,768);
   fclose(f);
 }
 
-CTEST(nmt,errors) {
+CTEST_SKIP(nmt,errors) {
   set_error_policy(THROW_ON_ERROR);
 
   printf("\nError messages expected: \n");
@@ -193,16 +193,16 @@ CTEST(nmt,errors) {
   //File doesn't exist
   try { FILE *f=my_fopen("test/cls.txtb","r"); }
   catch(1) {}
-  ASSERT_EQUAL(exception_status,1);
+  ASSERT_EQUAL(1,exception_status);
 
   //Wrong allocation params
   try { my_malloc(-1); }
   catch(1) {}
-  ASSERT_EQUAL(exception_status,1);
+  ASSERT_EQUAL(1,exception_status);
 
   try { my_calloc(-1,-1); }
   catch(1) {}
-  ASSERT_EQUAL(exception_status,1);
+  ASSERT_EQUAL(1,exception_status);
 
   set_error_policy(EXIT_ON_ERROR);
 }
