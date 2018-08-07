@@ -510,14 +510,12 @@ fcomplex **fs_synalm(int nx,int ny,flouble lx,flouble ly,int nmaps,
 	}
 	else {
 	  //Get power spectrum
-	  int icl=0;
 	  for(imp1=0;imp1<nmaps;imp1++) {
 	    for(imp2=imp1;imp2<nmaps;imp2++) {//Fill up only lower triangular part
-	      flouble cl=0.5*inv_dkvol*nmt_k_function_eval(cells[icl],kmod,intacc_cells);
+	      flouble cl=0.5*inv_dkvol*nmt_k_function_eval(cells[imp2+nmaps*imp1],kmod,intacc_cells);
 	      gsl_matrix_set(clmat,imp1,imp2,cl);
 	      if(imp2!=imp1)
 		gsl_matrix_set(clmat,imp2,imp1,cl);
-	      icl++;
 	    }
 	  }
 
