@@ -4,7 +4,7 @@
 #include "nmt_test_utils.h"
 #include <chealpix.h>
 
-CTEST(nmt,he_synalm) {
+CTEST_SKIP(nmt,he_synalm) {
   int ii,l;
   long nside=128;
   long lmax=3*nside-1;
@@ -68,7 +68,7 @@ CTEST(nmt,he_synalm) {
   free(cells_out);
 }
 
-CTEST(nmt,he_beams) {
+CTEST_SKIP(nmt,he_beams) {
   int l;
   long nside=128;
   long lmax=3*nside-1;
@@ -83,7 +83,7 @@ CTEST(nmt,he_beams) {
   free(beam_he);
 }
 
-CTEST(nmt,he_alm2cl)
+CTEST_SKIP(nmt,he_alm2cl)
 {
   int ii;
   long nside=256;
@@ -135,7 +135,7 @@ CTEST(nmt,he_alm2cl)
   free(alms);
 }  
 
-CTEST(nmt,he_sht) {
+CTEST_SKIP(nmt,he_sht) {
   int ii;
   int nmaps=34;
   long nside=16;
@@ -174,7 +174,7 @@ CTEST(nmt,he_sht) {
   he_alm2map(nside,lmax,1,2,maps,alms);
   //Several SHTs, spin-2
   he_alm2map(nside,lmax,nmaps,2,maps,alms);
-  for(ii=0;ii<nmaps;ii++) {
+  for(ii=0;ii<2*nmaps;ii++) {
     free(maps[ii]);
     free(alms[ii]);
   }
@@ -182,7 +182,7 @@ CTEST(nmt,he_sht) {
   //Test for one particular example
   nside=256;
   npix=he_nside2npix(nside);
-  for(ii=0;ii<2*nmaps;ii++) {
+  for(ii=0;ii<2;ii++) {
     maps[ii]=my_calloc(npix,sizeof(double));
     alms[ii]=my_malloc(he_nalms(lmax)*sizeof(fcomplex));
   }
@@ -220,16 +220,16 @@ CTEST(nmt,he_sht) {
   ASSERT_DBL_NEAR_TOL(0.,cimag(alms[0][he_indexlm(3,0,lmax)]),1E-5);
   ASSERT_DBL_NEAR_TOL(2.,creal(alms[1][he_indexlm(3,0,lmax)]),1E-5);
   ASSERT_DBL_NEAR_TOL(0.,cimag(alms[1][he_indexlm(3,0,lmax)]),1E-5);
-
-  for(ii=0;ii<nmaps;ii++) {
+  for(ii=0;ii<2;ii++) {
     free(maps[ii]);
     free(alms[ii]);
   }
+  
   free(maps);
   free(alms);
 }
 
-CTEST(nmt,he_io) {
+CTEST_SKIP(nmt,he_io) {
   set_error_policy(THROW_ON_ERROR);
 
   printf("\nError messages expected: \n");
@@ -309,7 +309,7 @@ CTEST_SKIP(nmt,he_qdisc) {
   free(indices);
 }
 
-CTEST(nmt,he_qstrip) {
+CTEST_SKIP(nmt,he_qstrip) {
   long nside=1024;
 
   set_error_policy(THROW_ON_ERROR);
@@ -337,7 +337,7 @@ CTEST(nmt,he_qstrip) {
   set_error_policy(EXIT_ON_ERROR);
 }
 
-CTEST(nmt,he_ringnum) {
+CTEST_SKIP(nmt,he_ringnum) {
   //ring_num
   long nside=1024;
   gsl_rng *r=init_rng(1234);
@@ -350,7 +350,7 @@ CTEST(nmt,he_ringnum) {
   end_rng(r);
 }
 
-CTEST(nmt,he_algb) {
+CTEST_SKIP(nmt,he_algb) {
   int ii;
   long nside=128;
   long npix=he_nside2npix(nside);
@@ -378,7 +378,7 @@ CTEST(nmt,he_algb) {
   free(mpr);
 }
 
-CTEST(nmt,he_r2n) {
+CTEST_SKIP(nmt,he_r2n) {
   int ii;
   long nside=256;
   long listpix[5]={123,453,6,723475,39642};
@@ -401,7 +401,7 @@ CTEST(nmt,he_r2n) {
   free(mp);
 }
 
-CTEST(nmt,he_ud) {
+CTEST_SKIP(nmt,he_ud) {
   //ud-grade
   int ii;
   long nside=256,npix=he_nside2npix(nside);
@@ -421,7 +421,7 @@ CTEST(nmt,he_ud) {
   free(mplo);  
 }
 
-CTEST(nmt,he_x2y) {
+CTEST_SKIP(nmt,he_x2y) {
   long nside=1024;
   double ip,ip0=1026;
   double vec[3],vec0[3]={0.010057788838065481, 0.015334332284729826, 0.9998318354288737};
