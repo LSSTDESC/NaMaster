@@ -34,7 +34,7 @@ void test_compare_arrays(int n,double *y,int narr,int iarr,char *fname,double rt
   fclose(fi);
 }
 
-CTEST(nmt,drc3jj) {
+CTEST(nmt,ut_drc3jj) {
   int sizew=1000;
   double *w3=my_malloc(sizew*sizeof(double));
   int r,l1min,l1max;
@@ -71,7 +71,7 @@ CTEST(nmt,drc3jj) {
   free(w3);
 }
 
-CTEST(nmt,mp_pinv) {
+CTEST(nmt,ut_mp_pinv) {
   gsl_matrix *M=gsl_matrix_alloc(3,3);
 
   //Non-degenerate matrix
@@ -123,7 +123,7 @@ CTEST(nmt,mp_pinv) {
 #define M2_POISSONL 1000. //variance top hat
 #define M2_POISSONS 0.5 //variance top hat
 #define M2_GAUSS 1. //variance Gaussian
-CTEST(nmt,rngs) {
+CTEST(nmt,ut_rngs) {
   gsl_rng *r=init_rng(1234);
   int ii;
   double m_01=0,s_01=0;
@@ -178,14 +178,14 @@ CTEST(nmt,rngs) {
   end_rng(r);
 }
 
-CTEST(nmt,my_linecount) {
+CTEST(nmt,ut_my_linecount) {
   FILE *f=my_fopen("test/cls.txt","r");
   int cnt=my_linecount(f);
   ASSERT_EQUAL(cnt,768);
   fclose(f);
 }
 
-CTEST(nmt,errors) {
+CTEST(nmt,ut_errors) {
   set_error_policy(THROW_ON_ERROR);
 
   printf("\nError messages expected: \n");

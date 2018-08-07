@@ -4,7 +4,86 @@
 #include "nmt_test_utils.h"
 #include <chealpix.h>
 
-CTEST(nmt,alm2cl)
+CTEST(nmt,he_synalm) {
+  int ii,l;
+  long nside=128;
+  long lmax=3*nside-1;
+  int nmaps=2;
+  int ncls=nmaps*nmaps;
+  double lpivot=nside/2.;
+  double alpha_pivot=1.;
+  double **cells=my_malloc(ncls*sizeof(double *));
+  double **cells_out=my_malloc(ncls*sizeof(double *));
+  double **beam=my_malloc(nmaps*sizeof(double *));
+
+  for(ii=0;ii<nmaps;ii++) {
+    beam[ii]=my_malloc((lmax+1)*sizeof(double));
+    for(l=0;l<=lmax;l++)
+      beam[ii][l]=1.;
+  }
+  
+  for(ii=0;ii<ncls;ii++) {
+    cells[ii]=my_malloc((lmax+1)*sizeof(double));
+    cells_out[ii]=my_malloc((lmax+1)*sizeof(double));
+    for(l=0;l<=lmax;l++) {
+      if((ii==0) || (ii==3))
+	cells[ii][l]=pow((2*lpivot)/(l+lpivot),alpha_pivot);
+      else
+	cells[ii][l]=0;
+    }
+  }
+  fcomplex **alms=he_synalm(nside,nmaps,lmax,cells,beam,1234);
+  he_alm2cl(alms,alms,1,1,cells_out,lmax);
+
+  for(l=0;l<=lmax;l++) {
+    int im1;
+    for(im1=0;im1<nmaps;im1++) {
+      int im2;
+      for(im2=0;im2<nmaps;im2++) {
+	double c11=cells[im1+nmaps*im1][l];
+	double c12=cells[im2+nmaps*im1][l];
+	double c21=cells[im1+nmaps*im2][l];
+	double c22=cells[im2+nmaps*im2][l];
+	double sig=sqrt((c11*c22+c12*c21)/(2.*l+1.));
+	double diff=fabs(cells_out[im2+nmaps*im1][l]-c12);
+	//Check that there are no >5-sigma fluctuations around input power spectrum
+	ASSERT_TRUE((int)(diff<5*sig));
+      }
+    }
+  }
+  
+  for(ii=0;ii<ncls;ii++) {
+    free(cells[ii]);
+    free(cells_out[ii]);
+  }
+  
+  for(ii=0;ii<nmaps;ii++) {
+    free(alms[ii]);
+    free(beam[ii]);
+  }
+
+  free(alms);
+  free(beam);
+  free(cells);
+  free(cells_out);
+}
+
+CTEST(nmt,he_beams) {
+  int l;
+  long nside=128;
+  long lmax=3*nside-1;
+  double sigma=1.*M_PI/180; //Beam sigma in radians
+  double fwhm_amin=sigma*180*60/M_PI*2.35482;
+  double *beam_he=he_generate_beam_window(lmax,fwhm_amin);
+
+  for(l=0;l<=lmax;l++) {
+    double b=exp(-0.5*l*(l+1.)*sigma*sigma);
+    ASSERT_DBL_NEAR_TOL(1.,beam_he[l]/b,1E-3);
+  }
+  free(beam_he);
+}
+
+CTEST(nmt,he_alm2cl)
 {
   int ii;
   long nside=256;
@@ -60,42 +139,92 @@ CTEST(nmt,he_sht) {
   int ii;
   int nmaps=34;
   long nside=16;
+  long lmax=3*nside-1;
   long npix=he_nside2npix(nside);
   double **maps=my_malloc(2*nmaps*sizeof(double *));
   fcomplex **alms=my_malloc(2*nmaps*sizeof(fcomplex *));
 
   for(ii=0;ii<2*nmaps;ii++) {
     maps[ii]=my_calloc(npix,sizeof(double));
-    alms[ii]=my_malloc(he_nalms(3*nside)*sizeof(fcomplex));
+    alms[ii]=my_malloc(he_nalms(lmax)*sizeof(fcomplex));
   }
 
   //Direct SHT
   //Single SHT, spin-0
-  he_map2alm(nside,3*nside,1,0,maps,alms,0);
+  he_map2alm(nside,lmax,1,0,maps,alms,0);
   //Several SHTs, spin-0
-  he_map2alm(nside,3*nside,nmaps,0,maps,alms,0);
+  he_map2alm(nside,lmax,nmaps,0,maps,alms,0);
   //Single SHT, spin-2
-  he_map2alm(nside,3*nside,1,2,maps,alms,0);
+  he_map2alm(nside,lmax,1,2,maps,alms,0);
   //Several SHTs, spin-2
-  he_map2alm(nside,3*nside,nmaps,2,maps,alms,0);
+  he_map2alm(nside,lmax,nmaps,2,maps,alms,0);
   //Several SHTs, spin-2, iterate
-  he_map2alm(nside,3*nside,nmaps,2,maps,alms,3);
+  he_map2alm(nside,lmax,nmaps,2,maps,alms,3);
+
+  //Test alm zeroing
+  he_zero_alm(lmax,alms[0]);
+  he_zero_alm(lmax,alms[1]);
 
   //Inverse SHT
   //Single SHT, spin-0
-  he_alm2map(nside,3*nside,1,0,maps,alms);
+  he_alm2map(nside,lmax,1,0,maps,alms);
   //Several SHTs, spin-0
-  he_alm2map(nside,3*nside,nmaps,0,maps,alms);
+  he_alm2map(nside,lmax,nmaps,0,maps,alms);
   //Single SHT, spin-2
-  he_alm2map(nside,3*nside,1,2,maps,alms);
+  he_alm2map(nside,lmax,1,2,maps,alms);
   //Several SHTs, spin-2
-  he_alm2map(nside,3*nside,nmaps,2,maps,alms);
+  he_alm2map(nside,lmax,nmaps,2,maps,alms);
+  for(ii=0;ii<nmaps;ii++) {
+    free(maps[ii]);
+    free(alms[ii]);
+  }
+
+  //Test for one particular example
+  nside=256;
+  npix=he_nside2npix(nside);
+  for(ii=0;ii<2*nmaps;ii++) {
+    maps[ii]=my_calloc(npix,sizeof(double));
+    alms[ii]=my_malloc(he_nalms(lmax)*sizeof(fcomplex));
+  }
+  //spin-0, map = Re(Y_22) ->
+  //        a_lm = delta_l2 (delta_m2 + delta_m-2)/2
+  for(ii=0;ii<npix;ii++) {
+    double th,ph,sth;
+    pix2ang_ring(nside,ii,&th,&ph);
+    sth=sin(th);
+    maps[0][ii]=sqrt(15./2./M_PI)*sth*sth*cos(2*ph)/4.;
+  }
+  he_map2alm(nside,lmax,1,0,maps,alms,0);
+  ASSERT_DBL_NEAR_TOL(0.5,creal(alms[0][he_indexlm(2,2,lmax)]),1E-5);
+  ASSERT_DBL_NEAR_TOL(0.0,cimag(alms[0][he_indexlm(2,2,lmax)]),1E-5);
+  //spin-2, map = _2Y^E_20+2* _2Y^B_30) ->
+  //        E_lm =   delta_l2 delta_m0
+  //        B_lm = 2 delta_l3 delta_m0
+  for(ii=0;ii<npix;ii++) {
+    double th,ph,sth;
+    pix2ang_ring(nside,ii,&th,&ph);
+    sth=sin(th);
+    maps[0][ii]=-sqrt(15./2./M_PI)*sth*sth/4.;
+    maps[1][ii]=-sqrt(105./2./M_PI)*cos(th)*sth*sth/2.;
+  }
+  he_map2alm(nside,lmax,1,2,maps,alms,0);
+  ASSERT_DBL_NEAR_TOL(1.,creal(alms[0][he_indexlm(2,0,lmax)]),1E-5);
+  ASSERT_DBL_NEAR_TOL(0.,cimag(alms[0][he_indexlm(2,0,lmax)]),1E-5);
+  ASSERT_DBL_NEAR_TOL(0.,creal(alms[1][he_indexlm(2,0,lmax)]),1E-5);
+  ASSERT_DBL_NEAR_TOL(0.,cimag(alms[1][he_indexlm(2,0,lmax)]),1E-5);
+  ASSERT_DBL_NEAR_TOL(0.,creal(alms[0][he_indexlm(1,0,lmax)]),1E-5);
+  ASSERT_DBL_NEAR_TOL(0.,cimag(alms[0][he_indexlm(1,0,lmax)]),1E-5);
+  ASSERT_DBL_NEAR_TOL(0.,creal(alms[1][he_indexlm(1,0,lmax)]),1E-5);
+  ASSERT_DBL_NEAR_TOL(0.,cimag(alms[1][he_indexlm(1,0,lmax)]),1E-5);
+  ASSERT_DBL_NEAR_TOL(0.,creal(alms[0][he_indexlm(3,0,lmax)]),1E-5);
+  ASSERT_DBL_NEAR_TOL(0.,cimag(alms[0][he_indexlm(3,0,lmax)]),1E-5);
+  ASSERT_DBL_NEAR_TOL(2.,creal(alms[1][he_indexlm(3,0,lmax)]),1E-5);
+  ASSERT_DBL_NEAR_TOL(0.,cimag(alms[1][he_indexlm(3,0,lmax)]),1E-5);
 
   for(ii=0;ii<nmaps;ii++) {
     free(maps[ii]);
     free(alms[ii]);
   }
-  
   free(maps);
   free(alms);
 }
@@ -219,6 +348,34 @@ CTEST(nmt,he_ringnum) {
     ASSERT_INTERVAL(0,4*nside-2,rn);
   }
   end_rng(r);
+}
+
+CTEST(nmt,he_algb) {
+  int ii;
+  long nside=128;
+  long npix=he_nside2npix(nside);
+  double *mp1=my_malloc(npix*sizeof(double));
+  double *mp2=my_malloc(npix*sizeof(double));
+  double *mpr=my_malloc(npix*sizeof(double));
+
+  for(ii=0;ii<npix;ii++) {
+    mp1[ii]=2.;
+    mp2[ii]=0.5;
+  }
+  
+  double d=he_map_dot(nside,mp1,mp2);
+  he_map_product(nside,mp1,mp2,mpr);
+  he_map_product(nside,mp1,mp2,mp2);
+
+  ASSERT_DBL_NEAR_TOL(4*M_PI,d,1E-5);
+  for(ii=0;ii<npix;ii++) {
+    ASSERT_DBL_NEAR_TOL(1.,mpr[ii],1E-10);
+    ASSERT_DBL_NEAR_TOL(1.,mp2[ii],1E-10);
+  }
+  
+  free(mp1);
+  free(mp2);
+  free(mpr);
 }
 
 CTEST(nmt,he_r2n) {
