@@ -47,8 +47,14 @@ CTEST(nmt,fsk_fft) {
   //Several FFT, spin-2
   fs_map2alm(fsk,nmaps,2,maps,alms);
 
+  //Zero_alm and alter_alm
   fs_zero_alm(fsk,alms[0]);
   fs_zero_alm(fsk,alms[1]);
+  nmt_k_function *b=fs_generate_beam_window(10.);
+  fs_alter_alm(fsk,10.,alms[0],alms[1],NULL,0);
+  fs_alter_alm(fsk,10.,alms[0],alms[1],b,0);
+  fs_alter_alm(fsk,10.,alms[0],alms[1],b,1);
+  nmt_k_function_free(b);
   
   //Inverse FFT
   //Single FFT, spin-0
@@ -60,6 +66,77 @@ CTEST(nmt,fsk_fft) {
   //Several FFT, spin-2
   fs_alm2map(fsk,nmaps,2,maps,alms);
   
+  //Particular example
+  //Spin-0. map = 2*pi/A * Re[exp(i*k0*x)] ->
+  //        a(k) = (delta_{k,k0}+delta_{k,-k0})/2
+  int i0_x=2,i0_y=3;
+  double k0_x=i0_x*2*M_PI/fsk->lx;
+  double k0_y=i0_y*2*M_PI/fsk->ly;
+  double cphi0=k0_x/sqrt(k0_x*k0_x+k0_y*k0_y);
+  double sphi0=k0_y/sqrt(k0_x*k0_x+k0_y*k0_y);
+  double c2phi0=cphi0*cphi0-sphi0*sphi0;
+  double s2phi0=2*sphi0*cphi0;
+  for(ii=0;ii<fsk->ny;ii++) {
+    int jj;
+    double y=ii*fsk->ly/fsk->ny;
+    for(jj=0;jj<fsk->nx;jj++) {
+      double x=jj*fsk->lx/fsk->nx;
+      double phase=k0_x*x+k0_y*y;
+      maps[0][jj+fsk->nx*ii]=2*M_PI*cos(phase)/(fsk->lx*fsk->ly);
+    }
+  }
+  fs_map2alm(fsk,1,0,maps,alms);
+  for(ii=0;ii<fsk->ny;ii++) {
+    int jj;
+    for(jj=0;jj<=fsk->nx/2;jj++) {
+      double re=creal(alms[0][jj+(fsk->nx/2+1)*ii]);
+      double im=cimag(alms[0][jj+(fsk->nx/2+1)*ii]);
+      if((jj==i0_x) && (ii==i0_y)) {
+	ASSERT_DBL_NEAR_TOL(0.5,re,1E-5);
+	ASSERT_DBL_NEAR_TOL(0.0,im,1E-5);
+      }
+      else {
+	ASSERT_DBL_NEAR_TOL(0.0,re,1E-5);
+	ASSERT_DBL_NEAR_TOL(0.0,im,1E-5);
+      }
+    }
+  }
+  //Spin-2. map = 2*pi/A * (cos(2*phi_k0),-sin(2*phi_k0)) Re[exp(i*k0*x)] ->
+  //        a_E(k) = (delta_{k,k0}+delta_{k,-k0})/2
+  //        a_B(k) = 0
+  for(ii=0;ii<fsk->ny;ii++) {
+    int jj;
+    double y=ii*fsk->ly/fsk->ny;
+    for(jj=0;jj<fsk->nx;jj++) {
+      double x=jj*fsk->lx/fsk->nx;
+      double phase=k0_x*x+k0_y*y;
+      maps[0][jj+fsk->nx*ii]= 2*M_PI*c2phi0*cos(phase)/(fsk->lx*fsk->ly);
+      maps[1][jj+fsk->nx*ii]=-2*M_PI*s2phi0*cos(phase)/(fsk->lx*fsk->ly);
+    }
+  }
+  fs_map2alm(fsk,1,2,maps,alms);
+  for(ii=0;ii<fsk->ny;ii++) {
+    int jj;
+    for(jj=0;jj<=fsk->nx/2;jj++) {
+      double re0=creal(alms[0][jj+(fsk->nx/2+1)*ii]);
+      double im0=cimag(alms[0][jj+(fsk->nx/2+1)*ii]);
+      double re1=creal(alms[1][jj+(fsk->nx/2+1)*ii]);
+      double im1=cimag(alms[1][jj+(fsk->nx/2+1)*ii]);
+      if((jj==i0_x) && (ii==i0_y)) {
+	ASSERT_DBL_NEAR_TOL(0.5,re0,1E-5);
+	ASSERT_DBL_NEAR_TOL(0.0,im0,1E-5);
+	ASSERT_DBL_NEAR_TOL(0.0,re1,1E-5);
+	ASSERT_DBL_NEAR_TOL(0.0,im1,1E-5);
+      }
+      else {
+	ASSERT_DBL_NEAR_TOL(0.0,re0,1E-5);
+	ASSERT_DBL_NEAR_TOL(0.0,im0,1E-5);
+	ASSERT_DBL_NEAR_TOL(0.0,re1,1E-5);
+	ASSERT_DBL_NEAR_TOL(0.0,im1,1E-5);
+      }
+    }
+  }
+
   for(ii=0;ii<2*nmaps;ii++) {
     dftw_free(maps[ii]);
     dftw_free(alms[ii]);
