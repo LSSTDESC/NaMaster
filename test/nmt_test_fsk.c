@@ -27,7 +27,7 @@ CTEST(nmt,fsk_synalm) {
     larr[ii]=ll;
     cells[0][ii]=pow((2*lpivot)/(ll+lpivot),alpha_pivot);
     cells[3][ii]=pow((2*lpivot)/(ll+lpivot),alpha_pivot);
-  }  
+  }
 
   nmt_binning_scheme_flat *bpw=nmt_bins_flat_create(nbpw,larr,&(larr[1]));
   double dkx=2*M_PI/fsk->lx,dky=2*M_PI/fsk->ly;
@@ -49,15 +49,19 @@ CTEST(nmt,fsk_synalm) {
   }
   
   nmt_k_function **clf=my_malloc(ncls*sizeof(nmt_k_function *));
+  nmt_k_function **clf_pass=my_malloc(3*sizeof(nmt_k_function *));
   nmt_k_function **bmf=my_malloc(nmaps*sizeof(nmt_k_function *));
   clf[0]=nmt_k_function_alloc(nbpw+1,larr,cells[0],1.,0.,0);
   clf[1]=nmt_k_function_alloc(nbpw+1,larr,cells[1],0.,0.,0);
   clf[2]=nmt_k_function_alloc(nbpw+1,larr,cells[2],0.,0.,0);
   clf[3]=nmt_k_function_alloc(nbpw+1,larr,cells[3],1.,0.,0);
+  clf_pass[0]=clf[0];
+  clf_pass[1]=clf[1];
+  clf_pass[2]=clf[3];
   for(ii=0;ii<nmaps;ii++)
     bmf[ii]=nmt_k_function_alloc(nbpw+1,larr,NULL,1.,1.,1);
 
-  fcomplex **alms=fs_synalm(fsk->nx,fsk->ny,fsk->lx,fsk->ly,nmaps,clf,bmf,1234);
+  fcomplex **alms=fs_synalm(fsk->nx,fsk->ny,fsk->lx,fsk->ly,nmaps,clf_pass,bmf,1234);
 
   fs_alm2cl(fsk,bpw,alms,alms,1,1,cells,1.,-1.,1.,-1.);
 
@@ -93,6 +97,7 @@ CTEST(nmt,fsk_synalm) {
   nmt_flatsky_info_free(fsk);
   free(npixls);
   free(clf);
+  free(clf_pass);
   free(bmf);
   free(cells);
   free(larr);

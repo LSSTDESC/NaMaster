@@ -987,11 +987,13 @@ fcomplex **he_synalm(int nside,int nmaps,int lmax,flouble **cells,flouble **beam
       }
       else {
 	//Get power spectrum
+	int icl=0;
 	for(imp1=0;imp1<nmaps;imp1++) {
 	  for(imp2=imp1;imp2<nmaps;imp2++) {//Fill up only lower triangular part
-	    gsl_matrix_set(clmat,imp1,imp2,cells[imp2+nmaps*imp1][ll]*0.5);
+	    gsl_matrix_set(clmat,imp1,imp2,cells[icl][ll]*0.5);
 	    if(imp2!=imp1)
-	      gsl_matrix_set(clmat,imp2,imp1,cells[imp2+nmaps*imp1][ll]*0.5);
+	      gsl_matrix_set(clmat,imp2,imp1,cells[icl][ll]*0.5);
+	    icl++;
 	  }
 	  bms[imp1]=beam[imp1][ll];
 	}

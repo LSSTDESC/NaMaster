@@ -3,14 +3,14 @@
 #include "utils.h"
 #include "nmt_test_utils.h"
 
-CTEST_SKIP(nmt,bins_constant) {
+CTEST(nmt,bins_constant) {
   nmt_binning_scheme *bin=nmt_bins_constant(4,2000);
   ASSERT_EQUAL(bin->n_bands,499);
   ASSERT_EQUAL(bin->ell_list[5][2],2+4*5+2);
   nmt_bins_free(bin);
 }
 
-CTEST_SKIP(nmt,bins_variable) {
+CTEST(nmt,bins_variable) {
   int i,j;
   nmt_binning_scheme *bin=nmt_bins_constant(4,2000);
   int *ells=test_get_sequence(2,1998);

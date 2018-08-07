@@ -3,7 +3,7 @@
 #include "utils.h"
 #include "nmt_test_utils.h"
 
-CTEST_SKIP(nmt,field_create_sp0) {
+CTEST(nmt,field_create_sp0) {
   int i;
   int spins[1]={0};
   int *ell=test_get_sequence(0,3*NSIDE_TESTS);
@@ -28,7 +28,7 @@ CTEST_SKIP(nmt,field_create_sp0) {
   free(cl);
 }
 
-CTEST_SKIP(nmt,field_read_sp0) {
+CTEST(nmt,field_read_sp0) {
   nmt_field *fld=nmt_field_read("test/mask.fits","test/maps.fits","none","none",0,0,0,3,1E-10);
   ASSERT_EQUAL(fld->nside,256);
   nmt_field_free(fld);

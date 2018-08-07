@@ -4,7 +4,7 @@
 #include "nmt_test_utils.h"
 #include <chealpix.h>
 
-CTEST_SKIP(nmt,he_synalm) {
+CTEST(nmt,he_synalm) {
   int ii,l;
   long nside=128;
   long lmax=3*nside-1;
@@ -12,7 +12,8 @@ CTEST_SKIP(nmt,he_synalm) {
   int ncls=nmaps*nmaps;
   double lpivot=nside/2.;
   double alpha_pivot=1.;
-  double **cells=my_malloc(ncls*sizeof(double *));
+  double **cells_in=my_malloc(ncls*sizeof(double *));
+  double **cells_pass=my_malloc(3*sizeof(double *));
   double **cells_out=my_malloc(ncls*sizeof(double *));
   double **beam=my_malloc(nmaps*sizeof(double *));
 
@@ -23,16 +24,19 @@ CTEST_SKIP(nmt,he_synalm) {
   }
   
   for(ii=0;ii<ncls;ii++) {
-    cells[ii]=my_malloc((lmax+1)*sizeof(double));
+    cells_in[ii]=my_malloc((lmax+1)*sizeof(double));
     cells_out[ii]=my_malloc((lmax+1)*sizeof(double));
     for(l=0;l<=lmax;l++) {
       if((ii==0) || (ii==3))
-	cells[ii][l]=pow((2*lpivot)/(l+lpivot),alpha_pivot);
+	cells_in[ii][l]=pow((2*lpivot)/(l+lpivot),alpha_pivot);
       else
-	cells[ii][l]=0;
+	cells_in[ii][l]=0;
     }
   }
-  fcomplex **alms=he_synalm(nside,nmaps,lmax,cells,beam,1234);
+  cells_pass[0]=cells_in[0];
+  cells_pass[1]=cells_in[1];
+  cells_pass[2]=cells_in[3];
+  fcomplex **alms=he_synalm(nside,nmaps,lmax,cells_pass,beam,1234);
   he_alm2cl(alms,alms,1,1,cells_out,lmax);
 
   for(l=0;l<=lmax;l++) {
@@ -40,10 +44,10 @@ CTEST_SKIP(nmt,he_synalm) {
     for(im1=0;im1<nmaps;im1++) {
       int im2;
       for(im2=0;im2<nmaps;im2++) {
-	double c11=cells[im1+nmaps*im1][l];
-	double c12=cells[im2+nmaps*im1][l];
-	double c21=cells[im1+nmaps*im2][l];
-	double c22=cells[im2+nmaps*im2][l];
+	double c11=cells_in[im1+nmaps*im1][l];
+	double c12=cells_in[im2+nmaps*im1][l];
+	double c21=cells_in[im1+nmaps*im2][l];
+	double c22=cells_in[im2+nmaps*im2][l];
 	double sig=sqrt((c11*c22+c12*c21)/(2.*l+1.));
 	double diff=fabs(cells_out[im2+nmaps*im1][l]-c12);
 	//Check that there are no >5-sigma fluctuations around input power spectrum
@@ -53,7 +57,7 @@ CTEST_SKIP(nmt,he_synalm) {
   }
   
   for(ii=0;ii<ncls;ii++) {
-    free(cells[ii]);
+    free(cells_in[ii]);
     free(cells_out[ii]);
   }
   
@@ -64,11 +68,12 @@ CTEST_SKIP(nmt,he_synalm) {
 
   free(alms);
   free(beam);
-  free(cells);
+  free(cells_pass);
+  free(cells_in);
   free(cells_out);
 }
 
-CTEST_SKIP(nmt,he_beams) {
+CTEST(nmt,he_beams) {
   int l;
   long nside=128;
   long lmax=3*nside-1;
@@ -83,7 +88,7 @@ CTEST_SKIP(nmt,he_beams) {
   free(beam_he);
 }
 
-CTEST_SKIP(nmt,he_alm2cl)
+CTEST(nmt,he_alm2cl)
 {
   int ii;
   long nside=256;
@@ -135,7 +140,7 @@ CTEST_SKIP(nmt,he_alm2cl)
   free(alms);
 }  
 
-CTEST_SKIP(nmt,he_sht) {
+CTEST(nmt,he_sht) {
   int ii;
   int nmaps=34;
   long nside=16;
@@ -229,7 +234,7 @@ CTEST_SKIP(nmt,he_sht) {
   free(alms);
 }
 
-CTEST_SKIP(nmt,he_io) {
+CTEST(nmt,he_io) {
   set_error_policy(THROW_ON_ERROR);
 
   printf("\nError messages expected: \n");
@@ -309,7 +314,7 @@ CTEST_SKIP(nmt,he_qdisc) {
   free(indices);
 }
 
-CTEST_SKIP(nmt,he_qstrip) {
+CTEST(nmt,he_qstrip) {
   long nside=1024;
 
   set_error_policy(THROW_ON_ERROR);
@@ -337,7 +342,7 @@ CTEST_SKIP(nmt,he_qstrip) {
   set_error_policy(EXIT_ON_ERROR);
 }
 
-CTEST_SKIP(nmt,he_ringnum) {
+CTEST(nmt,he_ringnum) {
   //ring_num
   long nside=1024;
   gsl_rng *r=init_rng(1234);
@@ -350,7 +355,7 @@ CTEST_SKIP(nmt,he_ringnum) {
   end_rng(r);
 }
 
-CTEST_SKIP(nmt,he_algb) {
+CTEST(nmt,he_algb) {
   int ii;
   long nside=128;
   long npix=he_nside2npix(nside);
@@ -378,7 +383,7 @@ CTEST_SKIP(nmt,he_algb) {
   free(mpr);
 }
 
-CTEST_SKIP(nmt,he_r2n) {
+CTEST(nmt,he_r2n) {
   int ii;
   long nside=256;
   long listpix[5]={123,453,6,723475,39642};
@@ -401,7 +406,7 @@ CTEST_SKIP(nmt,he_r2n) {
   free(mp);
 }
 
-CTEST_SKIP(nmt,he_ud) {
+CTEST(nmt,he_ud) {
   //ud-grade
   int ii;
   long nside=256,npix=he_nside2npix(nside);
@@ -421,7 +426,7 @@ CTEST_SKIP(nmt,he_ud) {
   free(mplo);  
 }
 
-CTEST_SKIP(nmt,he_x2y) {
+CTEST(nmt,he_x2y) {
   long nside=1024;
   double ip,ip0=1026;
   double vec[3],vec0[3]={0.010057788838065481, 0.015334332284729826, 0.9998318354288737};
