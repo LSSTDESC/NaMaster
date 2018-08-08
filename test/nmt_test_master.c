@@ -3,7 +3,7 @@
 #include "utils.h"
 #include "nmt_test_utils.h"
 
-CTEST(nmt,cell_00_full) {
+CTEST_SKIP(nmt,cell_00_full) {
   long nside,ipix;
   double *mpt=he_read_healpix_map("test/maps.fits",&nside,0);
   double *msk=he_read_healpix_map("test/mask.fits",&nside,0);
@@ -32,7 +32,7 @@ CTEST(nmt,cell_00_full) {
   free(msk);
 }
 
-CTEST(nmt,cell_02_full) {
+CTEST_SKIP(nmt,cell_02_full) {
   long nside,ipix;
   double *mpt=he_read_healpix_map("test/maps.fits",&nside,0);
   double *mpq=he_read_healpix_map("test/maps.fits",&nside,1);
@@ -80,7 +80,7 @@ CTEST(nmt,cell_02_full) {
   free(msk);
 }
 
-CTEST(nmt,cell_22_full) {
+CTEST_SKIP(nmt,cell_22_full) {
   long nside,ipix;
   double *mpq=he_read_healpix_map("test/maps.fits",&nside,1);
   double *mpu=he_read_healpix_map("test/maps.fits",&nside,2);

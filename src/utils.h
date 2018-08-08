@@ -92,33 +92,5 @@ void he_alter_alm(int lmax,double fwhm_amin,fcomplex *alm_in,fcomplex *alm_out,d
 void he_map_product(int nside,flouble *mp1,flouble *mp2,flouble *mp_out);
 flouble he_map_dot(int nside,flouble *mp1,flouble *mp2);
 fcomplex **he_synalm(int nside,int nmaps,int lmax,flouble **cells,flouble **beam,int seed);
-#ifdef _WITH_NEEDLET
-#define HE_NBAND_NX 512
-#define HE_NORM_FT 2.2522836206907617
-#define HE_NL_INTPREC 1E-6
-#define HE_NT_NSIDE_MIN 32
-typedef struct {
-  double b;
-  double inv_b;
-  gsl_spline *b_spline;
-  gsl_interp_accel *b_intacc;
-  int niter;
-  int nside0;
-  int jmax_min;
-  int nj;
-  int *nside_arr;
-  int *lmax_arr;
-  flouble **b_arr;
-} he_needlet_params;
-void he_nt_end(he_needlet_params *par);
-he_needlet_params *he_nt_init(flouble b_nt,int nside0,int niter);
-void he_free_needlet(he_needlet_params *par,int pol,flouble ***nt);
-flouble ***he_alloc_needlet(he_needlet_params *par,int pol);
-void he_nt_get_window(he_needlet_params *par,int j,flouble *b);
-fcomplex **he_needlet2map(he_needlet_params *par,flouble **map,flouble ***nt,
-			  int return_alm,int pol,int input_TEB,int output_TEB);
-fcomplex **he_map2needlet(he_needlet_params *par,flouble **map,flouble ***nt,
-			  int return_alm,int pol,int input_TEB,int output_TEB);
-#endif //_WITH_NEEDLET
 
 #endif //_NM_UTILS_
