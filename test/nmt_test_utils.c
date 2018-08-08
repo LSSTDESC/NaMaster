@@ -2,6 +2,38 @@
 #include "ctest.h"
 #include "utils.h"
 #include "nmt_test_utils.h"
+#include <chealpix.h>
+
+double **test_make_map_analytic(long nside,int pol)
+{
+  int ii;
+  double **maps;
+  int nmaps=1;
+  long npix=he_nside2npix(nside);
+  if(pol)
+    nmaps=2;
+
+  maps=my_malloc(nmaps*sizeof(double *));
+  for(ii=0;ii<nmaps;ii++)
+    maps[ii]=my_malloc(npix*sizeof(double));
+
+  for(ii=0;ii<npix;ii++) {
+    double th,ph,sth;
+    pix2ang_ring(nside,ii,&th,&ph);
+    sth=sin(th);
+    if(pol) {
+      //spin-2, map = _2Y^E_20+2* _2Y^B_30)
+      maps[0][ii]=-sqrt(15./2./M_PI)*sth*sth/4.;
+      maps[1][ii]=-sqrt(105./2./M_PI)*cos(th)*sth*sth/2.;
+    }
+    else {
+      //spin-0, map = Re(Y_22)
+      maps[0][ii]=sqrt(15./2./M_PI)*sth*sth*cos(2*ph)/4.;
+    }
+  }
+
+  return maps;
+}
 
 int *test_get_sequence(int n0,int nf)
 {

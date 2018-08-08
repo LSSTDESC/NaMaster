@@ -187,31 +187,20 @@ CTEST_SKIP(nmt,he_sht) {
   //Test for one particular example
   nside=256;
   npix=he_nside2npix(nside);
-  for(ii=0;ii<2;ii++) {
-    maps[ii]=my_calloc(npix,sizeof(double));
+  free(maps);
+  for(ii=0;ii<2;ii++)
     alms[ii]=my_malloc(he_nalms(lmax)*sizeof(fcomplex));
-  }
   //spin-0, map = Re(Y_22) ->
   //        a_lm = delta_l2 (delta_m2 + delta_m-2)/2
-  for(ii=0;ii<npix;ii++) {
-    double th,ph,sth;
-    pix2ang_ring(nside,ii,&th,&ph);
-    sth=sin(th);
-    maps[0][ii]=sqrt(15./2./M_PI)*sth*sth*cos(2*ph)/4.;
-  }
+  maps=test_make_map_analytic(nside,0);
   he_map2alm(nside,lmax,1,0,maps,alms,0);
   ASSERT_DBL_NEAR_TOL(0.5,creal(alms[0][he_indexlm(2,2,lmax)]),1E-5);
   ASSERT_DBL_NEAR_TOL(0.0,cimag(alms[0][he_indexlm(2,2,lmax)]),1E-5);
+  free(maps[0]); free(maps);
   //spin-2, map = _2Y^E_20+2* _2Y^B_30) ->
   //        E_lm =   delta_l2 delta_m0
   //        B_lm = 2 delta_l3 delta_m0
-  for(ii=0;ii<npix;ii++) {
-    double th,ph,sth;
-    pix2ang_ring(nside,ii,&th,&ph);
-    sth=sin(th);
-    maps[0][ii]=-sqrt(15./2./M_PI)*sth*sth/4.;
-    maps[1][ii]=-sqrt(105./2./M_PI)*cos(th)*sth*sth/2.;
-  }
+  maps=test_make_map_analytic(nside,1);
   he_map2alm(nside,lmax,1,2,maps,alms,0);
   ASSERT_DBL_NEAR_TOL(1.,creal(alms[0][he_indexlm(2,0,lmax)]),1E-5);
   ASSERT_DBL_NEAR_TOL(0.,cimag(alms[0][he_indexlm(2,0,lmax)]),1E-5);
@@ -225,12 +214,10 @@ CTEST_SKIP(nmt,he_sht) {
   ASSERT_DBL_NEAR_TOL(0.,cimag(alms[0][he_indexlm(3,0,lmax)]),1E-5);
   ASSERT_DBL_NEAR_TOL(2.,creal(alms[1][he_indexlm(3,0,lmax)]),1E-5);
   ASSERT_DBL_NEAR_TOL(0.,cimag(alms[1][he_indexlm(3,0,lmax)]),1E-5);
-  for(ii=0;ii<2;ii++) {
-    free(maps[ii]);
+  free(maps[0]); free(maps[1]); free(maps);
+
+  for(ii=0;ii<2;ii++)
     free(alms[ii]);
-  }
-  
-  free(maps);
   free(alms);
 }
 

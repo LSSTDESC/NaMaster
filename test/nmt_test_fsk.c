@@ -345,7 +345,7 @@ CTEST_SKIP(nmt,fsk_fft) {
   nmt_flatsky_info_free(fsk);
 }
 
-CTEST_SKIP(nmt,fft_malloc) {
+CTEST_SKIP(nmt,fsk_fft_malloc) {
   set_error_policy(THROW_ON_ERROR);
 
   printf("\nError messages expected: \n");
