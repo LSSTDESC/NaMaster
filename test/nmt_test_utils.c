@@ -95,7 +95,7 @@ void test_compare_arrays(int n,double *y,int narr,int iarr,char *fname,double rt
       if(j==iarr)
 	yv=dum;
     }
-    ASSERT_DBL_NEAR_TOL(yv,y[ii],fmax(fabs(yv),fabs(y[ii]))*rtol);
+    ASSERT_DBL_NEAR_TOL(yv,y[ii],fmin(fabs(yv),fabs(y[ii]))*rtol);
   }
   fclose(fi);
 }

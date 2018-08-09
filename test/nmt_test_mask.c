@@ -4,7 +4,7 @@
 #include "nmt_test_utils.h"
 #include <chealpix.h>
 
-CTEST(nmt,mask_flat) {
+CTEST_SKIP(nmt,mask_flat) {
   int ii;
   double aposize=1.;
   nmt_flatsky_info *fsk=nmt_flatsky_info_alloc(200,200,10*M_PI/180,10*M_PI/180);

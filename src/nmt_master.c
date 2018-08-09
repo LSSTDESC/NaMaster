@@ -641,7 +641,7 @@ void nmt_decouple_cl_l(nmt_workspace *w,flouble **cl_in,flouble **cl_noise_in,
   gsl_vector_free(dl_map_good_b);
 }
 
-void nmt_compute_coupled_cell(nmt_field *fl1,nmt_field *fl2,flouble **cl_out,int iter)
+void nmt_compute_coupled_cell(nmt_field *fl1,nmt_field *fl2,flouble **cl_out)
 {
   he_alm2cl(fl1->alms,fl2->alms,fl1->pol,fl2->pol,cl_out,fl1->lmax);
 }
@@ -659,7 +659,7 @@ nmt_workspace *nmt_compute_power_spectra(nmt_field *fl1,nmt_field *fl2,
   else {
     w=w0;
     if(w->lmax>=3*fl1->nside)
-      report_error(1,"Requesting bandpowers for too high a multipole given map resolution\n");
+      report_error(1,"Workspace does not patch map resolution\n");
   }
 
   cl_bias=my_malloc(w->ncls*sizeof(flouble *));
@@ -668,7 +668,7 @@ nmt_workspace *nmt_compute_power_spectra(nmt_field *fl1,nmt_field *fl2,
     cl_bias[ii]=my_calloc((fl1->lmax+1),sizeof(flouble));
     cl_data[ii]=my_calloc((fl1->lmax+1),sizeof(flouble));
   }
-  nmt_compute_coupled_cell(fl1,fl2,cl_data,HE_NITER_DEFAULT);
+  nmt_compute_coupled_cell(fl1,fl2,cl_data);
   nmt_compute_deprojection_bias(fl1,fl2,cl_proposal,cl_bias);
   nmt_decouple_cl_l(w,cl_data,cl_noise,cl_bias,cl_out);
   for(ii=0;ii<w->ncls;ii++) {
