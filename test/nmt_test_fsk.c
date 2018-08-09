@@ -108,40 +108,24 @@ CTEST_SKIP(nmt,fsk_cls) {
   int nmaps=34;
   int nbpw=10;
   nmt_flatsky_info *fsk=nmt_flatsky_info_alloc(141,311,M_PI/180,M_PI/180);
-  double **maps=my_malloc(3*sizeof(double *));
-  fcomplex **alms=my_malloc(3*sizeof(fcomplex *));
   double **cells=my_malloc(7*sizeof(double *));
   
   for(ii=0;ii<7;ii++)
     cells[ii]=my_calloc(nbpw,sizeof(double));
 
-  for(ii=0;ii<3;ii++) {
-    maps[ii]=my_malloc(fsk->npix*sizeof(double));
-    alms[ii]=dftw_malloc(fsk->ny*(fsk->nx/2+1)*sizeof(fcomplex));
-  }
-
   //Analytic example (same as in fsk_fft)
   int i0_x=2,i0_y=3;
   double k0_x=i0_x*2*M_PI/fsk->lx;
   double k0_y=i0_y*2*M_PI/fsk->ly;
-  double cphi0=k0_x/sqrt(k0_x*k0_x+k0_y*k0_y);
-  double sphi0=k0_y/sqrt(k0_x*k0_x+k0_y*k0_y);
-  double c2phi0=cphi0*cphi0-sphi0*sphi0;
-  double s2phi0=2*sphi0*cphi0;
-  for(ii=0;ii<fsk->ny;ii++) {
-    int jj;
-    double y=ii*fsk->ly/fsk->ny;
-    for(jj=0;jj<fsk->nx;jj++) {
-      double x=jj*fsk->lx/fsk->nx;
-      double cphase=cos(k0_x*x+k0_y*y);
-      double prefac=2*M_PI/(fsk->lx*fsk->ly);
-      maps[0][jj+fsk->nx*ii]= prefac*cphase;
-      maps[1][jj+fsk->nx*ii]= prefac*cphase*c2phi0;
-      maps[2][jj+fsk->nx*ii]=-prefac*cphase*s2phi0;
-    }
-  }
-  fs_map2alm(fsk,1,0,maps,alms);
-  fs_map2alm(fsk,1,2,&(maps[1]),&(alms[1]));
+  double **maps0=test_make_map_analytic_flat(fsk,0,i0_x,i0_y);
+  double **maps2=test_make_map_analytic_flat(fsk,1,i0_x,i0_y);
+  fcomplex **alms0=my_malloc(1*sizeof(fcomplex *));
+  fcomplex **alms2=my_malloc(2*sizeof(fcomplex *));
+  alms0[0]=dftw_malloc(fsk->ny*(fsk->nx/2+1)*sizeof(fcomplex));
+  alms2[0]=dftw_malloc(fsk->ny*(fsk->nx/2+1)*sizeof(fcomplex));
+  alms2[1]=dftw_malloc(fsk->ny*(fsk->nx/2+1)*sizeof(fcomplex));
+  fs_map2alm(fsk,1,0,maps0,alms0);
+  fs_map2alm(fsk,1,2,maps2,alms2);
 
   //Bandpowers
   double lmax=fmax(fsk->nx*M_PI/fsk->lx,fsk->ny*M_PI/fsk->ly);
@@ -176,9 +160,9 @@ CTEST_SKIP(nmt,fsk_cls) {
   double predict=0.5*2*M_PI*2*M_PI/(fsk->lx*fsk->ly*npixls[ibpw0]);
 
   //Compute power spectra and compare with prediction
-  fs_alm2cl(fsk,bpw,&(alms[0]),&(alms[0]),0,0,&(cells[0]),1.,-1.,1.,-1.);
-  fs_alm2cl(fsk,bpw,&(alms[0]),&(alms[1]),0,1,&(cells[1]),1.,-1.,1.,-1.);
-  fs_alm2cl(fsk,bpw,&(alms[1]),&(alms[1]),1,1,&(cells[3]),1.,-1.,1.,-1.);
+  fs_alm2cl(fsk,bpw,alms0,alms0,0,0,&(cells[0]),1.,-1.,1.,-1.);
+  fs_alm2cl(fsk,bpw,alms0,alms2,0,1,&(cells[1]),1.,-1.,1.,-1.);
+  fs_alm2cl(fsk,bpw,alms2,alms2,1,1,&(cells[3]),1.,-1.,1.,-1.);
   for(ii=0;ii<nbpw;ii++) {
     int jj;
     double pred=0;
@@ -193,9 +177,9 @@ CTEST_SKIP(nmt,fsk_cls) {
     ASSERT_DBL_NEAR_TOL(0.,cells[6][ii],1E-5);
   }
 
-  fs_anafast(fsk,bpw,&(maps[0]),&(maps[0]),0,0,&(cells[0]));
-  fs_anafast(fsk,bpw,&(maps[0]),&(maps[1]),0,1,&(cells[1]));
-  fs_anafast(fsk,bpw,&(maps[1]),&(maps[1]),1,1,&(cells[3]));
+  fs_anafast(fsk,bpw,maps0,maps0,0,0,&(cells[0]));
+  fs_anafast(fsk,bpw,maps0,maps2,0,1,&(cells[1]));
+  fs_anafast(fsk,bpw,maps2,maps2,1,1,&(cells[3]));
   for(ii=0;ii<nbpw;ii++) {
     int jj;
     double pred=0;
@@ -215,12 +199,16 @@ CTEST_SKIP(nmt,fsk_cls) {
   for(ii=0;ii<7;ii++)
     free(cells[ii]);
   free(cells);
-  for(ii=0;ii<3;ii++) {
-    dftw_free(maps[ii]);
-    dftw_free(alms[ii]);
-  }
-  free(maps);
-  free(alms);
+  dftw_free(maps0[0]);
+  dftw_free(maps2[0]);
+  dftw_free(maps2[1]);
+  dftw_free(alms0[0]);
+  dftw_free(alms2[0]);
+  dftw_free(alms2[1]);
+  free(maps0);
+  free(maps2);
+  free(alms0);
+  free(alms2);
   nmt_flatsky_info_free(fsk);
 }
 
@@ -232,7 +220,7 @@ CTEST_SKIP(nmt,fsk_fft) {
   fcomplex **alms=my_malloc(2*nmaps*sizeof(fcomplex *));
 
   for(ii=0;ii<2*nmaps;ii++) {
-    maps[ii]=my_calloc(fsk->npix,sizeof(double));
+    maps[ii]=dftw_malloc(fsk->npix*sizeof(double));
     alms[ii]=dftw_malloc(fsk->ny*(fsk->nx/2+1)*sizeof(fcomplex));
   }
 
@@ -264,26 +252,16 @@ CTEST_SKIP(nmt,fsk_fft) {
   fs_alm2map(fsk,1,2,maps,alms);
   //Several FFT, spin-2
   fs_alm2map(fsk,nmaps,2,maps,alms);
+
+  for(ii=0;ii<2*nmaps;ii++)
+    dftw_free(maps[ii]);
+  free(maps);
   
   //Particular example
   //Spin-0. map = 2*pi/A * Re[exp(i*k0*x)] ->
   //        a(k) = (delta_{k,k0}+delta_{k,-k0})/2
   int i0_x=2,i0_y=3;
-  double k0_x=i0_x*2*M_PI/fsk->lx;
-  double k0_y=i0_y*2*M_PI/fsk->ly;
-  double cphi0=k0_x/sqrt(k0_x*k0_x+k0_y*k0_y);
-  double sphi0=k0_y/sqrt(k0_x*k0_x+k0_y*k0_y);
-  double c2phi0=cphi0*cphi0-sphi0*sphi0;
-  double s2phi0=2*sphi0*cphi0;
-  for(ii=0;ii<fsk->ny;ii++) {
-    int jj;
-    double y=ii*fsk->ly/fsk->ny;
-    for(jj=0;jj<fsk->nx;jj++) {
-      double x=jj*fsk->lx/fsk->nx;
-      double phase=k0_x*x+k0_y*y;
-      maps[0][jj+fsk->nx*ii]=2*M_PI*cos(phase)/(fsk->lx*fsk->ly);
-    }
-  }
+  maps=test_make_map_analytic_flat(fsk,0,i0_x,i0_y);
   fs_map2alm(fsk,1,0,maps,alms);
   for(ii=0;ii<fsk->ny;ii++) {
     int jj;
@@ -300,19 +278,11 @@ CTEST_SKIP(nmt,fsk_fft) {
       }
     }
   }
+  dftw_free(maps[0]); free(maps);
   //Spin-2. map = 2*pi/A * (cos(2*phi_k0),-sin(2*phi_k0)) Re[exp(i*k0*x)] ->
   //        a_E(k) = (delta_{k,k0}+delta_{k,-k0})/2
   //        a_B(k) = 0
-  for(ii=0;ii<fsk->ny;ii++) {
-    int jj;
-    double y=ii*fsk->ly/fsk->ny;
-    for(jj=0;jj<fsk->nx;jj++) {
-      double x=jj*fsk->lx/fsk->nx;
-      double phase=k0_x*x+k0_y*y;
-      maps[0][jj+fsk->nx*ii]= 2*M_PI*c2phi0*cos(phase)/(fsk->lx*fsk->ly);
-      maps[1][jj+fsk->nx*ii]=-2*M_PI*s2phi0*cos(phase)/(fsk->lx*fsk->ly);
-    }
-  }
+  maps=test_make_map_analytic_flat(fsk,1,i0_x,i0_y);
   fs_map2alm(fsk,1,2,maps,alms);
   for(ii=0;ii<fsk->ny;ii++) {
     int jj;
@@ -335,12 +305,10 @@ CTEST_SKIP(nmt,fsk_fft) {
       }
     }
   }
+  dftw_free(maps[0]); dftw_free(maps[1]); free(maps);
 
-  for(ii=0;ii<2*nmaps;ii++) {
-    dftw_free(maps[ii]);
+  for(ii=0;ii<2*nmaps;ii++)
     dftw_free(alms[ii]);
-  }
-  free(maps);
   free(alms);
   nmt_flatsky_info_free(fsk);
 }

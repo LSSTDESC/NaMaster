@@ -4,6 +4,40 @@
 #include "nmt_test_utils.h"
 #include <chealpix.h>
 
+double **test_make_map_analytic_flat(nmt_flatsky_info *fsk,int pol,int i0_x,int i0_y)
+{
+  int ii;
+  double k0_x=i0_x*2*M_PI/fsk->lx;
+  double k0_y=i0_y*2*M_PI/fsk->ly;
+  double cphi0=k0_x/sqrt(k0_x*k0_x+k0_y*k0_y);
+  double sphi0=k0_y/sqrt(k0_x*k0_x+k0_y*k0_y);
+  double c2phi0=cphi0*cphi0-sphi0*sphi0;
+  double s2phi0=2*sphi0*cphi0;
+  int nmaps=1;
+  if(pol) nmaps=2;
+  
+  double **maps=my_malloc(nmaps*sizeof(double *));
+  for(ii=0;ii<nmaps;ii++)
+    maps[ii]=dftw_malloc(fsk->npix*sizeof(double));
+  
+  for(ii=0;ii<fsk->ny;ii++) {
+    int jj;
+    double y=ii*fsk->ly/fsk->ny;
+    for(jj=0;jj<fsk->nx;jj++) {
+      double x=jj*fsk->lx/fsk->nx;
+      double phase=k0_x*x+k0_y*y;
+      if(pol) {
+	maps[0][jj+fsk->nx*ii]= 2*M_PI*c2phi0*cos(phase)/(fsk->lx*fsk->ly);
+	maps[1][jj+fsk->nx*ii]=-2*M_PI*s2phi0*cos(phase)/(fsk->lx*fsk->ly);
+      }
+      else 
+	maps[0][jj+fsk->nx*ii]=2*M_PI*cos(phase)/(fsk->lx*fsk->ly);
+    }
+  }
+
+  return maps;
+}
+
 double **test_make_map_analytic(long nside,int pol)
 {
   int ii;

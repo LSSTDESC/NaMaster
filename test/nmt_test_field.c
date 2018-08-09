@@ -21,11 +21,6 @@ CTEST_SKIP(nmt,field_alloc) {
   for(ii=0;ii<=lmax;ii++)
     beam[ii]=1.;
 
-  for(ii=0;ii<ntemp;ii++) {
-    int jj;
-    temp[ii]=my_malloc(2*sizeof(double *));
-  }
-
   ////////
   //Spin-0
   nmaps=1;
@@ -219,7 +214,7 @@ CTEST_SKIP(nmt,field_read) {
   set_error_policy(EXIT_ON_ERROR);
 }
 
-CTEST(nmt,field_synfast) {
+CTEST_SKIP(nmt,field_synfast) {
   int ii,im1,im2,l,if1,if2;
   long nside=128;
   long lmax=3*nside-1;

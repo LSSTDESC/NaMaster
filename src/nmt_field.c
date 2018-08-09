@@ -38,6 +38,9 @@ void nmt_field_free(nmt_field *fl)
   free(fl);
 }
 
+//Takes maps_in and purifies into maps_out, using mask and its SHT walm0.
+//SHT of purified map in alms
+//Information about what to purify, pixelization etc. in fl
 void nmt_purify(nmt_field *fl,flouble *mask,fcomplex **walm0,
 		flouble **maps_in,flouble **maps_out,fcomplex **alms)
 {

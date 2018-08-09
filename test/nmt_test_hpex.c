@@ -239,13 +239,13 @@ CTEST_SKIP(nmt,he_io) {
     mps2[ii]=my_calloc(npix,sizeof(double));
 
   //Writing
-  try {he_write_healpix_map(mps0,1,nside,"!mps.fits");}
+  try {he_write_healpix_map(mps0,1,nside,"!test/mps.fits");}
   catch(1) {}
   ASSERT_EQUAL(0,exception_status);
-  try {he_write_healpix_map(mps2,1,nside,"!mps.fits");}
+  try {he_write_healpix_map(mps2,1,nside,"!test/mps.fits");}
   catch(1) {}
   ASSERT_EQUAL(0,exception_status);
-  try {he_write_healpix_map(mps2,2,nside,"!mps.fits");}
+  try {he_write_healpix_map(mps2,2,nside,"!test/mps.fits");}
   catch(1) {}
   ASSERT_EQUAL(0,exception_status);
 
@@ -258,20 +258,20 @@ CTEST_SKIP(nmt,he_io) {
   long ns2;
   int nfd,isnest;
   //Correct file params
-  he_get_file_params("mps.fits",&ns2,&nfd,&isnest);
+  he_get_file_params("test/mps.fits",&ns2,&nfd,&isnest);
   ASSERT_EQUAL(nside,ns2);
   ASSERT_EQUAL(2,nfd);
   ASSERT_EQUAL(0,isnest);
   //Read map
-  mps0[0]=he_read_healpix_map("mps.fits",&ns2,0);
+  mps0[0]=he_read_healpix_map("test/mps.fits",&ns2,0);
   ASSERT_EQUAL(nside,ns2);
-  mps2[0]=he_read_healpix_map("mps.fits",&ns2,0);
+  mps2[0]=he_read_healpix_map("test/mps.fits",&ns2,0);
   ASSERT_EQUAL(nside,ns2);
   //Go one column too far
-  try {mps2[1]=he_read_healpix_map("mps.fits",&ns2,2);}
+  try {mps2[1]=he_read_healpix_map("test/mps.fits",&ns2,2);}
   catch(1) {}
   ASSERT_EQUAL(1,exception_status);
-  mps2[1]=he_read_healpix_map("mps.fits",&ns2,1);
+  mps2[1]=he_read_healpix_map("test/mps.fits",&ns2,1);
   ASSERT_EQUAL(nside,ns2);
   
   for(ii=0;ii<1;ii++)
