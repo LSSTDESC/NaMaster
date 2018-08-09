@@ -4,6 +4,65 @@
 #include "nmt_test_utils.h"
 #include <chealpix.h>
 
+CTEST(nmt,mask_flat) {
+  int ii;
+  double aposize=1.;
+  nmt_flatsky_info *fsk=nmt_flatsky_info_alloc(200,200,10*M_PI/180,10*M_PI/180);
+  long npix=fsk->npix;
+  double *mask=my_calloc(npix,sizeof(double));
+  double *mask_C1=my_calloc(npix,sizeof(double));
+  double *mask_C2=my_calloc(npix,sizeof(double));
+  double *mask_sm=my_calloc(npix,sizeof(double));
+  double ioff=(aposize*M_PI/180)/(fsk->lx/fsk->nx);
+  double inv_xthr=180/(M_PI*aposize);
+
+  for(ii=0;ii<fsk->ny/2;ii++) {
+    int jj;
+    for(jj=0;jj<fsk->nx;jj++)
+      mask[jj+fsk->nx*ii]=1.;
+  }
+
+    //Wrong apotype
+  set_error_policy(THROW_ON_ERROR);
+  printf("\nError messages expected: \n");
+  try { nmt_apodize_mask_flat(fsk->nx,fsk->ny,fsk->lx,fsk->ly,mask,mask_C1,aposize,"NONE"); }
+  catch(1) {}
+  ASSERT_EQUAL(1,exception_status);
+  set_error_policy(EXIT_ON_ERROR);
+  nmt_apodize_mask_flat(fsk->nx,fsk->ny,fsk->lx,fsk->ly,mask,mask_C1,aposize,"C1");
+  nmt_apodize_mask_flat(fsk->nx,fsk->ny,fsk->lx,fsk->ly,mask,mask_C2,aposize,"C2");
+  nmt_apodize_mask_flat(fsk->nx,fsk->ny,fsk->lx,fsk->ly,mask,mask_sm,aposize,"Smooth");
+
+  for(ii=0;ii<fsk->ny;ii++) {
+    int jj;
+    for(jj=0;jj<fsk->nx;jj++) {
+      int index=jj+ii*fsk->nx;
+      if(ii>=fsk->ny/2) {
+	ASSERT_DBL_NEAR_TOL(0.,mask_C1[index],1E-10);
+	ASSERT_DBL_NEAR_TOL(0.,mask_C2[index],1E-10);
+	ASSERT_DBL_NEAR_TOL(0.,mask_sm[index],1E-10);
+      }
+      else if(ii<fsk->ny/2-ioff) { //Can only check for C1 and C2
+	ASSERT_DBL_NEAR_TOL(1.,mask_C1[index],1E-10);
+	ASSERT_DBL_NEAR_TOL(1.,mask_C2[index],1E-10);
+      }
+      else { //Can only check for C1 and C2
+	double f,xn=inv_xthr*fabs((fsk->ny/2-ii)*fsk->ly/fsk->ny);
+	f=xn-sin(xn*2*M_PI)/(2*M_PI);
+	ASSERT_DBL_NEAR_TOL(f,mask_C1[index],1E-10);
+	f=0.5*(1-cos(xn*M_PI));
+	ASSERT_DBL_NEAR_TOL(f,mask_C2[index],1E-10);
+      }
+    }
+  }
+  
+  nmt_flatsky_info_free(fsk);
+  free(mask_C1);
+  free(mask_C2);
+  free(mask_sm);
+  free(mask);
+}
+
 CTEST_SKIP(nmt,mask) {
   int ii;
   long nside=256;
