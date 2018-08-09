@@ -368,14 +368,14 @@ CTEST_SKIP(nmt,field_flat_synfast) {
   }
 
   //Compare with input and check for >5-sigma deviations
-  for(l=1;l<nbpw;l++) {
+  for(l=0;l<nbpw;l++) {
     for(im1=0;im1<nmaps;im1++) {
       for(im2=0;im2<nmaps;im2++) {
 	double c11=0.5*(cells_in[im1+nmaps*im1][l]+cells_in[im1+nmaps*im1][l+1]);
 	double c12=0.5*(cells_in[im2+nmaps*im1][l]+cells_in[im2+nmaps*im1][l+1]);
 	double c21=0.5*(cells_in[im1+nmaps*im2][l]+cells_in[im1+nmaps*im2][l+1]);
 	double c22=0.5*(cells_in[im2+nmaps*im2][l]+cells_in[im2+nmaps*im2][l+1]);
-	double sig=sqrt(0.5*(c11*c22+c12*c21)/npixls[ii]);
+	double sig=sqrt((c11*c22+c12*c21)/npixls[ii]);
 	double diff=fabs(cells_out[im2+nmaps*im1][l]-c12);
 	//Check that there are no >5-sigma fluctuations around input power spectrum
 	ASSERT_TRUE((int)(diff<5*sig));

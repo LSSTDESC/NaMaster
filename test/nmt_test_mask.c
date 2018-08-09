@@ -4,7 +4,7 @@
 #include "nmt_test_utils.h"
 #include <chealpix.h>
 
-CTEST(nmt,mask) {
+CTEST_SKIP(nmt,mask) {
   int ii;
   long nside=256;
   long npix=he_nside2npix(nside);

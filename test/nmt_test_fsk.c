@@ -75,7 +75,7 @@ CTEST_SKIP(nmt,fsk_synalm) {
 	double c12=nmt_k_function_eval(clf[im2+nmaps*im1],l,NULL);
 	double c21=nmt_k_function_eval(clf[im1+nmaps*im2],l,NULL);
 	double c22=nmt_k_function_eval(clf[im2+nmaps*im2],l,NULL);
-	double sig=sqrt(0.5*(c11*c22+c12*c21)/npixls[ii]);
+	double sig=sqrt((c11*c22+c12*c21)/npixls[ii]);
 	double diff=fabs(cells[im2+nmaps*im1][ii]-c12);
 	//Check that there are no >5-sigma fluctuations around input power spectrum
 	ASSERT_TRUE((int)(diff<5*sig));

@@ -81,8 +81,10 @@ void nmt_field_flat_free(nmt_field_flat *fl)
   dftw_free(fl->mask);
   if(fl->ntemp>0) {
     for(itemp=0;itemp<fl->ntemp;itemp++) {
-      for(imap=0;imap<fl->nmaps;imap++)
+      for(imap=0;imap<fl->nmaps;imap++) {
 	dftw_free(fl->temp[itemp][imap]);
+	dftw_free(fl->a_temp[itemp][imap]);
+      }
     }
   }
 
