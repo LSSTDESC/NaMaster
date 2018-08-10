@@ -547,7 +547,7 @@ void comp_gaussian_covariance_flat(nmt_covar_workspace_flat *cw,
 }
 
 void comp_pspec_coupled(nmt_field *fl1,nmt_field *fl2,
-			double *dout,int ndout,int iter)
+			double *dout,int ndout)
 {
   int i;
   double **cl_out;
@@ -557,7 +557,7 @@ void comp_pspec_coupled(nmt_field *fl1,nmt_field *fl2,
   for(i=0;i<fl1->nmaps*fl2->nmaps;i++)
     cl_out[i]=&(dout[i*(fl1->lmax+1)]);
 
-  nmt_compute_coupled_cell(fl1,fl2,cl_out,iter);
+  nmt_compute_coupled_cell(fl1,fl2,cl_out);
 
   free(cl_out);
 }

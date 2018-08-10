@@ -3845,7 +3845,7 @@ void comp_gaussian_covariance_flat(nmt_covar_workspace_flat *cw,
 }
 
 void comp_pspec_coupled(nmt_field *fl1,nmt_field *fl2,
-			double *dout,int ndout,int iter)
+			double *dout,int ndout)
 {
   int i;
   double **cl_out;
@@ -3855,7 +3855,7 @@ void comp_pspec_coupled(nmt_field *fl1,nmt_field *fl2,
   for(i=0;i<fl1->nmaps*fl2->nmaps;i++)
     cl_out[i]=&(dout[i*(fl1->lmax+1)]);
 
-  nmt_compute_coupled_cell(fl1,fl2,cl_out,iter);
+  nmt_compute_coupled_cell(fl1,fl2,cl_out);
 
   free(cl_out);
 }
@@ -12726,21 +12726,17 @@ SWIGINTERN PyObject *_wrap_compute_coupled_cell(PyObject *SWIGUNUSEDPARM(self), 
   nmt_field *arg1 = (nmt_field *) 0 ;
   nmt_field *arg2 = (nmt_field *) 0 ;
   flouble **arg3 = (flouble **) 0 ;
-  int arg4 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   void *argp2 = 0 ;
   int res2 = 0 ;
   void *argp3 = 0 ;
   int res3 = 0 ;
-  int val4 ;
-  int ecode4 = 0 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   PyObject * obj2 = 0 ;
-  PyObject * obj3 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"OOOO:compute_coupled_cell",&obj0,&obj1,&obj2,&obj3)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOO:compute_coupled_cell",&obj0,&obj1,&obj2)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_field, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "compute_coupled_cell" "', argument " "1"" of type '" "nmt_field *""'"); 
@@ -12756,14 +12752,9 @@ SWIGINTERN PyObject *_wrap_compute_coupled_cell(PyObject *SWIGUNUSEDPARM(self), 
     SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "compute_coupled_cell" "', argument " "3"" of type '" "flouble **""'"); 
   }
   arg3 = (flouble **)(argp3);
-  ecode4 = SWIG_AsVal_int(obj3, &val4);
-  if (!SWIG_IsOK(ecode4)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "compute_coupled_cell" "', argument " "4"" of type '" "int""'");
-  } 
-  arg4 = (int)(val4);
   {
     SWIG_PYTHON_THREAD_BEGIN_ALLOW;
-    nmt_compute_coupled_cell(arg1,arg2,arg3,arg4);
+    nmt_compute_coupled_cell(arg1,arg2,arg3);
     SWIG_PYTHON_THREAD_END_ALLOW;
   }
   resultobj = SWIG_Py_Void();
@@ -17637,20 +17628,16 @@ SWIGINTERN PyObject *_wrap_comp_pspec_coupled(PyObject *SWIGUNUSEDPARM(self), Py
   nmt_field *arg2 = (nmt_field *) 0 ;
   double *arg3 = (double *) 0 ;
   int arg4 ;
-  int arg5 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   void *argp2 = 0 ;
   int res2 = 0 ;
   PyObject *array3 = NULL ;
-  int val5 ;
-  int ecode5 = 0 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   PyObject * obj2 = 0 ;
-  PyObject * obj3 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"OOOO:comp_pspec_coupled",&obj0,&obj1,&obj2,&obj3)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOO:comp_pspec_coupled",&obj0,&obj1,&obj2)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_field, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "comp_pspec_coupled" "', argument " "1"" of type '" "nmt_field *""'"); 
@@ -17677,14 +17664,9 @@ SWIGINTERN PyObject *_wrap_comp_pspec_coupled(PyObject *SWIGUNUSEDPARM(self), Py
     if (!array3) SWIG_fail;
     arg3 = (double*) array_data(array3);
   }
-  ecode5 = SWIG_AsVal_int(obj3, &val5);
-  if (!SWIG_IsOK(ecode5)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode5), "in method '" "comp_pspec_coupled" "', argument " "5"" of type '" "int""'");
-  } 
-  arg5 = (int)(val5);
   {
     SWIG_PYTHON_THREAD_BEGIN_ALLOW;
-    comp_pspec_coupled(arg1,arg2,arg3,arg4,arg5);
+    comp_pspec_coupled(arg1,arg2,arg3,arg4);
     SWIG_PYTHON_THREAD_END_ALLOW;
   }
   resultobj = SWIG_Py_Void();
