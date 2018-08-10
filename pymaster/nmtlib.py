@@ -759,8 +759,8 @@ def decouple_cl_l(w, cl_in, cl_noise_in, cl_bias, cl_out):
     return _nmtlib.decouple_cl_l(w, cl_in, cl_noise_in, cl_bias, cl_out)
 decouple_cl_l = _nmtlib.decouple_cl_l
 
-def compute_coupled_cell(fl1, fl2, cl_out, iter):
-    return _nmtlib.compute_coupled_cell(fl1, fl2, cl_out, iter)
+def compute_coupled_cell(fl1, fl2, cl_out):
+    return _nmtlib.compute_coupled_cell(fl1, fl2, cl_out)
 compute_coupled_cell = _nmtlib.compute_coupled_cell
 
 def compute_power_spectra(fl1, fl2, bin, w0, cl_noise, cl_proposal, cl_out):
@@ -1047,8 +1047,8 @@ def comp_gaussian_covariance_flat(cw, nell3, nell11, nell12, nell21, nell22, dou
     return _nmtlib.comp_gaussian_covariance_flat(cw, nell3, nell11, nell12, nell21, nell22, dout)
 comp_gaussian_covariance_flat = _nmtlib.comp_gaussian_covariance_flat
 
-def comp_pspec_coupled(fl1, fl2, dout, iter):
-    return _nmtlib.comp_pspec_coupled(fl1, fl2, dout, iter)
+def comp_pspec_coupled(fl1, fl2, dout):
+    return _nmtlib.comp_pspec_coupled(fl1, fl2, dout)
 comp_pspec_coupled = _nmtlib.comp_pspec_coupled
 
 def comp_pspec_coupled_flat(fl1, fl2, bin, dout, lmn_x, lmx_x, lmn_y, lmx_y):

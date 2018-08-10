@@ -9,7 +9,6 @@ nmt_k_function *nmt_k_function_alloc(int nk,flouble *karr,flouble *farr,flouble 
     f->x0=karr[0];
     f->xf=karr[nk-1];
     f->yf=yf;
-    //    f->spl=gsl_spline_alloc(gsl_interp_cspline,nk);
     f->spl=gsl_spline_alloc(gsl_interp_linear,nk);
     gsl_spline_init(f->spl,karr,farr,nk);
   }
@@ -57,42 +56,15 @@ nmt_flatsky_info *nmt_flatsky_info_alloc(int nx,int ny,flouble lx,flouble ly)
   while((fs->n_ell+1)*fs->dell<=kmax)
     fs->n_ell++;
   fs->ell_min=my_malloc(fs->n_ell*sizeof(flouble));
-  //  fs->n_cells=my_calloc(fs->n_ell,sizeof(int));
   for(ii=0;ii<fs->n_ell;ii++)
     fs->ell_min[ii]=ii*fs->dell;
-  /*
-#pragma omp parallel default(none) \
-  shared(fs,dkx,dky)
-  {
-    int iy;
 
-#pragma omp for
-    for(iy=0;iy<fs->ny;iy++) {
-      int ix;
-      flouble ky;
-      if(2*iy<=fs->ny)
-	ky=iy*dky;
-      else
-	ky=-(fs->ny-iy)*dky;
-      for(ix=0;ix<=fs->nx/2;ix++) {
-	flouble kx=ix*dkx;
-	flouble kmod=sqrt(kx*kx+ky*ky);
-	int ik=(int)(kmod*fs->i_dell);
-	if(ik<fs->n_ell) {
-#pragma omp atomic
-	  fs->n_cells[ik]++;
-	}
-      }
-    } //end omp for
-  } //end omp parallel
-  */
   return fs;
 }
 
 void nmt_flatsky_info_free(nmt_flatsky_info *fs)
 {
   free(fs->ell_min);
-  //  free(fs->n_cells);
   free(fs);
 }
 
@@ -109,8 +81,10 @@ void nmt_field_flat_free(nmt_field_flat *fl)
   dftw_free(fl->mask);
   if(fl->ntemp>0) {
     for(itemp=0;itemp<fl->ntemp;itemp++) {
-      for(imap=0;imap<fl->nmaps;imap++)
+      for(imap=0;imap<fl->nmaps;imap++) {
 	dftw_free(fl->temp[itemp][imap]);
+	dftw_free(fl->a_temp[itemp][imap]);
+      }
     }
   }
 
@@ -133,13 +107,11 @@ void nmt_field_flat_free(nmt_field_flat *fl)
   free(fl);
 }
 
-
 static void walm_x_lpower(nmt_flatsky_info *fs,fcomplex **walm_in,fcomplex **walm_out,int power)
 {
 #pragma omp parallel default(none) \
   shared(fs,walm_in,walm_out,power)
   {
-
     int iy;
     flouble dkx=2*M_PI/fs->nx;
     flouble dky=2*M_PI/fs->ny;

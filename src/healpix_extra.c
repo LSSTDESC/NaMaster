@@ -5,7 +5,6 @@
 #include <sharp_geomhelpers.h>
 #include <sharp.h>
 
-//HE_IO
 void he_write_healpix_map(flouble **tmap,int nfields,long nside,char *fname)
 {
   fitsfile *fptr;
@@ -22,7 +21,7 @@ void he_write_healpix_map(flouble **tmap,int nfields,long nside,char *fname)
     tunit[ii]=my_malloc(256);
     sprintf(ttype[ii],"map %d",ii+1);
     sprintf(tform[ii],"1E");
-    sprintf(tunit[ii],"uK");
+    sprintf(tunit[ii],"  ");
   }
 
   fits_create_file(&fptr,fname,&status);
@@ -148,7 +147,6 @@ void he_get_file_params(char *fname,long *nside,int *nfields,int *isnest)
 }
 
 
-//HE_PIX
 int he_ring_num(long nside,double z)
 {
   //Returns ring index for normalized height z
@@ -434,7 +432,7 @@ void he_in_ring(int nside,int iz,flouble phi0,flouble dphi,
   int nir_here;
   flouble phi_low,phi_hi,shift;
 
-  conservative=1;//Do we take intersected pixels which
+  conservative=1;//Do we take intersected pixels whose
                  //centers do not fall within range?
   take_all=0;//Take all pixels in ring?
   to_top=0;
@@ -625,7 +623,6 @@ void he_query_disc(int nside,double cth0,double phi,flouble radius,
     //Find pixels in the disc
     nir=*nlist;
     he_in_ring(nside,iz,phi0,dphi,listir,&nir);
-    //    printf("%lf %lf %d\n",dphi,cosdphi,nir);
 
     if(*nlist<ilist+nir) {
       report_error(1,"Not enough memory in listtot %d %d %lf %lf %lf %d\n",
@@ -641,10 +638,7 @@ void he_query_disc(int nside,double cth0,double phi,flouble radius,
 }
 
 
-//#ifdef _WITH_SHT
-//HE_SHT
 #define MAX_SHT 32
-
 long he_nalms(int lmax)
 {
   return ((lmax+1)*(lmax+2))/2;
@@ -809,7 +803,7 @@ void he_anafast(flouble **maps_1,flouble **maps_2,
 		int nside,int lmax,int iter)
 {
   fcomplex **alms_1,**alms_2;
-  int i1,lmax_here=3*nside-1;
+  int i1,lmax_here=NMT_MAX(lmax,3*nside-1);
   int nmaps_1=1, nmaps_2=1;
   if(pol_1) nmaps_1=2;
   if(pol_2) nmaps_2=2;
@@ -868,7 +862,8 @@ void he_zero_alm(int lmax,fcomplex *alm)
   } //end omp parallel
 }
 
-void he_alter_alm(int lmax,double fwhm_amin,fcomplex *alm_in,fcomplex *alm_out,flouble *window,int add_to_out)
+void he_alter_alm(int lmax,double fwhm_amin,fcomplex *alm_in,fcomplex *alm_out,
+		  flouble *window,int add_to_out)
 {
   flouble *beam;
   int mm;
@@ -1052,335 +1047,3 @@ fcomplex **he_synalm(int nside,int nmaps,int lmax,flouble **cells,flouble **beam
 
   return alms;
 }
-
-#ifdef _WITH_NEEDLET
-//HE_NT
-static double func_fx(double x,void *pars)
-{
-  return exp(-1./(1.-x*x));
-}
-
-static double func_psix(double x,gsl_integration_workspace *w,const gsl_function *f)
-{
-  double result,eresult;
-  gsl_integration_qag(f,-1,x,0,HE_NL_INTPREC,1000,GSL_INTEG_GAUSS61,w,&result,&eresult);
-
-  return result*HE_NORM_FT;
-}
-
-static double func_phix(double x,double invB,gsl_integration_workspace *w,const gsl_function *f)
-{
-  if(x<0)
-    report_error(1,"Something went wrong");
-  else if(x<=invB)
-    return 1.;
-  else if(x<=1)
-    return func_psix(1-2.*(x-invB)/(1-invB),w,f);
-  else
-    return 0.;
-
-  return -1.;
-}
-
-void he_nt_end(he_needlet_params *par)
-{
-  int j;
-
-  gsl_spline_free(par->b_spline);
-  gsl_interp_accel_free(par->b_intacc);
-  free(par->nside_arr);
-  free(par->lmax_arr);
-  for(j=0;j<par->nj;j++)
-    free(par->b_arr[j]);
-  free(par->b_arr);
-  free(par);
-}
-
-he_needlet_params *he_nt_init(flouble b_nt,int nside0,int niter)
-{
-  he_needlet_params *par=my_malloc(sizeof(he_needlet_params));
-  par->niter=niter;
-  par->b=b_nt;
-  par->inv_b=1./b_nt;
-  par->b_spline=gsl_spline_alloc(gsl_interp_cspline,HE_NBAND_NX);
-  par->b_intacc=gsl_interp_accel_alloc();
-  par->nside0=nside0;
-
-  int ii;
-  gsl_function F;
-  gsl_integration_workspace *w=gsl_integration_workspace_alloc(1000);
-  double *xarr=my_malloc(HE_NBAND_NX*sizeof(double));
-  double *barr=my_malloc(HE_NBAND_NX*sizeof(double));
-  F.function=&func_fx;
-  F.params=NULL;
-  for(ii=0;ii<HE_NBAND_NX;ii++) {
-    xarr[ii]=pow(b_nt,-1.+2.*(ii+0.)/(HE_NBAND_NX-1));
-    barr[ii]=sqrt(func_phix(xarr[ii]/b_nt,1./b_nt,w,&F)-
-		  func_phix(xarr[ii],1./b_nt,w,&F));
-  }
-  gsl_spline_init(par->b_spline,xarr,barr,HE_NBAND_NX);
-  gsl_integration_workspace_free(w);
-  free(xarr);
-  free(barr);
-
-#define LMAX_MIN 10.
-  par->jmax_min=(int)(log(LMAX_MIN)/log(b_nt));
-
-  double lmax=3*nside0-1;
-  double djmax=log(lmax)/log(b_nt);
-  int jmax=(int)(djmax)+1;
-  par->nj=jmax+1-par->jmax_min;
-  par->nside_arr=my_malloc(par->nj*sizeof(int));
-  par->lmax_arr=my_malloc(par->nj*sizeof(int));
-  for(ii=0;ii<par->nj;ii++) {
-    double dlmx=pow(par->b,ii+1+par->jmax_min);
-    int lmx=(int)(dlmx)+1;
-    int ns=pow(2,(int)(log((double)lmx)/log(2.))+1);
-    par->nside_arr[ii]=NMT_MAX((NMT_MIN(ns,par->nside0)),HE_NT_NSIDE_MIN);
-    par->lmax_arr[ii]=3*par->nside_arr[ii]-1;
-  }
-
-  par->b_arr=my_malloc(par->nj*sizeof(flouble *));
-  for(ii=0;ii<par->nj;ii++) {
-    par->b_arr[ii]=my_calloc(3*nside0,sizeof(flouble));
-    he_nt_get_window(par,ii,par->b_arr[ii]);
-  }
-
-  //Complete the first window
-  int lmx0=(int)(par->b);
-  for(ii=0;ii<=lmx0;ii++) {
-    flouble b1=par->b_arr[0][ii];
-    flouble b2=par->b_arr[1][ii];
-    flouble h_here=b1*b1+b2*b2;
-    if(h_here<1)
-      par->b_arr[0][ii]=sqrt(1-b2*b2);
-  }
-
-  //Remove last window
-  for(ii=0;ii<3*nside0;ii++) {
-    flouble b1=par->b_arr[par->nj-2][ii];
-    flouble b2=par->b_arr[par->nj-1][ii];
-    par->b_arr[par->nj-2][ii]=sqrt(b1*b1+b2*b2);
-  }
-  par->nj--;
-
-  return par;
-}
-
-void he_free_needlet(he_needlet_params *par,int pol,flouble ***nt)
-{
-  int ii,nmaps;
-  if(pol) nmaps=3;
-  else nmaps=1;
-
-  for(ii=0;ii<par->nj;ii++) {
-    int imap;
-    for(imap=0;imap<nmaps;imap++)
-      free(nt[ii][imap]);
-    free(nt[ii]);
-  }
-  free(nt);
-}
-
-flouble ***he_alloc_needlet(he_needlet_params *par,int pol)
-{
-  int ii,nmaps;
-  flouble ***nt=my_malloc(par->nj*sizeof(flouble **));
-  if(pol) nmaps=3;
-  else nmaps=1;
-
-  for(ii=0;ii<par->nj;ii++) {
-    int imap;
-    long ns=par->nside_arr[ii];
-
-    nt[ii]=my_malloc(nmaps*sizeof(flouble *));
-    for(imap=0;imap<nmaps;imap++)
-      nt[ii][imap]=my_malloc(12*ns*ns*sizeof(flouble));
-  }
-
-  return nt;
-}
-
-void he_nt_get_window(he_needlet_params *par,int j,flouble *b)
-{
-  int l;
-  flouble bfac;
-  int lmx=par->lmax_arr[j];
-
-  if(j==0) {
-    int jj;
-
-    for(jj=0;jj<=lmx;jj++)
-      b[jj]=0;
-    for(jj=0;jj<=par->jmax_min;jj++) {
-      bfac=1./pow(par->b,jj);
-      for(l=0;l<=lmx;l++) {
-	double bb,x=(double)l*bfac;
-	if((x<par->inv_b)||(x>par->b))
-	  bb=0;
-	else
-	  bb=gsl_spline_eval(par->b_spline,x,par->b_intacc);
-	b[l]+=bb*bb;
-      }
-    }
-    for(l=0;l<=lmx;l++)
-      b[l]=sqrt(b[l]);
-  }
-  else {
-    bfac=1./pow(par->b,j+par->jmax_min);
-
-    for(l=0;l<=lmx;l++) {
-      double x=(double)l*bfac;
-      if((x<par->inv_b)||(x>par->b))
-	b[l]=0;
-      else
-	b[l]=gsl_spline_eval(par->b_spline,x,par->b_intacc);
-    }
-  }
-}
-
-fcomplex **he_needlet2map(he_needlet_params *par,flouble **map,flouble ***nt,
-			  int return_alm,int pol,int input_TEB,int output_TEB)
-{
-  int j,nmaps;
-  fcomplex **alm,**alm_dum;
-  int l_max=3*par->nside0-1;
-  long n_alms=he_nalms(l_max);
-
-  //Figure out spin
-  if(pol) nmaps=3;
-  else nmaps=1;
-
-  //Allocate alms
-  alm=my_malloc(nmaps*sizeof(fcomplex *));
-  alm_dum=my_malloc(nmaps*sizeof(fcomplex *));
-  for(j=0;j<nmaps;j++) {
-    alm[j]=my_calloc(n_alms,sizeof(fcomplex));
-    alm_dum[j]=my_malloc(n_alms*sizeof(fcomplex));
-  }
-
-  //Loop over scales
-  for(j=0;j<par->nj;j++) {
-    int mm;
-    int lmx=par->lmax_arr[j];
-    int imap;
-
-    //Compute alm's for j-th needlet
-    he_map2alm(par->nside_arr[j],par->lmax_arr[j],1,0,&(nt[j][0]),&(alm_dum[0]),par->niter); 
-    if(pol) {
-      if(input_TEB)
-	he_map2alm(par->nside_arr[j],par->lmax_arr[j],2,0,&(nt[j][1]),&(alm_dum[1]),par->niter);
-      else
-	he_map2alm(par->nside_arr[j],par->lmax_arr[j],1,2,&(nt[j][1]),&(alm_dum[1]),par->niter);
-    }
-
-    //Loop over spin components
-    for(imap=0;imap<nmaps;imap++) {
-      //Multiply by window and add to total alm
-      for(mm=0;mm<=lmx;mm++) {
-	int ll;
-	for(ll=mm;ll<=lmx;ll++) {
-	  long index0=he_indexlm(ll,mm,l_max);
-	  long index=he_indexlm(ll,mm,lmx);
-	  alm[imap][index0]+=par->b_arr[j][ll]*alm_dum[imap][index];
-	}
-      }
-    }
-  }
-
-  //Transform total alm back to map
-  he_alm2map(par->nside0,l_max,1,0,&(map[0]),&(alm[0]));
-  if(pol) {
-    if(output_TEB)
-      he_alm2map(par->nside0,l_max,2,0,&(map[1]),&(alm[1]));
-    else
-      he_alm2map(par->nside0,l_max,1,2,&(map[1]),&(alm[1]));
-  }
-
-  if(!return_alm) {
-    for(j=0;j<nmaps;j++)
-      free(alm[j]);
-    free(alm);
-    alm=NULL;
-  }
-  for(j=0;j<nmaps;j++)
-    free(alm_dum[j]);
-  free(alm_dum);
-
-  return alm;
-}
-
-fcomplex **he_map2needlet(he_needlet_params *par,flouble **map,flouble ***nt,
-			  int return_alm,int pol,int input_TEB,int output_TEB)
-{
-  int j,nmaps;
-  fcomplex **alm,**alm_dum;
-  int l_max=3*par->nside0-1;
-  long n_alms=he_nalms(l_max);
-
-  //Figure out spin
-  if(pol) nmaps=3;
-  else nmaps=1;
-
-  //Allocate alms
-  alm=my_malloc(nmaps*sizeof(fcomplex *));
-  alm_dum=my_malloc(nmaps*sizeof(fcomplex *));
-  for(j=0;j<nmaps;j++) {
-    alm[j]=my_malloc(n_alms*sizeof(fcomplex));
-    alm_dum[j]=my_malloc(n_alms*sizeof(fcomplex));
-  }
-
-  //SHT
-  he_map2alm(par->nside0,l_max,1,0,&(map[0]),&(alm[0]),par->niter);
-  if(pol) {
-    if(input_TEB)
-      he_map2alm(par->nside0,l_max,2,0,&(map[1]),&(alm[1]),par->niter);
-    else
-      he_map2alm(par->nside0,l_max,1,2,&(map[1]),&(alm[1]),par->niter);
-  }
-
-  //Iterate over scales
-  for(j=0;j<par->nj;j++) {
-    int mm,imap;
-    int lmx=par->lmax_arr[j];
-
-    //Loop over spin components
-    for(imap=0;imap<nmaps;imap++) {
-      //Set alms and window to zero
-      he_zero_alm(l_max,alm_dum);
-
-      //Multiply alms by window function
-      for(mm=0;mm<=lmx;mm++) {
-	int ll;
-	for(ll=mm;ll<=lmx;ll++) {
-	  long index0=he_indexlm(ll,mm,l_max);
-	  long index=he_indexlm(ll,mm,lmx);
-	  alm_dum[imap][index]=par->b_arr[j][ll]*alm[imap][index0];
-	}
-      }
-    }
-
-    //SHT^-1
-    he_alm2map(par->nside_arr[j],par->lmax_arr[j],1,0,&(nt[j][0]),&(alm_dum[0]));
-    if(pol) {
-      if(output_TEB)
-	he_alm2map(par->nside_arr[j],par->lmax_arr[j],2,0,&(nt[j][1]),&(alm_dum[1]));
-      else
-	he_alm2map(par->nside_arr[j],par->lmax_arr[j],1,2,&(nt[j][1]),&(alm_dum[1]));
-    }
-  }
-
-  if(!return_alm) {
-    for(j=0;j<nmaps;j++)
-      free(alm[j]);
-    free(alm);
-    alm=NULL;
-  }
-  for(j=0;j<nmaps;j++)
-    free(alm_dum[j]);
-  free(alm_dum);
-  
-  return alm;
-}
-#endif //_WITH_NEEDLET
-//#endif //_WITH_SHT

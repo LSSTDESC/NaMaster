@@ -485,7 +485,6 @@ fcomplex **fs_synalm(int nx,int ny,flouble lx,flouble ly,int nmaps,
     gsl_vector *eval =gsl_vector_alloc(nmaps);
     gsl_matrix *evec =gsl_matrix_alloc(nmaps,nmaps); 
     gsl_eigen_symmv_workspace *wsym=gsl_eigen_symmv_alloc(nmaps);
-    //int ithr=omp_get_thread_num();
     unsigned int seed_thr=(unsigned int)(seed+ithr);
     gsl_rng *rng=init_rng(seed_thr);
     gsl_interp_accel *intacc_cells=gsl_interp_accel_alloc();

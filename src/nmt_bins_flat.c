@@ -2,7 +2,10 @@
 
 int nmt_bins_flat_search_fast(nmt_binning_scheme_flat *bin,flouble l,int il)
 {
-  if(l<bin->ell_0_list[il]) {
+  //If last iteration failed, restart from 0
+  if(il<0) il=0;
+
+  if(l<bin->ell_0_list[il]) { //Loop backwards
     int ilback=il-1;
     while(ilback>=0) {
       if(l<bin->ell_0_list[ilback])
@@ -12,10 +15,10 @@ int nmt_bins_flat_search_fast(nmt_binning_scheme_flat *bin,flouble l,int il)
     }
     return -1;
   }
-  else if(l>=bin->ell_f_list[il]) {
+  else if(l>=bin->ell_f_list[il]) { //Loop forwards
     int ilback=il+1;
     while(ilback<bin->n_bands) {
-      if(l>bin->ell_f_list[ilback])
+      if(l>=bin->ell_f_list[ilback])
 	ilback++;
       else
 	return ilback;
@@ -46,7 +49,7 @@ nmt_binning_scheme_flat *nmt_bins_flat_constant(int nlb,flouble lmax)
 
   for(ii=0;ii<nband_max;ii++) {
     bin->ell_0_list[ii]=2+nlb*ii;
-    bin->ell_f_list[ii]=2+nlb*(ii+1)-1;
+    bin->ell_f_list[ii]=2+nlb*(ii+1);
   }
 
   return bin;
@@ -93,7 +96,10 @@ void nmt_unbin_cls_flat(nmt_binning_scheme_flat *bin,flouble **cls_in,
     int il,ib=0;
     for(il=0;il<nl;il++) {
       ib=nmt_bins_flat_search_fast(bin,larr[il],ib);
-      cls_out[icl][il]=cls_in[icl][ib];
+      if(ib>=0)
+	cls_out[icl][il]=cls_in[icl][ib];
+      else
+	cls_out[icl][il]=-999;
     }
   }
 }
