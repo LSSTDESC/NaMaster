@@ -1,6 +1,7 @@
 #ifndef _NAMASTER_H_
 #define _NAMASTER_H_
 
+#ifndef NO_DOXY
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
@@ -20,6 +21,7 @@
 #include <gsl/gsl_spline.h>
 #include <gsl/gsl_integration.h>
 #include <fftw3.h>
+#endif //NO_DOXY
 
 #define NMT_MAX(a,b)  (((a)>(b)) ? (a) : (b)) // maximum
 #define NMT_MIN(a,b)  (((a)<(b)) ? (a) : (b)) // minimum
@@ -32,50 +34,236 @@ typedef double flouble;
 typedef double complex fcomplex;
 #endif //_SPREC
 
-//Defined in bins_flat.c
+/**
+ * @brief Flat-sky bandpowers.
+ *
+ * This structure defines bandpowers for flat-sky power spectra.
+ * These are currently defined only by band edges (assumed 
+ * flat weights within band).
+ */
 typedef struct {
-  int n_bands;
-  flouble *ell_0_list;
-  flouble *ell_f_list;
+  int n_bands; //!< Number of bandpowers stored
+  flouble *ell_0_list; //!< Lower edge of each bandpower
+  flouble *ell_f_list; //!< Upper edge of each bandpower
 } nmt_binning_scheme_flat;
+
+/**
+ * @brief nmt_binning_scheme_flat constructor for constant bandpowers
+ *
+ * nmt_binning_scheme_flat constructor for bandpowers with
+ * constant width \p nlb, from ell = 2 to ell = \p lmax.
+ * @param nlb Constant band width
+ * @param lmax Maximum multipole
+ * @return Allocated binning structure.
+ */
 nmt_binning_scheme_flat *nmt_bins_flat_constant(int nlb,flouble lmax);
+
+/**
+ * @brief nmt_binning_scheme_flat generic constructor.
+ *
+ * @param nell Number of bandpowers
+ * @param l0 Lower edge of all bandpowers (should be allocated to nell elements).
+ * @param lf Lower edge of all bandpowers (should be allocated to nell elements).
+ * @return Allocated binning structure.
+ */
 nmt_binning_scheme_flat *nmt_bins_flat_create(int nell,flouble *l0,flouble *lf);
+
+/**
+ * @brief nmt_binning_scheme_flat destructor
+ */
 void nmt_bins_flat_free(nmt_binning_scheme_flat *bin);
+
+/**
+ * @brief Returns average of input power spectrum into bandpowers.
+ *
+ * @param bin nmt_binning_scheme_flat structure defining the bandpowers.
+ * @param nl Number of elements in the input power spectra.
+ * @param larr Array containing the \p nl multipoles at which the input power
+ *        spectrum is defined.
+ * @param cls_in Array of \p ncls input power spectra.
+ * @param cls_out Array of \p ncls averaged output power spectra. 
+ *        Should be allocated to the number of bandpowers defined bin \p.
+ * @param ncls Number of input/output power spectra.
+ */
 void nmt_bin_cls_flat(nmt_binning_scheme_flat *bin,int nl,flouble *larr,flouble **cls_in,
 		      flouble **cls_out,int ncls);
+
+/**
+ * @brief Returns binned power spectra interpolated into an given set of multipoles.
+ * 
+ * Nearest-neighbours interpolation is used.
+ * @param bin nmt_binning_scheme_flat structure defining the bandpowers.
+ * @param cls_in Array of \p ncls input power spectra. Must have the same number of 
+ *        elements as bandpowers defined by \p bin.
+ * @param nl Number of elements in the output power spectra.
+ * @param larr Array containing the \p nl multipoles at which the output power 
+ *        spectrum are requested.
+ * @param cls_out Array of \p ncls interpolated output power spectra.
+ * @param ncls Number of input/output power spectra.
+ */
 void nmt_unbin_cls_flat(nmt_binning_scheme_flat *bin,flouble **cls_in,
 			int nl,flouble *larr,flouble **cls_out,int ncls);
+
+/**
+ * @brief Returns effective multipoles.
+ * 
+ * Returns the mid point of each bandpower defined in \p bin.
+ * @param bin nmt_binning_scheme_flat structure defining the bandpowers.
+ * @param larr Output array containing mid-points of the bandpowers.
+ *        Should be preallocated to the correct number of bandpowers.
+ */
 void nmt_ell_eff_flat(nmt_binning_scheme_flat *bin,flouble *larr);
+
+/**
+ * @brief Fast bin-searching routine for flat-sky bandpowers
+ *
+ * Returns the bandpower index in which a given ell falls. The functions is designed
+ * to be fast if a good guess for the bandpower index is supplied. A typical use would
+ * be to iterate over ell values and pass, as a guess index, the index found in the
+ * previous iteration.
+ * @param bin nmt_binning_scheme_flat structure defining the bandpowers.
+ * @param l Multipole for which you want the bandpower index.
+ * @param il Guessed bandpower index.
+ * @return Bandpower index.
+ */
 int nmt_bins_flat_search_fast(nmt_binning_scheme_flat *bin,flouble l,int il);
 
-//Defined in bins.c
+/**
+ * @brief Full-sky bandpowers.
+ *
+ * This structure defines bandpowers for full-sky power spectra.
+ * Although a given multipole ell can only contribute to one bandpower, 
+ * the distribution of ells per bandpower and their relative weights
+ * is left completely free.
+ */
 typedef struct {
-  int n_bands;
-  int *nell_list;
-  int **ell_list;
-  flouble **w_list;
-  int ell_max;
+  int n_bands; //!< Number of bandpowers.
+  int *nell_list; //!< Number of multipoles belonging to each bandpower.
+  int **ell_list; //!< List of multipoles in each bandpowers.
+  flouble **w_list; //!< List of weights associated to each multipole in \p ell_list.
+  int ell_max; //!< Maximum multipole included.
 } nmt_binning_scheme;
+
+/**
+ * @brief nmt_binning_scheme constructor for constant bandpowers.
+ *
+ * nmt_binning_scheme constructor for bandpowers with constant
+ * width \p nlb, from ell = 2 to ell = \p lmax.
+ * @param nlb Constant band width
+ * @param lmax Maximum multipole
+ * @return Allocated binning structure.
+ */
 nmt_binning_scheme *nmt_bins_constant(int nlb,int lmax);
+
+/**
+ * @brief  nmt_binning_scheme generic constructor.
+ *
+ * @param nell Number of elements in all subsequent arrays.
+ * @param bpws Array of bandpower indices.
+ * @param ells Array of multipole values. This function collects all multipoles
+ *        into their associated bandpowers.
+ * @param weights Array of weights associated to each multipole. Weights are 
+ *        normalized to 1 within each bandpower.
+ * @param lmax Maximum multipole to consider.
+ * @return Allocated binning structure.
+ */
 nmt_binning_scheme *nmt_bins_create(int nell,int *bpws,int *ells,flouble *weights,int lmax);
+
+/**
+ * @brief nmt_binning_scheme constructor from file
+ *
+ * Builds a nmt_binning_scheme structure from an ASCII file.
+ * @param fname Path to file containing information to build bandpowers.
+ *        The file should contain three columns, corresponding to:
+ *        bandpower index, multipole and weight (in this order).
+ *        See definition of nmt_bins_create().
+ * @return Allocated binning structure.
+ */
 nmt_binning_scheme *nmt_bins_read(char *fname,int lmax);
+
+/**
+ * @brief nmt_binning_scheme destructor
+ */
 void nmt_bins_free(nmt_binning_scheme *bin);
+
+/**
+ * @brief Returns average of input power spectrum into bandpowers.
+ *
+ * @param bin nmt_binning_scheme structure defining the bandpowers.
+ * @param cls_in Array of \p ncls input power spectra. They should be 
+ *        defined in all ells that go into any bandpower defined by \p bin.
+ * @param cls_out Array of \p ncls averaged output power spectra.
+ *        Should be allocated to the number of bandpowers defined bin \p.
+ * @param ncls Number of input/output power spectra.
+ */
 void nmt_bin_cls(nmt_binning_scheme *bin,flouble **cls_in,flouble **cls_out,int ncls);
+
+/**
+ * @brief Returns binned power spectra interpolated into output multipoles.
+ *
+ * Top-hat interpolation is used (i.e. a given ell is associated with the binned power
+ * spectrum value at the bandpower that ell corresponds to).
+ * @param bin nmt_binning_scheme structure defining the bandpowers.
+ * @param cls_in Array of \p ncls input power spectra. Must have the same number of
+ *        elements as bandpowers defined by \p bin.
+ * @param cls_out Array of \p ncls interpolated output power spectra.
+ * @param ncls Number of input/output power spectra.
+ */
 void nmt_unbin_cls(nmt_binning_scheme *bin,flouble **cls_in,flouble **cls_out,int ncls);
+
+/**
+ * @brief Returns effective multipoles.
+ *
+ * Return the weighted average multipole values within each bandpower defined by \p bin.
+ * @param bin nmt_binning_scheme structure defining the bandpowers.
+ * @param larr Output array containing the effective multipole in each bandpower.
+ *        Should be preallocated to the correct number of bandpowers.
+ */
 void nmt_ell_eff(nmt_binning_scheme *bin,flouble *larr);
 
-//Defined in field_flat.c
+/**
+ * @brief Flat-sky Fourier-space function
+ *
+ * Unlike multipoles in harmonic space, in the case of full-sky operations, 
+ * wavenumbers k in Fourier space for flat-sky fields are in general continuous
+ * variables. This structure helps define functions of these continuous variables.
+ */
 typedef struct {
-  int is_const;
-  int nk;
-  flouble x0;
-  flouble xf;
-  flouble y0;
-  flouble yf;
-  gsl_spline *spl;
+  int is_const; //!< If >0, this function is just a constant
+  flouble x0; //!< Lower edge of spline interpolation
+  flouble xf; //!< Upper edge of spline interpolation
+  flouble y0; //!< Function will take this value for x < \p x0
+  flouble yf; //!< Function will take this value for x > \p xf
+  gsl_spline *spl; //!< GSL spline interpolator.
 } nmt_k_function;
-nmt_k_function *nmt_k_function_alloc(int nk,flouble *karr,flouble *farr,flouble y0,flouble yf,int is_const);
+
+/**
+ * @brief nmt_k_function creator.
+ *
+ * @param nk Number of elements in input arrays.
+ * @param karr k-values at which the input function is sampled.
+ * @param farr Function values at k = \p karr.
+ * @param y0 Constant function value below interpolation range.
+ * @param yf Constant function value above interpolation range.
+ * @param is_const If non-zero, will create a constant function.
+ *        In this case all previous arguments other than \p y0 are ignored
+ *        and the function will take this value for all k.
+ */
+nmt_k_function *nmt_k_function_alloc(int nk,flouble *karr,flouble *farr,
+				     flouble y0,flouble yf,int is_const);
+
+/**
+ * @brief nmt_k_function destructor
+ */
 void nmt_k_function_free(nmt_k_function *f);
+
+/**
+ * @brief nmt_k_function evaluator.
+ *
+ * Returns value of function at \p k.
+ * @param k Value of k for which you want f(k).
+ * @param intacc GSL interpolation accelerator. If you don't want any, just pass a NULL pointer.
+ */
 flouble nmt_k_function_eval(nmt_k_function *f,flouble k,gsl_interp_accel *intacc);
 
 typedef struct {
