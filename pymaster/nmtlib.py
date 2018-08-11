@@ -224,10 +224,6 @@ class k_function(_object):
     __swig_getmethods__["is_const"] = _nmtlib.k_function_is_const_get
     if _newclass:
         is_const = _swig_property(_nmtlib.k_function_is_const_get, _nmtlib.k_function_is_const_set)
-    __swig_setmethods__["nk"] = _nmtlib.k_function_nk_set
-    __swig_getmethods__["nk"] = _nmtlib.k_function_nk_get
-    if _newclass:
-        nk = _swig_property(_nmtlib.k_function_nk_get, _nmtlib.k_function_nk_set)
     __swig_setmethods__["x0"] = _nmtlib.k_function_x0_set
     __swig_getmethods__["x0"] = _nmtlib.k_function_x0_get
     if _newclass:
@@ -306,14 +302,14 @@ class flatsky_info(_object):
     __swig_getmethods__["n_ell"] = _nmtlib.flatsky_info_n_ell_get
     if _newclass:
         n_ell = _swig_property(_nmtlib.flatsky_info_n_ell_get, _nmtlib.flatsky_info_n_ell_set)
-    __swig_setmethods__["i_dell"] = _nmtlib.flatsky_info_i_dell_set
-    __swig_getmethods__["i_dell"] = _nmtlib.flatsky_info_i_dell_get
-    if _newclass:
-        i_dell = _swig_property(_nmtlib.flatsky_info_i_dell_get, _nmtlib.flatsky_info_i_dell_set)
     __swig_setmethods__["dell"] = _nmtlib.flatsky_info_dell_set
     __swig_getmethods__["dell"] = _nmtlib.flatsky_info_dell_get
     if _newclass:
         dell = _swig_property(_nmtlib.flatsky_info_dell_get, _nmtlib.flatsky_info_dell_set)
+    __swig_setmethods__["i_dell"] = _nmtlib.flatsky_info_i_dell_set
+    __swig_getmethods__["i_dell"] = _nmtlib.flatsky_info_i_dell_get
+    if _newclass:
+        i_dell = _swig_property(_nmtlib.flatsky_info_i_dell_get, _nmtlib.flatsky_info_i_dell_set)
     __swig_setmethods__["ell_min"] = _nmtlib.flatsky_info_ell_min_set
     __swig_getmethods__["ell_min"] = _nmtlib.flatsky_info_ell_min_get
     if _newclass:
@@ -833,8 +829,8 @@ def compute_gaussian_covariance_flat(cw, nl, larr, cla1b1, cla1b2, cla2b1, cla2b
     return _nmtlib.compute_gaussian_covariance_flat(cw, nl, larr, cla1b1, cla1b2, cla2b1, cla2b2, covar_out)
 compute_gaussian_covariance_flat = _nmtlib.compute_gaussian_covariance_flat
 
-def covar_workspace_flat_write(cw, fnane):
-    return _nmtlib.covar_workspace_flat_write(cw, fnane)
+def covar_workspace_flat_write(cw, fname):
+    return _nmtlib.covar_workspace_flat_write(cw, fname)
 covar_workspace_flat_write = _nmtlib.covar_workspace_flat_write
 
 def covar_workspace_flat_read(fname):

@@ -49,6 +49,10 @@ typedef double complex fcomplex;
        [T-E, T-B], where T is the spin-0 field and (E,B) are the harmonic components of the
        spin-2 field.
  *   - The abbreviation MCM will often be used instead of "mode-coupling matrix".
+ *   - SHT will sometimes be used for "Spherical Harmonic Transform". In the context of flat-sky
+       fields, this should be understood as a standard Fast Fourier Transform (FFT) (with 
+       appropriate trigonometric factors if dealing with spin-2 fields).
+ *   - FWHM will sometimes be used for "Full-width at half-max".
  * 
  * \section more_info More info
  *
@@ -394,7 +398,8 @@ nmt_field_flat *nmt_field_flat_alloc(int nx,int ny,flouble lx,flouble ly,
 /**
  * @brief Gaussian realizations of flat-sky fields 
  *
- * Generates a Gaussian realization of an arbitrary list of possibly-correlated fields with different spins.
+ * Generates a Gaussian realization of an arbitrary list of possibly-correlated 
+ * fields with different spins.
  * @param nx Number of grid points in the x dimension.
  * @param ny Number of grid points in the y dimension.
  * @param lx Length of the x dimension (in steradians).
