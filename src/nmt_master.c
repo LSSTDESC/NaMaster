@@ -659,7 +659,7 @@ nmt_workspace *nmt_compute_power_spectra(nmt_field *fl1,nmt_field *fl2,
   else {
     w=w0;
     if(w->lmax>=3*fl1->nside)
-      report_error(1,"Workspace does not patch map resolution\n");
+      report_error(1,"Workspace does not match map resolution\n");
   }
 
   cl_bias=my_malloc(w->ncls*sizeof(flouble *));

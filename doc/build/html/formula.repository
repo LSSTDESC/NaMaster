@@ -1,0 +1,24 @@
+\form#0:$f$
+\form#1:\[ f=\left\{ \begin{array}{cc} x-\sin(2\pi x)/(2\pi) & x<1\\ 1 & {\rm otherwise} \end{array} \right., \]
+\form#2:$x=\sqrt{(1-\cos\theta)/(1-\cos(\theta_*))}$
+\form#3:$\theta_*$
+\form#4:$\theta$
+\form#5:\[ f=\left\{ \begin{array}{cc} \frac{1}{2}\left[1-\cos(\pi x)\right] & x<1\\ 1 & {\rm otherwise} \end{array} \right., \]
+\form#6:$2.5\theta_*$
+\form#7:$\sigma=\theta_*$
+\form#8:\[ \left( \begin{array}{ccc} \ell_1 & \ell_2 & \ell_3 \\ m_1 & m_2 & m_3 \end{array} \right), \]
+\form#9:$\ell_2$
+\form#10:$m_2$
+\form#11:$\ell_3$
+\form#12:$m_3$
+\form#13:$\ell_1$
+\form#14:$\leq\ell_1\leq$
+\form#15:$m_1+m_2+m_3=0$
+\form#16:\[ \int_\Omega d\Omega\, m_1(\hat{\bf n})\,m_2(\hat{\bf n}), \]
+\form#17:$\Omega$
+\form#18:$\varphi$
+\form#19:$\ell$
+\form#20:$m$
+\form#21:$a_{\ell m}$
+\form#22:$\cos(\theta)$
+\form#23:\[ \int d\Omega\, m_1(\hat{\bf n})\,m_2(\hat{\bf n}), \]

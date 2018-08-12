@@ -5793,66 +5793,6 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_k_function_nk_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
-  PyObject *resultobj = 0;
-  nmt_k_function *arg1 = (nmt_k_function *) 0 ;
-  int arg2 ;
-  void *argp1 = 0 ;
-  int res1 = 0 ;
-  int val2 ;
-  int ecode2 = 0 ;
-  PyObject * obj0 = 0 ;
-  PyObject * obj1 = 0 ;
-  
-  if (!PyArg_ParseTuple(args,(char *)"OO:k_function_nk_set",&obj0,&obj1)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_k_function, 0 |  0 );
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "k_function_nk_set" "', argument " "1"" of type '" "nmt_k_function *""'"); 
-  }
-  arg1 = (nmt_k_function *)(argp1);
-  ecode2 = SWIG_AsVal_int(obj1, &val2);
-  if (!SWIG_IsOK(ecode2)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "k_function_nk_set" "', argument " "2"" of type '" "int""'");
-  } 
-  arg2 = (int)(val2);
-  {
-    SWIG_PYTHON_THREAD_BEGIN_ALLOW;
-    if (arg1) (arg1)->nk = arg2;
-    SWIG_PYTHON_THREAD_END_ALLOW;
-  }
-  resultobj = SWIG_Py_Void();
-  return resultobj;
-fail:
-  return NULL;
-}
-
-
-SWIGINTERN PyObject *_wrap_k_function_nk_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
-  PyObject *resultobj = 0;
-  nmt_k_function *arg1 = (nmt_k_function *) 0 ;
-  void *argp1 = 0 ;
-  int res1 = 0 ;
-  PyObject * obj0 = 0 ;
-  int result;
-  
-  if (!PyArg_ParseTuple(args,(char *)"O:k_function_nk_get",&obj0)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_k_function, 0 |  0 );
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "k_function_nk_get" "', argument " "1"" of type '" "nmt_k_function *""'"); 
-  }
-  arg1 = (nmt_k_function *)(argp1);
-  {
-    SWIG_PYTHON_THREAD_BEGIN_ALLOW;
-    result = (int) ((arg1)->nk);
-    SWIG_PYTHON_THREAD_END_ALLOW;
-  }
-  resultobj = SWIG_From_int((int)(result));
-  return resultobj;
-fail:
-  return NULL;
-}
-
-
 SWIGINTERN PyObject *_wrap_k_function_x0_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   nmt_k_function *arg1 = (nmt_k_function *) 0 ;
@@ -6762,66 +6702,6 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_flatsky_info_i_dell_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
-  PyObject *resultobj = 0;
-  nmt_flatsky_info *arg1 = (nmt_flatsky_info *) 0 ;
-  flouble arg2 ;
-  void *argp1 = 0 ;
-  int res1 = 0 ;
-  double val2 ;
-  int ecode2 = 0 ;
-  PyObject * obj0 = 0 ;
-  PyObject * obj1 = 0 ;
-  
-  if (!PyArg_ParseTuple(args,(char *)"OO:flatsky_info_i_dell_set",&obj0,&obj1)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_flatsky_info, 0 |  0 );
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "flatsky_info_i_dell_set" "', argument " "1"" of type '" "nmt_flatsky_info *""'"); 
-  }
-  arg1 = (nmt_flatsky_info *)(argp1);
-  ecode2 = SWIG_AsVal_double(obj1, &val2);
-  if (!SWIG_IsOK(ecode2)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "flatsky_info_i_dell_set" "', argument " "2"" of type '" "flouble""'");
-  } 
-  arg2 = (flouble)(val2);
-  {
-    SWIG_PYTHON_THREAD_BEGIN_ALLOW;
-    if (arg1) (arg1)->i_dell = arg2;
-    SWIG_PYTHON_THREAD_END_ALLOW;
-  }
-  resultobj = SWIG_Py_Void();
-  return resultobj;
-fail:
-  return NULL;
-}
-
-
-SWIGINTERN PyObject *_wrap_flatsky_info_i_dell_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
-  PyObject *resultobj = 0;
-  nmt_flatsky_info *arg1 = (nmt_flatsky_info *) 0 ;
-  void *argp1 = 0 ;
-  int res1 = 0 ;
-  PyObject * obj0 = 0 ;
-  flouble result;
-  
-  if (!PyArg_ParseTuple(args,(char *)"O:flatsky_info_i_dell_get",&obj0)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_flatsky_info, 0 |  0 );
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "flatsky_info_i_dell_get" "', argument " "1"" of type '" "nmt_flatsky_info *""'"); 
-  }
-  arg1 = (nmt_flatsky_info *)(argp1);
-  {
-    SWIG_PYTHON_THREAD_BEGIN_ALLOW;
-    result = (flouble) ((arg1)->i_dell);
-    SWIG_PYTHON_THREAD_END_ALLOW;
-  }
-  resultobj = SWIG_From_double((double)(result));
-  return resultobj;
-fail:
-  return NULL;
-}
-
-
 SWIGINTERN PyObject *_wrap_flatsky_info_dell_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   nmt_flatsky_info *arg1 = (nmt_flatsky_info *) 0 ;
@@ -6873,6 +6753,66 @@ SWIGINTERN PyObject *_wrap_flatsky_info_dell_get(PyObject *SWIGUNUSEDPARM(self),
   {
     SWIG_PYTHON_THREAD_BEGIN_ALLOW;
     result = (flouble) ((arg1)->dell);
+    SWIG_PYTHON_THREAD_END_ALLOW;
+  }
+  resultobj = SWIG_From_double((double)(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_flatsky_info_i_dell_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_flatsky_info *arg1 = (nmt_flatsky_info *) 0 ;
+  flouble arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  double val2 ;
+  int ecode2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:flatsky_info_i_dell_set",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_flatsky_info, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "flatsky_info_i_dell_set" "', argument " "1"" of type '" "nmt_flatsky_info *""'"); 
+  }
+  arg1 = (nmt_flatsky_info *)(argp1);
+  ecode2 = SWIG_AsVal_double(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "flatsky_info_i_dell_set" "', argument " "2"" of type '" "flouble""'");
+  } 
+  arg2 = (flouble)(val2);
+  {
+    SWIG_PYTHON_THREAD_BEGIN_ALLOW;
+    if (arg1) (arg1)->i_dell = arg2;
+    SWIG_PYTHON_THREAD_END_ALLOW;
+  }
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_flatsky_info_i_dell_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_flatsky_info *arg1 = (nmt_flatsky_info *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  flouble result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:flatsky_info_i_dell_get",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_flatsky_info, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "flatsky_info_i_dell_get" "', argument " "1"" of type '" "nmt_flatsky_info *""'"); 
+  }
+  arg1 = (nmt_flatsky_info *)(argp1);
+  {
+    SWIG_PYTHON_THREAD_BEGIN_ALLOW;
+    result = (flouble) ((arg1)->i_dell);
     SWIG_PYTHON_THREAD_END_ALLOW;
   }
   resultobj = SWIG_From_double((double)(result));
@@ -18629,8 +18569,6 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"ell_eff", _wrap_ell_eff, METH_VARARGS, NULL},
 	 { (char *)"k_function_is_const_set", _wrap_k_function_is_const_set, METH_VARARGS, NULL},
 	 { (char *)"k_function_is_const_get", _wrap_k_function_is_const_get, METH_VARARGS, NULL},
-	 { (char *)"k_function_nk_set", _wrap_k_function_nk_set, METH_VARARGS, NULL},
-	 { (char *)"k_function_nk_get", _wrap_k_function_nk_get, METH_VARARGS, NULL},
 	 { (char *)"k_function_x0_set", _wrap_k_function_x0_set, METH_VARARGS, NULL},
 	 { (char *)"k_function_x0_get", _wrap_k_function_x0_get, METH_VARARGS, NULL},
 	 { (char *)"k_function_xf_set", _wrap_k_function_xf_set, METH_VARARGS, NULL},
@@ -18661,10 +18599,10 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"flatsky_info_pixsize_get", _wrap_flatsky_info_pixsize_get, METH_VARARGS, NULL},
 	 { (char *)"flatsky_info_n_ell_set", _wrap_flatsky_info_n_ell_set, METH_VARARGS, NULL},
 	 { (char *)"flatsky_info_n_ell_get", _wrap_flatsky_info_n_ell_get, METH_VARARGS, NULL},
-	 { (char *)"flatsky_info_i_dell_set", _wrap_flatsky_info_i_dell_set, METH_VARARGS, NULL},
-	 { (char *)"flatsky_info_i_dell_get", _wrap_flatsky_info_i_dell_get, METH_VARARGS, NULL},
 	 { (char *)"flatsky_info_dell_set", _wrap_flatsky_info_dell_set, METH_VARARGS, NULL},
 	 { (char *)"flatsky_info_dell_get", _wrap_flatsky_info_dell_get, METH_VARARGS, NULL},
+	 { (char *)"flatsky_info_i_dell_set", _wrap_flatsky_info_i_dell_set, METH_VARARGS, NULL},
+	 { (char *)"flatsky_info_i_dell_get", _wrap_flatsky_info_i_dell_get, METH_VARARGS, NULL},
 	 { (char *)"flatsky_info_ell_min_set", _wrap_flatsky_info_ell_min_set, METH_VARARGS, NULL},
 	 { (char *)"flatsky_info_ell_min_get", _wrap_flatsky_info_ell_min_get, METH_VARARGS, NULL},
 	 { (char *)"new_flatsky_info", _wrap_new_flatsky_info, METH_VARARGS, NULL},

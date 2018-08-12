@@ -101,10 +101,18 @@ on_rtd = os.environ.get('READTHEDOCS') == 'True'
 
 if on_rtd:
     html_theme='default'
+    import subprocess
+    subprocess.call('cd ../doxygen ; doxygen', shell=True)
+    subprocess.call('cd ../doxygen ; mv html/index.html html/index_doxy.html', shell=True)
+    subprocess.call("cd ../doxygen ; sed -i 's/href=\"index.html\"/href=\"index_doxy.html\"/g' html/*.html",shell=True)
 else :  # only import and set the theme if we're building docs locally
     import sphinx_rtd_theme
     html_theme = 'sphinx_rtd_theme'
     html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
+    import subprocess
+    subprocess.call('cd ../doxygen ; doxygen', shell=True)
+    subprocess.call('cd ../doxygen ; mv html/index.html html/index_doxy.html', shell=True)
+    subprocess.call("cd ../doxygen ; sed -i 's/href=\"index.html\"/href=\"index_doxy.html\"/g' html/*.html",shell=True)
 
 # otherwise, readthedocs.org uses their theme by default, so no need to specify it
 
@@ -118,6 +126,7 @@ else :  # only import and set the theme if we're building docs locally
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
+html_extra_path = ['../doxygen/html/']
 
 
 # -- Options for HTMLHelp output ------------------------------------------
