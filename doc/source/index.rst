@@ -10,7 +10,7 @@ pymaster is the python implementation of the NaMaster library. The main purpose 
 
 Below you can find links to pymaster's full documentation and 8 different example scripts showcasing its usage. Understanding the last script in particular will allow you to make the most efficient use of this module.
 
-We recommend that users read NaMaster's :download:`scientific documentation <../doc_scientific.pdf>` and the :download:`C API documentation <../doc_C_API.pdf>` for a complete overview of all the facilities included in this package, and in order to have a good understanding of the methods implemented in it.
+We recommend that users read NaMaster's :download:`scientific documentation <../doc_scientific.pdf>` and the `C API documentation <index_doxy.html>`_ for a complete overview of all the facilities included in this package, and in order to have a good understanding of the methods implemented in it.
 
 .. toctree::
    :maxdepth: 2
@@ -25,6 +25,7 @@ We recommend that users read NaMaster's :download:`scientific documentation <../
    sample_pureb
    sample_flat
    sample_covariance
+   C API documentation <index_doxy.html#http://>
 
 
 Indices and tables
