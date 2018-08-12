@@ -355,6 +355,22 @@ void fs_anafast(nmt_flatsky_info *fs,nmt_binning_scheme_flat *bin,
 fcomplex **fs_synalm(int nx,int ny,flouble lx,flouble ly,int nmaps,
 		     nmt_k_function **cells,nmt_k_function **beam,int seed);
 
+/**
+ * @brief Reads flat-sky map
+ *
+ * Reads a flat-sky map from a FITS file. The flat map should be in an image HDU with 
+ * WCS header keywords defining the sky patch (read from file).
+ * @param fname Path to input file.
+ * @param nx Number of grid points in the x dimension (read from file).
+ * @param ny Number of grid points in the y dimension (read from file).
+ * @param lx Length of the x dimension (in steradians) (read from file).
+ * @param ly Length of the y dimension (in steradians) (read from file).
+ * @param nfield Which field to read (i.e. HDU number to read the map from, starting from 0).
+ * @return Read map (with size \p ny * \p nx).
+ */
+flouble *fs_read_flat_map(char *fname,int *nx,int *ny,flouble *lx,flouble *ly,int nfield);
+
+
 #define HE_NITER_DEFAULT 3 //!< Default number of iterations used for full-sky spherical harmonic transforms
 
 /**

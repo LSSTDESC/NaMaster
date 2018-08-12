@@ -180,6 +180,9 @@ Functions</h2></td></tr>
 <tr class="memitem:a617904e7383b74291abd68e62d0bc0d5"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namaster_8h.html#a8f59ea55fc4d564945b2e8712a6ef482">fcomplex</a> **&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="utils_8h.html#a617904e7383b74291abd68e62d0bc0d5">fs_synalm</a> (int nx, int ny, <a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> lx, <a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> ly, int nmaps, <a class="el" href="structnmt__k__function.html">nmt_k_function</a> **cells, <a class="el" href="structnmt__k__function.html">nmt_k_function</a> **beam, int seed)</td></tr>
 <tr class="memdesc:a617904e7383b74291abd68e62d0bc0d5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gaussian realizations of flat-sky Fourier coefficients.  <a href="#a617904e7383b74291abd68e62d0bc0d5">More...</a><br /></td></tr>
 <tr class="separator:a617904e7383b74291abd68e62d0bc0d5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2d5988385bbeac1dadc5dc9f68a7c8c0"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="utils_8h.html#a2d5988385bbeac1dadc5dc9f68a7c8c0">fs_read_flat_map</a> (char *fname, int *nx, int *ny, <a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> *lx, <a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> *ly, int nfield)</td></tr>
+<tr class="memdesc:a2d5988385bbeac1dadc5dc9f68a7c8c0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads flat-sky map.  <a href="#a2d5988385bbeac1dadc5dc9f68a7c8c0">More...</a><br /></td></tr>
+<tr class="separator:a2d5988385bbeac1dadc5dc9f68a7c8c0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a73e852cc656e6285a339d1701ac57bff"><td class="memItemLeft" align="right" valign="top">long&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="utils_8h.html#a73e852cc656e6285a339d1701ac57bff">he_nside2npix</a> (long nside)</td></tr>
 <tr class="memdesc:a73e852cc656e6285a339d1701ac57bff"><td class="mdescLeft">&#160;</td><td class="mdescRight">HEALPix number of pixels.  <a href="#a73e852cc656e6285a339d1701ac57bff">More...</a><br /></td></tr>
 <tr class="separator:a73e852cc656e6285a339d1701ac57bff"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -877,6 +880,68 @@ Functions</h2></td></tr>
     <tr><td class="paramname">mp1</td><td>First map to multiply </td></tr>
     <tr><td class="paramname">mp2</td><td>Second map to multiply. </td></tr>
     <tr><td class="paramname">mp_out</td><td>Output map containing the product of <code>mp1</code> and <code>mp2</code>. It is safe to pass either of the input maps as <code>mp_out</code>, in which case that map will be overwritten with the product. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="a2d5988385bbeac1dadc5dc9f68a7c8c0"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a>* fs_read_flat_map </td>
+          <td>(</td>
+          <td class="paramtype">char *&#160;</td>
+          <td class="paramname"><em>fname</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int *&#160;</td>
+          <td class="paramname"><em>nx</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int *&#160;</td>
+          <td class="paramname"><em>ny</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> *&#160;</td>
+          <td class="paramname"><em>lx</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> *&#160;</td>
+          <td class="paramname"><em>ly</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>nfield</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Reads flat-sky map. </p>
+<p>Reads a flat-sky map from a FITS file. The flat map should be in an image HDU with WCS header keywords defining the sky patch (read from file). </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">nx</td><td>Number of grid points in the x dimension (read from file). </td></tr>
+    <tr><td class="paramname">ny</td><td>Number of grid points in the y dimension (read from file). </td></tr>
+    <tr><td class="paramname">lx</td><td>Length of the x dimension (in steradians) (read from file). </td></tr>
+    <tr><td class="paramname">ly</td><td>Length of the y dimension (in steradians) (read from file). </td></tr>
+    <tr><td class="paramname">nfield</td><td>Which field to read (i.e. HDU number to read the map from, starting from 0). </td></tr>
   </table>
   </dd>
 </dl>

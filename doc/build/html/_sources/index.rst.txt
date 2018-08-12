@@ -17,7 +17,6 @@ We recommend that users read NaMaster's :download:`scientific documentation <../
    :caption: Contents:
 
    pymaster
-   C API documentation <index_doxy.html#http://>
    sample_simple
    sample_bins
    sample_fields
@@ -26,6 +25,7 @@ We recommend that users read NaMaster's :download:`scientific documentation <../
    sample_pureb
    sample_flat
    sample_covariance
+   C API documentation <index_doxy.html#http://>
 
 
 Indices and tables

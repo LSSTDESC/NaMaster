@@ -3,7 +3,7 @@
 #include "utils.h"
 #include "nmt_test_utils.h"
 
-CTEST(nmt,master_bias_uncorr) {
+CTEST_SKIP(nmt,master_bias_uncorr) {
   //Generate fields and compute coupling matrix
   int ii,im1,ll;
   double prefac,f_fac;
@@ -109,7 +109,7 @@ CTEST(nmt,master_bias_uncorr) {
   free(mp_dum);
 }
 
-CTEST(nmt,master_22_full) {
+CTEST_SKIP(nmt,master_22_full) {
   //Generate fields and compute coupling matrix
   int ii;
   long nside,ipix;
@@ -218,7 +218,7 @@ CTEST(nmt,master_22_full) {
   free(msk);
 }
 
-CTEST(nmt,master_02_full) {
+CTEST_SKIP(nmt,master_02_full) {
   //Generate fields and compute coupling matrix
   int ii;
   long nside,ipix;
@@ -343,7 +343,7 @@ CTEST(nmt,master_02_full) {
   free(msk);
 }
 
-CTEST(nmt,master_00_full) {
+CTEST_SKIP(nmt,master_00_full) {
   //Generate fields and compute coupling matrix
   int ii;
   long nside,ipix;
@@ -423,7 +423,7 @@ CTEST(nmt,master_00_full) {
   free(msk);
 }
 
-CTEST(nmt,master_errors) {
+CTEST_SKIP(nmt,master_errors) {
   long nside;
   double *mpt=he_read_healpix_map("test/benchmarks/mps.fits",&nside,0);
   double *msk=he_read_healpix_map("test/benchmarks/msk.fits",&nside,0);
