@@ -209,6 +209,7 @@ CTEST(nmt,master_22_full) {
   }
   free(cell); free(cell_noise); free(cell_signal); free(cell_deproj); free(cell_out);
 
+  nmt_bins_free(bin);
   for(ii=0;ii<2;ii++) {
     free(tmp2[ii]);
     free(mps2[ii]);
@@ -330,6 +331,7 @@ CTEST(nmt,master_02_full) {
   }
   free(cell); free(cell_noise); free(cell_signal); free(cell_deproj); free(cell_out);
 
+  nmt_bins_free(bin);
   for(ii=0;ii<2;ii++) {
     free(tmp2[ii]);
     free(mps2[ii]);
@@ -417,6 +419,7 @@ CTEST(nmt,master_00_full) {
   }
   free(cell); free(cell_noise); free(cell_signal); free(cell_deproj); free(cell_out);
 
+  nmt_bins_free(bin);
   free(tmp[0]);
   free(mps);
   free(tmp);

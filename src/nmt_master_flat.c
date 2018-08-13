@@ -1140,7 +1140,8 @@ void nmt_compute_coupled_cell_flat(nmt_field_flat *fl1,nmt_field_flat *fl2,
 
 nmt_workspace_flat *nmt_compute_power_spectra_flat(nmt_field_flat *fl1,nmt_field_flat *fl2,
 						   nmt_binning_scheme_flat *bin,
-						   flouble lmn_x,flouble lmx_x,flouble lmn_y,flouble lmx_y,
+						   flouble lmn_x,flouble lmx_x,
+						   flouble lmn_y,flouble lmx_y,
 						   nmt_workspace_flat *w0,flouble **cl_noise,
 						   int nl_prop,flouble *l_prop,flouble **cl_prop,
 						   flouble **cl_out)
@@ -1151,8 +1152,11 @@ nmt_workspace_flat *nmt_compute_power_spectra_flat(nmt_field_flat *fl1,nmt_field
 
   if(w0==NULL)
     w=nmt_compute_coupling_matrix_flat(fl1,fl2,bin,lmn_x,lmx_x,lmn_y,lmx_y);
-  else
+  else {
     w=w0;
+    if((check_flatsky_infos(fl1->fs,w->fs)) || (check_flatsky_infos(fl2->fs,w->fs)))
+      report_error(1,"Input workspace has different pixels!\n");
+  }
 
   cl_bias=my_malloc(w->ncls*sizeof(flouble *));
   cl_data=my_malloc(w->ncls*sizeof(flouble *));

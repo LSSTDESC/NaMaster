@@ -4,6 +4,53 @@
 #include "nmt_test_utils.h"
 #include <chealpix.h>
 
+CTEST(nmt,fsk_read_bad) {
+  int nx,ny;
+  flouble lx,ly;
+  flouble *map;
+
+  set_error_policy(THROW_ON_ERROR);
+  printf("\nError messages expected: \n");
+
+  //Test non-existent file
+  try{ map=fs_read_flat_map("none.fits",&nx,&ny,&lx,&ly,0); }
+  catch(1) {}
+  ASSERT_EQUAL(1,exception_status);
+
+  //Test incorrect file format
+  try{ map=fs_read_flat_map("test/benchmarks/msk.fits",&nx,&ny,&lx,&ly,1); }
+  catch(1) {}
+  ASSERT_EQUAL(1,exception_status);
+  try{ map=fs_read_flat_map("test/benchmarks/msk.fits",&nx,&ny,&lx,&ly,0); }
+  catch(1) {}
+  ASSERT_EQUAL(1,exception_status);
+
+  //Test inexistent field
+  try{ map=fs_read_flat_map("test/benchmarks/msk_flat.fits",&nx,&ny,&lx,&ly,1); }
+  catch(1) {}
+  ASSERT_EQUAL(1,exception_status);
+
+  set_error_policy(EXIT_ON_ERROR);
+}
+
+CTEST(nmt,fsk_read_good) {
+  int nx,ny;
+  flouble lx,ly;
+  flouble *map;
+
+  //Test successful read
+  map=fs_read_flat_map("test/benchmarks/msk_flat.fits",&nx,&ny,&lx,&ly,0);
+  ASSERT_EQUAL(NX_TEST,nx);
+  ASSERT_EQUAL(NY_TEST,ny);
+  ASSERT_DBL_NEAR_TOL(DX_TEST*NX_TEST*M_PI/180.,lx,1E-10);
+  ASSERT_DBL_NEAR_TOL(DY_TEST*NY_TEST*M_PI/180.,ly,1E-10);
+  ASSERT_NOT_NULL(map);
+  ASSERT_DBL_NEAR_TOL(0.,map[0],1E-10);
+  ASSERT_DBL_NEAR_TOL(6.064284705880828E-01,map[50  +nx*20    ],1E-10);
+  ASSERT_DBL_NEAR_TOL(9.999850684720466E-01,map[nx/2+nx*(ny/2)],1E-10);
+  free(map);
+}
+
 CTEST(nmt,fsk_synalm) {
   int ii;
   int nbpw=30;

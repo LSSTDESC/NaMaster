@@ -1,4 +1,5 @@
 #include "utils.h"
+#include <fitsio.h>
 
 void *dftw_malloc(size_t n)
 {
@@ -579,4 +580,59 @@ fcomplex **fs_synalm(int nx,int ny,flouble lx,flouble ly,int nmaps,
   gsl_set_error_handler(geh);
 
   return alms;
+}
+
+static void read_key(fitsfile *fptr,int dtype,char *key,void *val,int *status)
+{
+  fits_read_key(fptr,dtype,key,val,NULL,status);
+  if(*status)
+    report_error(1,"Key %s not found\n",key);
+}
+
+flouble *fs_read_flat_map(char *fname,int *nx,int *ny,flouble *lx,flouble *ly,int nfield)
+{
+  fitsfile *fptr;
+  int numhdu,hdutype,naxis,naxis1,naxis2;
+  double cdelt1,cdelt2;
+  flouble nulval=-999;
+  int status=0;
+
+  fits_open_file(&fptr,fname,READONLY,&status);
+  if(status)
+    report_error(1,"Can't open file %s\n",fname);
+  fits_get_num_hdus(fptr,&numhdu,&status);
+  if(nfield>=numhdu)
+    report_error(1,"%d-th field doesn't exist\n",nfield);
+  fits_movabs_hdu(fptr,nfield+1,&hdutype,&status);
+  if(hdutype!=IMAGE_HDU)
+    report_error(1,"Requested HDU is not an image\n");
+
+  //Read patch properties
+  read_key(fptr,TINT,"NAXIS",&naxis,&status);
+  read_key(fptr,TINT,"NAXIS1",&naxis1,&status);
+  read_key(fptr,TINT,"NAXIS2",&naxis2,&status);
+  read_key(fptr,TDOUBLE,"CDELT1",&cdelt1,&status);
+  read_key(fptr,TDOUBLE,"CDELT2",&cdelt2,&status);
+  if(naxis!=2)
+    report_error(1,"Can't find a two-dimensional map\n");
+  *nx=naxis1;
+  *ny=naxis2;
+  *lx=fabs(naxis1*cdelt1)*M_PI/180;
+  *ly=fabs(naxis2*cdelt2)*M_PI/180;
+
+  //Read data
+  long fpixel[2]={1,1}; 
+  flouble *map_out=my_malloc(naxis1*naxis2*sizeof(double));
+ 
+#ifdef _SPREC
+  fits_read_pix(fptr,TFLOAT,fpixel,naxis1*naxis2,&nulval,map_out,NULL,&status);
+#else //_SPREC
+  fits_read_pix(fptr,TDOUBLE,fpixel,naxis1*naxis2,&nulval,map_out,NULL,&status);
+#endif //_SPREC
+  if(status)
+    report_error(1,"Error reading image from file %s\n",fname);
+  
+  fits_close_file(fptr,&status);
+
+  return map_out;
 }
