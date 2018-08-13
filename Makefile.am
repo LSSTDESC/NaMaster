@@ -13,6 +13,6 @@ namaster_LDFLAGS = $(OPENMP_CFLAGS) -L./ -lnmt -lfftw3 -lfftw3_omp -lgsl -lgslcb
 
 noinst_PROGRAMS = test/check_nmt
 TESTS = test/check_nmt
-test_check_nmt_SOURCES = test/nmt_test.c test/nmt_test_utils.c test/nmt_test_fsk.c test/nmt_test_hpex.c test/nmt_test_bins.c test/nmt_test_field.c test/nmt_test_master.c test/nmt_test_bins_flat.c test/nmt_test_field_flat.c test/nmt_test_mask.c
+test_check_nmt_SOURCES = test/nmt_test.c test/nmt_test_utils.c test/nmt_test_fsk.c test/nmt_test_hpex.c test/nmt_test_bins.c test/nmt_test_field.c test/nmt_test_master.c test/nmt_test_bins_flat.c test/nmt_test_field_flat.c test/nmt_test_master_flat.c test/nmt_test_mask.c
 test_check_nmt_CPPFLAGS = $(OPENMP_CFLAGS) -I./test/ -I./src/
 test_check_nmt_LDFLAGS = $(OPENP_CFLAGS) -L./ -lnmt -lfftw3 -lfftw3_omp -lgsl -lgslcblas -lcfitsio -lsharp -lfftpack -lc_utils -lm 

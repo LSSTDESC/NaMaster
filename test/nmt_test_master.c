@@ -3,7 +3,7 @@
 #include "utils.h"
 #include "nmt_test_utils.h"
 
-CTEST_SKIP(nmt,master_bias_uncorr) {
+CTEST(nmt,master_bias_uncorr) {
   //Generate fields and compute coupling matrix
   int ii,im1,ll;
   double prefac,f_fac;
@@ -109,7 +109,7 @@ CTEST_SKIP(nmt,master_bias_uncorr) {
   free(mp_dum);
 }
 
-CTEST_SKIP(nmt,master_22_full) {
+CTEST(nmt,master_22_full) {
   //Generate fields and compute coupling matrix
   int ii;
   long nside,ipix;
@@ -209,6 +209,7 @@ CTEST_SKIP(nmt,master_22_full) {
   }
   free(cell); free(cell_noise); free(cell_signal); free(cell_deproj); free(cell_out);
 
+  nmt_bins_free(bin);
   for(ii=0;ii<2;ii++) {
     free(tmp2[ii]);
     free(mps2[ii]);
@@ -218,7 +219,7 @@ CTEST_SKIP(nmt,master_22_full) {
   free(msk);
 }
 
-CTEST_SKIP(nmt,master_02_full) {
+CTEST(nmt,master_02_full) {
   //Generate fields and compute coupling matrix
   int ii;
   long nside,ipix;
@@ -330,6 +331,7 @@ CTEST_SKIP(nmt,master_02_full) {
   }
   free(cell); free(cell_noise); free(cell_signal); free(cell_deproj); free(cell_out);
 
+  nmt_bins_free(bin);
   for(ii=0;ii<2;ii++) {
     free(tmp2[ii]);
     free(mps2[ii]);
@@ -343,7 +345,7 @@ CTEST_SKIP(nmt,master_02_full) {
   free(msk);
 }
 
-CTEST_SKIP(nmt,master_00_full) {
+CTEST(nmt,master_00_full) {
   //Generate fields and compute coupling matrix
   int ii;
   long nside,ipix;
@@ -417,13 +419,14 @@ CTEST_SKIP(nmt,master_00_full) {
   }
   free(cell); free(cell_noise); free(cell_signal); free(cell_deproj); free(cell_out);
 
+  nmt_bins_free(bin);
   free(tmp[0]);
   free(mps);
   free(tmp);
   free(msk);
 }
 
-CTEST_SKIP(nmt,master_errors) {
+CTEST(nmt,master_errors) {
   long nside;
   double *mpt=he_read_healpix_map("test/benchmarks/mps.fits",&nside,0);
   double *msk=he_read_healpix_map("test/benchmarks/msk.fits",&nside,0);
