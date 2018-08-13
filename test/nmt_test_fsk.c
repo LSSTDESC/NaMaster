@@ -4,7 +4,7 @@
 #include "nmt_test_utils.h"
 #include <chealpix.h>
 
-CTEST_SKIP(nmt,fsk_read_bad) {
+CTEST(nmt,fsk_read_bad) {
   int nx,ny;
   flouble lx,ly;
   flouble *map;
@@ -33,7 +33,7 @@ CTEST_SKIP(nmt,fsk_read_bad) {
   set_error_policy(EXIT_ON_ERROR);
 }
 
-CTEST_SKIP(nmt,fsk_read_good) {
+CTEST(nmt,fsk_read_good) {
   int nx,ny;
   flouble lx,ly;
   flouble *map;
@@ -51,7 +51,7 @@ CTEST_SKIP(nmt,fsk_read_good) {
   free(map);
 }
 
-CTEST_SKIP(nmt,fsk_synalm) {
+CTEST(nmt,fsk_synalm) {
   int ii;
   int nbpw=30;
   int nmaps=2;
@@ -150,7 +150,7 @@ CTEST_SKIP(nmt,fsk_synalm) {
   free(larr);
 }
 
-CTEST_SKIP(nmt,fsk_cls) {
+CTEST(nmt,fsk_cls) {
   int ii;
   int nmaps=34;
   int nbpw=10;
@@ -259,7 +259,7 @@ CTEST_SKIP(nmt,fsk_cls) {
   nmt_flatsky_info_free(fsk);
 }
 
-CTEST_SKIP(nmt,fsk_fft) {
+CTEST(nmt,fsk_fft) {
   int ii;
   int nmaps=34;
   nmt_flatsky_info *fsk=nmt_flatsky_info_alloc(141,311,M_PI/180,M_PI/180);
@@ -360,7 +360,7 @@ CTEST_SKIP(nmt,fsk_fft) {
   nmt_flatsky_info_free(fsk);
 }
 
-CTEST_SKIP(nmt,fsk_fft_malloc) {
+CTEST(nmt,fsk_fft_malloc) {
   set_error_policy(THROW_ON_ERROR);
 
   printf("\nError messages expected: \n");
@@ -374,14 +374,14 @@ CTEST_SKIP(nmt,fsk_fft_malloc) {
   set_error_policy(EXIT_ON_ERROR);
 }
 
-CTEST_SKIP(nmt,fsk_info) {
+CTEST(nmt,fsk_info) {
   nmt_flatsky_info *fsk=nmt_flatsky_info_alloc(100,100,M_PI/180,M_PI/180);
   ASSERT_EQUAL(10000,fsk->npix);
   ASSERT_EQUAL(pow(M_PI/180,2)/10000,fsk->pixsize);
   nmt_flatsky_info_free(fsk);
 }
   
-CTEST_SKIP(nmt,fsk_algb) {
+CTEST(nmt,fsk_algb) {
   int ii;
   nmt_flatsky_info *fsk=nmt_flatsky_info_alloc(100,100,M_PI/180,M_PI/180);
   double *mp1=my_malloc(fsk->npix*sizeof(double));
@@ -414,7 +414,7 @@ static double fk(double k)
   return 100./(k+100.);
 }
 
-CTEST_SKIP(nmt,fsk_func) {
+CTEST(nmt,fsk_func) {
   int l;
   long lmax=2000;
   double *karr=my_malloc((lmax+1)*sizeof(double));

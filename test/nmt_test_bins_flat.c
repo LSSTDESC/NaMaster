@@ -3,7 +3,7 @@
 #include "utils.h"
 #include "nmt_test_utils.h"
 
-CTEST_SKIP(nmt,bins_flat_search) {
+CTEST(nmt,bins_flat_search) {
   int ii;
   int lmax=2000,nlb=5;
   nmt_binning_scheme_flat *bin=nmt_bins_flat_constant(nlb,lmax);
@@ -27,7 +27,7 @@ CTEST_SKIP(nmt,bins_flat_search) {
   nmt_bins_flat_free(bin);
 }
 
-CTEST_SKIP(nmt,bins_flat_alloc) {
+CTEST(nmt,bins_flat_alloc) {
   int ii;
   nmt_binning_scheme_flat *b_a;
   nmt_binning_scheme_flat *b_b=nmt_bins_flat_constant(5,2000);
@@ -53,7 +53,7 @@ CTEST_SKIP(nmt,bins_flat_alloc) {
   nmt_bins_flat_free(b_a);
 }
 
-CTEST_SKIP(nmt,bins_flat_binning) {
+CTEST(nmt,bins_flat_binning) {
   int ii;
   int lmax=2000;
   double *cl=my_malloc((lmax+1)*sizeof(double));

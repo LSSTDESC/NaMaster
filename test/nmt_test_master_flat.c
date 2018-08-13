@@ -3,7 +3,7 @@
 #include "utils.h"
 #include "nmt_test_utils.h"
 
-CTEST_SKIP(nmt,master_22_flat_full) {
+CTEST(nmt,master_22_flat_full) {
   //Generate fields and compute coupling matrix
   int ii,nx,ny;
   double lx,ly;
@@ -148,7 +148,7 @@ CTEST_SKIP(nmt,master_22_flat_full) {
   free(msk);
 }
 
-CTEST_SKIP(nmt,master_02_flat_full) {
+CTEST(nmt,master_02_flat_full) {
   //Generate fields and compute coupling matrix
   int ii,nx,ny;
   double lx,ly;
@@ -321,7 +321,7 @@ CTEST_SKIP(nmt,master_02_flat_full) {
   free(msk);
 }
 
-CTEST_SKIP(nmt,master_00_flat_full) {
+CTEST(nmt,master_00_flat_full) {
   //Generate fields and compute coupling matrix
   int ii,nx,ny;
   double lx,ly;
@@ -427,7 +427,7 @@ CTEST_SKIP(nmt,master_00_flat_full) {
   free(msk);
 }
 
-CTEST_SKIP(nmt,master_flat_errors) {
+CTEST(nmt,master_flat_errors) {
   int ii,nx,ny;
   double lx,ly;
   nmt_binning_scheme_flat *bin;

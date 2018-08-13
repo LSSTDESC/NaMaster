@@ -27,13 +27,13 @@ nmt_covar_workspace_flat *nmt_covar_workspace_flat_init(nmt_workspace_flat *wa,n
 {
   int ii;
   
-  if((wa->fs->nx!=wb->fs->nx) || (wa->fs->ny!=wa->fs->ny))
+  if((wa->fs->nx!=wb->fs->nx) || (wa->fs->ny!=wb->fs->ny))
     report_error(1,"Can't compute covariance for fields with different resolutions\n");
   nmt_flatsky_info *fs=wa->fs;
   if((wa->ncls!=1) || (wb->ncls!=1))
     report_error(1,"Gaussian covariance only implemented for spin-0 fields\n");
   if(wa->bin->n_bands!=wb->bin->n_bands)
-    report_error(1,"Can't compute covariance for different binning schemes");
+    report_error(1,"Can't compute covariance for different binning schemes\n");
 
   nmt_covar_workspace_flat *cw=my_malloc(sizeof(nmt_covar_workspace_flat));
 
@@ -317,8 +317,8 @@ void nmt_covar_workspace_flat_write(nmt_covar_workspace_flat *cw,char *fname)
     my_fwrite(cw->xi_1221[ii],sizeof(flouble),cw->ncls_b*cw->bin->n_bands,fo);
 
   gsl_matrix_fwrite(fo,cw->coupling_binned_a);
-  gsl_matrix_fwrite(fo,cw->coupling_binned_b);
   gsl_permutation_fwrite(fo,cw->coupling_binned_perm_a);
+  gsl_matrix_fwrite(fo,cw->coupling_binned_b);
   gsl_permutation_fwrite(fo,cw->coupling_binned_perm_b);
   
   fclose(fo);
@@ -352,12 +352,12 @@ nmt_covar_workspace_flat *nmt_covar_workspace_flat_read(char *fname)
   }
 
   cw->coupling_binned_a=gsl_matrix_alloc(cw->ncls_a*cw->bin->n_bands,cw->ncls_a*cw->bin->n_bands);
-  gsl_matrix_fread(fi,cw->coupling_binned_a);
-  cw->coupling_binned_b=gsl_matrix_alloc(cw->ncls_b*cw->bin->n_bands,cw->ncls_b*cw->bin->n_bands);
-  gsl_matrix_fread(fi,cw->coupling_binned_b);
   cw->coupling_binned_perm_a=gsl_permutation_alloc(cw->ncls_a*cw->bin->n_bands);
+  gsl_matrix_fread(fi,cw->coupling_binned_a);
   gsl_permutation_fread(fi,cw->coupling_binned_perm_a);
+  cw->coupling_binned_b=gsl_matrix_alloc(cw->ncls_b*cw->bin->n_bands,cw->ncls_b*cw->bin->n_bands);
   cw->coupling_binned_perm_b=gsl_permutation_alloc(cw->ncls_b*cw->bin->n_bands);
+  gsl_matrix_fread(fi,cw->coupling_binned_b);
   gsl_permutation_fread(fi,cw->coupling_binned_perm_b);
 
   fclose(fi);
