@@ -72,6 +72,10 @@ prefix='bm_f_nc_np'
 f0=nmt.NmtFieldFlat(lx,ly,msk,[dt])
 f2=nmt.NmtFieldFlat(lx,ly,msk,[dq,du])
 w00=nmt.NmtWorkspaceFlat(); w00.compute_coupling_matrix(f0,f0,b);
+cw00=nmt.NmtCovarianceWorkspaceFlat(); cw00.compute_coupling_coefficients(w00,w00);
+cw00.write_to(prefix+'_cw00.dat')
+cov=nmt.gaussian_covariance_flat(cw00,l,cltt+nltt,cltt+nltt,cltt+nltt,cltt+nltt);
+np.savetxt(prefix+"_cov.txt",cov)
 clb00=w00.couple_cell(l,np.array([nltt]))
 c00=w00.decouple_cell(nmt.compute_coupled_cell_flat(f0,f0,b),cl_bias=clb00)
 w00.write_to(prefix+'_w00.dat')
@@ -159,7 +163,6 @@ c22=w22.decouple_cell(nmt.compute_coupled_cell_flat(f2,f2,b),cl_bias=clb22)
 w22.write_to(prefix+'_w22.dat')
 np.savetxt(prefix+'_c22.txt',np.transpose([leff,c22[0],c22[1],c22[2],c22[3]]));
 
-
 def getmaskapoana(ns,aps,fsk=0.1,dec0=-50,ra0=0.) :
     """
     Generates a correctly-apodized mask
@@ -207,6 +210,10 @@ prefix='bm_nc_np'
 f0=nmt.NmtField(mask,[dl])
 f2=nmt.NmtField(mask,[dw_q,dw_u])
 w00=nmt.NmtWorkspace(); w00.compute_coupling_matrix(f0,f0,b);
+cw00=nmt.NmtCovarianceWorkspace(); cw00.compute_coupling_coefficients(w00,w00);
+cw00.write_to(prefix+'_cw00.dat')
+cov=nmt.gaussian_covariance(cw00,(cltt+nltt)[:3*nside_out],(cltt+nltt)[:3*nside_out],(cltt+nltt)[:3*nside_out],(cltt+nltt)[:3*nside_out])
+np.savetxt(prefix+"_cov.txt",cov)
 clb00=np.array([nltt[:3*nside_out]])
 c00=w00.decouple_cell(nmt.compute_coupled_cell(f0,f0),cl_bias=clb00)
 w00.write_to(prefix+'_w00.dat')

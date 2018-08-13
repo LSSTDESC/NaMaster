@@ -35,6 +35,7 @@ nmt_covar_workspace *nmt_covar_workspace_init(nmt_workspace *wa,nmt_workspace *w
   flouble *mask_a2b1=my_malloc(npix*sizeof(flouble));
   flouble *mask_a2b2=my_malloc(npix*sizeof(flouble));
 
+  cw->nside=wa->nside;
   cw->lmax_a=wa->lmax;
   cw->lmax_b=wb->lmax;
   cw->ncls_a=wa->ncls;
@@ -220,9 +221,16 @@ void nmt_covar_workspace_write(nmt_covar_workspace *cw,char *fname)
     my_fwrite(cw->bin_a->w_list[ii],sizeof(flouble),cw->bin_a->nell_list[ii],fo);
   }
 
+  my_fwrite(&(cw->bin_b->n_bands),sizeof(int),1,fo);
+  my_fwrite(cw->bin_b->nell_list,sizeof(int),cw->bin_b->n_bands,fo);
+  for(ii=0;ii<cw->bin_b->n_bands;ii++) {
+    my_fwrite(cw->bin_b->ell_list[ii],sizeof(int),cw->bin_b->nell_list[ii],fo);
+    my_fwrite(cw->bin_b->w_list[ii],sizeof(flouble),cw->bin_b->nell_list[ii],fo);
+  }
+
   gsl_matrix_fwrite(fo,cw->coupling_binned_a);
-  gsl_matrix_fwrite(fo,cw->coupling_binned_b);
   gsl_permutation_fwrite(fo,cw->coupling_binned_perm_a);
+  gsl_matrix_fwrite(fo,cw->coupling_binned_b);
   gsl_permutation_fwrite(fo,cw->coupling_binned_perm_b);
   
   fclose(fo);

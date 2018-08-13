@@ -3,14 +3,14 @@
 #include "utils.h"
 #include "nmt_test_utils.h"
 
-CTEST(nmt,bins_constant) {
+CTEST_SKIP(nmt,bins_constant) {
   nmt_binning_scheme *bin=nmt_bins_constant(4,2000);
   ASSERT_EQUAL(bin->n_bands,499);
   ASSERT_EQUAL(bin->ell_list[5][2],2+4*5+2);
   nmt_bins_free(bin);
 }
 
-CTEST(nmt,bins_variable) {
+CTEST_SKIP(nmt,bins_variable) {
   int i,j;
   nmt_binning_scheme *bin=nmt_bins_constant(4,2000);
   int *ells=test_get_sequence(2,1998);
@@ -49,7 +49,7 @@ CTEST(nmt,bins_variable) {
   nmt_bins_free(bin);
 }
 
-CTEST(nmt,bins_read) {
+CTEST_SKIP(nmt,bins_read) {
   set_error_policy(THROW_ON_ERROR);
   printf("\nError messages expected: \n");
 
@@ -64,7 +64,7 @@ CTEST(nmt,bins_read) {
   nmt_bins_free(b);
 }
 
-CTEST(nmt,bins_binning) {
+CTEST_SKIP(nmt,bins_binning) {
   int i,nside=256;
   int lmax=3*nside-1;
   double *cls=my_malloc((lmax+1)*sizeof(double));
