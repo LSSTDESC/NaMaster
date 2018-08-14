@@ -127,10 +127,12 @@ class NmtBinFlat(object) :
     :param array-like lf: array of floats corresponding to the upper bound of each bandpower. lf should have the same shape as l0
     """
     def __init__(self,l0,lf) :
+        self.bin=None
         self.bin=lib.bins_flat_create_py(l0,lf)
 
     def __del__(self) :
-        lib.bins_flat_free(self.bin)
+        if self.bin is not None :
+            lib.bins_flat_free(self.bin)
 
     def get_n_bands(self) :
         """
