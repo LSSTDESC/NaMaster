@@ -7,8 +7,10 @@
 %}
 
 %include "numpy.i"
+%include "exception.i"
 %init %{
   import_array();
+  set_error_policy(THROW_ON_ERROR);
 %}
 
 %rename("%(strip:[nmt_])s") "";
@@ -31,6 +33,16 @@
                                               (int ncl2  ,int nell2 ,double *cls2),
                                               (int ncl3  ,int nell3 ,double *cls3)};
 %apply (int DIM1,int DIM2,int DIM3,double *IN_ARRAY3) {(int ntmp_3,int nmap_3,int npix_3,double *tmp)};
+
+%exception {
+  try {
+    $action
+      }
+  catch(1) {
+    SWIG_exception(SWIG_ValueError, "Range Error");
+  }
+ }
+
 
 %inline %{
 void get_nell_list(nmt_binning_scheme *bins,int *iout,int niout)
