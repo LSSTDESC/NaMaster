@@ -38,8 +38,8 @@
   try {
     $action
       }
-  catch(1) {
-    SWIG_exception(SWIG_ValueError, "Range Error");
+  finally {
+    SWIG_exception(SWIG_RuntimeError, "C-level error");
   }
  }
 
@@ -776,14 +776,3 @@ void comp_pspec_flat(nmt_field_flat *fl1,nmt_field_flat *fl2,
     nmt_workspace_flat_free(w);
 }
 %}
-
-/*
-%extend nmt_binning_scheme {
-  void print_bins() {
-    printf("%d\n",$self->n_bands);
-  }
-  int get_nbands() {
-    return $self->n_bands;
-  }
- };
-*/

@@ -17,6 +17,19 @@ extern int error_policy;
 #define catch(val) else if (exception_status == val)
 #define throw(val) longjmp(exception_buffer,val)
 #define finally else
+
+#define NMT_ERROR_MEMORY 1001
+#define NMT_ERROR_FOPEN 1002
+#define NMT_ERROR_WRITE 1003
+#define NMT_ERROR_READ 1004
+#define NMT_ERROR_WIG3J 1005
+#define NMT_ERROR_PINV 1006
+#define NMT_ERROR_BWEIGHT 1007
+#define NMT_ERROR_COVAR 1008
+#define NMT_ERROR_CONSISTENT_RESO 1009
+#define NMT_ERROR_BADNO 1010
+#define NMT_ERROR_APO 1011
+#define NMT_ERROR_HPX 1012
 #endif //NO_DOXY
 
 /**

@@ -206,10 +206,8 @@ CTEST(nmt,field_read) {
   f=NULL;
   //Check that an error is thrown if file is wrong
   set_error_policy(THROW_ON_ERROR);
-  printf("\nError messages expected: \n");
   try { f=nmt_field_read("test/mask.fits","test/maps.fits","test/maps.fits","none",1,0,0,3,1E-10); }
-  catch(1) {}
-  ASSERT_EQUAL(1,exception_status);
+  ASSERT_NOT_EQUAL(0,exception_status);
   ASSERT_NULL(f);
   set_error_policy(EXIT_ON_ERROR);
 }

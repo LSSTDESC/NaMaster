@@ -4702,8 +4702,8 @@ SWIGINTERN PyObject *_wrap_new_binning_scheme_flat(PyObject *SWIGUNUSEDPARM(self
     try {
       result = (nmt_binning_scheme_flat *)calloc(1, sizeof(nmt_binning_scheme_flat));
     }
-    catch(1) {
-      SWIG_exception(SWIG_ValueError, "Range Error");
+    finally {
+      SWIG_exception(SWIG_RuntimeError, "C-level error");
     }
   }
   resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_nmt_binning_scheme_flat, SWIG_POINTER_NEW |  0 );
@@ -4730,8 +4730,8 @@ SWIGINTERN PyObject *_wrap_delete_binning_scheme_flat(PyObject *SWIGUNUSEDPARM(s
     try {
       free((char *) arg1);
     }
-    catch(1) {
-      SWIG_exception(SWIG_ValueError, "Range Error");
+    finally {
+      SWIG_exception(SWIG_RuntimeError, "C-level error");
     }
   }
   resultobj = SWIG_Py_Void();
@@ -5311,8 +5311,8 @@ SWIGINTERN PyObject *_wrap_new_binning_scheme(PyObject *SWIGUNUSEDPARM(self), Py
     try {
       result = (nmt_binning_scheme *)calloc(1, sizeof(nmt_binning_scheme));
     }
-    catch(1) {
-      SWIG_exception(SWIG_ValueError, "Range Error");
+    finally {
+      SWIG_exception(SWIG_RuntimeError, "C-level error");
     }
   }
   resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_nmt_binning_scheme, SWIG_POINTER_NEW |  0 );
@@ -5339,8 +5339,8 @@ SWIGINTERN PyObject *_wrap_delete_binning_scheme(PyObject *SWIGUNUSEDPARM(self),
     try {
       free((char *) arg1);
     }
-    catch(1) {
-      SWIG_exception(SWIG_ValueError, "Range Error");
+    finally {
+      SWIG_exception(SWIG_RuntimeError, "C-level error");
     }
   }
   resultobj = SWIG_Py_Void();
@@ -5948,8 +5948,8 @@ SWIGINTERN PyObject *_wrap_new_k_function(PyObject *SWIGUNUSEDPARM(self), PyObje
     try {
       result = (nmt_k_function *)calloc(1, sizeof(nmt_k_function));
     }
-    catch(1) {
-      SWIG_exception(SWIG_ValueError, "Range Error");
+    finally {
+      SWIG_exception(SWIG_RuntimeError, "C-level error");
     }
   }
   resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_nmt_k_function, SWIG_POINTER_NEW |  0 );
@@ -5976,8 +5976,8 @@ SWIGINTERN PyObject *_wrap_delete_k_function(PyObject *SWIGUNUSEDPARM(self), PyO
     try {
       free((char *) arg1);
     }
-    catch(1) {
-      SWIG_exception(SWIG_ValueError, "Range Error");
+    finally {
+      SWIG_exception(SWIG_RuntimeError, "C-level error");
     }
   }
   resultobj = SWIG_Py_Void();
@@ -6651,8 +6651,8 @@ SWIGINTERN PyObject *_wrap_new_flatsky_info(PyObject *SWIGUNUSEDPARM(self), PyOb
     try {
       result = (nmt_flatsky_info *)calloc(1, sizeof(nmt_flatsky_info));
     }
-    catch(1) {
-      SWIG_exception(SWIG_ValueError, "Range Error");
+    finally {
+      SWIG_exception(SWIG_RuntimeError, "C-level error");
     }
   }
   resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_nmt_flatsky_info, SWIG_POINTER_NEW |  0 );
@@ -6679,8 +6679,8 @@ SWIGINTERN PyObject *_wrap_delete_flatsky_info(PyObject *SWIGUNUSEDPARM(self), P
     try {
       free((char *) arg1);
     }
-    catch(1) {
-      SWIG_exception(SWIG_ValueError, "Range Error");
+    finally {
+      SWIG_exception(SWIG_RuntimeError, "C-level error");
     }
   }
   resultobj = SWIG_Py_Void();
@@ -7556,8 +7556,8 @@ SWIGINTERN PyObject *_wrap_new_field_flat(PyObject *SWIGUNUSEDPARM(self), PyObje
     try {
       result = (nmt_field_flat *)calloc(1, sizeof(nmt_field_flat));
     }
-    catch(1) {
-      SWIG_exception(SWIG_ValueError, "Range Error");
+    finally {
+      SWIG_exception(SWIG_RuntimeError, "C-level error");
     }
   }
   resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_nmt_field_flat, SWIG_POINTER_NEW |  0 );
@@ -7584,8 +7584,8 @@ SWIGINTERN PyObject *_wrap_delete_field_flat(PyObject *SWIGUNUSEDPARM(self), PyO
     try {
       free((char *) arg1);
     }
-    catch(1) {
-      SWIG_exception(SWIG_ValueError, "Range Error");
+    finally {
+      SWIG_exception(SWIG_RuntimeError, "C-level error");
     }
   }
   resultobj = SWIG_Py_Void();
@@ -8808,8 +8808,8 @@ SWIGINTERN PyObject *_wrap_new_field(PyObject *SWIGUNUSEDPARM(self), PyObject *a
     try {
       result = (nmt_field *)calloc(1, sizeof(nmt_field));
     }
-    catch(1) {
-      SWIG_exception(SWIG_ValueError, "Range Error");
+    finally {
+      SWIG_exception(SWIG_RuntimeError, "C-level error");
     }
   }
   resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_nmt_field, SWIG_POINTER_NEW |  0 );
@@ -8836,8 +8836,8 @@ SWIGINTERN PyObject *_wrap_delete_field(PyObject *SWIGUNUSEDPARM(self), PyObject
     try {
       free((char *) arg1);
     }
-    catch(1) {
-      SWIG_exception(SWIG_ValueError, "Range Error");
+    finally {
+      SWIG_exception(SWIG_RuntimeError, "C-level error");
     }
   }
   resultobj = SWIG_Py_Void();
@@ -10289,8 +10289,8 @@ SWIGINTERN PyObject *_wrap_new_workspace_flat(PyObject *SWIGUNUSEDPARM(self), Py
     try {
       result = (nmt_workspace_flat *)calloc(1, sizeof(nmt_workspace_flat));
     }
-    catch(1) {
-      SWIG_exception(SWIG_ValueError, "Range Error");
+    finally {
+      SWIG_exception(SWIG_RuntimeError, "C-level error");
     }
   }
   resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_nmt_workspace_flat, SWIG_POINTER_NEW |  0 );
@@ -10317,8 +10317,8 @@ SWIGINTERN PyObject *_wrap_delete_workspace_flat(PyObject *SWIGUNUSEDPARM(self),
     try {
       free((char *) arg1);
     }
-    catch(1) {
-      SWIG_exception(SWIG_ValueError, "Range Error");
+    finally {
+      SWIG_exception(SWIG_RuntimeError, "C-level error");
     }
   }
   resultobj = SWIG_Py_Void();
@@ -11515,8 +11515,8 @@ SWIGINTERN PyObject *_wrap_new_workspace(PyObject *SWIGUNUSEDPARM(self), PyObjec
     try {
       result = (nmt_workspace *)calloc(1, sizeof(nmt_workspace));
     }
-    catch(1) {
-      SWIG_exception(SWIG_ValueError, "Range Error");
+    finally {
+      SWIG_exception(SWIG_RuntimeError, "C-level error");
     }
   }
   resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_nmt_workspace, SWIG_POINTER_NEW |  0 );
@@ -11543,8 +11543,8 @@ SWIGINTERN PyObject *_wrap_delete_workspace(PyObject *SWIGUNUSEDPARM(self), PyOb
     try {
       free((char *) arg1);
     }
-    catch(1) {
-      SWIG_exception(SWIG_ValueError, "Range Error");
+    finally {
+      SWIG_exception(SWIG_RuntimeError, "C-level error");
     }
   }
   resultobj = SWIG_Py_Void();
@@ -12455,8 +12455,8 @@ SWIGINTERN PyObject *_wrap_new_covar_workspace_flat(PyObject *SWIGUNUSEDPARM(sel
     try {
       result = (nmt_covar_workspace_flat *)calloc(1, sizeof(nmt_covar_workspace_flat));
     }
-    catch(1) {
-      SWIG_exception(SWIG_ValueError, "Range Error");
+    finally {
+      SWIG_exception(SWIG_RuntimeError, "C-level error");
     }
   }
   resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_nmt_covar_workspace_flat, SWIG_POINTER_NEW |  0 );
@@ -12483,8 +12483,8 @@ SWIGINTERN PyObject *_wrap_delete_covar_workspace_flat(PyObject *SWIGUNUSEDPARM(
     try {
       free((char *) arg1);
     }
-    catch(1) {
-      SWIG_exception(SWIG_ValueError, "Range Error");
+    finally {
+      SWIG_exception(SWIG_RuntimeError, "C-level error");
     }
   }
   resultobj = SWIG_Py_Void();
@@ -13380,8 +13380,8 @@ SWIGINTERN PyObject *_wrap_new_covar_workspace(PyObject *SWIGUNUSEDPARM(self), P
     try {
       result = (nmt_covar_workspace *)calloc(1, sizeof(nmt_covar_workspace));
     }
-    catch(1) {
-      SWIG_exception(SWIG_ValueError, "Range Error");
+    finally {
+      SWIG_exception(SWIG_RuntimeError, "C-level error");
     }
   }
   resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_nmt_covar_workspace, SWIG_POINTER_NEW |  0 );
@@ -13408,8 +13408,8 @@ SWIGINTERN PyObject *_wrap_delete_covar_workspace(PyObject *SWIGUNUSEDPARM(self)
     try {
       free((char *) arg1);
     }
-    catch(1) {
-      SWIG_exception(SWIG_ValueError, "Range Error");
+    finally {
+      SWIG_exception(SWIG_RuntimeError, "C-level error");
     }
   }
   resultobj = SWIG_Py_Void();
@@ -13639,8 +13639,8 @@ SWIGINTERN PyObject *_wrap_get_nell_list(PyObject *SWIGUNUSEDPARM(self), PyObjec
     try {
       get_nell_list(arg1,arg2,arg3);
     }
-    catch(1) {
-      SWIG_exception(SWIG_ValueError, "Range Error");
+    finally {
+      SWIG_exception(SWIG_RuntimeError, "C-level error");
     }
   }
   resultobj = SWIG_Py_Void();
@@ -13680,8 +13680,8 @@ SWIGINTERN PyObject *_wrap_get_nell(PyObject *SWIGUNUSEDPARM(self), PyObject *ar
     try {
       result = (int)get_nell(arg1,arg2);
     }
-    catch(1) {
-      SWIG_exception(SWIG_ValueError, "Range Error");
+    finally {
+      SWIG_exception(SWIG_RuntimeError, "C-level error");
     }
   }
   resultobj = SWIG_From_int((int)(result));
@@ -13737,8 +13737,8 @@ SWIGINTERN PyObject *_wrap_get_ell_list(PyObject *SWIGUNUSEDPARM(self), PyObject
     try {
       get_ell_list(arg1,arg2,arg3,arg4);
     }
-    catch(1) {
-      SWIG_exception(SWIG_ValueError, "Range Error");
+    finally {
+      SWIG_exception(SWIG_RuntimeError, "C-level error");
     }
   }
   resultobj = SWIG_Py_Void();
@@ -13797,8 +13797,8 @@ SWIGINTERN PyObject *_wrap_get_weight_list(PyObject *SWIGUNUSEDPARM(self), PyObj
     try {
       get_weight_list(arg1,arg2,arg3,arg4);
     }
-    catch(1) {
-      SWIG_exception(SWIG_ValueError, "Range Error");
+    finally {
+      SWIG_exception(SWIG_RuntimeError, "C-level error");
     }
   }
   resultobj = SWIG_Py_Void();
@@ -13848,8 +13848,8 @@ SWIGINTERN PyObject *_wrap_get_ell_eff(PyObject *SWIGUNUSEDPARM(self), PyObject 
     try {
       get_ell_eff(arg1,arg2,arg3);
     }
-    catch(1) {
-      SWIG_exception(SWIG_ValueError, "Range Error");
+    finally {
+      SWIG_exception(SWIG_RuntimeError, "C-level error");
     }
   }
   resultobj = SWIG_Py_Void();
@@ -13899,8 +13899,8 @@ SWIGINTERN PyObject *_wrap_get_ell_eff_flat(PyObject *SWIGUNUSEDPARM(self), PyOb
     try {
       get_ell_eff_flat(arg1,arg2,arg3);
     }
-    catch(1) {
-      SWIG_exception(SWIG_ValueError, "Range Error");
+    finally {
+      SWIG_exception(SWIG_RuntimeError, "C-level error");
     }
   }
   resultobj = SWIG_Py_Void();
@@ -13982,8 +13982,8 @@ SWIGINTERN PyObject *_wrap_bins_create_py(PyObject *SWIGUNUSEDPARM(self), PyObje
     try {
       result = (nmt_binning_scheme *)bins_create_py(arg1,arg2,arg3,arg4,arg5,arg6,arg7);
     }
-    catch(1) {
-      SWIG_exception(SWIG_ValueError, "Range Error");
+    finally {
+      SWIG_exception(SWIG_RuntimeError, "C-level error");
     }
   }
   resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_nmt_binning_scheme, 0 |  0 );
@@ -14072,8 +14072,8 @@ SWIGINTERN PyObject *_wrap_bins_flat_create_py(PyObject *SWIGUNUSEDPARM(self), P
     try {
       result = (nmt_binning_scheme_flat *)bins_flat_create_py(arg1,arg2,arg3,arg4);
     }
-    catch(1) {
-      SWIG_exception(SWIG_ValueError, "Range Error");
+    finally {
+      SWIG_exception(SWIG_RuntimeError, "C-level error");
     }
   }
   resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_nmt_binning_scheme_flat, 0 |  0 );
@@ -14163,8 +14163,8 @@ SWIGINTERN PyObject *_wrap_bin_cl(PyObject *SWIGUNUSEDPARM(self), PyObject *args
     try {
       bin_cl(arg1,arg2,arg3,arg4,arg5,arg6);
     }
-    catch(1) {
-      SWIG_exception(SWIG_ValueError, "Range Error");
+    finally {
+      SWIG_exception(SWIG_RuntimeError, "C-level error");
     }
   }
   resultobj = SWIG_Py_Void();
@@ -14262,8 +14262,8 @@ SWIGINTERN PyObject *_wrap_bin_cl_flat(PyObject *SWIGUNUSEDPARM(self), PyObject 
     try {
       bin_cl_flat(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8);
     }
-    catch(1) {
-      SWIG_exception(SWIG_ValueError, "Range Error");
+    finally {
+      SWIG_exception(SWIG_RuntimeError, "C-level error");
     }
   }
   resultobj = SWIG_Py_Void();
@@ -14356,8 +14356,8 @@ SWIGINTERN PyObject *_wrap_unbin_cl(PyObject *SWIGUNUSEDPARM(self), PyObject *ar
     try {
       unbin_cl(arg1,arg2,arg3,arg4,arg5,arg6);
     }
-    catch(1) {
-      SWIG_exception(SWIG_ValueError, "Range Error");
+    finally {
+      SWIG_exception(SWIG_RuntimeError, "C-level error");
     }
   }
   resultobj = SWIG_Py_Void();
@@ -14455,8 +14455,8 @@ SWIGINTERN PyObject *_wrap_unbin_cl_flat(PyObject *SWIGUNUSEDPARM(self), PyObjec
     try {
       unbin_cl_flat(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8);
     }
-    catch(1) {
-      SWIG_exception(SWIG_ValueError, "Range Error");
+    finally {
+      SWIG_exception(SWIG_RuntimeError, "C-level error");
     }
   }
   resultobj = SWIG_Py_Void();
@@ -14611,8 +14611,8 @@ SWIGINTERN PyObject *_wrap_field_alloc_new(PyObject *SWIGUNUSEDPARM(self), PyObj
     try {
       result = (nmt_field *)field_alloc_new(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13,arg14,arg15);
     }
-    catch(1) {
-      SWIG_exception(SWIG_ValueError, "Range Error");
+    finally {
+      SWIG_exception(SWIG_RuntimeError, "C-level error");
     }
   }
   resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_nmt_field, 0 |  0 );
@@ -14759,8 +14759,8 @@ SWIGINTERN PyObject *_wrap_field_alloc_new_notemp(PyObject *SWIGUNUSEDPARM(self)
     try {
       result = (nmt_field *)field_alloc_new_notemp(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10);
     }
-    catch(1) {
-      SWIG_exception(SWIG_ValueError, "Range Error");
+    finally {
+      SWIG_exception(SWIG_RuntimeError, "C-level error");
     }
   }
   resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_nmt_field, 0 |  0 );
@@ -14953,8 +14953,8 @@ SWIGINTERN PyObject *_wrap_field_alloc_new_flat(PyObject *SWIGUNUSEDPARM(self), 
     try {
       result = (nmt_field_flat *)field_alloc_new_flat(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13,arg14,arg15,arg16,arg17,arg18,arg19);
     }
-    catch(1) {
-      SWIG_exception(SWIG_ValueError, "Range Error");
+    finally {
+      SWIG_exception(SWIG_RuntimeError, "C-level error");
     }
   }
   resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_nmt_field_flat, 0 |  0 );
@@ -15130,8 +15130,8 @@ SWIGINTERN PyObject *_wrap_field_alloc_new_notemp_flat(PyObject *SWIGUNUSEDPARM(
     try {
       result = (nmt_field_flat *)field_alloc_new_notemp_flat(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13,arg14);
     }
-    catch(1) {
-      SWIG_exception(SWIG_ValueError, "Range Error");
+    finally {
+      SWIG_exception(SWIG_RuntimeError, "C-level error");
     }
   }
   resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_nmt_field_flat, 0 |  0 );
@@ -15223,8 +15223,8 @@ SWIGINTERN PyObject *_wrap_get_map(PyObject *SWIGUNUSEDPARM(self), PyObject *arg
     try {
       get_map(arg1,arg2,arg3,arg4);
     }
-    catch(1) {
-      SWIG_exception(SWIG_ValueError, "Range Error");
+    finally {
+      SWIG_exception(SWIG_RuntimeError, "C-level error");
     }
   }
   resultobj = SWIG_Py_Void();
@@ -15283,8 +15283,8 @@ SWIGINTERN PyObject *_wrap_get_map_flat(PyObject *SWIGUNUSEDPARM(self), PyObject
     try {
       get_map_flat(arg1,arg2,arg3,arg4);
     }
-    catch(1) {
-      SWIG_exception(SWIG_ValueError, "Range Error");
+    finally {
+      SWIG_exception(SWIG_RuntimeError, "C-level error");
     }
   }
   resultobj = SWIG_Py_Void();
@@ -15352,8 +15352,8 @@ SWIGINTERN PyObject *_wrap_get_temp(PyObject *SWIGUNUSEDPARM(self), PyObject *ar
     try {
       get_temp(arg1,arg2,arg3,arg4,arg5);
     }
-    catch(1) {
-      SWIG_exception(SWIG_ValueError, "Range Error");
+    finally {
+      SWIG_exception(SWIG_RuntimeError, "C-level error");
     }
   }
   resultobj = SWIG_Py_Void();
@@ -15421,8 +15421,8 @@ SWIGINTERN PyObject *_wrap_get_temp_flat(PyObject *SWIGUNUSEDPARM(self), PyObjec
     try {
       get_temp_flat(arg1,arg2,arg3,arg4,arg5);
     }
-    catch(1) {
-      SWIG_exception(SWIG_ValueError, "Range Error");
+    finally {
+      SWIG_exception(SWIG_RuntimeError, "C-level error");
     }
   }
   resultobj = SWIG_Py_Void();
@@ -15499,8 +15499,8 @@ SWIGINTERN PyObject *_wrap_apomask(PyObject *SWIGUNUSEDPARM(self), PyObject *arg
     try {
       apomask(arg1,arg2,arg3,arg4,arg5,arg6);
     }
-    catch(1) {
-      SWIG_exception(SWIG_ValueError, "Range Error");
+    finally {
+      SWIG_exception(SWIG_RuntimeError, "C-level error");
     }
   }
   resultobj = SWIG_Py_Void();
@@ -15627,8 +15627,8 @@ SWIGINTERN PyObject *_wrap_apomask_flat(PyObject *SWIGUNUSEDPARM(self), PyObject
     try {
       apomask_flat(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10);
     }
-    catch(1) {
-      SWIG_exception(SWIG_ValueError, "Range Error");
+    finally {
+      SWIG_exception(SWIG_RuntimeError, "C-level error");
     }
   }
   resultobj = SWIG_Py_Void();
@@ -15746,8 +15746,8 @@ SWIGINTERN PyObject *_wrap_synfast_new(PyObject *SWIGUNUSEDPARM(self), PyObject 
     try {
       synfast_new(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10);
     }
-    catch(1) {
-      SWIG_exception(SWIG_ValueError, "Range Error");
+    finally {
+      SWIG_exception(SWIG_RuntimeError, "C-level error");
     }
   }
   resultobj = SWIG_Py_Void();
@@ -15902,8 +15902,8 @@ SWIGINTERN PyObject *_wrap_synfast_new_flat(PyObject *SWIGUNUSEDPARM(self), PyOb
     try {
       synfast_new_flat(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13);
     }
-    catch(1) {
-      SWIG_exception(SWIG_ValueError, "Range Error");
+    finally {
+      SWIG_exception(SWIG_RuntimeError, "C-level error");
     }
   }
   resultobj = SWIG_Py_Void();
@@ -15994,8 +15994,8 @@ SWIGINTERN PyObject *_wrap_comp_uncorr_noise_deproj_bias(PyObject *SWIGUNUSEDPAR
     try {
       comp_uncorr_noise_deproj_bias(arg1,arg2,arg3,arg4,arg5);
     }
-    catch(1) {
-      SWIG_exception(SWIG_ValueError, "Range Error");
+    finally {
+      SWIG_exception(SWIG_RuntimeError, "C-level error");
     }
   }
   resultobj = SWIG_Py_Void();
@@ -16085,8 +16085,8 @@ SWIGINTERN PyObject *_wrap_comp_deproj_bias(PyObject *SWIGUNUSEDPARM(self), PyOb
     try {
       comp_deproj_bias(arg1,arg2,arg3,arg4,arg5,arg6,arg7);
     }
-    catch(1) {
-      SWIG_exception(SWIG_ValueError, "Range Error");
+    finally {
+      SWIG_exception(SWIG_RuntimeError, "C-level error");
     }
   }
   resultobj = SWIG_Py_Void();
@@ -16238,8 +16238,8 @@ SWIGINTERN PyObject *_wrap_comp_deproj_bias_flat(PyObject *SWIGUNUSEDPARM(self),
     try {
       comp_deproj_bias_flat(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13,arg14);
     }
-    catch(1) {
-      SWIG_exception(SWIG_ValueError, "Range Error");
+    finally {
+      SWIG_exception(SWIG_RuntimeError, "C-level error");
     }
   }
   resultobj = SWIG_Py_Void();
@@ -16381,8 +16381,8 @@ SWIGINTERN PyObject *_wrap_comp_gaussian_covariance(PyObject *SWIGUNUSEDPARM(sel
     try {
       comp_gaussian_covariance(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11);
     }
-    catch(1) {
-      SWIG_exception(SWIG_ValueError, "Range Error");
+    finally {
+      SWIG_exception(SWIG_RuntimeError, "C-level error");
     }
   }
   resultobj = SWIG_Py_Void();
@@ -16565,8 +16565,8 @@ SWIGINTERN PyObject *_wrap_comp_gaussian_covariance_flat(PyObject *SWIGUNUSEDPAR
     try {
       comp_gaussian_covariance_flat(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13);
     }
-    catch(1) {
-      SWIG_exception(SWIG_ValueError, "Range Error");
+    finally {
+      SWIG_exception(SWIG_RuntimeError, "C-level error");
     }
   }
   resultobj = SWIG_Py_Void();
@@ -16685,8 +16685,8 @@ SWIGINTERN PyObject *_wrap_comp_pspec_coupled(PyObject *SWIGUNUSEDPARM(self), Py
     try {
       comp_pspec_coupled(arg1,arg2,arg3,arg4);
     }
-    catch(1) {
-      SWIG_exception(SWIG_ValueError, "Range Error");
+    finally {
+      SWIG_exception(SWIG_RuntimeError, "C-level error");
     }
   }
   resultobj = SWIG_Py_Void();
@@ -16790,8 +16790,8 @@ SWIGINTERN PyObject *_wrap_comp_pspec_coupled_flat(PyObject *SWIGUNUSEDPARM(self
     try {
       comp_pspec_coupled_flat(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9);
     }
-    catch(1) {
-      SWIG_exception(SWIG_ValueError, "Range Error");
+    finally {
+      SWIG_exception(SWIG_RuntimeError, "C-level error");
     }
   }
   resultobj = SWIG_Py_Void();
@@ -16898,8 +16898,8 @@ SWIGINTERN PyObject *_wrap_decouple_cell_py(PyObject *SWIGUNUSEDPARM(self), PyOb
     try {
       decouple_cell_py(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12);
     }
-    catch(1) {
-      SWIG_exception(SWIG_ValueError, "Range Error");
+    finally {
+      SWIG_exception(SWIG_RuntimeError, "C-level error");
     }
   }
   resultobj = SWIG_Py_Void();
@@ -17042,8 +17042,8 @@ SWIGINTERN PyObject *_wrap_decouple_cell_py_flat(PyObject *SWIGUNUSEDPARM(self),
     try {
       decouple_cell_py_flat(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12);
     }
-    catch(1) {
-      SWIG_exception(SWIG_ValueError, "Range Error");
+    finally {
+      SWIG_exception(SWIG_RuntimeError, "C-level error");
     }
   }
   resultobj = SWIG_Py_Void();
@@ -17148,8 +17148,8 @@ SWIGINTERN PyObject *_wrap_couple_cell_py(PyObject *SWIGUNUSEDPARM(self), PyObje
     try {
       couple_cell_py(arg1,arg2,arg3,arg4,arg5,arg6);
     }
-    catch(1) {
-      SWIG_exception(SWIG_ValueError, "Range Error");
+    finally {
+      SWIG_exception(SWIG_RuntimeError, "C-level error");
     }
   }
   resultobj = SWIG_Py_Void();
@@ -17247,8 +17247,8 @@ SWIGINTERN PyObject *_wrap_couple_cell_py_flat(PyObject *SWIGUNUSEDPARM(self), P
     try {
       couple_cell_py_flat(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8);
     }
-    catch(1) {
-      SWIG_exception(SWIG_ValueError, "Range Error");
+    finally {
+      SWIG_exception(SWIG_RuntimeError, "C-level error");
     }
   }
   resultobj = SWIG_Py_Void();
@@ -17387,8 +17387,8 @@ SWIGINTERN PyObject *_wrap_comp_pspec(PyObject *SWIGUNUSEDPARM(self), PyObject *
     try {
       comp_pspec(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12);
     }
-    catch(1) {
-      SWIG_exception(SWIG_ValueError, "Range Error");
+    finally {
+      SWIG_exception(SWIG_RuntimeError, "C-level error");
     }
   }
   resultobj = SWIG_Py_Void();
@@ -17580,8 +17580,8 @@ SWIGINTERN PyObject *_wrap_comp_pspec_flat(PyObject *SWIGUNUSEDPARM(self), PyObj
     try {
       comp_pspec_flat(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13,arg14,arg15,arg16,arg17,arg18);
     }
-    catch(1) {
-      SWIG_exception(SWIG_ValueError, "Range Error");
+    finally {
+      SWIG_exception(SWIG_RuntimeError, "C-level error");
     }
   }
   resultobj = SWIG_Py_Void();

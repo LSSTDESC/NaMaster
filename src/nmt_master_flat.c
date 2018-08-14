@@ -197,7 +197,7 @@ nmt_workspace_flat *nmt_compute_coupling_matrix_flat(nmt_field_flat *fl1,nmt_fie
 						     flouble lmn_y,flouble lmx_y)
 {
   if(check_flatsky_infos(fl1->fs,fl2->fs))
-    report_error(1,"Can only correlate fields defined on the same pixels!\n");
+    report_error(NMT_ERROR_CONSISTENT_RESO,"Can only correlate fields defined on the same pixels!\n");
 
   int ii;
   nmt_workspace_flat *w=nmt_workspace_flat_new(fl1->nmaps*fl2->nmaps,fl1->fs,bin,
@@ -1134,7 +1134,7 @@ void nmt_compute_coupled_cell_flat(nmt_field_flat *fl1,nmt_field_flat *fl2,
 				   flouble lmn_x,flouble lmx_x,flouble lmn_y,flouble lmx_y)
 {
   if(check_flatsky_infos(fl1->fs,fl2->fs))
-    report_error(1,"Can only correlate fields defined on the same pixels!\n");
+    report_error(NMT_ERROR_CONSISTENT_RESO,"Can only correlate fields defined on the same pixels!\n");
   fs_alm2cl(fl1->fs,bin,fl1->alms,fl2->alms,fl1->pol,fl2->pol,cl_out,lmn_x,lmx_x,lmn_y,lmx_y);
 }
 
@@ -1155,7 +1155,7 @@ nmt_workspace_flat *nmt_compute_power_spectra_flat(nmt_field_flat *fl1,nmt_field
   else {
     w=w0;
     if((check_flatsky_infos(fl1->fs,w->fs)) || (check_flatsky_infos(fl2->fs,w->fs)))
-      report_error(1,"Input workspace has different pixels!\n");
+      report_error(NMT_ERROR_CONSISTENT_RESO,"Input workspace has different pixels!\n");
   }
 
   cl_bias=my_malloc(w->ncls*sizeof(flouble *));

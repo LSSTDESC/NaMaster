@@ -95,7 +95,7 @@ nmt_binning_scheme *nmt_bins_create(int nell,int *bpws,int *ells,flouble *weight
     for(jj=0;jj<bins->nell_list[ii];jj++)
       norm+=bins->w_list[ii][jj];
     if(norm<=0)
-      report_error(1,"Weights in band %d are wrong\n",ii);
+      report_error(NMT_ERROR_BWEIGHT,"Weights in band %d are wrong\n",ii);
     for(jj=0;jj<bins->nell_list[ii];jj++)
       bins->w_list[ii][jj]/=norm;
   }
@@ -118,7 +118,7 @@ nmt_binning_scheme *nmt_bins_read(char *fname,int lmax)
   for(ii=0;ii<nlines;ii++) {
     int stat=fscanf(fi,"%d %d %lf",&(band_number[ii]),&(larr[ii]),&(warr[ii]));
     if(stat!=3)
-      report_error(1,"Error reading %s, line %d\n",fname,ii+1);
+      report_error(NMT_ERROR_READ,"Error reading %s, line %d\n",fname,ii+1);
   }
   fclose(fi);
 

@@ -156,10 +156,16 @@ class NmtBinFlat(object) :
         :param array-like cls_in: 2D array of input power spectra
         :return: array of bandpowers
         """
-        if(len(cls_in[0])!=len(ells)) :
+        oned=False
+        if(cls_in.ndim!=2) :
+            oned=True
+            cls_in=np.array([cls_in])
+        if((cls_in.ndim>2) or (len(cls_in[0])!=len(ells))) :
             raise ValueError("Input Cl has wrong size")
         cl1d=lib.bin_cl_flat(self.bin,ells,cls_in,len(cls_in)*self.bin.n_bands)
         clout=np.reshape(cl1d,[len(cls_in),self.bin.n_bands])
+        if oned :
+            clout=clout[0]
         return clout
 
     def unbin_cell(self,cls_in,ells) :
@@ -170,11 +176,14 @@ class NmtBinFlat(object) :
         :param array-like ells: array of multipoles at which the power spectra should be intepolated
         :return: array of power spectra
         """
-        if(len(cls_in[0])!=self.bin.n_bands) :
+        oned=False
+        if(cls_in.ndim!=2) :
+            oned=True
+            cls_in=np.array([cls_in])
+        if((cls_in.ndim>2) or (len(cls_in[0])!=self.bin.n_bands)) :
             raise ValueError("Input Cl has wrong size")
         cl1d=lib.unbin_cl_flat(self.bin,cls_in,ells,len(cls_in)*len(ells))
         clout=np.reshape(cl1d,[len(cls_in),len(ells)])
+        if oned :
+            clout=clout[0]
         return clout
-
-def checking_exceptions() :
-    lib.check_except()

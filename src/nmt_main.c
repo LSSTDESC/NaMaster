@@ -15,7 +15,7 @@ void run_master(nmt_field *fl1,nmt_field *fl2,
   flouble **cl_noise,**cl_proposal,**cl_out,**cl_bias,**cl_data;
 
   if(fl1->nside!=fl2->nside)
-    report_error(1,"Can't correlate fields with different resolution\n");
+    report_error(NMT_ERROR_CONSISTENT_RESO,"Can't correlate fields with different resolution\n");
 
   //Binning
   nmt_binning_scheme *bin;
@@ -43,17 +43,17 @@ void run_master(nmt_field *fl1,nmt_field *fl2,
     fi=my_fopen(fname_cl_noise,"r");
     int nlin=my_linecount(fi); rewind(fi);
     if(nlin!=lmax+1)
-      report_error(1,"Wrong number of multipoles for noise p.spec.\n");
+      report_error(NMT_ERROR_READ,"Wrong number of multipoles for noise p.spec.\n");
     for(ii=0;ii<lmax+1;ii++) {
       int status,jj;
       flouble l;
       status=fscanf(fi,"%lf",&l);
       if(status!=1)
-	report_error(1,"Error reading file %s\n",fname_cl_noise);
+	report_error(NMT_ERROR_READ,"Error reading file %s\n",fname_cl_noise);
       for(jj=0;jj<nspec;jj++) {
 	status=fscanf(fi,"%lf",&(cl_noise[jj][ii]));
 	if(status!=1)
-	  report_error(1,"Error reading file %s\n",fname_cl_noise);
+	  report_error(NMT_ERROR_READ,"Error reading file %s\n",fname_cl_noise);
       }
     }
     fclose(fi);
@@ -64,17 +64,17 @@ void run_master(nmt_field *fl1,nmt_field *fl2,
     fi=my_fopen(fname_cl_proposal,"r");
     int nlin=my_linecount(fi); rewind(fi);
     if(nlin!=lmax+1)
-      report_error(1,"Wrong number of multipoles for noise p.spec.\n");
+      report_error(NMT_ERROR_READ,"Wrong number of multipoles for noise p.spec.\n");
     for(ii=0;ii<lmax+1;ii++) {
       int status,jj;
       flouble l;
       status=fscanf(fi,"%lf",&l);
       if(status!=1)
-	report_error(1,"Error reading file %s\n",fname_cl_proposal);
+	report_error(NMT_ERROR_READ,"Error reading file %s\n",fname_cl_proposal);
       for(jj=0;jj<nspec;jj++) {
 	status=fscanf(fi,"%lf",&(cl_proposal[jj][ii]));
 	if(status!=1)
-	  report_error(1,"Error reading file %s\n",fname_cl_proposal);
+	  report_error(NMT_ERROR_READ,"Error reading file %s\n",fname_cl_proposal);
       }
     }
     fclose(fi);
@@ -85,7 +85,7 @@ void run_master(nmt_field *fl1,nmt_field *fl2,
     printf("Reading coupling matrix\n");
     w=nmt_workspace_read(fname_coupling);
     if(w->bin->n_bands!=bin->n_bands)
-      report_error(1,"Read coupling matrix doesn't fit input binning scheme\n");
+      report_error(NMT_ERROR_CONSISTENT_RESO,"Read coupling matrix doesn't fit input binning scheme\n");
   }
   else {
     printf("Computing coupling matrix \n");
@@ -249,7 +249,7 @@ int main(int argc,char **argv)
   }
 
   if(n_lbin<=0)
-    report_error(1,"#ell per bin must be positive\n");
+    report_error(NMT_ERROR_BADNO,"#ell per bin must be positive\n");
 
   fl1=nmt_field_read(fname_mask_1,fname_map_1,fname_temp_1,fname_beam_1,pol_1,pure_e_1,pure_b_1,10,1E-10);
 

@@ -368,16 +368,16 @@ nmt_field *nmt_field_read(char *fname_mask,char *fname_maps,char *fname_temp,cha
     FILE *fi=my_fopen(fname_beam,"r");
     int nlines=my_linecount(fi); rewind(fi);
     if(nlines!=3*nside)
-      report_error(1,"Beam file must have 3*nside rows and two columns\n");
+      report_error(NMT_ERROR_READ,"Beam file must have 3*nside rows and two columns\n");
     beam=my_malloc(3*nside*sizeof(flouble));
     for(ii=0;ii<3*nside;ii++) {
       int l;
       double b;
       int stat=fscanf(fi,"%d %lf\n",&l,&b);
       if(stat!=2)
-	report_error(1,"Error reading file %s, line %d\n",fname_beam,ii+1);
+	report_error(NMT_ERROR_READ,"Error reading file %s, line %d\n",fname_beam,ii+1);
       if((l>3*nside-1) || (l<0))
-	report_error(1,"Wrong multipole %d\n",l);
+	report_error(NMT_ERROR_READ,"Wrong multipole %d\n",l);
       beam[l]=b;
     }
   }
@@ -387,7 +387,7 @@ nmt_field *nmt_field_read(char *fname_mask,char *fname_maps,char *fname_temp,cha
   for(ii=0;ii<nmaps;ii++) {
     maps[ii]=he_read_healpix_map(fname_maps,&(nside_dum),ii);
     if(nside_dum!=nside)
-      report_error(1,"Wrong nside %ld\n",nside_dum);
+      report_error(NMT_ERROR_READ,"Wrong nside %ld\n",nside_dum);
   }
 
   //Read templates and deproject
@@ -395,9 +395,9 @@ nmt_field *nmt_field_read(char *fname_mask,char *fname_maps,char *fname_temp,cha
     int ncols,isnest;
     he_get_file_params(fname_temp,&nside_dum,&ncols,&isnest);
     if(nside_dum!=nside)
-      report_error(1,"Wrong nside %ld\n",nside_dum);
+      report_error(NMT_ERROR_READ,"Wrong nside %ld\n",nside_dum);
     if((ncols==0) || (ncols%nmaps!=0))
-      report_error(1,"Not enough templates in file %s\n",fname_temp);
+      report_error(NMT_ERROR_READ,"Not enough templates in file %s\n",fname_temp);
     ntemp=ncols/nmaps;
     temp=my_malloc(ntemp*sizeof(flouble **));
     for(itemp=0;itemp<ntemp;itemp++) {

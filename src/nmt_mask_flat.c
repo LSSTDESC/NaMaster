@@ -10,7 +10,7 @@ static void apodize_mask_CX(nmt_flatsky_info *fs,flouble *mask_in,flouble *mask_
   else if(!strcmp(apotype,"C2"))
     apotyp=1;
   else
-    report_error(1,"Unknown apodization type %s\n",apotype);
+    report_error(NMT_ERROR_APO,"Unknown apodization type %s\n",apotype);
 
   if(mask_out!=mask_in)
     memcpy(mask_out,mask_in,fs->nx*fs->ny*sizeof(flouble));
@@ -156,7 +156,7 @@ void nmt_apodize_mask_flat(int nx,int ny,flouble lx,flouble ly,
     apodize_mask_smooth(fs,mask_in,mask_out,aposize);
   else {
     nmt_flatsky_info_free(fs);
-    report_error(1,"Unknown apodization type %s. Allowed: \"Smooth\", \"C1\", \"C2\"\n");
+    report_error(NMT_ERROR_APO,"Unknown apodization type %s. Allowed: \"Smooth\", \"C1\", \"C2\"\n");
   }
   nmt_flatsky_info_free(fs);
 }
