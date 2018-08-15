@@ -3853,6 +3853,36 @@ void comp_deproj_bias_flat(nmt_field_flat *fl1,nmt_field_flat *fl2,
   free(cl_guess);
 }
 
+void write_covar_workspace(nmt_covar_workspace *cw,char *fname)
+{
+  nmt_covar_workspace_write(cw,fname);
+}
+
+nmt_covar_workspace *read_covar_workspace(char *fname)
+{
+  return nmt_covar_workspace_read(fname);
+}
+
+nmt_covar_workspace *covar_workspace_init_py(nmt_workspace *wa,nmt_workspace *wb)
+{
+  return nmt_covar_workspace_init(wa,wb);
+}
+
+void write_covar_workspace_flat(nmt_covar_workspace_flat *cw,char *fname)
+{
+  nmt_covar_workspace_flat_write(cw,fname);
+}
+
+nmt_covar_workspace_flat *read_covar_workspace_flat(char *fname)
+{
+  return nmt_covar_workspace_flat_read(fname);
+}
+
+nmt_covar_workspace_flat *covar_workspace_flat_init_py(nmt_workspace_flat *wa,nmt_workspace_flat *wb)
+{
+  return nmt_covar_workspace_flat_init(wa,wb);
+}
+
 void comp_gaussian_covariance(nmt_covar_workspace *cw,
 			      int nell11,double *c11,
 			      int nell12,double *c12,
@@ -16580,6 +16610,226 @@ fail:
 }
 
 
+SWIGINTERN PyObject *_wrap_write_covar_workspace(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_covar_workspace *arg1 = (nmt_covar_workspace *) 0 ;
+  char *arg2 = (char *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int res2 ;
+  char *buf2 = 0 ;
+  int alloc2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:write_covar_workspace",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_covar_workspace, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "write_covar_workspace" "', argument " "1"" of type '" "nmt_covar_workspace *""'"); 
+  }
+  arg1 = (nmt_covar_workspace *)(argp1);
+  res2 = SWIG_AsCharPtrAndSize(obj1, &buf2, NULL, &alloc2);
+  if (!SWIG_IsOK(res2)) {
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "write_covar_workspace" "', argument " "2"" of type '" "char *""'");
+  }
+  arg2 = (char *)(buf2);
+  {
+    try {
+      write_covar_workspace(arg1,arg2);
+    }
+    finally {
+      SWIG_exception(SWIG_RuntimeError,nmt_error_message);
+    }
+  }
+  resultobj = SWIG_Py_Void();
+  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
+  return resultobj;
+fail:
+  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_read_covar_workspace(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  char *arg1 = (char *) 0 ;
+  int res1 ;
+  char *buf1 = 0 ;
+  int alloc1 = 0 ;
+  PyObject * obj0 = 0 ;
+  nmt_covar_workspace *result = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:read_covar_workspace",&obj0)) SWIG_fail;
+  res1 = SWIG_AsCharPtrAndSize(obj0, &buf1, NULL, &alloc1);
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "read_covar_workspace" "', argument " "1"" of type '" "char *""'");
+  }
+  arg1 = (char *)(buf1);
+  {
+    try {
+      result = (nmt_covar_workspace *)read_covar_workspace(arg1);
+    }
+    finally {
+      SWIG_exception(SWIG_RuntimeError,nmt_error_message);
+    }
+  }
+  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_nmt_covar_workspace, 0 |  0 );
+  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
+  return resultobj;
+fail:
+  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_covar_workspace_init_py(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_workspace *arg1 = (nmt_workspace *) 0 ;
+  nmt_workspace *arg2 = (nmt_workspace *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  void *argp2 = 0 ;
+  int res2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  nmt_covar_workspace *result = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:covar_workspace_init_py",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_workspace, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "covar_workspace_init_py" "', argument " "1"" of type '" "nmt_workspace *""'"); 
+  }
+  arg1 = (nmt_workspace *)(argp1);
+  res2 = SWIG_ConvertPtr(obj1, &argp2,SWIGTYPE_p_nmt_workspace, 0 |  0 );
+  if (!SWIG_IsOK(res2)) {
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "covar_workspace_init_py" "', argument " "2"" of type '" "nmt_workspace *""'"); 
+  }
+  arg2 = (nmt_workspace *)(argp2);
+  {
+    try {
+      result = (nmt_covar_workspace *)covar_workspace_init_py(arg1,arg2);
+    }
+    finally {
+      SWIG_exception(SWIG_RuntimeError,nmt_error_message);
+    }
+  }
+  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_nmt_covar_workspace, 0 |  0 );
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_write_covar_workspace_flat(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_covar_workspace_flat *arg1 = (nmt_covar_workspace_flat *) 0 ;
+  char *arg2 = (char *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int res2 ;
+  char *buf2 = 0 ;
+  int alloc2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:write_covar_workspace_flat",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_covar_workspace_flat, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "write_covar_workspace_flat" "', argument " "1"" of type '" "nmt_covar_workspace_flat *""'"); 
+  }
+  arg1 = (nmt_covar_workspace_flat *)(argp1);
+  res2 = SWIG_AsCharPtrAndSize(obj1, &buf2, NULL, &alloc2);
+  if (!SWIG_IsOK(res2)) {
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "write_covar_workspace_flat" "', argument " "2"" of type '" "char *""'");
+  }
+  arg2 = (char *)(buf2);
+  {
+    try {
+      write_covar_workspace_flat(arg1,arg2);
+    }
+    finally {
+      SWIG_exception(SWIG_RuntimeError,nmt_error_message);
+    }
+  }
+  resultobj = SWIG_Py_Void();
+  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
+  return resultobj;
+fail:
+  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_read_covar_workspace_flat(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  char *arg1 = (char *) 0 ;
+  int res1 ;
+  char *buf1 = 0 ;
+  int alloc1 = 0 ;
+  PyObject * obj0 = 0 ;
+  nmt_covar_workspace_flat *result = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:read_covar_workspace_flat",&obj0)) SWIG_fail;
+  res1 = SWIG_AsCharPtrAndSize(obj0, &buf1, NULL, &alloc1);
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "read_covar_workspace_flat" "', argument " "1"" of type '" "char *""'");
+  }
+  arg1 = (char *)(buf1);
+  {
+    try {
+      result = (nmt_covar_workspace_flat *)read_covar_workspace_flat(arg1);
+    }
+    finally {
+      SWIG_exception(SWIG_RuntimeError,nmt_error_message);
+    }
+  }
+  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_nmt_covar_workspace_flat, 0 |  0 );
+  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
+  return resultobj;
+fail:
+  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_covar_workspace_flat_init_py(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_workspace_flat *arg1 = (nmt_workspace_flat *) 0 ;
+  nmt_workspace_flat *arg2 = (nmt_workspace_flat *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  void *argp2 = 0 ;
+  int res2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  nmt_covar_workspace_flat *result = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:covar_workspace_flat_init_py",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_workspace_flat, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "covar_workspace_flat_init_py" "', argument " "1"" of type '" "nmt_workspace_flat *""'"); 
+  }
+  arg1 = (nmt_workspace_flat *)(argp1);
+  res2 = SWIG_ConvertPtr(obj1, &argp2,SWIGTYPE_p_nmt_workspace_flat, 0 |  0 );
+  if (!SWIG_IsOK(res2)) {
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "covar_workspace_flat_init_py" "', argument " "2"" of type '" "nmt_workspace_flat *""'"); 
+  }
+  arg2 = (nmt_workspace_flat *)(argp2);
+  {
+    try {
+      result = (nmt_covar_workspace_flat *)covar_workspace_flat_init_py(arg1,arg2);
+    }
+    finally {
+      SWIG_exception(SWIG_RuntimeError,nmt_error_message);
+    }
+  }
+  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_nmt_covar_workspace_flat, 0 |  0 );
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
 SWIGINTERN PyObject *_wrap_comp_gaussian_covariance(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   nmt_covar_workspace *arg1 = (nmt_covar_workspace *) 0 ;
@@ -18267,6 +18517,12 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"comp_uncorr_noise_deproj_bias", _wrap_comp_uncorr_noise_deproj_bias, METH_VARARGS, NULL},
 	 { (char *)"comp_deproj_bias", _wrap_comp_deproj_bias, METH_VARARGS, NULL},
 	 { (char *)"comp_deproj_bias_flat", _wrap_comp_deproj_bias_flat, METH_VARARGS, NULL},
+	 { (char *)"write_covar_workspace", _wrap_write_covar_workspace, METH_VARARGS, NULL},
+	 { (char *)"read_covar_workspace", _wrap_read_covar_workspace, METH_VARARGS, NULL},
+	 { (char *)"covar_workspace_init_py", _wrap_covar_workspace_init_py, METH_VARARGS, NULL},
+	 { (char *)"write_covar_workspace_flat", _wrap_write_covar_workspace_flat, METH_VARARGS, NULL},
+	 { (char *)"read_covar_workspace_flat", _wrap_read_covar_workspace_flat, METH_VARARGS, NULL},
+	 { (char *)"covar_workspace_flat_init_py", _wrap_covar_workspace_flat_init_py, METH_VARARGS, NULL},
 	 { (char *)"comp_gaussian_covariance", _wrap_comp_gaussian_covariance, METH_VARARGS, NULL},
 	 { (char *)"comp_gaussian_covariance_flat", _wrap_comp_gaussian_covariance_flat, METH_VARARGS, NULL},
 	 { (char *)"comp_pspec_coupled", _wrap_comp_pspec_coupled, METH_VARARGS, NULL},

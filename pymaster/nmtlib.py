@@ -1059,6 +1059,30 @@ def comp_deproj_bias_flat(fl1, fl2, bin, lmn_x, lmx_x, lmn_y, lmx_y, nell3, ncl1
     return _nmtlib.comp_deproj_bias_flat(fl1, fl2, bin, lmn_x, lmx_x, lmn_y, lmx_y, nell3, ncl1, dout)
 comp_deproj_bias_flat = _nmtlib.comp_deproj_bias_flat
 
+def write_covar_workspace(cw, fname):
+    return _nmtlib.write_covar_workspace(cw, fname)
+write_covar_workspace = _nmtlib.write_covar_workspace
+
+def read_covar_workspace(fname):
+    return _nmtlib.read_covar_workspace(fname)
+read_covar_workspace = _nmtlib.read_covar_workspace
+
+def covar_workspace_init_py(wa, wb):
+    return _nmtlib.covar_workspace_init_py(wa, wb)
+covar_workspace_init_py = _nmtlib.covar_workspace_init_py
+
+def write_covar_workspace_flat(cw, fname):
+    return _nmtlib.write_covar_workspace_flat(cw, fname)
+write_covar_workspace_flat = _nmtlib.write_covar_workspace_flat
+
+def read_covar_workspace_flat(fname):
+    return _nmtlib.read_covar_workspace_flat(fname)
+read_covar_workspace_flat = _nmtlib.read_covar_workspace_flat
+
+def covar_workspace_flat_init_py(wa, wb):
+    return _nmtlib.covar_workspace_flat_init_py(wa, wb)
+covar_workspace_flat_init_py = _nmtlib.covar_workspace_flat_init_py
+
 def comp_gaussian_covariance(cw, nell11, nell12, nell21, nell22, dout):
     return _nmtlib.comp_gaussian_covariance(cw, nell11, nell12, nell21, nell22, dout)
 comp_gaussian_covariance = _nmtlib.comp_gaussian_covariance

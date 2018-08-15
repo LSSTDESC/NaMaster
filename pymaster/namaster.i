@@ -566,6 +566,36 @@ void comp_deproj_bias_flat(nmt_field_flat *fl1,nmt_field_flat *fl2,
   free(cl_guess);
 }
 
+void write_covar_workspace(nmt_covar_workspace *cw,char *fname)
+{
+  nmt_covar_workspace_write(cw,fname);
+}
+
+nmt_covar_workspace *read_covar_workspace(char *fname)
+{
+  return nmt_covar_workspace_read(fname);
+}
+
+nmt_covar_workspace *covar_workspace_init_py(nmt_workspace *wa,nmt_workspace *wb)
+{
+  return nmt_covar_workspace_init(wa,wb);
+}
+
+void write_covar_workspace_flat(nmt_covar_workspace_flat *cw,char *fname)
+{
+  nmt_covar_workspace_flat_write(cw,fname);
+}
+
+nmt_covar_workspace_flat *read_covar_workspace_flat(char *fname)
+{
+  return nmt_covar_workspace_flat_read(fname);
+}
+
+nmt_covar_workspace_flat *covar_workspace_flat_init_py(nmt_workspace_flat *wa,nmt_workspace_flat *wb)
+{
+  return nmt_covar_workspace_flat_init(wa,wb);
+}
+
 void comp_gaussian_covariance(nmt_covar_workspace *cw,
 			      int nell11,double *c11,
 			      int nell12,double *c12,

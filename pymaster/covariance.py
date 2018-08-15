@@ -22,7 +22,7 @@ class NmtCovarianceWorkspace(object) :
         if self.wsp is not None :
             lib.covar_workspace_free(self.wsp)
             self.wsp=None
-        self.wsp=lib.covar_workspace_read(fname);
+        self.wsp=lib.read_covar_workspace(fname);
 
     def compute_coupling_coefficients(self,wa,wb) :
         """
@@ -30,15 +30,15 @@ class NmtCovarianceWorkspace(object) :
 
         :param NmtWorkspace wa,wb: workspaces used to compute the two power spectra whose covariance matrix you want to compute.
         """
+        if self.wsp is not None :
+            lib.covar_workspace_free(self.wsp)
+            self.wsp=None
         ns=wa.wsp.nside;
         if(wa.wsp.nside!=wb.wsp.nside) :
             raise ValueError("Everything should have the same resolution!")
         if((wa.wsp.ncls!=1) or (wb.wsp.ncls!=1)) :
             raise ValueError("Gaussian covariances only supported for spin-0 fields")
-        if self.wsp is not None :
-            lib.covar_workspace_free(self.wsp)
-            self.wsp=None
-        self.wsp=lib.covar_workspace_init(wa.wsp,wb.wsp)
+        self.wsp=lib.covar_workspace_init_py(wa.wsp,wb.wsp)
 
     def write_to(self,fname) :
         """
@@ -47,8 +47,8 @@ class NmtCovarianceWorkspace(object) :
         :param str fname: output file name
         """
         if self.wsp is None :
-            raise KeyError("Must initialize workspace before writing")
-        lib.covar_workspace_write(self.wsp,fname)
+            raise ValueError("Must initialize workspace before writing")
+        lib.write_covar_workspace(self.wsp,fname)
 
 class NmtCovarianceWorkspaceFlat(object) :
     """
@@ -71,7 +71,7 @@ class NmtCovarianceWorkspaceFlat(object) :
         if self.wsp is not None :
             lib.covar_workspace_flat_free(self.wsp)
             self.wsp=None
-        self.wsp=lib.covar_workspace_flat_read(fname);
+        self.wsp=lib.read_covar_workspace_flat(fname);
 
     def compute_coupling_coefficients(self,wa,wb) :
         """
@@ -86,7 +86,7 @@ class NmtCovarianceWorkspaceFlat(object) :
         if self.wsp is not None :
             lib.covar_workspace_flat_free(self.wsp)
             self.wsp=None
-        self.wsp=lib.covar_workspace_flat_init(wa.wsp,wb.wsp)
+        self.wsp=lib.covar_workspace_flat_init_py(wa.wsp,wb.wsp)
 
     def write_to(self,fname) :
         """
@@ -95,8 +95,8 @@ class NmtCovarianceWorkspaceFlat(object) :
         :param str fname: output file name
         """
         if self.wsp is None :
-            raise KeyError("Must initialize workspace before writing")
-        lib.covar_workspace_flat_write(self.wsp,fname)
+            raise ValueError("Must initialize workspace before writing")
+        lib.write_covar_workspace_flat(self.wsp,fname)
 
 def gaussian_covariance(cw,cla1b1,cla1b2,cla2b1,cla2b2) :
     """
