@@ -566,6 +566,9 @@ void nmt_compute_deprojection_bias_flat(nmt_field_flat *fl1,nmt_field_flat *fl2,
       cl_bias[ii][ip]=0;
   }
 
+  if(check_flatsky_infos(fl1->fs,fl2->fs))
+    report_error(NMT_ERROR_CONSISTENT_RESO,"Can only correlate fields defined on the same pixels!\n");
+
   //TODO: some terms (e.g. C^ab*SHT[w*g^j]) could be precomputed
   //TODO: if fl1=fl2 F2=F3
   //Allocate dummy maps and alms
@@ -1156,6 +1159,8 @@ nmt_workspace_flat *nmt_compute_power_spectra_flat(nmt_field_flat *fl1,nmt_field
     w=w0;
     if((check_flatsky_infos(fl1->fs,w->fs)) || (check_flatsky_infos(fl2->fs,w->fs)))
       report_error(NMT_ERROR_CONSISTENT_RESO,"Input workspace has different pixels!\n");
+    if(bin->n_bands!=w->bin->n_bands)
+      report_error(NMT_ERROR_CONSISTENT_RESO,"Input workspace has different bandpowers!\n");
   }
 
   cl_bias=my_malloc(w->ncls*sizeof(flouble *));

@@ -238,11 +238,11 @@ CTEST(nmt,he_io) {
 
   //Writing
   try {he_write_healpix_map(mps0,1,nside,"!test/mps.fits");}
-  ASSERT_EQUAL(0,exception_status);
+  ASSERT_EQUAL(0,nmt_exception_status);
   try {he_write_healpix_map(mps2,1,nside,"!test/mps.fits");}
-  ASSERT_EQUAL(0,exception_status);
+  ASSERT_EQUAL(0,nmt_exception_status);
   try {he_write_healpix_map(mps2,2,nside,"!test/mps.fits");}
-  ASSERT_EQUAL(0,exception_status);
+  ASSERT_EQUAL(0,nmt_exception_status);
 
   for(ii=0;ii<1;ii++)
     free(mps0[ii]);
@@ -264,7 +264,7 @@ CTEST(nmt,he_io) {
   ASSERT_EQUAL(nside,ns2);
   //Go one column too far
   try {mps2[1]=he_read_healpix_map("test/mps.fits",&ns2,2);}
-  ASSERT_NOT_EQUAL(0,exception_status);
+  ASSERT_NOT_EQUAL(0,nmt_exception_status);
   mps2[1]=he_read_healpix_map("test/mps.fits",&ns2,1);
   ASSERT_EQUAL(nside,ns2);
   
@@ -311,9 +311,9 @@ CTEST(nmt,he_qstrip) {
   ASSERT_EQUAL(40,ntot_alloc); ntot_alloc=20000;
   //query strip exceptions
   try { he_query_strip(nside,-M_PI,M_PI,indices,&ntot_alloc); }
-  ASSERT_NOT_EQUAL(0,exception_status);
+  ASSERT_NOT_EQUAL(0,nmt_exception_status);
   try { he_query_strip(nside,0,M_PI/2,indices,&ntot_alloc); }
-  ASSERT_NOT_EQUAL(0,exception_status);
+  ASSERT_NOT_EQUAL(0,nmt_exception_status);
 
   free(indices);
   set_error_policy(EXIT_ON_ERROR);

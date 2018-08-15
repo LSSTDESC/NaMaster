@@ -3333,45 +3333,52 @@ SWIG_AsCharPtrAndSize(PyObject *obj, char** cptr, size_t* psize, int *alloc)
   #define SWIG_From_long   PyLong_FromLong 
 
 
+void asserting(int expression)
+{
+  if(!expression)
+    report_error(NMT_ERROR_INCONSISTENT,"Passing inconsistent arguments from python\n");
+}
+
+
 void get_nell_list(nmt_binning_scheme *bins,int *iout,int niout)
 {
-  assert(bins->n_bands==niout);
+  asserting(bins->n_bands==niout);
 
   memcpy(iout,bins->nell_list,bins->n_bands*sizeof(int));
 }
 
 int get_nell(nmt_binning_scheme *bins,int ibin)
 {
-  assert(ibin<bins->n_bands);
+  asserting(ibin<bins->n_bands);
   
   return bins->nell_list[ibin];
 }
 
 void get_ell_list(nmt_binning_scheme *bins,int ibin,int *iout,int niout)
 {
-  assert(ibin<bins->n_bands);
-  assert(bins->nell_list[ibin]==niout);
+  asserting(ibin<bins->n_bands);
+  asserting(bins->nell_list[ibin]==niout);
 
   memcpy(iout,bins->ell_list[ibin],bins->nell_list[ibin]*sizeof(int));
 }
 
 void get_weight_list(nmt_binning_scheme *bins,int ibin,double *dout,int ndout)
 {
-  assert(ibin<bins->n_bands);
-  assert(bins->nell_list[ibin]==ndout);
+  asserting(ibin<bins->n_bands);
+  asserting(bins->nell_list[ibin]==ndout);
 
   memcpy(dout,bins->w_list[ibin],bins->nell_list[ibin]*sizeof(double));
 }
 
 void get_ell_eff(nmt_binning_scheme *bins,double *dout,int ndout)
 {
-  assert(ndout==bins->n_bands);
+  asserting(ndout==bins->n_bands);
   nmt_ell_eff(bins,dout);
 }
 
 void get_ell_eff_flat(nmt_binning_scheme_flat *bins,double *dout,int ndout)
 {
-  assert(ndout==bins->n_bands);
+  asserting(ndout==bins->n_bands);
   nmt_ell_eff_flat(bins,dout);
 }
 
@@ -3380,8 +3387,8 @@ nmt_binning_scheme *bins_create_py(int nell1,int *bpws,
 				   int nell3,double *weights,
 				   int lmax)
 {
-  assert(nell1==nell2);
-  assert(nell2==nell3);
+  asserting(nell1==nell2);
+  asserting(nell2==nell3);
   
   return nmt_bins_create(nell1,bpws,ells,weights,lmax);
 }
@@ -3389,7 +3396,7 @@ nmt_binning_scheme *bins_create_py(int nell1,int *bpws,
 nmt_binning_scheme_flat *bins_flat_create_py(int npix_1,double *mask,
 					     int nell3,double *weights)
 {
-  assert(npix_1==nell3);
+  asserting(npix_1==nell3);
   
   return nmt_bins_flat_create(nell3,mask,weights);
 }
@@ -3399,7 +3406,7 @@ void bin_cl(nmt_binning_scheme *bins,
 	    double *dout,int ndout)
 {
   int i;
-  assert(ndout==ncl1*bins->n_bands);
+  asserting(ndout==ncl1*bins->n_bands);
   double **cls_in,**cls_out;
   cls_in=malloc(ncl1*sizeof(double *));
   cls_out=malloc(ncl1*sizeof(double *));
@@ -3418,8 +3425,8 @@ void bin_cl_flat(nmt_binning_scheme_flat *bins,
 		 double *dout,int ndout)
 {
   int i;
-  assert(nell3==nell1);
-  assert(ndout==ncl1*bins->n_bands);
+  asserting(nell3==nell1);
+  asserting(ndout==ncl1*bins->n_bands);
   double **cls_in,**cls_out;
   cls_in=malloc(ncl1*sizeof(double *));
   cls_out=malloc(ncl1*sizeof(double *));
@@ -3438,7 +3445,7 @@ void unbin_cl(nmt_binning_scheme *bins,
 {
   int i;
   int nellout=ndout/ncl1;
-  assert(nell1==bins->n_bands);
+  asserting(nell1==bins->n_bands);
   double **cls_in,**cls_out;
   cls_in=malloc(ncl1*sizeof(double *));
   cls_out=malloc(ncl1*sizeof(double *));
@@ -3458,8 +3465,8 @@ void unbin_cl_flat(nmt_binning_scheme_flat *bins,
 		   double *dout,int ndout)
 {
   int i;
-  assert(ndout==nell3*ncl1);
-  assert(nell1==bins->n_bands);
+  asserting(ndout==nell3*ncl1);
+  asserting(nell1==bins->n_bands);
   double **cls_in,**cls_out;
   cls_in=malloc(ncl1*sizeof(double *));
   cls_out=malloc(ncl1*sizeof(double *));
@@ -3485,15 +3492,15 @@ nmt_field *field_alloc_new(int npix_1,double *mask,
   double **maps;
   double ***temp=NULL;
   nmt_field *fl;
-  assert(npix_1==npix_2);
-  assert(npix_2==npix_3);
-  assert(nmap_2==nmap_3);
-  assert((nmap_2==1) || (nmap_2==2));
+  asserting(npix_1==npix_2);
+  asserting(npix_2==npix_3);
+  asserting(nmap_2==nmap_3);
+  asserting((nmap_2==1) || (nmap_2==2));
 
   while(npix_1!=12*nside*nside)
     nside*=2;
 
-  assert(nell3!=3*nside);
+  asserting(nell3==3*nside);
 
   if(nmap_2==2) pol=1;
 
@@ -3534,13 +3541,13 @@ nmt_field *field_alloc_new_notemp(int npix_1,double *mask,
   int pol=0,ntemp=0;
   double **maps;
   nmt_field *fl;
-  assert(npix_1==npix_2);
-  assert((nmap_2==1) || (nmap_2==2));
+  asserting(npix_1==npix_2);
+  asserting((nmap_2==1) || (nmap_2==2));
 
   while(npix_1!=12*nside*nside)
     nside*=2;
 
-  assert(nell3!=3*nside);
+  asserting(nell3==3*nside);
 
   if(nmap_2==2) pol=1;
 
@@ -3567,16 +3574,16 @@ nmt_field_flat *field_alloc_new_flat(int nx,int ny,double lx,double ly,
   double **maps;
   double ***temp=NULL;
   nmt_field_flat *fl;
-  assert(npix_1==npix_2);
-  assert(npix_2==npix_3);
-  assert(nmap_2==nmap_3);
-  assert((nmap_2==1) || (nmap_2==2));
-  assert(npix_1==nx*ny);
-  assert(ncl1==2);
+  asserting(npix_1==npix_2);
+  asserting((nmap_2==1) || (nmap_2==2));
+  asserting(npix_1==nx*ny);
+  asserting(ncl1==2);
 
   if(nmap_2==2) pol=1;
 
   if(tmp!=NULL) {
+    asserting(npix_2==npix_3);
+    asserting(nmap_2==nmap_3);
     ntemp=ntmp_3;
     temp=malloc(ntmp_3*sizeof(double **));
     for(ii=0;ii<ntmp_3;ii++) {
@@ -3624,31 +3631,31 @@ nmt_field_flat *field_alloc_new_notemp_flat(int nx,int ny,double lx,double ly,
 
 void get_map(nmt_field *fl,int imap,double *ldout,long nldout)
 {
-  assert(imap<fl->nmaps);
-  assert(nldout==fl->npix);
+  asserting(imap<fl->nmaps);
+  asserting(nldout==fl->npix);
   memcpy(ldout,fl->maps[imap],fl->npix*sizeof(double));
 }
 
 void get_map_flat(nmt_field_flat *fl,int imap,double *dout,int ndout)
 {
-  assert(imap<fl->nmaps);
-  assert(ndout==fl->npix);
+  asserting(imap<fl->nmaps);
+  asserting(ndout==fl->npix);
   memcpy(dout,fl->maps[imap],fl->npix*sizeof(double));
 }
 
 void get_temp(nmt_field *fl,int itemp,int imap,double *ldout,long nldout)
 {
-  assert(itemp<fl->ntemp);
-  assert(imap<fl->nmaps);
-  assert(nldout==fl->npix);
+  asserting(itemp<fl->ntemp);
+  asserting(imap<fl->nmaps);
+  asserting(nldout==fl->npix);
   memcpy(ldout,fl->temp[itemp][imap],fl->npix*sizeof(double));
 }
 
 void get_temp_flat(nmt_field_flat *fl,int itemp,int imap,double *dout,int ndout)
 {
-  assert(itemp<fl->ntemp);
-  assert(imap<fl->nmaps);
-  assert(ndout==fl->npix);
+  asserting(itemp<fl->ntemp);
+  asserting(imap<fl->nmaps);
+  asserting(ndout==fl->npix);
   memcpy(dout,fl->temp[itemp][imap],fl->npix*sizeof(double));
 }
 
@@ -3656,7 +3663,7 @@ void apomask(int npix_1,double *mask,
 	     double *ldout,long nldout,double aposize,char *apotype)
 {
   long nside=1;
-  assert(nldout==npix_1);
+  asserting(nldout==npix_1);
 
   while(npix_1!=12*nside*nside)
     nside*=2;
@@ -3668,7 +3675,8 @@ void apomask_flat(int nx,int ny,double lx,double ly,
 		  int npix_1,double *mask,
 		  double *dout,int ndout,double aposize,char *apotype)
 {
-  assert(ndout==npix_1);
+  asserting(npix_1==nx*ny);
+  asserting(ndout==npix_1);
 
   nmt_apodize_mask_flat(nx,ny,lx,ly,mask,dout,aposize,apotype);
 }
@@ -3747,6 +3755,38 @@ void synfast_new_flat(int nx,int ny,double lx,double ly,int pol,int seed,
   free(larr);
 }
 
+nmt_workspace *comp_coupling_matrix(nmt_field *fl1,nmt_field *fl2,nmt_binning_scheme *bin)
+{
+  return nmt_compute_coupling_matrix(fl1,fl2,bin);
+}
+
+nmt_workspace_flat *comp_coupling_matrix_flat(nmt_field_flat *fl1,nmt_field_flat *fl2,
+					      nmt_binning_scheme_flat *bin,
+					      double lmn_x,double lmx_x,double lmn_y,double lmx_y)
+{
+  return nmt_compute_coupling_matrix_flat(fl1,fl2,bin,lmn_x,lmx_x,lmn_y,lmx_y);
+}
+
+nmt_workspace *read_workspace(char *fname)
+{
+  return nmt_workspace_read(fname);
+}
+
+void write_workspace(nmt_workspace *w,char *fname)
+{
+  nmt_workspace_write(w,fname);
+}
+
+nmt_workspace_flat *read_workspace_flat(char *fname)
+{
+  return nmt_workspace_flat_read(fname);
+}
+
+void write_workspace_flat(nmt_workspace_flat *w,char *fname)
+{
+  nmt_workspace_flat_write(w,fname);
+}
+   
 void comp_uncorr_noise_deproj_bias(nmt_field *fl1,
 				   int npix_1,double *mask,
 				   double *dout,int ndout)
@@ -3755,8 +3795,8 @@ void comp_uncorr_noise_deproj_bias(nmt_field *fl1,
   double **cl_bias;
   int n_cl1=fl1->nmaps*fl1->nmaps;
   int n_ell1=fl1->lmax+1;
-  assert(npix_1==fl1->npix);
-  assert(ndout==n_ell1*n_cl1);
+  asserting(npix_1==fl1->npix);
+  asserting(ndout==n_ell1*n_cl1);
   cl_bias=malloc(n_cl1*sizeof(double *));
   for(i=0;i<n_cl1;i++)
     cl_bias[i]=&(dout[n_ell1*i]);
@@ -3772,10 +3812,9 @@ void comp_deproj_bias(nmt_field *fl1,nmt_field *fl2,
 {
   int i;
   double **cl_bias,**cl_guess;
-  assert(fl1->nside==fl2->nside);
-  assert(ncl1==fl1->nmaps*fl2->nmaps);
-  assert(nell1==fl1->lmax+1);
-  assert(ndout==nell1*ncl1);
+  asserting(ncl1==fl1->nmaps*fl2->nmaps);
+  asserting(nell1==fl1->lmax+1);
+  asserting(ndout==nell1*ncl1);
   cl_bias=malloc(ncl1*sizeof(double *));
   cl_guess=malloc(ncl1*sizeof(double *));
   for(i=0;i<ncl1;i++) {
@@ -3798,13 +3837,9 @@ void comp_deproj_bias_flat(nmt_field_flat *fl1,nmt_field_flat *fl2,
 {
   int i;
   double **cl_bias,**cl_guess;
-  assert(fl1->nx==fl2->nx);
-  assert(fl1->ny==fl2->ny);
-  assert(fl1->lx==fl2->lx);
-  assert(fl1->ly==fl2->ly);
-  assert(ncl1==fl1->nmaps*fl2->nmaps);
-  assert(nell1==nell3);
-  assert(ndout==bin->n_bands*ncl1);
+  asserting(ncl1==fl1->nmaps*fl2->nmaps);
+  asserting(nell1==nell3);
+  asserting(ndout==bin->n_bands*ncl1);
   cl_bias=malloc(ncl1*sizeof(double *));
   cl_guess=malloc(ncl1*sizeof(double *));
   for(i=0;i<ncl1;i++) {
@@ -3825,9 +3860,9 @@ void comp_gaussian_covariance(nmt_covar_workspace *cw,
 			      int nell22,double *c22,
 			      double *dout,int ndout)
 {
-  assert(nell11==nell12);
-  assert(nell11==nell21);
-  assert(nell11==nell22);
+  asserting(nell11==nell12);
+  asserting(nell11==nell21);
+  asserting(nell11==nell22);
   nmt_compute_gaussian_covariance(cw,c11,c12,c21,c22,dout);
 }
 
@@ -3839,10 +3874,10 @@ void comp_gaussian_covariance_flat(nmt_covar_workspace_flat *cw,
 				   int nell22,double *c22,
 				   double *dout,int ndout)
 {
-  assert(nell11==nell3);
-  assert(nell11==nell12);
-  assert(nell11==nell21);
-  assert(nell11==nell22);
+  asserting(nell11==nell3);
+  asserting(nell11==nell12);
+  asserting(nell11==nell21);
+  asserting(nell11==nell22);
   nmt_compute_gaussian_covariance_flat(cw,nell3,weights,c11,c12,c21,c22,dout);
 }
 
@@ -3851,8 +3886,7 @@ void comp_pspec_coupled(nmt_field *fl1,nmt_field *fl2,
 {
   int i;
   double **cl_out;
-  assert(fl1->nside==fl2->nside);
-  assert(ndout==fl1->nmaps*fl2->nmaps*(fl1->lmax+1));
+  asserting(ndout==fl1->nmaps*fl2->nmaps*(fl1->lmax+1));
   cl_out=malloc(fl1->nmaps*fl2->nmaps*sizeof(double *));
   for(i=0;i<fl1->nmaps*fl2->nmaps;i++)
     cl_out[i]=&(dout[i*(fl1->lmax+1)]);
@@ -3869,11 +3903,11 @@ void comp_pspec_coupled_flat(nmt_field_flat *fl1,nmt_field_flat *fl2,
 {
   int i;
   double **cl_out;
-  assert(fl1->nx==fl2->nx);
-  assert(fl1->ny==fl2->ny);
-  assert(fl1->lx==fl2->lx);
-  assert(fl1->ly==fl2->ly);
-  assert(ndout==fl1->nmaps*fl2->nmaps*bin->n_bands);
+  asserting(fl1->fs->nx==fl2->fs->nx);
+  asserting(fl1->fs->ny==fl2->fs->ny);
+  asserting(fl1->fs->lx==fl2->fs->lx);
+  asserting(fl1->fs->ly==fl2->fs->ly);
+  asserting(ndout==fl1->nmaps*fl2->nmaps*bin->n_bands);
   cl_out=malloc(fl1->nmaps*fl2->nmaps*sizeof(double *));
   for(i=0;i<fl1->nmaps*fl2->nmaps;i++)
     cl_out[i]=&(dout[i*bin->n_bands]);
@@ -3891,13 +3925,13 @@ void decouple_cell_py(nmt_workspace *w,
 {
   int i;
   double **cl_in,**cl_noise,**cl_bias,**cl_out;
-  assert(ncl1==ncl2);
-  assert(ncl2==ncl3);
-  assert(ncl1==w->ncls);
-  assert(nell1==nell2);
-  assert(nell2==nell3);
-  assert(nell1==w->lmax+1);
-  assert(ndout==w->bin->n_bands*ncl1);
+  asserting(ncl1==ncl2);
+  asserting(ncl2==ncl3);
+  asserting(ncl1==w->ncls);
+  asserting(nell1==nell2);
+  asserting(nell2==nell3);
+  asserting(nell1==w->lmax+1);
+  asserting(ndout==w->bin->n_bands*ncl1);
   cl_in=   malloc(ncl1*sizeof(double *));
   cl_noise=malloc(ncl2*sizeof(double *));
   cl_bias= malloc(ncl3*sizeof(double *));
@@ -3925,13 +3959,13 @@ void decouple_cell_py_flat(nmt_workspace_flat *w,
 {
   int i;
   double **cl_in,**cl_noise,**cl_bias,**cl_out;
-  assert(ncl1==ncl2);
-  assert(ncl2==ncl3);
-  assert(ncl1==w->ncls);
-  assert(nell1==nell2);
-  assert(nell2==nell3);
-  assert(nell1==w->bin->n_bands);
-  assert(ndout==w->bin->n_bands*ncl1);
+  asserting(ncl1==ncl2);
+  asserting(ncl2==ncl3);
+  asserting(ncl1==w->ncls);
+  asserting(nell1==nell2);
+  asserting(nell2==nell3);
+  asserting(nell1==w->bin->n_bands);
+  asserting(ndout==w->bin->n_bands*ncl1);
   cl_in=   malloc(ncl1*sizeof(double *));
   cl_noise=malloc(ncl2*sizeof(double *));
   cl_bias= malloc(ncl3*sizeof(double *));
@@ -3957,9 +3991,9 @@ void couple_cell_py(nmt_workspace *w,
 {
   int i;
   double **cl_in,**cl_out;
-  assert(ncl1==w->ncls);
-  assert(nell1=w->lmax+1);
-  assert(ncl1*nell1=ndout);
+  asserting(ncl1==w->ncls);
+  asserting(nell1==w->lmax+1);
+  asserting(ncl1*nell1==ndout);
   cl_in=malloc(ncl1*sizeof(double *));
   cl_out=malloc(ncl1*sizeof(double *));
   for(i=0;i<ncl1;i++) {
@@ -3978,9 +4012,9 @@ void couple_cell_py_flat(nmt_workspace_flat *w,
 {
   int i;
   double **cl_in,**cl_out;
-  assert(nell3==nell1);
-  assert(ncl1==w->ncls);
-  assert(ncl1*w->bin->n_bands==ndout);
+  asserting(nell3==nell1);
+  asserting(ncl1==w->ncls);
+  asserting(ncl1*w->bin->n_bands==ndout);
   cl_in=malloc(ncl1*sizeof(double *));
   cl_out=malloc(ncl1*sizeof(double *));
   for(i=0;i<ncl1;i++) {
@@ -4001,12 +4035,12 @@ void comp_pspec(nmt_field *fl1,nmt_field *fl2,
   int i;
   double **cl_noise,**cl_guess,**cl_out;
   nmt_workspace *w;
-  assert(fl1->nside==fl2->nside);
-  assert(ncl1==fl1->nmaps*fl2->nmaps);
-  assert(nell1==fl1->lmax+1);
-  assert(ndout==bin->n_bands*ncl1);
-  assert(nell1==nell2);
-  assert(ncl1==ncl2);
+  asserting(fl1->nside==fl2->nside);
+  asserting(ncl1==fl1->nmaps*fl2->nmaps);
+  asserting(nell1==fl1->lmax+1);
+  asserting(ndout==bin->n_bands*ncl1);
+  asserting(nell1==nell2);
+  asserting(ncl1==ncl2);
   cl_noise=malloc(ncl1*sizeof(double *));
   cl_guess=malloc(ncl1*sizeof(double *));
   cl_out=malloc(ncl1*sizeof(double *));
@@ -4036,15 +4070,11 @@ void comp_pspec_flat(nmt_field_flat *fl1,nmt_field_flat *fl2,
   int i;
   double **cl_noise,**cl_guess,**cl_out;
   nmt_workspace_flat *w;
-  assert(fl1->nx==fl2->nx);
-  assert(fl1->ny==fl2->ny);
-  assert(fl1->lx==fl2->lx);
-  assert(fl1->ly==fl2->ly);
-  assert(ncl1==fl1->nmaps*fl2->nmaps);
-  assert(nell1==bin->n_bands);
-  assert(ndout==bin->n_bands*ncl1);
-  assert(nell3==nell2);
-  assert(ncl1==ncl2);
+  asserting(ncl1==fl1->nmaps*fl2->nmaps);
+  asserting(nell1==bin->n_bands);
+  asserting(ndout==bin->n_bands*ncl1);
+  asserting(nell3==nell2);
+  asserting(ncl1==ncl2);
   cl_noise=malloc(ncl1*sizeof(double *));
   cl_guess=malloc(ncl1*sizeof(double *));
   cl_out=malloc(ncl1*sizeof(double *));
@@ -4703,7 +4733,7 @@ SWIGINTERN PyObject *_wrap_new_binning_scheme_flat(PyObject *SWIGUNUSEDPARM(self
       result = (nmt_binning_scheme_flat *)calloc(1, sizeof(nmt_binning_scheme_flat));
     }
     finally {
-      SWIG_exception(SWIG_RuntimeError, "C-level error");
+      SWIG_exception(SWIG_RuntimeError,nmt_error_message);
     }
   }
   resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_nmt_binning_scheme_flat, SWIG_POINTER_NEW |  0 );
@@ -4731,7 +4761,7 @@ SWIGINTERN PyObject *_wrap_delete_binning_scheme_flat(PyObject *SWIGUNUSEDPARM(s
       free((char *) arg1);
     }
     finally {
-      SWIG_exception(SWIG_RuntimeError, "C-level error");
+      SWIG_exception(SWIG_RuntimeError,nmt_error_message);
     }
   }
   resultobj = SWIG_Py_Void();
@@ -5312,7 +5342,7 @@ SWIGINTERN PyObject *_wrap_new_binning_scheme(PyObject *SWIGUNUSEDPARM(self), Py
       result = (nmt_binning_scheme *)calloc(1, sizeof(nmt_binning_scheme));
     }
     finally {
-      SWIG_exception(SWIG_RuntimeError, "C-level error");
+      SWIG_exception(SWIG_RuntimeError,nmt_error_message);
     }
   }
   resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_nmt_binning_scheme, SWIG_POINTER_NEW |  0 );
@@ -5340,7 +5370,7 @@ SWIGINTERN PyObject *_wrap_delete_binning_scheme(PyObject *SWIGUNUSEDPARM(self),
       free((char *) arg1);
     }
     finally {
-      SWIG_exception(SWIG_RuntimeError, "C-level error");
+      SWIG_exception(SWIG_RuntimeError,nmt_error_message);
     }
   }
   resultobj = SWIG_Py_Void();
@@ -5949,7 +5979,7 @@ SWIGINTERN PyObject *_wrap_new_k_function(PyObject *SWIGUNUSEDPARM(self), PyObje
       result = (nmt_k_function *)calloc(1, sizeof(nmt_k_function));
     }
     finally {
-      SWIG_exception(SWIG_RuntimeError, "C-level error");
+      SWIG_exception(SWIG_RuntimeError,nmt_error_message);
     }
   }
   resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_nmt_k_function, SWIG_POINTER_NEW |  0 );
@@ -5977,7 +6007,7 @@ SWIGINTERN PyObject *_wrap_delete_k_function(PyObject *SWIGUNUSEDPARM(self), PyO
       free((char *) arg1);
     }
     finally {
-      SWIG_exception(SWIG_RuntimeError, "C-level error");
+      SWIG_exception(SWIG_RuntimeError,nmt_error_message);
     }
   }
   resultobj = SWIG_Py_Void();
@@ -6652,7 +6682,7 @@ SWIGINTERN PyObject *_wrap_new_flatsky_info(PyObject *SWIGUNUSEDPARM(self), PyOb
       result = (nmt_flatsky_info *)calloc(1, sizeof(nmt_flatsky_info));
     }
     finally {
-      SWIG_exception(SWIG_RuntimeError, "C-level error");
+      SWIG_exception(SWIG_RuntimeError,nmt_error_message);
     }
   }
   resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_nmt_flatsky_info, SWIG_POINTER_NEW |  0 );
@@ -6680,7 +6710,7 @@ SWIGINTERN PyObject *_wrap_delete_flatsky_info(PyObject *SWIGUNUSEDPARM(self), P
       free((char *) arg1);
     }
     finally {
-      SWIG_exception(SWIG_RuntimeError, "C-level error");
+      SWIG_exception(SWIG_RuntimeError,nmt_error_message);
     }
   }
   resultobj = SWIG_Py_Void();
@@ -7557,7 +7587,7 @@ SWIGINTERN PyObject *_wrap_new_field_flat(PyObject *SWIGUNUSEDPARM(self), PyObje
       result = (nmt_field_flat *)calloc(1, sizeof(nmt_field_flat));
     }
     finally {
-      SWIG_exception(SWIG_RuntimeError, "C-level error");
+      SWIG_exception(SWIG_RuntimeError,nmt_error_message);
     }
   }
   resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_nmt_field_flat, SWIG_POINTER_NEW |  0 );
@@ -7585,7 +7615,7 @@ SWIGINTERN PyObject *_wrap_delete_field_flat(PyObject *SWIGUNUSEDPARM(self), PyO
       free((char *) arg1);
     }
     finally {
-      SWIG_exception(SWIG_RuntimeError, "C-level error");
+      SWIG_exception(SWIG_RuntimeError,nmt_error_message);
     }
   }
   resultobj = SWIG_Py_Void();
@@ -8809,7 +8839,7 @@ SWIGINTERN PyObject *_wrap_new_field(PyObject *SWIGUNUSEDPARM(self), PyObject *a
       result = (nmt_field *)calloc(1, sizeof(nmt_field));
     }
     finally {
-      SWIG_exception(SWIG_RuntimeError, "C-level error");
+      SWIG_exception(SWIG_RuntimeError,nmt_error_message);
     }
   }
   resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_nmt_field, SWIG_POINTER_NEW |  0 );
@@ -8837,7 +8867,7 @@ SWIGINTERN PyObject *_wrap_delete_field(PyObject *SWIGUNUSEDPARM(self), PyObject
       free((char *) arg1);
     }
     finally {
-      SWIG_exception(SWIG_RuntimeError, "C-level error");
+      SWIG_exception(SWIG_RuntimeError,nmt_error_message);
     }
   }
   resultobj = SWIG_Py_Void();
@@ -10290,7 +10320,7 @@ SWIGINTERN PyObject *_wrap_new_workspace_flat(PyObject *SWIGUNUSEDPARM(self), Py
       result = (nmt_workspace_flat *)calloc(1, sizeof(nmt_workspace_flat));
     }
     finally {
-      SWIG_exception(SWIG_RuntimeError, "C-level error");
+      SWIG_exception(SWIG_RuntimeError,nmt_error_message);
     }
   }
   resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_nmt_workspace_flat, SWIG_POINTER_NEW |  0 );
@@ -10318,7 +10348,7 @@ SWIGINTERN PyObject *_wrap_delete_workspace_flat(PyObject *SWIGUNUSEDPARM(self),
       free((char *) arg1);
     }
     finally {
-      SWIG_exception(SWIG_RuntimeError, "C-level error");
+      SWIG_exception(SWIG_RuntimeError,nmt_error_message);
     }
   }
   resultobj = SWIG_Py_Void();
@@ -11516,7 +11546,7 @@ SWIGINTERN PyObject *_wrap_new_workspace(PyObject *SWIGUNUSEDPARM(self), PyObjec
       result = (nmt_workspace *)calloc(1, sizeof(nmt_workspace));
     }
     finally {
-      SWIG_exception(SWIG_RuntimeError, "C-level error");
+      SWIG_exception(SWIG_RuntimeError,nmt_error_message);
     }
   }
   resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_nmt_workspace, SWIG_POINTER_NEW |  0 );
@@ -11544,7 +11574,7 @@ SWIGINTERN PyObject *_wrap_delete_workspace(PyObject *SWIGUNUSEDPARM(self), PyOb
       free((char *) arg1);
     }
     finally {
-      SWIG_exception(SWIG_RuntimeError, "C-level error");
+      SWIG_exception(SWIG_RuntimeError,nmt_error_message);
     }
   }
   resultobj = SWIG_Py_Void();
@@ -12456,7 +12486,7 @@ SWIGINTERN PyObject *_wrap_new_covar_workspace_flat(PyObject *SWIGUNUSEDPARM(sel
       result = (nmt_covar_workspace_flat *)calloc(1, sizeof(nmt_covar_workspace_flat));
     }
     finally {
-      SWIG_exception(SWIG_RuntimeError, "C-level error");
+      SWIG_exception(SWIG_RuntimeError,nmt_error_message);
     }
   }
   resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_nmt_covar_workspace_flat, SWIG_POINTER_NEW |  0 );
@@ -12484,7 +12514,7 @@ SWIGINTERN PyObject *_wrap_delete_covar_workspace_flat(PyObject *SWIGUNUSEDPARM(
       free((char *) arg1);
     }
     finally {
-      SWIG_exception(SWIG_RuntimeError, "C-level error");
+      SWIG_exception(SWIG_RuntimeError,nmt_error_message);
     }
   }
   resultobj = SWIG_Py_Void();
@@ -13381,7 +13411,7 @@ SWIGINTERN PyObject *_wrap_new_covar_workspace(PyObject *SWIGUNUSEDPARM(self), P
       result = (nmt_covar_workspace *)calloc(1, sizeof(nmt_covar_workspace));
     }
     finally {
-      SWIG_exception(SWIG_RuntimeError, "C-level error");
+      SWIG_exception(SWIG_RuntimeError,nmt_error_message);
     }
   }
   resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_nmt_covar_workspace, SWIG_POINTER_NEW |  0 );
@@ -13409,7 +13439,7 @@ SWIGINTERN PyObject *_wrap_delete_covar_workspace(PyObject *SWIGUNUSEDPARM(self)
       free((char *) arg1);
     }
     finally {
-      SWIG_exception(SWIG_RuntimeError, "C-level error");
+      SWIG_exception(SWIG_RuntimeError,nmt_error_message);
     }
   }
   resultobj = SWIG_Py_Void();
@@ -13640,7 +13670,7 @@ SWIGINTERN PyObject *_wrap_get_nell_list(PyObject *SWIGUNUSEDPARM(self), PyObjec
       get_nell_list(arg1,arg2,arg3);
     }
     finally {
-      SWIG_exception(SWIG_RuntimeError, "C-level error");
+      SWIG_exception(SWIG_RuntimeError,nmt_error_message);
     }
   }
   resultobj = SWIG_Py_Void();
@@ -13681,7 +13711,7 @@ SWIGINTERN PyObject *_wrap_get_nell(PyObject *SWIGUNUSEDPARM(self), PyObject *ar
       result = (int)get_nell(arg1,arg2);
     }
     finally {
-      SWIG_exception(SWIG_RuntimeError, "C-level error");
+      SWIG_exception(SWIG_RuntimeError,nmt_error_message);
     }
   }
   resultobj = SWIG_From_int((int)(result));
@@ -13738,7 +13768,7 @@ SWIGINTERN PyObject *_wrap_get_ell_list(PyObject *SWIGUNUSEDPARM(self), PyObject
       get_ell_list(arg1,arg2,arg3,arg4);
     }
     finally {
-      SWIG_exception(SWIG_RuntimeError, "C-level error");
+      SWIG_exception(SWIG_RuntimeError,nmt_error_message);
     }
   }
   resultobj = SWIG_Py_Void();
@@ -13798,7 +13828,7 @@ SWIGINTERN PyObject *_wrap_get_weight_list(PyObject *SWIGUNUSEDPARM(self), PyObj
       get_weight_list(arg1,arg2,arg3,arg4);
     }
     finally {
-      SWIG_exception(SWIG_RuntimeError, "C-level error");
+      SWIG_exception(SWIG_RuntimeError,nmt_error_message);
     }
   }
   resultobj = SWIG_Py_Void();
@@ -13849,7 +13879,7 @@ SWIGINTERN PyObject *_wrap_get_ell_eff(PyObject *SWIGUNUSEDPARM(self), PyObject 
       get_ell_eff(arg1,arg2,arg3);
     }
     finally {
-      SWIG_exception(SWIG_RuntimeError, "C-level error");
+      SWIG_exception(SWIG_RuntimeError,nmt_error_message);
     }
   }
   resultobj = SWIG_Py_Void();
@@ -13900,7 +13930,7 @@ SWIGINTERN PyObject *_wrap_get_ell_eff_flat(PyObject *SWIGUNUSEDPARM(self), PyOb
       get_ell_eff_flat(arg1,arg2,arg3);
     }
     finally {
-      SWIG_exception(SWIG_RuntimeError, "C-level error");
+      SWIG_exception(SWIG_RuntimeError,nmt_error_message);
     }
   }
   resultobj = SWIG_Py_Void();
@@ -13983,7 +14013,7 @@ SWIGINTERN PyObject *_wrap_bins_create_py(PyObject *SWIGUNUSEDPARM(self), PyObje
       result = (nmt_binning_scheme *)bins_create_py(arg1,arg2,arg3,arg4,arg5,arg6,arg7);
     }
     finally {
-      SWIG_exception(SWIG_RuntimeError, "C-level error");
+      SWIG_exception(SWIG_RuntimeError,nmt_error_message);
     }
   }
   resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_nmt_binning_scheme, 0 |  0 );
@@ -14073,7 +14103,7 @@ SWIGINTERN PyObject *_wrap_bins_flat_create_py(PyObject *SWIGUNUSEDPARM(self), P
       result = (nmt_binning_scheme_flat *)bins_flat_create_py(arg1,arg2,arg3,arg4);
     }
     finally {
-      SWIG_exception(SWIG_RuntimeError, "C-level error");
+      SWIG_exception(SWIG_RuntimeError,nmt_error_message);
     }
   }
   resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_nmt_binning_scheme_flat, 0 |  0 );
@@ -14164,7 +14194,7 @@ SWIGINTERN PyObject *_wrap_bin_cl(PyObject *SWIGUNUSEDPARM(self), PyObject *args
       bin_cl(arg1,arg2,arg3,arg4,arg5,arg6);
     }
     finally {
-      SWIG_exception(SWIG_RuntimeError, "C-level error");
+      SWIG_exception(SWIG_RuntimeError,nmt_error_message);
     }
   }
   resultobj = SWIG_Py_Void();
@@ -14263,7 +14293,7 @@ SWIGINTERN PyObject *_wrap_bin_cl_flat(PyObject *SWIGUNUSEDPARM(self), PyObject 
       bin_cl_flat(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8);
     }
     finally {
-      SWIG_exception(SWIG_RuntimeError, "C-level error");
+      SWIG_exception(SWIG_RuntimeError,nmt_error_message);
     }
   }
   resultobj = SWIG_Py_Void();
@@ -14357,7 +14387,7 @@ SWIGINTERN PyObject *_wrap_unbin_cl(PyObject *SWIGUNUSEDPARM(self), PyObject *ar
       unbin_cl(arg1,arg2,arg3,arg4,arg5,arg6);
     }
     finally {
-      SWIG_exception(SWIG_RuntimeError, "C-level error");
+      SWIG_exception(SWIG_RuntimeError,nmt_error_message);
     }
   }
   resultobj = SWIG_Py_Void();
@@ -14456,7 +14486,7 @@ SWIGINTERN PyObject *_wrap_unbin_cl_flat(PyObject *SWIGUNUSEDPARM(self), PyObjec
       unbin_cl_flat(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8);
     }
     finally {
-      SWIG_exception(SWIG_RuntimeError, "C-level error");
+      SWIG_exception(SWIG_RuntimeError,nmt_error_message);
     }
   }
   resultobj = SWIG_Py_Void();
@@ -14612,7 +14642,7 @@ SWIGINTERN PyObject *_wrap_field_alloc_new(PyObject *SWIGUNUSEDPARM(self), PyObj
       result = (nmt_field *)field_alloc_new(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13,arg14,arg15);
     }
     finally {
-      SWIG_exception(SWIG_RuntimeError, "C-level error");
+      SWIG_exception(SWIG_RuntimeError,nmt_error_message);
     }
   }
   resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_nmt_field, 0 |  0 );
@@ -14760,7 +14790,7 @@ SWIGINTERN PyObject *_wrap_field_alloc_new_notemp(PyObject *SWIGUNUSEDPARM(self)
       result = (nmt_field *)field_alloc_new_notemp(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10);
     }
     finally {
-      SWIG_exception(SWIG_RuntimeError, "C-level error");
+      SWIG_exception(SWIG_RuntimeError,nmt_error_message);
     }
   }
   resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_nmt_field, 0 |  0 );
@@ -14954,7 +14984,7 @@ SWIGINTERN PyObject *_wrap_field_alloc_new_flat(PyObject *SWIGUNUSEDPARM(self), 
       result = (nmt_field_flat *)field_alloc_new_flat(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13,arg14,arg15,arg16,arg17,arg18,arg19);
     }
     finally {
-      SWIG_exception(SWIG_RuntimeError, "C-level error");
+      SWIG_exception(SWIG_RuntimeError,nmt_error_message);
     }
   }
   resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_nmt_field_flat, 0 |  0 );
@@ -15131,7 +15161,7 @@ SWIGINTERN PyObject *_wrap_field_alloc_new_notemp_flat(PyObject *SWIGUNUSEDPARM(
       result = (nmt_field_flat *)field_alloc_new_notemp_flat(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13,arg14);
     }
     finally {
-      SWIG_exception(SWIG_RuntimeError, "C-level error");
+      SWIG_exception(SWIG_RuntimeError,nmt_error_message);
     }
   }
   resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_nmt_field_flat, 0 |  0 );
@@ -15224,7 +15254,7 @@ SWIGINTERN PyObject *_wrap_get_map(PyObject *SWIGUNUSEDPARM(self), PyObject *arg
       get_map(arg1,arg2,arg3,arg4);
     }
     finally {
-      SWIG_exception(SWIG_RuntimeError, "C-level error");
+      SWIG_exception(SWIG_RuntimeError,nmt_error_message);
     }
   }
   resultobj = SWIG_Py_Void();
@@ -15284,7 +15314,7 @@ SWIGINTERN PyObject *_wrap_get_map_flat(PyObject *SWIGUNUSEDPARM(self), PyObject
       get_map_flat(arg1,arg2,arg3,arg4);
     }
     finally {
-      SWIG_exception(SWIG_RuntimeError, "C-level error");
+      SWIG_exception(SWIG_RuntimeError,nmt_error_message);
     }
   }
   resultobj = SWIG_Py_Void();
@@ -15353,7 +15383,7 @@ SWIGINTERN PyObject *_wrap_get_temp(PyObject *SWIGUNUSEDPARM(self), PyObject *ar
       get_temp(arg1,arg2,arg3,arg4,arg5);
     }
     finally {
-      SWIG_exception(SWIG_RuntimeError, "C-level error");
+      SWIG_exception(SWIG_RuntimeError,nmt_error_message);
     }
   }
   resultobj = SWIG_Py_Void();
@@ -15422,7 +15452,7 @@ SWIGINTERN PyObject *_wrap_get_temp_flat(PyObject *SWIGUNUSEDPARM(self), PyObjec
       get_temp_flat(arg1,arg2,arg3,arg4,arg5);
     }
     finally {
-      SWIG_exception(SWIG_RuntimeError, "C-level error");
+      SWIG_exception(SWIG_RuntimeError,nmt_error_message);
     }
   }
   resultobj = SWIG_Py_Void();
@@ -15500,7 +15530,7 @@ SWIGINTERN PyObject *_wrap_apomask(PyObject *SWIGUNUSEDPARM(self), PyObject *arg
       apomask(arg1,arg2,arg3,arg4,arg5,arg6);
     }
     finally {
-      SWIG_exception(SWIG_RuntimeError, "C-level error");
+      SWIG_exception(SWIG_RuntimeError,nmt_error_message);
     }
   }
   resultobj = SWIG_Py_Void();
@@ -15628,7 +15658,7 @@ SWIGINTERN PyObject *_wrap_apomask_flat(PyObject *SWIGUNUSEDPARM(self), PyObject
       apomask_flat(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10);
     }
     finally {
-      SWIG_exception(SWIG_RuntimeError, "C-level error");
+      SWIG_exception(SWIG_RuntimeError,nmt_error_message);
     }
   }
   resultobj = SWIG_Py_Void();
@@ -15747,7 +15777,7 @@ SWIGINTERN PyObject *_wrap_synfast_new(PyObject *SWIGUNUSEDPARM(self), PyObject 
       synfast_new(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10);
     }
     finally {
-      SWIG_exception(SWIG_RuntimeError, "C-level error");
+      SWIG_exception(SWIG_RuntimeError,nmt_error_message);
     }
   }
   resultobj = SWIG_Py_Void();
@@ -15903,7 +15933,7 @@ SWIGINTERN PyObject *_wrap_synfast_new_flat(PyObject *SWIGUNUSEDPARM(self), PyOb
       synfast_new_flat(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13);
     }
     finally {
-      SWIG_exception(SWIG_RuntimeError, "C-level error");
+      SWIG_exception(SWIG_RuntimeError,nmt_error_message);
     }
   }
   resultobj = SWIG_Py_Void();
@@ -15936,6 +15966,280 @@ fail:
       Py_DECREF(array10); 
     }
   }
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_comp_coupling_matrix(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_field *arg1 = (nmt_field *) 0 ;
+  nmt_field *arg2 = (nmt_field *) 0 ;
+  nmt_binning_scheme *arg3 = (nmt_binning_scheme *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  void *argp2 = 0 ;
+  int res2 = 0 ;
+  void *argp3 = 0 ;
+  int res3 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  PyObject * obj2 = 0 ;
+  nmt_workspace *result = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OOO:comp_coupling_matrix",&obj0,&obj1,&obj2)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_field, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "comp_coupling_matrix" "', argument " "1"" of type '" "nmt_field *""'"); 
+  }
+  arg1 = (nmt_field *)(argp1);
+  res2 = SWIG_ConvertPtr(obj1, &argp2,SWIGTYPE_p_nmt_field, 0 |  0 );
+  if (!SWIG_IsOK(res2)) {
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "comp_coupling_matrix" "', argument " "2"" of type '" "nmt_field *""'"); 
+  }
+  arg2 = (nmt_field *)(argp2);
+  res3 = SWIG_ConvertPtr(obj2, &argp3,SWIGTYPE_p_nmt_binning_scheme, 0 |  0 );
+  if (!SWIG_IsOK(res3)) {
+    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "comp_coupling_matrix" "', argument " "3"" of type '" "nmt_binning_scheme *""'"); 
+  }
+  arg3 = (nmt_binning_scheme *)(argp3);
+  {
+    try {
+      result = (nmt_workspace *)comp_coupling_matrix(arg1,arg2,arg3);
+    }
+    finally {
+      SWIG_exception(SWIG_RuntimeError,nmt_error_message);
+    }
+  }
+  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_nmt_workspace, 0 |  0 );
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_comp_coupling_matrix_flat(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_field_flat *arg1 = (nmt_field_flat *) 0 ;
+  nmt_field_flat *arg2 = (nmt_field_flat *) 0 ;
+  nmt_binning_scheme_flat *arg3 = (nmt_binning_scheme_flat *) 0 ;
+  double arg4 ;
+  double arg5 ;
+  double arg6 ;
+  double arg7 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  void *argp2 = 0 ;
+  int res2 = 0 ;
+  void *argp3 = 0 ;
+  int res3 = 0 ;
+  double val4 ;
+  int ecode4 = 0 ;
+  double val5 ;
+  int ecode5 = 0 ;
+  double val6 ;
+  int ecode6 = 0 ;
+  double val7 ;
+  int ecode7 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  PyObject * obj2 = 0 ;
+  PyObject * obj3 = 0 ;
+  PyObject * obj4 = 0 ;
+  PyObject * obj5 = 0 ;
+  PyObject * obj6 = 0 ;
+  nmt_workspace_flat *result = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OOOOOOO:comp_coupling_matrix_flat",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_field_flat, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "comp_coupling_matrix_flat" "', argument " "1"" of type '" "nmt_field_flat *""'"); 
+  }
+  arg1 = (nmt_field_flat *)(argp1);
+  res2 = SWIG_ConvertPtr(obj1, &argp2,SWIGTYPE_p_nmt_field_flat, 0 |  0 );
+  if (!SWIG_IsOK(res2)) {
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "comp_coupling_matrix_flat" "', argument " "2"" of type '" "nmt_field_flat *""'"); 
+  }
+  arg2 = (nmt_field_flat *)(argp2);
+  res3 = SWIG_ConvertPtr(obj2, &argp3,SWIGTYPE_p_nmt_binning_scheme_flat, 0 |  0 );
+  if (!SWIG_IsOK(res3)) {
+    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "comp_coupling_matrix_flat" "', argument " "3"" of type '" "nmt_binning_scheme_flat *""'"); 
+  }
+  arg3 = (nmt_binning_scheme_flat *)(argp3);
+  ecode4 = SWIG_AsVal_double(obj3, &val4);
+  if (!SWIG_IsOK(ecode4)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "comp_coupling_matrix_flat" "', argument " "4"" of type '" "double""'");
+  } 
+  arg4 = (double)(val4);
+  ecode5 = SWIG_AsVal_double(obj4, &val5);
+  if (!SWIG_IsOK(ecode5)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode5), "in method '" "comp_coupling_matrix_flat" "', argument " "5"" of type '" "double""'");
+  } 
+  arg5 = (double)(val5);
+  ecode6 = SWIG_AsVal_double(obj5, &val6);
+  if (!SWIG_IsOK(ecode6)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode6), "in method '" "comp_coupling_matrix_flat" "', argument " "6"" of type '" "double""'");
+  } 
+  arg6 = (double)(val6);
+  ecode7 = SWIG_AsVal_double(obj6, &val7);
+  if (!SWIG_IsOK(ecode7)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode7), "in method '" "comp_coupling_matrix_flat" "', argument " "7"" of type '" "double""'");
+  } 
+  arg7 = (double)(val7);
+  {
+    try {
+      result = (nmt_workspace_flat *)comp_coupling_matrix_flat(arg1,arg2,arg3,arg4,arg5,arg6,arg7);
+    }
+    finally {
+      SWIG_exception(SWIG_RuntimeError,nmt_error_message);
+    }
+  }
+  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_nmt_workspace_flat, 0 |  0 );
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_read_workspace(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  char *arg1 = (char *) 0 ;
+  int res1 ;
+  char *buf1 = 0 ;
+  int alloc1 = 0 ;
+  PyObject * obj0 = 0 ;
+  nmt_workspace *result = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:read_workspace",&obj0)) SWIG_fail;
+  res1 = SWIG_AsCharPtrAndSize(obj0, &buf1, NULL, &alloc1);
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "read_workspace" "', argument " "1"" of type '" "char *""'");
+  }
+  arg1 = (char *)(buf1);
+  {
+    try {
+      result = (nmt_workspace *)read_workspace(arg1);
+    }
+    finally {
+      SWIG_exception(SWIG_RuntimeError,nmt_error_message);
+    }
+  }
+  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_nmt_workspace, 0 |  0 );
+  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
+  return resultobj;
+fail:
+  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_write_workspace(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_workspace *arg1 = (nmt_workspace *) 0 ;
+  char *arg2 = (char *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int res2 ;
+  char *buf2 = 0 ;
+  int alloc2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:write_workspace",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_workspace, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "write_workspace" "', argument " "1"" of type '" "nmt_workspace *""'"); 
+  }
+  arg1 = (nmt_workspace *)(argp1);
+  res2 = SWIG_AsCharPtrAndSize(obj1, &buf2, NULL, &alloc2);
+  if (!SWIG_IsOK(res2)) {
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "write_workspace" "', argument " "2"" of type '" "char *""'");
+  }
+  arg2 = (char *)(buf2);
+  {
+    try {
+      write_workspace(arg1,arg2);
+    }
+    finally {
+      SWIG_exception(SWIG_RuntimeError,nmt_error_message);
+    }
+  }
+  resultobj = SWIG_Py_Void();
+  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
+  return resultobj;
+fail:
+  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_read_workspace_flat(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  char *arg1 = (char *) 0 ;
+  int res1 ;
+  char *buf1 = 0 ;
+  int alloc1 = 0 ;
+  PyObject * obj0 = 0 ;
+  nmt_workspace_flat *result = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:read_workspace_flat",&obj0)) SWIG_fail;
+  res1 = SWIG_AsCharPtrAndSize(obj0, &buf1, NULL, &alloc1);
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "read_workspace_flat" "', argument " "1"" of type '" "char *""'");
+  }
+  arg1 = (char *)(buf1);
+  {
+    try {
+      result = (nmt_workspace_flat *)read_workspace_flat(arg1);
+    }
+    finally {
+      SWIG_exception(SWIG_RuntimeError,nmt_error_message);
+    }
+  }
+  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_nmt_workspace_flat, 0 |  0 );
+  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
+  return resultobj;
+fail:
+  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_write_workspace_flat(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_workspace_flat *arg1 = (nmt_workspace_flat *) 0 ;
+  char *arg2 = (char *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int res2 ;
+  char *buf2 = 0 ;
+  int alloc2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:write_workspace_flat",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_workspace_flat, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "write_workspace_flat" "', argument " "1"" of type '" "nmt_workspace_flat *""'"); 
+  }
+  arg1 = (nmt_workspace_flat *)(argp1);
+  res2 = SWIG_AsCharPtrAndSize(obj1, &buf2, NULL, &alloc2);
+  if (!SWIG_IsOK(res2)) {
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "write_workspace_flat" "', argument " "2"" of type '" "char *""'");
+  }
+  arg2 = (char *)(buf2);
+  {
+    try {
+      write_workspace_flat(arg1,arg2);
+    }
+    finally {
+      SWIG_exception(SWIG_RuntimeError,nmt_error_message);
+    }
+  }
+  resultobj = SWIG_Py_Void();
+  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
+  return resultobj;
+fail:
+  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
   return NULL;
 }
 
@@ -15995,7 +16299,7 @@ SWIGINTERN PyObject *_wrap_comp_uncorr_noise_deproj_bias(PyObject *SWIGUNUSEDPAR
       comp_uncorr_noise_deproj_bias(arg1,arg2,arg3,arg4,arg5);
     }
     finally {
-      SWIG_exception(SWIG_RuntimeError, "C-level error");
+      SWIG_exception(SWIG_RuntimeError,nmt_error_message);
     }
   }
   resultobj = SWIG_Py_Void();
@@ -16086,7 +16390,7 @@ SWIGINTERN PyObject *_wrap_comp_deproj_bias(PyObject *SWIGUNUSEDPARM(self), PyOb
       comp_deproj_bias(arg1,arg2,arg3,arg4,arg5,arg6,arg7);
     }
     finally {
-      SWIG_exception(SWIG_RuntimeError, "C-level error");
+      SWIG_exception(SWIG_RuntimeError,nmt_error_message);
     }
   }
   resultobj = SWIG_Py_Void();
@@ -16239,7 +16543,7 @@ SWIGINTERN PyObject *_wrap_comp_deproj_bias_flat(PyObject *SWIGUNUSEDPARM(self),
       comp_deproj_bias_flat(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13,arg14);
     }
     finally {
-      SWIG_exception(SWIG_RuntimeError, "C-level error");
+      SWIG_exception(SWIG_RuntimeError,nmt_error_message);
     }
   }
   resultobj = SWIG_Py_Void();
@@ -16382,7 +16686,7 @@ SWIGINTERN PyObject *_wrap_comp_gaussian_covariance(PyObject *SWIGUNUSEDPARM(sel
       comp_gaussian_covariance(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11);
     }
     finally {
-      SWIG_exception(SWIG_RuntimeError, "C-level error");
+      SWIG_exception(SWIG_RuntimeError,nmt_error_message);
     }
   }
   resultobj = SWIG_Py_Void();
@@ -16566,7 +16870,7 @@ SWIGINTERN PyObject *_wrap_comp_gaussian_covariance_flat(PyObject *SWIGUNUSEDPAR
       comp_gaussian_covariance_flat(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13);
     }
     finally {
-      SWIG_exception(SWIG_RuntimeError, "C-level error");
+      SWIG_exception(SWIG_RuntimeError,nmt_error_message);
     }
   }
   resultobj = SWIG_Py_Void();
@@ -16686,7 +16990,7 @@ SWIGINTERN PyObject *_wrap_comp_pspec_coupled(PyObject *SWIGUNUSEDPARM(self), Py
       comp_pspec_coupled(arg1,arg2,arg3,arg4);
     }
     finally {
-      SWIG_exception(SWIG_RuntimeError, "C-level error");
+      SWIG_exception(SWIG_RuntimeError,nmt_error_message);
     }
   }
   resultobj = SWIG_Py_Void();
@@ -16791,7 +17095,7 @@ SWIGINTERN PyObject *_wrap_comp_pspec_coupled_flat(PyObject *SWIGUNUSEDPARM(self
       comp_pspec_coupled_flat(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9);
     }
     finally {
-      SWIG_exception(SWIG_RuntimeError, "C-level error");
+      SWIG_exception(SWIG_RuntimeError,nmt_error_message);
     }
   }
   resultobj = SWIG_Py_Void();
@@ -16899,7 +17203,7 @@ SWIGINTERN PyObject *_wrap_decouple_cell_py(PyObject *SWIGUNUSEDPARM(self), PyOb
       decouple_cell_py(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12);
     }
     finally {
-      SWIG_exception(SWIG_RuntimeError, "C-level error");
+      SWIG_exception(SWIG_RuntimeError,nmt_error_message);
     }
   }
   resultobj = SWIG_Py_Void();
@@ -17043,7 +17347,7 @@ SWIGINTERN PyObject *_wrap_decouple_cell_py_flat(PyObject *SWIGUNUSEDPARM(self),
       decouple_cell_py_flat(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12);
     }
     finally {
-      SWIG_exception(SWIG_RuntimeError, "C-level error");
+      SWIG_exception(SWIG_RuntimeError,nmt_error_message);
     }
   }
   resultobj = SWIG_Py_Void();
@@ -17149,7 +17453,7 @@ SWIGINTERN PyObject *_wrap_couple_cell_py(PyObject *SWIGUNUSEDPARM(self), PyObje
       couple_cell_py(arg1,arg2,arg3,arg4,arg5,arg6);
     }
     finally {
-      SWIG_exception(SWIG_RuntimeError, "C-level error");
+      SWIG_exception(SWIG_RuntimeError,nmt_error_message);
     }
   }
   resultobj = SWIG_Py_Void();
@@ -17248,7 +17552,7 @@ SWIGINTERN PyObject *_wrap_couple_cell_py_flat(PyObject *SWIGUNUSEDPARM(self), P
       couple_cell_py_flat(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8);
     }
     finally {
-      SWIG_exception(SWIG_RuntimeError, "C-level error");
+      SWIG_exception(SWIG_RuntimeError,nmt_error_message);
     }
   }
   resultobj = SWIG_Py_Void();
@@ -17388,7 +17692,7 @@ SWIGINTERN PyObject *_wrap_comp_pspec(PyObject *SWIGUNUSEDPARM(self), PyObject *
       comp_pspec(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12);
     }
     finally {
-      SWIG_exception(SWIG_RuntimeError, "C-level error");
+      SWIG_exception(SWIG_RuntimeError,nmt_error_message);
     }
   }
   resultobj = SWIG_Py_Void();
@@ -17581,7 +17885,7 @@ SWIGINTERN PyObject *_wrap_comp_pspec_flat(PyObject *SWIGUNUSEDPARM(self), PyObj
       comp_pspec_flat(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13,arg14,arg15,arg16,arg17,arg18);
     }
     finally {
-      SWIG_exception(SWIG_RuntimeError, "C-level error");
+      SWIG_exception(SWIG_RuntimeError,nmt_error_message);
     }
   }
   resultobj = SWIG_Py_Void();
@@ -17954,6 +18258,12 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"apomask_flat", _wrap_apomask_flat, METH_VARARGS, NULL},
 	 { (char *)"synfast_new", _wrap_synfast_new, METH_VARARGS, NULL},
 	 { (char *)"synfast_new_flat", _wrap_synfast_new_flat, METH_VARARGS, NULL},
+	 { (char *)"comp_coupling_matrix", _wrap_comp_coupling_matrix, METH_VARARGS, NULL},
+	 { (char *)"comp_coupling_matrix_flat", _wrap_comp_coupling_matrix_flat, METH_VARARGS, NULL},
+	 { (char *)"read_workspace", _wrap_read_workspace, METH_VARARGS, NULL},
+	 { (char *)"write_workspace", _wrap_write_workspace, METH_VARARGS, NULL},
+	 { (char *)"read_workspace_flat", _wrap_read_workspace_flat, METH_VARARGS, NULL},
+	 { (char *)"write_workspace_flat", _wrap_write_workspace_flat, METH_VARARGS, NULL},
 	 { (char *)"comp_uncorr_noise_deproj_bias", _wrap_comp_uncorr_noise_deproj_bias, METH_VARARGS, NULL},
 	 { (char *)"comp_deproj_bias", _wrap_comp_deproj_bias, METH_VARARGS, NULL},
 	 { (char *)"comp_deproj_bias_flat", _wrap_comp_deproj_bias_flat, METH_VARARGS, NULL},

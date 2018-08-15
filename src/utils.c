@@ -1,9 +1,10 @@
 #include "utils.h"
 
 #include <setjmp.h>
-jmp_buf exception_buffer;
-int exception_status;
-int error_policy=EXIT_ON_ERROR;
+jmp_buf nmt_exception_buffer;
+int nmt_exception_status;
+int nmt_error_policy=EXIT_ON_ERROR;
+char nmt_error_message[256]="No error\n";
 
 int my_linecount(FILE *f)
 {
@@ -17,7 +18,7 @@ int my_linecount(FILE *f)
 
 void set_error_policy(int i)
 {
-  error_policy=i;
+  nmt_error_policy=i;
 }
 
 void report_error(int level,char *fmt,...)
@@ -30,12 +31,14 @@ void report_error(int level,char *fmt,...)
   va_end(args);
   
   if(level) {
-    if(error_policy==EXIT_ON_ERROR) {
+    if(nmt_error_policy==EXIT_ON_ERROR) {
       fprintf(stderr," Fatal error: %s",msg);
       exit(level);
     }
-    else
+    else {
+      sprintf(nmt_error_message,"%s",msg);
       throw(level);
+    }
   }
   else
     fprintf(stderr," Warning: %s",msg);

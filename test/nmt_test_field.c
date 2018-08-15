@@ -207,7 +207,7 @@ CTEST(nmt,field_read) {
   //Check that an error is thrown if file is wrong
   set_error_policy(THROW_ON_ERROR);
   try { f=nmt_field_read("test/mask.fits","test/maps.fits","test/maps.fits","none",1,0,0,3,1E-10); }
-  ASSERT_NOT_EQUAL(0,exception_status);
+  ASSERT_NOT_EQUAL(0,nmt_exception_status);
   ASSERT_NULL(f);
   set_error_policy(EXIT_ON_ERROR);
 }

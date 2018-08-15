@@ -6,6 +6,7 @@ import warnings
 from .testutils import normdiff
 
 #Unit tests associated with the NmtField and NmtFieldFlat classes
+
 class TestFieldSph(unittest.TestCase) :
     def setUp(self) :
         #This is to avoid showing an ugly warning that has nothing to do with pymaster
@@ -14,7 +15,7 @@ class TestFieldSph(unittest.TestCase) :
         self.nside=64
         self.lmax=3*self.nside-1
         self.ntemp=5
-        self.npix=hp.nside2npix(self.nside)
+        self.npix=int(hp.nside2npix(self.nside))
         self.msk=np.ones(self.npix)
         self.mps=np.zeros([3,self.npix])
         self.tmp=np.zeros([self.ntemp,3,self.npix])

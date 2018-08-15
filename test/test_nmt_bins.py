@@ -4,6 +4,7 @@ import pymaster as nmt
 from .testutils import normdiff
 
 #Unit tests associated with the NmtBin and NmtBinFlat classes
+
 class TestBinsSph(unittest.TestCase) :
     def setUp(self) :
         #Generates two equivalent binning schemes using two different initialization paths.

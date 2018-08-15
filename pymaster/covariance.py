@@ -11,6 +11,7 @@ class NmtCovarianceWorkspace(object) :
     def __del__(self) :
         if(self.wsp is not None) :
             lib.covar_workspace_free(self.wsp)
+            self.wsp=None
 
     def read_from(self,fname) :
         """
@@ -20,6 +21,7 @@ class NmtCovarianceWorkspace(object) :
         """
         if self.wsp is not None :
             lib.covar_workspace_free(self.wsp)
+            self.wsp=None
         self.wsp=lib.covar_workspace_read(fname);
 
     def compute_coupling_coefficients(self,wa,wb) :
@@ -35,6 +37,7 @@ class NmtCovarianceWorkspace(object) :
             raise ValueError("Gaussian covariances only supported for spin-0 fields")
         if self.wsp is not None :
             lib.covar_workspace_free(self.wsp)
+            self.wsp=None
         self.wsp=lib.covar_workspace_init(wa.wsp,wb.wsp)
 
     def write_to(self,fname) :
@@ -57,6 +60,7 @@ class NmtCovarianceWorkspaceFlat(object) :
     def __del__(self) :
         if(self.wsp is not None) :
             lib.covar_workspace_flat_free(self.wsp)
+            self.wsp=None
 
     def read_from(self,fname) :
         """
@@ -66,6 +70,7 @@ class NmtCovarianceWorkspaceFlat(object) :
         """
         if self.wsp is not None :
             lib.covar_workspace_flat_free(self.wsp)
+            self.wsp=None
         self.wsp=lib.covar_workspace_flat_read(fname);
 
     def compute_coupling_coefficients(self,wa,wb) :
@@ -80,6 +85,7 @@ class NmtCovarianceWorkspaceFlat(object) :
             raise ValueError("Gaussian covariances only supported for spin-0 fields")
         if self.wsp is not None :
             lib.covar_workspace_flat_free(self.wsp)
+            self.wsp=None
         self.wsp=lib.covar_workspace_flat_init(wa.wsp,wb.wsp)
 
     def write_to(self,fname) :

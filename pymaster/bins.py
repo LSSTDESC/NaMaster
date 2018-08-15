@@ -37,6 +37,7 @@ class NmtBin(object) :
     def __del__(self) :
         if self.bin is not None :
             lib.bins_free(self.bin)
+            self.bin=None
 
     def get_n_bands(self) :
         """
@@ -133,6 +134,7 @@ class NmtBinFlat(object) :
     def __del__(self) :
         if self.bin is not None :
             lib.bins_flat_free(self.bin)
+            self.bin=None
 
     def get_n_bands(self) :
         """

@@ -8,14 +8,14 @@
 
 #define EXIT_ON_ERROR 0
 #define THROW_ON_ERROR 1
-extern jmp_buf exception_buffer;
-extern int exception_status;
-extern int error_policy;
+extern jmp_buf nmt_exception_buffer;
+extern int nmt_exception_status;
+extern int nmt_error_policy;
+extern char nmt_error_message[256];
 
-
-#define try if ((exception_status = setjmp(exception_buffer)) == 0)
-#define catch(val) else if (exception_status == val)
-#define throw(val) longjmp(exception_buffer,val)
+#define try if ((nmt_exception_status = setjmp(nmt_exception_buffer)) == 0)
+#define catch(val) else if (nmt_exception_status == val)
+#define throw(val) longjmp(nmt_exception_buffer,val)
 #define finally else
 
 #define NMT_ERROR_MEMORY 1001
@@ -30,6 +30,7 @@ extern int error_policy;
 #define NMT_ERROR_BADNO 1010
 #define NMT_ERROR_APO 1011
 #define NMT_ERROR_HPX 1012
+#define NMT_ERROR_INCONSISTENT 1013
 #endif //NO_DOXY
 
 /**

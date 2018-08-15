@@ -441,6 +441,9 @@ void nmt_compute_deprojection_bias(nmt_field *fl1,nmt_field *fl2,
   int nspec=fl1->nmaps*fl2->nmaps;
   int lmax=fl1->lmax;
 
+  if(fl1->nside!=fl2->nside)
+    report_error(NMT_ERROR_CONSISTENT_RESO,"Can't correlate fields with different resolutions\n");
+  
   cl_dum=my_malloc(nspec*sizeof(flouble *));
   for(ii=0;ii<nspec;ii++) {
     cl_dum[ii]=my_calloc((lmax+1),sizeof(flouble));
@@ -643,6 +646,9 @@ void nmt_decouple_cl_l(nmt_workspace *w,flouble **cl_in,flouble **cl_noise_in,
 
 void nmt_compute_coupled_cell(nmt_field *fl1,nmt_field *fl2,flouble **cl_out)
 {
+  if(fl1->lmax!=fl2->lmax)
+    report_error(NMT_ERROR_CONSISTENT_RESO,"Can't correlate fields with different resolutions\n");
+  
   he_alm2cl(fl1->alms,fl2->alms,fl1->pol,fl2->pol,cl_out,fl1->lmax);
 }
 
@@ -654,7 +660,7 @@ nmt_workspace *nmt_compute_power_spectra(nmt_field *fl1,nmt_field *fl2,
   flouble **cl_bias,**cl_data;
   nmt_workspace *w;
 
-  if(w0==NULL)
+  if(w0==NULL) 
     w=nmt_compute_coupling_matrix(fl1,fl2,bin);
   else {
     w=w0;

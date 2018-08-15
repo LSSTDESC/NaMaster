@@ -11,6 +11,7 @@ class NmtWorkspace(object) :
     def __del__(self) :
         if(self.wsp is not None) :
             lib.workspace_free(self.wsp)
+            self.wsp=None
 
     def read_from(self,fname) :
         """
@@ -19,8 +20,9 @@ class NmtWorkspace(object) :
         :param str fname: input file name
         """
         if self.wsp is not None :
-            lib.workspace_free(self.wsp)
-        self.wsp=lib.workspace_read(fname);
+            lib.workspace_free(self.wsp);
+            self.wsp=None
+        self.wsp=lib.read_workspace(fname);
         
     def compute_coupling_matrix(self,fl1,fl2,bins) :
         """
@@ -31,7 +33,8 @@ class NmtWorkspace(object) :
         """
         if self.wsp is not None :
             lib.workspace_free(self.wsp)
-        self.wsp=lib.compute_coupling_matrix(fl1.fl,fl2.fl,bins.bin)
+            self.wsp=None
+        self.wsp=lib.comp_coupling_matrix(fl1.fl,fl2.fl,bins.bin)
 
     def write_to(self,fname) :
         """
@@ -40,8 +43,8 @@ class NmtWorkspace(object) :
         :param str fname: output file name
         """
         if self.wsp is None :
-            raise KeyError("Must initialize workspace before writing")
-        lib.workspace_write(self.wsp,fname)
+            raise RuntimeError("Must initialize workspace before writing")
+        lib.write_workspace(self.wsp,fname)
 
     def couple_cell(self,cl_in) :
         """
@@ -51,7 +54,7 @@ class NmtWorkspace(object) :
         :return: coupled power spectrum
         """
         if((len(cl_in)!=self.wsp.ncls) or (len(cl_in[0])<self.wsp.lmax+1)) :
-            raise KeyError("Input power spectrum has wrong shape")
+            raise ValueError("Input power spectrum has wrong shape")
         cl1d=lib.couple_cell_py(self.wsp,cl_in,self.wsp.ncls*(self.wsp.lmax+1))
         clout=np.reshape(cl1d,[self.wsp.ncls,self.wsp.lmax+1])
         return clout
@@ -66,16 +69,16 @@ class NmtWorkspace(object) :
         :return: set of decoupled bandpowers
         """
         if((len(cl_in)!=self.wsp.ncls) or (len(cl_in[0])<self.wsp.lmax+1)) :
-            raise KeyError("Input power spectrum has wrong shape")
+            raise ValueError("Input power spectrum has wrong shape")
         if cl_bias is not None :
             if((len(cl_bias)!=self.wsp.ncls) or (len(cl_bias[0])<self.wsp.lmax+1)) :
-                raise KeyError("Input bias power spectrum has wrong shape")
+                raise ValueError("Input bias power spectrum has wrong shape")
             clb=cl_bias.copy()
         else :
             clb=np.zeros_like(cl_in)
         if cl_noise is not None :
             if((len(cl_noise)!=self.wsp.ncls) or (len(cl_noise[0])<self.wsp.lmax+1)) :
-                raise KeyError("Input noise power spectrum has wrong shape")
+                raise ValueError("Input noise power spectrum has wrong shape")
             cln=cl_noise.copy()
         else :
             cln=np.zeros_like(cl_in)
@@ -95,6 +98,7 @@ class NmtWorkspaceFlat(object) :
     def __del__(self) :
         if(self.wsp is not None) :
             lib.workspace_flat_free(self.wsp)
+            self.wsp=None
 
     def read_from(self,fname) :
         """
@@ -104,7 +108,8 @@ class NmtWorkspaceFlat(object) :
         """
         if self.wsp is not None :
             lib.workspace_flat_free(self.wsp)
-        self.wsp=lib.workspace_flat_read(fname);
+            self.wsp=None
+        self.wsp=lib.read_workspace_flat(fname);
         
     def compute_coupling_matrix(self,fl1,fl2,bins,ell_cut_x=[1.,-1.],ell_cut_y=[1.,-1.]) :
         """
@@ -117,9 +122,10 @@ class NmtWorkspaceFlat(object) :
         """
         if self.wsp is not None :
             lib.workspace_flat_free(self.wsp)
+            self.wsp=None
 
-        self.wsp=lib.compute_coupling_matrix_flat(fl1.fl,fl2.fl,bins.bin,
-                                                  ell_cut_x[0],ell_cut_x[1],ell_cut_y[0],ell_cut_y[1])
+        self.wsp=lib.comp_coupling_matrix_flat(fl1.fl,fl2.fl,bins.bin,
+                                               ell_cut_x[0],ell_cut_x[1],ell_cut_y[0],ell_cut_y[1])
 
     def write_to(self,fname) :
         """
@@ -128,8 +134,8 @@ class NmtWorkspaceFlat(object) :
         :param str fname: output file name
         """
         if self.wsp is None :
-            raise KeyError("Must initialize workspace before writing")
-        lib.workspace_flat_write(self.wsp,fname)
+            raise RuntimeError("Must initialize workspace before writing")
+        lib.write_workspace_flat(self.wsp,fname)
 
     def couple_cell(self,ells,cl_in) :
         """
@@ -140,7 +146,7 @@ class NmtWorkspaceFlat(object) :
         :return: coupled power spectrum. The coupled power spectra are returned at the multipoles returned by calling :func:`get_ell_sampling` for any of the fields that were used to generate the workspace.
         """
         if((len(cl_in)!=self.wsp.ncls) or (len(cl_in[0])!=len(ells))) :
-            raise KeyError("Input power spectrum has wrong shape")
+            raise ValueError("Input power spectrum has wrong shape")
         cl1d=lib.couple_cell_py_flat(self.wsp,ells,cl_in,self.wsp.ncls*self.wsp.bin.n_bands)
         clout=np.reshape(cl1d,[self.wsp.ncls,self.wsp.bin.n_bands])
         return clout
@@ -155,16 +161,16 @@ class NmtWorkspaceFlat(object) :
         :return: set of decoupled bandpowers
         """
         if((len(cl_in)!=self.wsp.ncls) or (len(cl_in[0])!=self.wsp.bin.n_bands)) :
-            raise KeyError("Input power spectrum has wrong shape")
+            raise ValueError("Input power spectrum has wrong shape")
         if cl_bias is not None :
             if((len(cl_bias)!=self.wsp.ncls) or (len(cl_bias[0])!=self.wsp.bin.n_bands)) :
-                raise KeyError("Input bias power spectrum has wrong shape")
+                raise ValueError("Input bias power spectrum has wrong shape")
             clb=cl_bias.copy()
         else :
             clb=np.zeros_like(cl_in)
         if cl_noise is not None :
             if((len(cl_noise)!=self.wsp.ncls) or (len(cl_noise[0])!=self.wsp.bin.n_bands)) :
-                raise KeyError("Input noise power spectrum has wrong shape")
+                raise ValueError("Input noise power spectrum has wrong shape")
             cln=cl_noise.copy()
         else :
             cln=np.zeros_like(cl_in)
@@ -183,9 +189,9 @@ def deprojection_bias(f1,f2,cls_guess) :
     :return: deprojection bias power spectra.
     """
     if(len(cls_guess)!=f1.fl.nmaps*f2.fl.nmaps) :
-        raise KeyError("Proposal Cell doesn't match number of maps")
+        raise ValueError("Proposal Cell doesn't match number of maps")
     if(len(cls_guess[0])!=f1.fl.lmax+1) :
-        raise KeyError("Proposal Cell doesn't match map resolution")
+        raise ValueError("Proposal Cell doesn't match map resolution")
     cl1d=lib.comp_deproj_bias(f1.fl,f2.fl,cls_guess,len(cls_guess)*len(cls_guess[0]))
     cl2d=np.reshape(cl1d,[len(cls_guess),len(cls_guess[0])])
 
@@ -202,7 +208,7 @@ def uncorr_noise_deprojection_bias(f1,map_var) :
     ncls=f1.fl.nmaps*f1.fl.nmaps
     nells=f1.fl.lmax+1
     if(len(map_var)!=f1.fl.npix) :
-        raise KeyError("Variance map doesn't match map resolution")
+        raise ValueError("Variance map doesn't match map resolution")
     cl1d=lib.comp_uncorr_noise_deproj_bias(f1.fl,map_var,ncls*nells)
     cl2d=np.reshape(cl1d,[ncls,nells])
 
@@ -221,9 +227,9 @@ def deprojection_bias_flat(f1,f2,b,ells,cls_guess,ell_cut_x=[1.,-1.],ell_cut_y=[
     :return: deprojection bias power spectra.
     """
     if(len(cls_guess)!=f1.fl.nmaps*f2.fl.nmaps) :
-        raise KeyError("Proposal Cell doesn't match number of maps")
+        raise ValueError("Proposal Cell doesn't match number of maps")
     if(len(cls_guess[0])!=len(ells)) :
-        raise KeyError("Proposal Cell doesn't match map resolution")
+        raise ValueError("cls_guess and ells must have the same length")
     cl1d=lib.comp_deproj_bias_flat(f1.fl,f2.fl,b.bin,
                                    ell_cut_x[0],ell_cut_x[1],ell_cut_y[0],ell_cut_y[1],
                                    ells,cls_guess,f1.fl.nmaps*f2.fl.nmaps*b.bin.n_bands)
@@ -239,7 +245,7 @@ def compute_coupled_cell(f1,f2) :
     :return: array of coupled power spectra
     """
     if(f1.fl.nside!=f2.fl.nside) :
-        raise KeyError("Fields must have same resolution")
+        raise ValueError("Fields must have same resolution")
     
     cl1d=lib.comp_pspec_coupled(f1.fl,f2.fl,f1.fl.nmaps*f2.fl.nmaps*(f1.fl.lmax+1))
     clout=np.reshape(cl1d,[f1.fl.nmaps*f2.fl.nmaps,f1.fl.lmax+1])
@@ -257,7 +263,7 @@ def compute_coupled_cell_flat(f1,f2,b,ell_cut_x=[1.,-1.],ell_cut_y=[1.,-1.]) :
     :return: array of coupled power spectra
     """
     if((f1.nx!=f2.nx) or (f1.ny!=f2.ny)) :
-        raise KeyError("Fields must have same resolution")
+        raise ValueError("Fields must have same resolution")
     
     cl1d=lib.comp_pspec_coupled_flat(f1.fl,f2.fl,b.bin,f1.fl.nmaps*f2.fl.nmaps*b.bin.n_bands,
                                      ell_cut_x[0],ell_cut_x[1],ell_cut_y[0],ell_cut_y[1])
@@ -282,16 +288,16 @@ def compute_full_master(f1,f2,b,cl_noise=None,cl_guess=None,workspace=None) :
     :return: set of decoupled bandpowers
     """
     if(f1.fl.nside!=f2.fl.nside) :
-        raise KeyError("Fields must have same resolution")
+        raise ValueError("Fields must have same resolution")
     if cl_noise is not None :
         if(len(cl_noise)!=f1.fl.nmaps*f2.fl.nmaps) :
-            raise KeyError("Wrong length for noise power spectrum")
+            raise ValueError("Wrong length for noise power spectrum")
         cln=cl_noise.copy()
     else :
         cln=np.zeros([f1.fl.nmaps*f2.fl.nmaps,3*f1.fl.nside])
     if cl_guess is not None :
         if(len(cl_guess)!=f1.fl.nmaps*f2.fl.nmaps) :
-            raise KeyError("Wrong length for guess power spectrum")
+            raise ValueError("Wrong length for guess power spectrum")
         clg=cl_guess.copy()
     else :
         clg=np.zeros([f1.fl.nmaps*f2.fl.nmaps,3*f1.fl.nside])
@@ -327,16 +333,18 @@ def compute_full_master_flat(f1,f2,b,cl_noise=None,cl_guess=None,ells_guess=None
     :return: set of decoupled bandpowers
     """
     if((f1.nx!=f2.nx) or (f1.ny!=f2.ny)) :
-        raise KeyError("Fields must have same resolution")
+        raise ValueError("Fields must have same resolution")
     if cl_noise is not None :
-        if(len(cl_noise)!=f1.fl.nmaps*f2.fl.nmaps) :
-            raise KeyError("Wrong length for noise power spectrum")
+        if((len(cl_noise)!=f1.fl.nmaps*f2.fl.nmaps) or (len(cl_noise[0])!=b.bin.n_bands)) :
+            raise ValueError("Wrong length for noise power spectrum")
         cln=cl_noise.copy()
     else :
         cln=np.zeros([f1.fl.nmaps*f2.fl.nmaps,b.bin.n_bands])
     if cl_guess is not None :
+        if(ells_guess is None) :
+            raise ValueError("Must provide ell-values for cl_guess")
         if((len(cl_guess)!=f1.fl.nmaps*f2.fl.nmaps) or (len(cl_guess[0])!=len(ells_guess))) :
-            raise KeyError("Wrong length for guess power spectrum")
+            raise ValueError("Wrong length for guess power spectrum")
         lf=ells_guess.copy()
         clg=cl_guess.copy()
     else :

@@ -34,12 +34,20 @@
                                               (int ncl3  ,int nell3 ,double *cls3)};
 %apply (int DIM1,int DIM2,int DIM3,double *IN_ARRAY3) {(int ntmp_3,int nmap_3,int npix_3,double *tmp)};
 
+%{
+void asserting(int expression)
+{
+  if(!expression)
+    report_error(NMT_ERROR_INCONSISTENT,"Passing inconsistent arguments from python\n");
+}
+%}
+
 %exception {
   try {
     $action
       }
   finally {
-    SWIG_exception(SWIG_RuntimeError, "C-level error");
+    SWIG_exception(SWIG_RuntimeError,nmt_error_message);
   }
  }
 
@@ -47,43 +55,43 @@
 %inline %{
 void get_nell_list(nmt_binning_scheme *bins,int *iout,int niout)
 {
-  assert(bins->n_bands==niout);
+  asserting(bins->n_bands==niout);
 
   memcpy(iout,bins->nell_list,bins->n_bands*sizeof(int));
 }
 
 int get_nell(nmt_binning_scheme *bins,int ibin)
 {
-  assert(ibin<bins->n_bands);
+  asserting(ibin<bins->n_bands);
   
   return bins->nell_list[ibin];
 }
 
 void get_ell_list(nmt_binning_scheme *bins,int ibin,int *iout,int niout)
 {
-  assert(ibin<bins->n_bands);
-  assert(bins->nell_list[ibin]==niout);
+  asserting(ibin<bins->n_bands);
+  asserting(bins->nell_list[ibin]==niout);
 
   memcpy(iout,bins->ell_list[ibin],bins->nell_list[ibin]*sizeof(int));
 }
 
 void get_weight_list(nmt_binning_scheme *bins,int ibin,double *dout,int ndout)
 {
-  assert(ibin<bins->n_bands);
-  assert(bins->nell_list[ibin]==ndout);
+  asserting(ibin<bins->n_bands);
+  asserting(bins->nell_list[ibin]==ndout);
 
   memcpy(dout,bins->w_list[ibin],bins->nell_list[ibin]*sizeof(double));
 }
 
 void get_ell_eff(nmt_binning_scheme *bins,double *dout,int ndout)
 {
-  assert(ndout==bins->n_bands);
+  asserting(ndout==bins->n_bands);
   nmt_ell_eff(bins,dout);
 }
 
 void get_ell_eff_flat(nmt_binning_scheme_flat *bins,double *dout,int ndout)
 {
-  assert(ndout==bins->n_bands);
+  asserting(ndout==bins->n_bands);
   nmt_ell_eff_flat(bins,dout);
 }
 
@@ -92,8 +100,8 @@ nmt_binning_scheme *bins_create_py(int nell1,int *bpws,
 				   int nell3,double *weights,
 				   int lmax)
 {
-  assert(nell1==nell2);
-  assert(nell2==nell3);
+  asserting(nell1==nell2);
+  asserting(nell2==nell3);
   
   return nmt_bins_create(nell1,bpws,ells,weights,lmax);
 }
@@ -101,7 +109,7 @@ nmt_binning_scheme *bins_create_py(int nell1,int *bpws,
 nmt_binning_scheme_flat *bins_flat_create_py(int npix_1,double *mask,
 					     int nell3,double *weights)
 {
-  assert(npix_1==nell3);
+  asserting(npix_1==nell3);
   
   return nmt_bins_flat_create(nell3,mask,weights);
 }
@@ -111,7 +119,7 @@ void bin_cl(nmt_binning_scheme *bins,
 	    double *dout,int ndout)
 {
   int i;
-  assert(ndout==ncl1*bins->n_bands);
+  asserting(ndout==ncl1*bins->n_bands);
   double **cls_in,**cls_out;
   cls_in=malloc(ncl1*sizeof(double *));
   cls_out=malloc(ncl1*sizeof(double *));
@@ -130,8 +138,8 @@ void bin_cl_flat(nmt_binning_scheme_flat *bins,
 		 double *dout,int ndout)
 {
   int i;
-  assert(nell3==nell1);
-  assert(ndout==ncl1*bins->n_bands);
+  asserting(nell3==nell1);
+  asserting(ndout==ncl1*bins->n_bands);
   double **cls_in,**cls_out;
   cls_in=malloc(ncl1*sizeof(double *));
   cls_out=malloc(ncl1*sizeof(double *));
@@ -150,7 +158,7 @@ void unbin_cl(nmt_binning_scheme *bins,
 {
   int i;
   int nellout=ndout/ncl1;
-  assert(nell1==bins->n_bands);
+  asserting(nell1==bins->n_bands);
   double **cls_in,**cls_out;
   cls_in=malloc(ncl1*sizeof(double *));
   cls_out=malloc(ncl1*sizeof(double *));
@@ -170,8 +178,8 @@ void unbin_cl_flat(nmt_binning_scheme_flat *bins,
 		   double *dout,int ndout)
 {
   int i;
-  assert(ndout==nell3*ncl1);
-  assert(nell1==bins->n_bands);
+  asserting(ndout==nell3*ncl1);
+  asserting(nell1==bins->n_bands);
   double **cls_in,**cls_out;
   cls_in=malloc(ncl1*sizeof(double *));
   cls_out=malloc(ncl1*sizeof(double *));
@@ -197,15 +205,15 @@ nmt_field *field_alloc_new(int npix_1,double *mask,
   double **maps;
   double ***temp=NULL;
   nmt_field *fl;
-  assert(npix_1==npix_2);
-  assert(npix_2==npix_3);
-  assert(nmap_2==nmap_3);
-  assert((nmap_2==1) || (nmap_2==2));
+  asserting(npix_1==npix_2);
+  asserting(npix_2==npix_3);
+  asserting(nmap_2==nmap_3);
+  asserting((nmap_2==1) || (nmap_2==2));
 
   while(npix_1!=12*nside*nside)
     nside*=2;
 
-  assert(nell3!=3*nside);
+  asserting(nell3==3*nside);
 
   if(nmap_2==2) pol=1;
 
@@ -246,13 +254,13 @@ nmt_field *field_alloc_new_notemp(int npix_1,double *mask,
   int pol=0,ntemp=0;
   double **maps;
   nmt_field *fl;
-  assert(npix_1==npix_2);
-  assert((nmap_2==1) || (nmap_2==2));
+  asserting(npix_1==npix_2);
+  asserting((nmap_2==1) || (nmap_2==2));
 
   while(npix_1!=12*nside*nside)
     nside*=2;
 
-  assert(nell3!=3*nside);
+  asserting(nell3==3*nside);
 
   if(nmap_2==2) pol=1;
 
@@ -279,16 +287,16 @@ nmt_field_flat *field_alloc_new_flat(int nx,int ny,double lx,double ly,
   double **maps;
   double ***temp=NULL;
   nmt_field_flat *fl;
-  assert(npix_1==npix_2);
-  assert(npix_2==npix_3);
-  assert(nmap_2==nmap_3);
-  assert((nmap_2==1) || (nmap_2==2));
-  assert(npix_1==nx*ny);
-  assert(ncl1==2);
+  asserting(npix_1==npix_2);
+  asserting((nmap_2==1) || (nmap_2==2));
+  asserting(npix_1==nx*ny);
+  asserting(ncl1==2);
 
   if(nmap_2==2) pol=1;
 
   if(tmp!=NULL) {
+    asserting(npix_2==npix_3);
+    asserting(nmap_2==nmap_3);
     ntemp=ntmp_3;
     temp=malloc(ntmp_3*sizeof(double **));
     for(ii=0;ii<ntmp_3;ii++) {
@@ -336,31 +344,31 @@ nmt_field_flat *field_alloc_new_notemp_flat(int nx,int ny,double lx,double ly,
 
 void get_map(nmt_field *fl,int imap,double *ldout,long nldout)
 {
-  assert(imap<fl->nmaps);
-  assert(nldout==fl->npix);
+  asserting(imap<fl->nmaps);
+  asserting(nldout==fl->npix);
   memcpy(ldout,fl->maps[imap],fl->npix*sizeof(double));
 }
 
 void get_map_flat(nmt_field_flat *fl,int imap,double *dout,int ndout)
 {
-  assert(imap<fl->nmaps);
-  assert(ndout==fl->npix);
+  asserting(imap<fl->nmaps);
+  asserting(ndout==fl->npix);
   memcpy(dout,fl->maps[imap],fl->npix*sizeof(double));
 }
 
 void get_temp(nmt_field *fl,int itemp,int imap,double *ldout,long nldout)
 {
-  assert(itemp<fl->ntemp);
-  assert(imap<fl->nmaps);
-  assert(nldout==fl->npix);
+  asserting(itemp<fl->ntemp);
+  asserting(imap<fl->nmaps);
+  asserting(nldout==fl->npix);
   memcpy(ldout,fl->temp[itemp][imap],fl->npix*sizeof(double));
 }
 
 void get_temp_flat(nmt_field_flat *fl,int itemp,int imap,double *dout,int ndout)
 {
-  assert(itemp<fl->ntemp);
-  assert(imap<fl->nmaps);
-  assert(ndout==fl->npix);
+  asserting(itemp<fl->ntemp);
+  asserting(imap<fl->nmaps);
+  asserting(ndout==fl->npix);
   memcpy(dout,fl->temp[itemp][imap],fl->npix*sizeof(double));
 }
 
@@ -368,7 +376,7 @@ void apomask(int npix_1,double *mask,
 	     double *ldout,long nldout,double aposize,char *apotype)
 {
   long nside=1;
-  assert(nldout==npix_1);
+  asserting(nldout==npix_1);
 
   while(npix_1!=12*nside*nside)
     nside*=2;
@@ -380,7 +388,8 @@ void apomask_flat(int nx,int ny,double lx,double ly,
 		  int npix_1,double *mask,
 		  double *dout,int ndout,double aposize,char *apotype)
 {
-  assert(ndout==npix_1);
+  asserting(npix_1==nx*ny);
+  asserting(ndout==npix_1);
 
   nmt_apodize_mask_flat(nx,ny,lx,ly,mask,dout,aposize,apotype);
 }
@@ -459,6 +468,38 @@ void synfast_new_flat(int nx,int ny,double lx,double ly,int pol,int seed,
   free(larr);
 }
 
+nmt_workspace *comp_coupling_matrix(nmt_field *fl1,nmt_field *fl2,nmt_binning_scheme *bin)
+{
+  return nmt_compute_coupling_matrix(fl1,fl2,bin);
+}
+
+nmt_workspace_flat *comp_coupling_matrix_flat(nmt_field_flat *fl1,nmt_field_flat *fl2,
+					      nmt_binning_scheme_flat *bin,
+					      double lmn_x,double lmx_x,double lmn_y,double lmx_y)
+{
+  return nmt_compute_coupling_matrix_flat(fl1,fl2,bin,lmn_x,lmx_x,lmn_y,lmx_y);
+}
+
+nmt_workspace *read_workspace(char *fname)
+{
+  return nmt_workspace_read(fname);
+}
+
+void write_workspace(nmt_workspace *w,char *fname)
+{
+  nmt_workspace_write(w,fname);
+}
+
+nmt_workspace_flat *read_workspace_flat(char *fname)
+{
+  return nmt_workspace_flat_read(fname);
+}
+
+void write_workspace_flat(nmt_workspace_flat *w,char *fname)
+{
+  nmt_workspace_flat_write(w,fname);
+}
+   
 void comp_uncorr_noise_deproj_bias(nmt_field *fl1,
 				   int npix_1,double *mask,
 				   double *dout,int ndout)
@@ -467,8 +508,8 @@ void comp_uncorr_noise_deproj_bias(nmt_field *fl1,
   double **cl_bias;
   int n_cl1=fl1->nmaps*fl1->nmaps;
   int n_ell1=fl1->lmax+1;
-  assert(npix_1==fl1->npix);
-  assert(ndout==n_ell1*n_cl1);
+  asserting(npix_1==fl1->npix);
+  asserting(ndout==n_ell1*n_cl1);
   cl_bias=malloc(n_cl1*sizeof(double *));
   for(i=0;i<n_cl1;i++)
     cl_bias[i]=&(dout[n_ell1*i]);
@@ -484,10 +525,9 @@ void comp_deproj_bias(nmt_field *fl1,nmt_field *fl2,
 {
   int i;
   double **cl_bias,**cl_guess;
-  assert(fl1->nside==fl2->nside);
-  assert(ncl1==fl1->nmaps*fl2->nmaps);
-  assert(nell1==fl1->lmax+1);
-  assert(ndout==nell1*ncl1);
+  asserting(ncl1==fl1->nmaps*fl2->nmaps);
+  asserting(nell1==fl1->lmax+1);
+  asserting(ndout==nell1*ncl1);
   cl_bias=malloc(ncl1*sizeof(double *));
   cl_guess=malloc(ncl1*sizeof(double *));
   for(i=0;i<ncl1;i++) {
@@ -510,13 +550,9 @@ void comp_deproj_bias_flat(nmt_field_flat *fl1,nmt_field_flat *fl2,
 {
   int i;
   double **cl_bias,**cl_guess;
-  assert(fl1->nx==fl2->nx);
-  assert(fl1->ny==fl2->ny);
-  assert(fl1->lx==fl2->lx);
-  assert(fl1->ly==fl2->ly);
-  assert(ncl1==fl1->nmaps*fl2->nmaps);
-  assert(nell1==nell3);
-  assert(ndout==bin->n_bands*ncl1);
+  asserting(ncl1==fl1->nmaps*fl2->nmaps);
+  asserting(nell1==nell3);
+  asserting(ndout==bin->n_bands*ncl1);
   cl_bias=malloc(ncl1*sizeof(double *));
   cl_guess=malloc(ncl1*sizeof(double *));
   for(i=0;i<ncl1;i++) {
@@ -537,9 +573,9 @@ void comp_gaussian_covariance(nmt_covar_workspace *cw,
 			      int nell22,double *c22,
 			      double *dout,int ndout)
 {
-  assert(nell11==nell12);
-  assert(nell11==nell21);
-  assert(nell11==nell22);
+  asserting(nell11==nell12);
+  asserting(nell11==nell21);
+  asserting(nell11==nell22);
   nmt_compute_gaussian_covariance(cw,c11,c12,c21,c22,dout);
 }
 
@@ -551,10 +587,10 @@ void comp_gaussian_covariance_flat(nmt_covar_workspace_flat *cw,
 				   int nell22,double *c22,
 				   double *dout,int ndout)
 {
-  assert(nell11==nell3);
-  assert(nell11==nell12);
-  assert(nell11==nell21);
-  assert(nell11==nell22);
+  asserting(nell11==nell3);
+  asserting(nell11==nell12);
+  asserting(nell11==nell21);
+  asserting(nell11==nell22);
   nmt_compute_gaussian_covariance_flat(cw,nell3,weights,c11,c12,c21,c22,dout);
 }
 
@@ -563,8 +599,7 @@ void comp_pspec_coupled(nmt_field *fl1,nmt_field *fl2,
 {
   int i;
   double **cl_out;
-  assert(fl1->nside==fl2->nside);
-  assert(ndout==fl1->nmaps*fl2->nmaps*(fl1->lmax+1));
+  asserting(ndout==fl1->nmaps*fl2->nmaps*(fl1->lmax+1));
   cl_out=malloc(fl1->nmaps*fl2->nmaps*sizeof(double *));
   for(i=0;i<fl1->nmaps*fl2->nmaps;i++)
     cl_out[i]=&(dout[i*(fl1->lmax+1)]);
@@ -581,11 +616,11 @@ void comp_pspec_coupled_flat(nmt_field_flat *fl1,nmt_field_flat *fl2,
 {
   int i;
   double **cl_out;
-  assert(fl1->nx==fl2->nx);
-  assert(fl1->ny==fl2->ny);
-  assert(fl1->lx==fl2->lx);
-  assert(fl1->ly==fl2->ly);
-  assert(ndout==fl1->nmaps*fl2->nmaps*bin->n_bands);
+  asserting(fl1->fs->nx==fl2->fs->nx);
+  asserting(fl1->fs->ny==fl2->fs->ny);
+  asserting(fl1->fs->lx==fl2->fs->lx);
+  asserting(fl1->fs->ly==fl2->fs->ly);
+  asserting(ndout==fl1->nmaps*fl2->nmaps*bin->n_bands);
   cl_out=malloc(fl1->nmaps*fl2->nmaps*sizeof(double *));
   for(i=0;i<fl1->nmaps*fl2->nmaps;i++)
     cl_out[i]=&(dout[i*bin->n_bands]);
@@ -603,13 +638,13 @@ void decouple_cell_py(nmt_workspace *w,
 {
   int i;
   double **cl_in,**cl_noise,**cl_bias,**cl_out;
-  assert(ncl1==ncl2);
-  assert(ncl2==ncl3);
-  assert(ncl1==w->ncls);
-  assert(nell1==nell2);
-  assert(nell2==nell3);
-  assert(nell1==w->lmax+1);
-  assert(ndout==w->bin->n_bands*ncl1);
+  asserting(ncl1==ncl2);
+  asserting(ncl2==ncl3);
+  asserting(ncl1==w->ncls);
+  asserting(nell1==nell2);
+  asserting(nell2==nell3);
+  asserting(nell1==w->lmax+1);
+  asserting(ndout==w->bin->n_bands*ncl1);
   cl_in=   malloc(ncl1*sizeof(double *));
   cl_noise=malloc(ncl2*sizeof(double *));
   cl_bias= malloc(ncl3*sizeof(double *));
@@ -637,13 +672,13 @@ void decouple_cell_py_flat(nmt_workspace_flat *w,
 {
   int i;
   double **cl_in,**cl_noise,**cl_bias,**cl_out;
-  assert(ncl1==ncl2);
-  assert(ncl2==ncl3);
-  assert(ncl1==w->ncls);
-  assert(nell1==nell2);
-  assert(nell2==nell3);
-  assert(nell1==w->bin->n_bands);
-  assert(ndout==w->bin->n_bands*ncl1);
+  asserting(ncl1==ncl2);
+  asserting(ncl2==ncl3);
+  asserting(ncl1==w->ncls);
+  asserting(nell1==nell2);
+  asserting(nell2==nell3);
+  asserting(nell1==w->bin->n_bands);
+  asserting(ndout==w->bin->n_bands*ncl1);
   cl_in=   malloc(ncl1*sizeof(double *));
   cl_noise=malloc(ncl2*sizeof(double *));
   cl_bias= malloc(ncl3*sizeof(double *));
@@ -669,9 +704,9 @@ void couple_cell_py(nmt_workspace *w,
 {
   int i;
   double **cl_in,**cl_out;
-  assert(ncl1==w->ncls);
-  assert(nell1=w->lmax+1);
-  assert(ncl1*nell1=ndout);
+  asserting(ncl1==w->ncls);
+  asserting(nell1==w->lmax+1);
+  asserting(ncl1*nell1==ndout);
   cl_in=malloc(ncl1*sizeof(double *));
   cl_out=malloc(ncl1*sizeof(double *));
   for(i=0;i<ncl1;i++) {
@@ -690,9 +725,9 @@ void couple_cell_py_flat(nmt_workspace_flat *w,
 {
   int i;
   double **cl_in,**cl_out;
-  assert(nell3==nell1);
-  assert(ncl1==w->ncls);
-  assert(ncl1*w->bin->n_bands==ndout);
+  asserting(nell3==nell1);
+  asserting(ncl1==w->ncls);
+  asserting(ncl1*w->bin->n_bands==ndout);
   cl_in=malloc(ncl1*sizeof(double *));
   cl_out=malloc(ncl1*sizeof(double *));
   for(i=0;i<ncl1;i++) {
@@ -713,12 +748,12 @@ void comp_pspec(nmt_field *fl1,nmt_field *fl2,
   int i;
   double **cl_noise,**cl_guess,**cl_out;
   nmt_workspace *w;
-  assert(fl1->nside==fl2->nside);
-  assert(ncl1==fl1->nmaps*fl2->nmaps);
-  assert(nell1==fl1->lmax+1);
-  assert(ndout==bin->n_bands*ncl1);
-  assert(nell1==nell2);
-  assert(ncl1==ncl2);
+  asserting(fl1->nside==fl2->nside);
+  asserting(ncl1==fl1->nmaps*fl2->nmaps);
+  asserting(nell1==fl1->lmax+1);
+  asserting(ndout==bin->n_bands*ncl1);
+  asserting(nell1==nell2);
+  asserting(ncl1==ncl2);
   cl_noise=malloc(ncl1*sizeof(double *));
   cl_guess=malloc(ncl1*sizeof(double *));
   cl_out=malloc(ncl1*sizeof(double *));
@@ -748,15 +783,11 @@ void comp_pspec_flat(nmt_field_flat *fl1,nmt_field_flat *fl2,
   int i;
   double **cl_noise,**cl_guess,**cl_out;
   nmt_workspace_flat *w;
-  assert(fl1->nx==fl2->nx);
-  assert(fl1->ny==fl2->ny);
-  assert(fl1->lx==fl2->lx);
-  assert(fl1->ly==fl2->ly);
-  assert(ncl1==fl1->nmaps*fl2->nmaps);
-  assert(nell1==bin->n_bands);
-  assert(ndout==bin->n_bands*ncl1);
-  assert(nell3==nell2);
-  assert(ncl1==ncl2);
+  asserting(ncl1==fl1->nmaps*fl2->nmaps);
+  asserting(nell1==bin->n_bands);
+  asserting(ndout==bin->n_bands*ncl1);
+  asserting(nell3==nell2);
+  asserting(ncl1==ncl2);
   cl_noise=malloc(ncl1*sizeof(double *));
   cl_guess=malloc(ncl1*sizeof(double *));
   cl_out=malloc(ncl1*sizeof(double *));

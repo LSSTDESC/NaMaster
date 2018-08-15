@@ -127,9 +127,9 @@ CTEST(nmt,ut_drc3jj) {
   set_error_policy(THROW_ON_ERROR);
 
   try { r=drc3jj(100,200,2,-2,&l1min,&l1max,w3,100); }
-  ASSERT_NOT_EQUAL(0,exception_status);
+  ASSERT_NOT_EQUAL(0,nmt_exception_status);
   try { r=drc3jj(2,3,3,0,&l1min,&l1max,w3,sizew); }
-  ASSERT_NOT_EQUAL(0,exception_status);
+  ASSERT_NOT_EQUAL(0,nmt_exception_status);
   
   set_error_policy(EXIT_ON_ERROR);
   free(w3);
@@ -254,14 +254,14 @@ CTEST(nmt,ut_errors) {
 
   //File doesn't exist
   try { FILE *f=my_fopen("test/cls.txtb","r"); }
-  ASSERT_NOT_EQUAL(0,exception_status);
+  ASSERT_NOT_EQUAL(0,nmt_exception_status);
 
   //Wrong allocation params
   try { my_malloc(-1); }
-  ASSERT_NOT_EQUAL(0,exception_status);
+  ASSERT_NOT_EQUAL(0,nmt_exception_status);
 
   try { my_calloc(-1,-1); }
-  ASSERT_NOT_EQUAL(0,exception_status);
+  ASSERT_NOT_EQUAL(0,nmt_exception_status);
 
   set_error_policy(EXIT_ON_ERROR);
 }

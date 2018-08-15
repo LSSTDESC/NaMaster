@@ -65,6 +65,7 @@ class NmtField(object) :
     def __del__(self) :
         if self.fl is not None :
             lib.field_free(self.fl)
+            self.fl=None
 
     def get_maps(self) :
         """
@@ -175,6 +176,7 @@ class NmtFieldFlat(object) :
     def __del__(self) :
         if self.fl is not None :
             lib.field_flat_free(self.fl)
+            self.fl=None
 
     def get_maps(self) :
         """

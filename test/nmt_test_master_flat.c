@@ -457,28 +457,28 @@ CTEST(nmt,master_flat_errors) {
 
   //Read from non-existent file
   try { w=nmt_workspace_flat_read("nofile"); }
-  ASSERT_NOT_EQUAL(0,exception_status);
+  ASSERT_NOT_EQUAL(0,nmt_exception_status);
   ASSERT_NULL(w);
 
   //Mismatching resolutions
   bin=nmt_bins_flat_create(nell,larr,&(larr[1]));
   try { w=nmt_compute_coupling_matrix_flat(f0,f0b,bin,1,-1,1,-1); }
-  ASSERT_NOT_EQUAL(0,exception_status);
+  ASSERT_NOT_EQUAL(0,nmt_exception_status);
   ASSERT_NULL(w);
   //Try through nmt_compute_power_spectra
   try { w=nmt_compute_power_spectra_flat(f0,f0b,bin,1,-1,1,-1,NULL,NULL,0,NULL,NULL,NULL); }
-  ASSERT_NOT_EQUAL(0,exception_status);
+  ASSERT_NOT_EQUAL(0,nmt_exception_status);
   ASSERT_NULL(w); 
   //Try through nmt_compute_coupled_cell_flat
   try { nmt_compute_coupled_cell_flat(f0,f0b,bin,NULL,1,-1,1,-1); }
-  ASSERT_NOT_EQUAL(0,exception_status);
+  ASSERT_NOT_EQUAL(0,nmt_exception_status);
   ASSERT_NULL(w);
   //nmt_compute_power_spectra with mis-matching input workspace
   w=nmt_compute_coupling_matrix_flat(f0,f0,bin,1,-1,1,-1);
   nmt_bins_flat_free(bin);
   bin=nmt_bins_flat_create(nell/2,larr,&(larr[1]));
   try { wb=nmt_compute_power_spectra_flat(f0b,f0b,bin,1,-1,1,-1,w,NULL,0,NULL,NULL,NULL); }
-  ASSERT_NOT_EQUAL(0,exception_status);
+  ASSERT_NOT_EQUAL(0,nmt_exception_status);
   ASSERT_NULL(wb);
   nmt_workspace_flat_free(w);
   set_error_policy(EXIT_ON_ERROR);

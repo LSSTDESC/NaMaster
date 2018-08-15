@@ -27,7 +27,7 @@ CTEST(nmt,mask_flat) {
 
   try { nmt_apodize_mask_flat(fsk->nx,fsk->ny,fsk->lx,fsk->ly,mask,mask_C1,aposize,"NONE"); }
   catch(1) {}
-  ASSERT_NOT_EQUAL(0,exception_status);
+  ASSERT_NOT_EQUAL(0,nmt_exception_status);
   set_error_policy(EXIT_ON_ERROR);
   nmt_apodize_mask_flat(fsk->nx,fsk->ny,fsk->lx,fsk->ly,mask,mask_C1,aposize,"C1");
   nmt_apodize_mask_flat(fsk->nx,fsk->ny,fsk->lx,fsk->ly,mask,mask_C2,aposize,"C2");
@@ -88,7 +88,7 @@ CTEST(nmt,mask) {
 
   try { nmt_apodize_mask(nside,mask,mask_C1,aposize,"NONE"); }
   catch(1) {}
-  ASSERT_NOT_EQUAL(0,exception_status);
+  ASSERT_NOT_EQUAL(0,nmt_exception_status);
   set_error_policy(EXIT_ON_ERROR);
 
   //Compare with analytical
