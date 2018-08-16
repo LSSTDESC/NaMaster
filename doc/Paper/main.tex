@@ -13,10 +13,11 @@
 \usepackage{amssymb}
 \usepackage{listings}
 \usepackage{dsfont}
+\usepackage{courier}
 
 \lstset{ %
 language=python,                % choose the language of the code
-basicstyle=\footnotesize,       % the size of the fonts that are used for the code
+basicstyle=\footnotesize\ttfamily,       % the size of the fonts that are used for the code
 numbers=left,                   % where to put the line-numbers
 numberstyle=\footnotesize,      % the size of the fonts that are used for the line-numbers
 stepnumber=1,                   % the step between two line-numbers. If it is 1 each line will be numbered
@@ -33,6 +34,7 @@ breakatwhitespace=false,    % sets if automatic breaks should only happen at whi
 escapeinside={\%*}{*)}          % if you want to add a comment within your code
 }
 %\usepackage[colorlinks,linkcolor=red,citecolor=blue,urlcolor=blue ]{hyperref}
+ %\hypersetup{draft}
 \newcommand{\nv}{\hat{\bf n}}
 \newcommand{\wtj}[6]{\left(\begin{array}{ccc} #1 & #2 & #3\\#4 & #5 & #6\end{array} \right)}
 \newcommand{\nmt}{{\tt NaMaster}}
@@ -81,7 +83,7 @@ escapeinside={\%*}{*)}          % if you want to add a comment within your code
   with contaminant deprojection and $E/B$ purification, and can
   therefore be applied in a wide variety of scenarios of interest for
   current and future cosmological observations. This paper presents
-  \nmt, a public, validated, robust, accurate and easy-to-use software
+  \nmt, a public, validated, accurate and easy-to-use software
   package that, for the first time, provides a unified framework to
   compute angular cross-power spectra of any pair of spin-0 or spin-2
   fields, contaminated by an arbitrary number of linear systematics
@@ -94,8 +96,7 @@ escapeinside={\%*}{*)}          % if you want to add a comment within your code
   and use it to show that the code is able to recover the input power
   spectra in the most complex scenarios with no detectable
   bias. \nmt~can be found at \url{https://github.com/LSSTDESC/NaMaster}, and is provided with
-  comprehensive documentation and a number of code examples to
-  maximize its usefulness in the community.
+  comprehensive documentation and a number of code examples.
 \end{abstract}
 
 \dockeys{methods: data analysis -- methods: numerical}
@@ -131,9 +132,10 @@ escapeinside={\%*}{*)}          % if you want to add a comment within your code
   measurements are typically significantly less correlated compared to
   configuration-space analysis which makes covariance matrix
   estimation easier. This has motivated a large body of literature
-  aimed at designing optimal and efficient power spectrum estimators.
+  aimed at designing optimal and efficient power spectrum estimators and 
+  used extensively in Cosmic Microwave Background (CMB) two-point measurements.
     
-    While maximum-likelihood~\citep{1998PhRvD..57.2117B,2003PhRvD..67b3001W} or minimum-variance and quadratic estimators~\citep{1997PhRvD..55.5895T,2000MNRAS.317L..23H,2001PhRvD..64f3001T} can recover the power spectrum with virtually no loss of information, their computational implementation is prohibitively expensive for high resolution data, since these methods scale as $\ell_{\rm max}^6$ and $\ell_{\rm max}^4$ respectively with the maximum multipole $\ell_{\rm max}$. For this reason, pseudo-$C_\ell$ algorithms \citep{1973ApJ...185..413P,2001PhRvD..64h3003W,2001ApJ...561L..11S,2001PhRvD..64h3003W,2002ApJ...567....2H,2002MNRAS.336.1304H,2004MNRAS.350..914C} have become a popular alternative that preserves a the $\ell_{\rm max}^3$ scaling of spherical harmonic transforms (and faster in the flat-sky approximation). This method can be used on fields with arbitrary spin \citep{2003ApJS..148..161K} in both curved and flat skies, has been extended to deal with contaminant deprojection in scalar fields \citep{2017MNRAS.465.1847E}, and can be optimized to measure the CMB $B$-mode power spectrum \citep{2002PhRvD..65b3505L,2003PhRvD..67b3501B,2006PhRvD..74h3002S,2009PhRvD..79l3515G,2011PhRvD..83h3003B}. Unfortunately, in spite of the advantages of this method, no public, validated and well-maintained codes exist supporting all of these capabilities. This paper presents a public software package, \nmt, that unifies and extends all of these features providing a general framework to estimate pseudo-$C_\ell$ angular power spectra in a wide variety of scenarios.
+    While maximum-likelihood~\citep{1998PhRvD..57.2117B,2003PhRvD..67b3001W} or minimum-variance and quadratic estimators~\citep{1997PhRvD..55.5895T,2000MNRAS.317L..23H,2001PhRvD..64f3001T} can recover the power spectrum with virtually no loss of information, their computational implementation is prohibitively expensive for high resolution data, since these methods scale as $\ell_{\rm max}^6$ and $\ell_{\rm max}^4$ respectively with the maximum multipole $\ell_{\rm max}$. For this reason, pseudo-$C_\ell$ algorithms \citep{1973ApJ...185..413P,2001PhRvD..64h3003W,2001ApJ...561L..11S,2001PhRvD..64h3003W,2002ApJ...567....2H,2002MNRAS.336.1304H,2004MNRAS.350..914C} have become a popular alternative that preserves the $\ell_{\rm max}^3$ scaling of spherical harmonic transforms (and faster in the flat-sky approximation). This method can be used on fields with arbitrary spin \citep{2003ApJS..148..161K} in both curved and flat skies, has been extended to deal with contaminant deprojection in scalar fields \citep{2017MNRAS.465.1847E}, and can be optimized to measure the CMB $E/B$-mode power spectrum \citep{2002PhRvD..65b3505L,2003PhRvD..67b3501B,2006PhRvD..74h3002S,2009PhRvD..79l3515G,2011PhRvD..83h3003B}. Unfortunately, in spite of the advantages of this method, no public, validated and well-maintained codes exist supporting all of these capabilities. This paper presents a public software package, \nmt, that unifies and extends all of these features providing a general framework to estimate pseudo-$C_\ell$ angular power spectra in a wide variety of scenarios.
     
     The paper is structured as follows: Section \ref{sec:maths} introduces the pseudo-$C_\ell$ estimator in the curved sky, including mode deprojection and $E/B$ purification. This is then generalized in the flat-sky approximation. In Section \ref{sec:structure} we briefly describe the implementation of these methods on \nmt, as well as its structure and usage. Section \ref{sec:validation} presents the stress tests used to validate the code. We envisage this code to be useful in analysis of both the Cosmic Microwave Background data and in the tomographic large-scale structure from photometric data and this section illustrates not just its validity but also applicability in typical user-case scenarios in both fields. We conclude in Section \ref{sec:discussion}. The appendices provide further details about the mathematical background used throughout the paper, and present some additional validation tests.
 
@@ -179,7 +181,7 @@ escapeinside={\%*}{*)}          % if you want to add a comment within your code
 
         The main improvement is gained by replacing the inverse covariance by its diagonal, assuming that the data is uncorrelated between pixels. The response matrices are also replaced by simple spherical harmonic transforms and multiplication of the corresponding harmonic coefficients, followed by an average over bandpowers. Both of these steps reduce to exact optimal estimator in the limit of uncorrelated data. The resulting estimates are still biased and require a mode-decoupling matrix, which can be calculated as we show in Section \ref{sssec:maths.pcl101.mcoup}. 
 
-        The pseudo-$C_\ell$ estimates will be optimal when these steps are close to what an optimal quadratic estimator would do. First, this requires that $\mC$ be close to diagonal, which is true when either the noise is large, or when the underlying power spectrum is close to white. Multiplication by the mask mixes modes, and replacement of multiplication by the response matrix with band-power averaging, only makes sense, when the mask is ``well-behaved'', i.e. compact with no high-frequency structure in it. If these conditions are not met, the pseudo-$C_\ell$ estimator will still be unbiased (by construction), but it will get progressively less optimal. In practical surveys, however, the loss of optimality rarely exceeds 10-20\% and is typically smaller~\citep{2013MNRAS.435.1857L}.
+        The pseudo-$C_\ell$ estimates will be optimal when these steps are close to what an optimal quadratic estimator would do. First, this requires that $\mC$ be close to diagonal, which is true when either the noise is large and uncorrelated, or when the underlying power spectrum is close to white. Multiplication by the mask mixes modes, and replacement of multiplication by the response matrix with band-power averaging, only makes sense, when the mask is ``well-behaved'', i.e. compact with no high-frequency structure in it. If these conditions are not met, the pseudo-$C_\ell$ estimator will still be unbiased (by construction), but it will get progressively less optimal. In practical surveys, however, the loss of optimality rarely exceeds 10-20\% and is typically smaller~\citep{2013MNRAS.435.1857L}.
 
         In what follows we will work with two-fields $\va$ and $\vb$ and spell out in detail how to calculate the cross-power spectrum. The auto-power spectrum case is the same (with $\vb=\va$), but one must additionally subtract the noise-contribution to the estimate. So far, the discussion has been completely general, but from now onwards, we will focus on the power estimation of auto, and cross-power spectra for the spin-0 and spin-2 fields only, as these are the most commonly used in cosmology.
 
@@ -405,7 +407,7 @@ escapeinside={\%*}{*)}          % if you want to add a comment within your code
         &\wtj{\ell}{\ell'}{\ell''}{2}{-2}{0}+2\frac{\alpha_{\ell,2}}{\alpha_{\ell,1}\alpha_{\ell'',1}}\wtj{\ell}{\ell'}{\ell''}{1}{-2}{1}\\
         &\,\,\,+\frac{\alpha_{\ell,2}}{\alpha_{\ell'',2}}\wtj{\ell}{\ell'}{\ell''}{0}{-2}{2}.
       \end{align}
-      \emph{per purified field}. \todo{check this}.
+      per purified field. \todo{check this}.
       
       Finally, it is also possible to combine purification and contaminant deprojection. Since $E/B$ purifications involves destroying part of the signal (e.g. projecting out all leaked $E$ modes from a $B$-mode component), it is more optimal to use the non-pure maps to compute the contamination coefficients ($\alpha_i$ in Eq. \ref{eq:deproj_coeff}). Therefore we will assume here that purification takes place between the steps (i) and (ii) described at the end of Section \ref{ssec:maths.deproj}, and not before step (i). In this case, although no additional modifications are needed in the mode-coupling matrix, beyond those we have just described, the expression for the deprojection bias (Eq. \ref{eq:dpbias}) must be slightly altered. In particular, although the fields $\tilde{\bf g}^i$ and $\tilde{\bf f}^i$ in Equations \ref{eq:dp.g.aux} and \ref{eq:dp.f.aux} are still computed from the non-pure versions of ${\bf f}^i$ and ${\bf g}^i$, all the maps entering the three instances of ${\rm PCL}_\ell$ in Eq. \ref{eq:dpbias} must be consistently $E/B$-purified before computing those pseudo-$C_\ell$s.
         
@@ -418,8 +420,10 @@ escapeinside={\%*}{*)}          % if you want to add a comment within your code
             {\sf M}^{s_as_b}_{\ell_1\ell_2}\rightarrow{\sf M}^{s_as_b}_{\ell_1\ell_2}W_{\ell_2}^{ab},
           \end{equation}
           where $W^{ab}_\ell$ is the product of the harmonic transform
-          of the beams for maps $a$ and $b$. Note that due to hairy
-          ball theorem, it is impossible to have an anisotropic beam
+          of the beams for maps $a$ and $b$. Note that since
+          any continuous tangent vector field on the sphere 
+          must, at some location, be zero (hairy ball theorem)
+          it is impossible to have an anisotropic beam
           that is uniform over the entire sphere.  However, it is
           possible that the beam is both anisotropic and spatially
           varying. In this case, the pseudo-$C_\ell$ power spetrum
@@ -431,7 +435,7 @@ escapeinside={\%*}{*)}          % if you want to add a comment within your code
           estimator to a a set of mock input maps with the same
           underlying signal but  with and without application of the
           beam smoothing (to both data maps and contaminant maps) and taking
-          the ration. \as{How does this interact with E/B purification?}
+          the ratio. \as{How does this interact with E/B purification?}
 
         \subsubsection{Noise bias}
          In auto-correlation, the two-point correlation of the noise component ${\bf n}$ will contaminate our estimate of the power spectrum of ${\bf s}$, and we must correct for this noise bias. Depending on the statistical properties of ${\bf n}$, different strategies can be used to do this:
@@ -464,7 +468,7 @@ escapeinside={\%*}{*)}          % if you want to add a comment within your code
         \item Spherical harmonic transforms are notoriously slower than discrete Fourier transforms (DFTs), both due to the scaling of both algorithms (${\cal O}(N_{\rm pix}^{3/2})$ for SHTs vs. ${\cal O}(N_{\rm pix}\log(N_{\rm pix}))$ for DFTs) and because by SHTs involve operations over the full sphere.
         \item Fourier transforms over a flat patch offer exact quadrature, which makes them inherently more numerically stable.
       \end{enumerate}
-      For this reason, \nmt\, also supports the computation of power spectra from flat-sky maps. Appendix \ref{app:flat} describes the dictionary between spin-$s$ fields and their Fourier/harmonic coefficients defined in flat and curved skies, and we present the flat-sky versions of the pseudo-$C_\ell$ methods described in the previous sections here.
+      For this reason, \nmt, also supports the computation of power spectra from flat-sky maps. Appendix \ref{app:flat} describes the dictionary between spin-$s$ fields and their Fourier/harmonic coefficients defined in flat and curved skies, and we present the flat-sky versions of the pseudo-$C_\ell$ methods described in the previous sections here.
       
       \subsubsection{Standard pseudo-$C_\ell$}\label{sssec:maths.flat.pcl101}
         Using the definitions presented in Appendix \ref{app:flat}, it is easy to show that the Fourier coefficients of a masked field are given by
@@ -575,22 +579,21 @@ from pymaster import *
 
 ...
 
-f2=NmtField(mask,[map_q,map_u],
-            templates=[[dust_q,dust_u]],
-            purify_b=True,beam=beam_ell)
-f0=NmtField(mask,[map_t])
+f2 = NmtField(mask, [map_q,map_u],
+            templates = [[dust_q,dust_u]],
+            purify_b = True,beam=beam_ell)
+f0 = NmtField(mask, [map_t])
 
-b=NmtBin(nside,nlb=10)
+b = NmtBin(nside, nlb = 10)
 
-wsp=NmtWorkspace()
-wsp.compute_coupling_matrix(f0,f2,b)
+wsp = NmtWorkspace()
+wsp.compute_coupling_matrix(f0, f2, b)
 
-cl_bias=deprojection_bias(f0,f2,cl_theory)
+cl_bias = deprojection_bias(f0, f2, cl_theory)
 
-cl_coupled=compute_coupled_cell(f0,f2)
+cl_coupled = compute_coupled_cell(f0, f2)
 
-cl_decoupled=wsp.decouple_cell(cl_coupled,
-                               cl_bias)
+cl_decoupled = wsp.decouple_cell(cl_coupled, cl_bias)
     \end{lstlisting}
     Briefly:
     \begin{enumerate}
