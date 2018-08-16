@@ -1066,7 +1066,7 @@
 
 <dl class="function">
 <dt id="pymaster.utils.synfast_flat">
-<code class="descclassname">pymaster.utils.</code><code class="descname">synfast_flat</code><span class="sig-paren">(</span><em>nx</em>, <em>ny</em>, <em>lx</em>, <em>ly</em>, <em>cls</em>, <em>pol=False</em>, <em>beam=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pymaster.utils.synfast_flat" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">pymaster.utils.</code><code class="descname">synfast_flat</code><span class="sig-paren">(</span><em>nx</em>, <em>ny</em>, <em>lx</em>, <em>ly</em>, <em>cls</em>, <em>pol=False</em>, <em>beam=None</em>, <em>seed=-1</em><span class="sig-paren">)</span><a class="headerlink" href="#pymaster.utils.synfast_flat" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generates a flat-sky Gaussian random field according to a given power spectrum. This function is the flat-sky equivalent of healpy’s synfast.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -1080,6 +1080,7 @@
 <li><strong>cls</strong> (<em>array-like</em>) – array containing power spectra. If pol=False, cls should be a 1D array. If pol=True it should be a 2D array with 4 (TT,EE,BB,TE) or 6 (TT,EE,BB,TE,EB,TB) power spectra.</li>
 <li><strong>pol</strong> (<em>boolean</em>) – Set to True if you want to generate T, Q and U</li>
 <li><strong>array-like</strong> (<em>beam</em>) – 1D array containing the instrumental beam (the output map(s) will be convolved with it)</li>
+<li><strong>seed</strong> (<em>int</em>) – RNG seed. If negative, will use a random seed.</li>
 </ul>
 </td>
 </tr>
@@ -1092,7 +1093,7 @@
 
 <dl class="function">
 <dt id="pymaster.utils.synfast_spherical">
-<code class="descclassname">pymaster.utils.</code><code class="descname">synfast_spherical</code><span class="sig-paren">(</span><em>nside</em>, <em>cls</em>, <em>pol=False</em>, <em>beam=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pymaster.utils.synfast_spherical" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">pymaster.utils.</code><code class="descname">synfast_spherical</code><span class="sig-paren">(</span><em>nside</em>, <em>cls</em>, <em>pol=False</em>, <em>beam=None</em>, <em>seed=-1</em><span class="sig-paren">)</span><a class="headerlink" href="#pymaster.utils.synfast_spherical" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generates a full-sky Gaussian random field according to a given power spectrum. This function should produce outputs similar to healpy’s synfast.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -1103,6 +1104,7 @@
 <li><strong>cls</strong> (<em>array-like</em>) – array containing power spectra. If pol=False, cls should be a 1D array. If pol=True it should be a 2D array with 4 (TT,EE,BB,TE) or 6 (TT,EE,BB,TE,EB,TB) power spectra.</li>
 <li><strong>pol</strong> (<em>boolean</em>) – Set to True if you want to generate T, Q and U</li>
 <li><strong>array-like</strong> (<em>beam</em>) – 1D array containing the instrumental beam (the output map(s) will be convolved with it)</li>
+<li><strong>seed</strong> (<em>int</em>) – RNG seed. If negative, will use a random seed.</li>
 </ul>
 </td>
 </tr>
