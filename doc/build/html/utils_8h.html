@@ -937,6 +937,7 @@ Functions</h2></td></tr>
 <p>Reads flat-sky map. </p>
 <p>Reads a flat-sky map from a FITS file. The flat map should be in an image HDU with WCS header keywords defining the sky patch (read from file). </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
+    <tr><td class="paramname">fname</td><td>Path to input file. </td></tr>
     <tr><td class="paramname">nx</td><td>Number of grid points in the x dimension (read from file). </td></tr>
     <tr><td class="paramname">ny</td><td>Number of grid points in the y dimension (read from file). </td></tr>
     <tr><td class="paramname">lx</td><td>Length of the x dimension (in steradians) (read from file). </td></tr>
@@ -945,6 +946,7 @@ Functions</h2></td></tr>
   </table>
   </dd>
 </dl>
+<dl class="section return"><dt>Returns</dt><dd>Read map (with size <code>ny</code> * <code>nx</code>). </dd></dl>
 
 </div>
 </div>
