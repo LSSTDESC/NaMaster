@@ -148,16 +148,25 @@ static void apodize_mask_smooth(nmt_flatsky_info *fs,flouble *mask_in,flouble *m
 void nmt_apodize_mask_flat(int nx,int ny,flouble lx,flouble ly,
 			   flouble *mask_in,flouble *mask_out,flouble aposize,char *apotype)
 {
-  nmt_flatsky_info *fs=nmt_flatsky_info_alloc(nx,ny,lx,ly);
-  if((!strcmp(apotype,"C1")) || (!strcmp(apotype,"C2"))) {
-    apodize_mask_CX(fs,mask_in,mask_out,aposize,apotype);
+  if(aposize<0)
+    report_error(NMT_ERROR_APO,"Apodization scale must be a positive number\n");
+  else if(aposize==0) {
+    int ii;
+    for(ii=0;ii<nx*ny;ii++)
+      mask_out[ii]=mask_in[ii];
   }
-  else if(!strcmp(apotype,"Smooth")) 
-    apodize_mask_smooth(fs,mask_in,mask_out,aposize);
   else {
+    nmt_flatsky_info *fs=nmt_flatsky_info_alloc(nx,ny,lx,ly);
+    if((!strcmp(apotype,"C1")) || (!strcmp(apotype,"C2"))) {
+      apodize_mask_CX(fs,mask_in,mask_out,aposize,apotype);
+    }
+    else if(!strcmp(apotype,"Smooth")) 
+      apodize_mask_smooth(fs,mask_in,mask_out,aposize);
+    else {
+      nmt_flatsky_info_free(fs);
+      report_error(NMT_ERROR_APO,"Unknown apodization type %s. Allowed: \"Smooth\", \"C1\", \"C2\"\n");
+    }
     nmt_flatsky_info_free(fs);
-    report_error(NMT_ERROR_APO,"Unknown apodization type %s. Allowed: \"Smooth\", \"C1\", \"C2\"\n");
   }
-  nmt_flatsky_info_free(fs);
 }
 

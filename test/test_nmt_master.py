@@ -197,12 +197,13 @@ class TestWorkspaceSph(unittest.TestCase) :
             
 class TestWorkspaceFsk(unittest.TestCase) :
     def setUp(self) :
+        #This is to avoid showing an ugly warning that has nothing to do with pymaster
         warnings.simplefilter("ignore", ResourceWarning)
 
         self.wcs,self.msk=read_flat_map("test/benchmarks/msk_flat.fits")
         (self.ny,self.nx)=self.msk.shape
-        self.lx=np.fabs(self.nx*self.wcs.wcs.cdelt[0])*np.pi/180
-        self.ly=np.fabs(self.ny*self.wcs.wcs.cdelt[1])*np.pi/180
+        self.lx=np.radians(np.fabs(self.nx*self.wcs.wcs.cdelt[0]))
+        self.ly=np.radians(np.fabs(self.ny*self.wcs.wcs.cdelt[1]))
         self.mps=np.array([read_flat_map("test/benchmarks/mps_flat.fits",i_map=i)[1] for i in range(3)])
         self.tmp=np.array([read_flat_map("test/benchmarks/tmp_flat.fits",i_map=i)[1] for i in range(3)])
         self.d_ell=20;

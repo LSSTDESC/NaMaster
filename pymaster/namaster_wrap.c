@@ -3497,9 +3497,11 @@ nmt_field *field_alloc_new(int npix_1,double *mask,
   asserting(nmap_2==nmap_3);
   asserting((nmap_2==1) || (nmap_2==2));
 
-  while(npix_1!=12*nside*nside)
+  while(npix_1!=12*nside*nside) {
+    asserting(nside<=65536);
     nside*=2;
-
+  }
+  
   asserting(nell3==3*nside);
 
   if(nmap_2==2) pol=1;
@@ -3544,9 +3546,11 @@ nmt_field *field_alloc_new_notemp(int npix_1,double *mask,
   asserting(npix_1==npix_2);
   asserting((nmap_2==1) || (nmap_2==2));
 
-  while(npix_1!=12*nside*nside)
+  while(npix_1!=12*nside*nside) {
+    asserting(nside<=65536);
     nside*=2;
-
+  }
+  
   asserting(nell3==3*nside);
 
   if(nmap_2==2) pol=1;
@@ -3578,6 +3582,8 @@ nmt_field_flat *field_alloc_new_flat(int nx,int ny,double lx,double ly,
   asserting((nmap_2==1) || (nmap_2==2));
   asserting(npix_1==nx*ny);
   asserting(ncl1==2);
+  asserting(lx>0);
+  asserting(ly>0);
 
   if(nmap_2==2) pol=1;
 
@@ -3625,6 +3631,8 @@ nmt_field_flat *field_alloc_new_notemp_flat(int nx,int ny,double lx,double ly,
 					    int ncl1,int nell1,double *cls1,
 					    int pure_e,int pure_b)
 {
+  asserting(lx>0);
+  asserting(ly>0);
   return field_alloc_new_flat(nx,ny,lx,ly,npix_1,mask,nmap_2,npix_2,mps,
 			      -1,-1,-1,NULL,ncl1,nell1,cls1,pure_e,pure_b,0.);
 }
@@ -3665,8 +3673,10 @@ void apomask(int npix_1,double *mask,
   long nside=1;
   asserting(nldout==npix_1);
 
-  while(npix_1!=12*nside*nside)
+  while(npix_1!=12*nside*nside) {
+    asserting(nside<=65536);
     nside*=2;
+  }
 
   nmt_apodize_mask(nside,mask,ldout,aposize,apotype);
 }
@@ -3675,6 +3685,8 @@ void apomask_flat(int nx,int ny,double lx,double ly,
 		  int npix_1,double *mask,
 		  double *dout,int ndout,double aposize,char *apotype)
 {
+  asserting(lx>0);
+  asserting(ly>0);
   asserting(npix_1==nx*ny);
   asserting(ndout==npix_1);
 
@@ -3728,6 +3740,8 @@ void synfast_new_flat(int nx,int ny,double lx,double ly,int pol,int seed,
     nfields=2;
     nmaps=3;
   }
+  asserting(lx>0);
+  asserting(ly>0);
 
   cls=malloc(ncl1*sizeof(double *));
   for(icl=0;icl<ncl1;icl++)

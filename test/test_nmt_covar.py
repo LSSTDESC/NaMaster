@@ -2,16 +2,12 @@ import unittest
 import numpy as np
 import pymaster as nmt
 import healpy as hp
-import warnings
 from .testutils import normdiff, read_flat_map
 
 #Unit tests associated with the NmtField and NmtFieldFlat classes
 
 class TestCovarFsk(unittest.TestCase) :
     def setUp(self) :
-        #This is to avoid showing an ugly warning that has nothing to do with pymaster
-        warnings.simplefilter("ignore", ResourceWarning)
-
         self.w=nmt.NmtWorkspaceFlat()
         self.w.read_from("test/benchmarks/bm_f_nc_np_w00.dat")
         
@@ -65,9 +61,6 @@ class TestCovarFsk(unittest.TestCase) :
         
 class TestCovarSph(unittest.TestCase) :
     def setUp(self) :
-        #This is to avoid showing an ugly warning that has nothing to do with pymaster
-        warnings.simplefilter("ignore", ResourceWarning)
-
         self.w=nmt.NmtWorkspace()
         self.w.read_from("test/benchmarks/bm_nc_np_w00.dat")
         self.nside=self.w.wsp.nside

@@ -2,16 +2,12 @@ import unittest
 import numpy as np
 import pymaster as nmt
 import healpy as hp
-import warnings
 from .testutils import normdiff
 
 #Unit tests associated with the NmtField and NmtFieldFlat classes
 
 class TestFieldSph(unittest.TestCase) :
     def setUp(self) :
-        #This is to avoid showing an ugly warning that has nothing to do with pymaster
-        warnings.simplefilter("ignore", ResourceWarning)
-
         self.nside=64
         self.lmax=3*self.nside-1
         self.ntemp=5
@@ -85,8 +81,8 @@ class TestFieldFsk(unittest.TestCase) :
         self.ntemp=5
         self.nx=141
         self.ny=311
-        self.lx=np.pi/180
-        self.ly=np.pi/180
+        self.lx=np.radians(1.)
+        self.ly=np.radians(1.)
         self.npix=self.nx*self.ny
         self.msk=np.ones([self.ny,self.nx])
         self.lmax=np.sqrt((self.nx*np.pi/self.lx)**2+(self.ny*np.pi/self.ly)**2)
