@@ -43,11 +43,11 @@ python setup.py install [--user]
 ```
 where the optional `--user` flag can be used if you don't have admin privileges.
 
-You can check that the python installation works by running
+You can check that the python installation works by running the unit tests:
 ```
-python check.py
+python -m unittest -v
 ```
-from the `test` directory. Note that this directory also contains all the sample python scripts described in the documentation (see below).
+Note that the `test` directory, containing all unit tests, also contains all the sample python scripts described in the documentation (see below).
 
 
 ## Documentation 

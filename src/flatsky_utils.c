@@ -9,7 +9,7 @@ void *dftw_malloc(size_t n)
   void *p=fftw_malloc(n);
 #endif //_SPREC
   if(p==NULL)
-    report_error(1,"Ran out of memory\n");
+    report_error(NMT_ERROR_MEMORY,"Ran out of memory\n");
   return p;
 }
 
@@ -586,7 +586,7 @@ static void read_key(fitsfile *fptr,int dtype,char *key,void *val,int *status)
 {
   fits_read_key(fptr,dtype,key,val,NULL,status);
   if(*status)
-    report_error(1,"Key %s not found\n",key);
+    report_error(NMT_ERROR_READ,"Key %s not found\n",key);
 }
 
 flouble *fs_read_flat_map(char *fname,int *nx,int *ny,flouble *lx,flouble *ly,int nfield)
@@ -599,13 +599,13 @@ flouble *fs_read_flat_map(char *fname,int *nx,int *ny,flouble *lx,flouble *ly,in
 
   fits_open_file(&fptr,fname,READONLY,&status);
   if(status)
-    report_error(1,"Can't open file %s\n",fname);
+    report_error(NMT_ERROR_FOPEN,"Can't open file %s\n",fname);
   fits_get_num_hdus(fptr,&numhdu,&status);
   if(nfield>=numhdu)
-    report_error(1,"%d-th field doesn't exist\n",nfield);
+    report_error(NMT_ERROR_READ,"%d-th field doesn't exist\n",nfield);
   fits_movabs_hdu(fptr,nfield+1,&hdutype,&status);
   if(hdutype!=IMAGE_HDU)
-    report_error(1,"Requested HDU is not an image\n");
+    report_error(NMT_ERROR_READ,"Requested HDU is not an image\n");
 
   //Read patch properties
   read_key(fptr,TINT,"NAXIS",&naxis,&status);
@@ -614,7 +614,7 @@ flouble *fs_read_flat_map(char *fname,int *nx,int *ny,flouble *lx,flouble *ly,in
   read_key(fptr,TDOUBLE,"CDELT1",&cdelt1,&status);
   read_key(fptr,TDOUBLE,"CDELT2",&cdelt2,&status);
   if(naxis!=2)
-    report_error(1,"Can't find a two-dimensional map\n");
+    report_error(NMT_ERROR_READ,"Can't find a two-dimensional map\n");
   *nx=naxis1;
   *ny=naxis2;
   *lx=fabs(naxis1*cdelt1)*M_PI/180;
@@ -630,7 +630,7 @@ flouble *fs_read_flat_map(char *fname,int *nx,int *ny,flouble *lx,flouble *ly,in
   fits_read_pix(fptr,TDOUBLE,fpixel,naxis1*naxis2,&nulval,map_out,NULL,&status);
 #endif //_SPREC
   if(status)
-    report_error(1,"Error reading image from file %s\n",fname);
+    report_error(NMT_ERROR_READ,"Error reading image from file %s\n",fname);
   
   fits_close_file(fptr,&status);
 

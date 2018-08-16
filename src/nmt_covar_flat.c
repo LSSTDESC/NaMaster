@@ -28,12 +28,12 @@ nmt_covar_workspace_flat *nmt_covar_workspace_flat_init(nmt_workspace_flat *wa,n
   int ii;
   
   if((wa->fs->nx!=wb->fs->nx) || (wa->fs->ny!=wb->fs->ny))
-    report_error(1,"Can't compute covariance for fields with different resolutions\n");
+    report_error(NMT_ERROR_COVAR,"Can't compute covariance for fields with different resolutions\n");
   nmt_flatsky_info *fs=wa->fs;
   if((wa->ncls!=1) || (wb->ncls!=1))
-    report_error(1,"Gaussian covariance only implemented for spin-0 fields\n");
+    report_error(NMT_ERROR_COVAR,"Gaussian covariance only implemented for spin-0 fields\n");
   if(wa->bin->n_bands!=wb->bin->n_bands)
-    report_error(1,"Can't compute covariance for different binning schemes\n");
+    report_error(NMT_ERROR_COVAR,"Can't compute covariance for different binning schemes\n");
 
   nmt_covar_workspace_flat *cw=my_malloc(sizeof(nmt_covar_workspace_flat));
 

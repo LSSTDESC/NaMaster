@@ -23,12 +23,14 @@ def mask_apodization_flat(mask_in,lx,ly,aposize,apotype="C1") :
     :param apotype: apodization type. Three methods implemented: "C1", "C2" and "Smooth". See the description of the C-function nmt_apodize_mask in the C API documentation for a full description of these methods.
     :return: apodized mask as a 2D array (ny,nx)
     """
+    if mask_in.ndim!=2 :
+        raise ValueError("Mask must be a 2D array")
     nx=len(mask_in[0])
     ny=len(mask_in)
     mask_apo_flat=lib.apomask_flat(nx,ny,lx,ly,mask_in.flatten().astype('float64'),nx*ny,aposize,apotype)
     return mask_apo_flat.reshape([ny,nx])
 
-def synfast_spherical(nside,cls,pol=False,beam=None) :
+def synfast_spherical(nside,cls,pol=False,beam=None,seed=-1) :
     """
     Generates a full-sky Gaussian random field according to a given power spectrum. This function should produce outputs similar to healpy's synfast.
 
@@ -36,17 +38,20 @@ def synfast_spherical(nside,cls,pol=False,beam=None) :
     :param array-like cls: array containing power spectra. If pol=False, cls should be a 1D array. If pol=True it should be a 2D array with 4 (TT,EE,BB,TE) or 6 (TT,EE,BB,TE,EB,TB) power spectra.
     :param boolean pol: Set to True if you want to generate T, Q and U
     :param beam array-like: 1D array containing the instrumental beam (the output map(s) will be convolved with it)
+    :param int seed: RNG seed. If negative, will use a random seed.
     :return: 1 or 3 full-sky maps
     """
-    seed=np.random.randint(50000000)
+    if seed<0 :
+        seed=np.random.randint(50000000)
+        
     if pol :
         use_pol=1
         nmaps=3
         if(len(np.shape(cls))!=2) :
-            raise KeyError("You should supply more than one power spectrum if you want polarization")
+            raise ValueError("You should supply more than one power spectrum if you want polarization")
         ncl=len(cls)
         if ((ncl!=4) and (ncl!=6)) :
-            raise KeyError("You should provide 4 or 6 power spectra if you want polarization")
+            raise ValueError("You should provide 4 or 6 power spectra if you want polarization")
         lmax=len(cls[0])-1
         cls_use=np.zeros([6,lmax+1])
         cls_use[0,:]=cls[0] #TT
@@ -60,7 +65,7 @@ def synfast_spherical(nside,cls,pol=False,beam=None) :
         use_pol=0
         nmaps=1
         if(len(np.shape(cls))!=1) :
-            raise KeyError("You should supply only one power spectrum if you don't want polarization")
+            raise ValueError("You should supply only one power spectrum if you don't want polarization")
         lmax=len(cls)-1
         cls_use=np.array([cls])
 
@@ -68,7 +73,7 @@ def synfast_spherical(nside,cls,pol=False,beam=None) :
         beam_use=np.ones(lmax+1)
     else :
         if len(beam)!=lmax+1 :
-            raise KeyError("The beam should have as many multipoles as the power spectrum")
+            raise ValueError("The beam should have as many multipoles as the power spectrum")
         beam_use=beam
     data=lib.synfast_new(nside,use_pol,seed,cls_use,beam_use,nmaps*12*nside*nside)
 
@@ -76,7 +81,7 @@ def synfast_spherical(nside,cls,pol=False,beam=None) :
 
     return maps
 
-def synfast_flat(nx,ny,lx,ly,cls,pol=False,beam=None) :
+def synfast_flat(nx,ny,lx,ly,cls,pol=False,beam=None,seed=-1) :
     """
     Generates a flat-sky Gaussian random field according to a given power spectrum. This function is the flat-sky equivalent of healpy's synfast.
 
@@ -87,17 +92,20 @@ def synfast_flat(nx,ny,lx,ly,cls,pol=False,beam=None) :
     :param array-like cls: array containing power spectra. If pol=False, cls should be a 1D array. If pol=True it should be a 2D array with 4 (TT,EE,BB,TE) or 6 (TT,EE,BB,TE,EB,TB) power spectra.
     :param boolean pol: Set to True if you want to generate T, Q and U
     :param beam array-like: 1D array containing the instrumental beam (the output map(s) will be convolved with it)
+    :param int seed: RNG seed. If negative, will use a random seed.
     :return: 1 or 3 2D arrays of size (ny,nx) containing the simulated maps
     """
-    seed=np.random.randint(50000000)
+    if seed<0 :
+        seed=np.random.randint(50000000)
+
     if pol :
         use_pol=1
         nmaps=3
         if(len(np.shape(cls))!=2) :
-            raise KeyError("You should supply more than one power spectrum if you want polarization")
+            raise ValueError("You should supply more than one power spectrum if you want polarization")
         ncl=len(cls)
         if ((ncl!=4) and (ncl!=6)) :
-            raise KeyError("You should provide 4 or 6 power spectra if you want polarization")
+            raise ValueError("You should provide 4 or 6 power spectra if you want polarization")
         lmax=len(cls[0])-1
         cls_use=np.zeros([6,lmax+1])
         cls_use[0,:]=cls[0] #TT
@@ -111,7 +119,7 @@ def synfast_flat(nx,ny,lx,ly,cls,pol=False,beam=None) :
         use_pol=0
         nmaps=1
         if(len(np.shape(cls))!=1) :
-            raise KeyError("You should supply only one power spectrum if you don't want polarization")
+            raise ValueError("You should supply only one power spectrum if you don't want polarization")
         lmax=len(cls)-1
         cls_use=np.array([cls])
 
@@ -119,7 +127,7 @@ def synfast_flat(nx,ny,lx,ly,cls,pol=False,beam=None) :
         beam_use=np.ones(lmax+1)
     else :
         if len(beam)!=lmax+1 :
-            raise KeyError("The beam should have as many multipoles as the power spectrum")
+            raise ValueError("The beam should have as many multipoles as the power spectrum")
         beam_use=beam
     data=lib.synfast_new_flat(nx,ny,lx,ly,use_pol,seed,cls_use,beam_use,nmaps*ny*nx)
 

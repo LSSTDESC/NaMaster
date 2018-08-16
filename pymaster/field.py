@@ -17,6 +17,8 @@ class NmtField(object) :
     """
     def __init__(self,mask,maps,templates=None,beam=None,purify_e=False,purify_b=False,
                  n_iter_mask_purify=3,tol_pinv=1E-10) :
+        self.fl=None
+        
         pure_e=0
         if(purify_e) :
             pure_e=1
@@ -28,27 +30,31 @@ class NmtField(object) :
         while(12*nside*nside!=len(mask)) :
             nside*=2
             if(nside>65536) :
-                raise KeyError("Something is wrong with your input arrays")
+                raise ValueError("Something is wrong with your input arrays")
 
         if((len(maps)!=1) and (len(maps)!=2)) :
-            raise KeyError("Must supply 1 or 2 maps per field")
+            raise ValueError("Must supply 1 or 2 maps per field")
+        if(len(maps[0])!=len(mask)) :
+            raise ValueError("All maps must have the same resolution")
 
         if isinstance(templates,(list,tuple,np.ndarray)) :
             if((len(templates[0])!=1) and (len(templates[0])!=2)) :
-                raise KeyError("Must supply 1 or 2 maps per field")
+                raise ValueError("Must supply 1 or 2 maps per field")
+            if(len(templates[0][0])!=len(mask)) :
+                raise ValueError("All maps must have the same resolution")
         else :
             if(templates is not None) :
-                raise KeyError("Input templates can only be an array or None\n")
+                raise ValueError("Input templates can only be an array or None\n")
 
         if isinstance(beam,(list,tuple,np.ndarray)) :
             if(len(beam)!=3*nside) :
-                raise KeyError("Input beam must have 3*nside elements")
+                raise ValueError("Input beam must have 3*nside elements")
             beam_use=beam
         else :
             if(beam is None) :
                 beam_use=np.ones(3*nside)
             else :
-                raise KeyError("Input beam can only be an array or None\n")
+                raise ValueError("Input beam can only be an array or None\n")
 
         if isinstance(templates,(list,tuple,np.ndarray)) :
             self.fl=lib.field_alloc_new(mask,maps,templates,beam_use,pure_e,pure_b,
@@ -57,7 +63,9 @@ class NmtField(object) :
             self.fl=lib.field_alloc_new_notemp(mask,maps,beam_use,pure_e,pure_b,n_iter_mask_purify)
 
     def __del__(self) :
-        lib.field_free(self.fl)
+        if self.fl is not None :
+            lib.field_free(self.fl)
+            self.fl=None
 
     def get_maps(self) :
         """
@@ -66,7 +74,7 @@ class NmtField(object) :
         :return: 2D array of HEALPix maps
         """
         maps=np.zeros([self.fl.nmaps,self.fl.npix])
-        for imap in np.arange(self.fl.nmaps) :
+        for imap in range(self.fl.nmaps) :
             maps[imap,:]=lib.get_map(self.fl,imap,int(self.fl.npix))
         else :
             mps=maps
@@ -79,8 +87,8 @@ class NmtField(object) :
         :return: 3D array of HEALPix maps
         """
         temp=np.zeros([self.fl.ntemp,self.fl.nmaps,self.fl.npix])
-        for itemp in np.arange(self.fl.ntemp) :
-            for imap in np.arange(self.fl.nmaps) :
+        for itemp in range(self.fl.ntemp) :
+            for imap in range(self.fl.nmaps) :
                 temp[itemp,imap,:]=lib.get_temp(self.fl,itemp,imap,int(self.fl.npix))
         else :
             tmps=temp
@@ -101,7 +109,10 @@ class NmtFieldFlat(object) :
     :param tol_pinv: when computing the pseudo-inverse of the contaminant covariance matrix, all eigenvalues below tol_pinv * max_eval will be treated as singular values, where max_eval is the largest eigenvalue. Only relevant if passing contaminant templates that are likely to be highly correlated.
 
     """
-    def __init__(self,lx,ly,mask,maps,templates=None,beam=None,purify_e=False,purify_b=False,tol_pinv=1E-10) :
+    def __init__(self,lx,ly,mask,maps,templates=None,beam=None,
+                 purify_e=False,purify_b=False,tol_pinv=1E-10) :
+        self.fl=None
+        
         pure_e=0
         if(purify_e) :
             pure_e=1
@@ -110,12 +121,14 @@ class NmtFieldFlat(object) :
             pure_b=1
 
         if (lx<0) or (ly<0) :
-            raise KeyError("Must supply dimensions for flat-sky field")
+            raise ValueError("Must supply sensible dimensions for flat-sky field")
         #Flatten arrays and check dimensions
         shape_2D=np.shape(mask)
-        nmaps=len(maps[0])
+        nmaps=len(maps)
         self.ny=shape_2D[0]
         self.nx=shape_2D[1]
+        if((nmaps!=1) and (nmaps!=2)) :
+            raise ValueError("Must supply 1 or 2 maps per field")
 
         #Flatten mask
         msk=(mask.astype(np.float64)).flatten()
@@ -124,7 +137,7 @@ class NmtFieldFlat(object) :
         mps=[]
         for m in maps :
             if np.shape(m)!=shape_2D :
-                KeyError("Mask and maps don't have the same shape")
+                raise ValueError("Mask and maps don't have the same shape")
             mps.append((m.astype(np.float64)).flatten())
         mps=np.array(mps)
 
@@ -134,14 +147,16 @@ class NmtFieldFlat(object) :
             for t in templates :
                 tmp=[]
                 if len(t)!=nmaps :
-                    KeyError("Maps and templates should have the same number of maps")
+                    raise ValueError("Maps and templates should have the same number of maps")
                 for m in t :
+                    if np.shape(m)!=shape_2D :
+                        raise ValueError("Mask and templates don't have the same shape")
                     tmp.append((m.astype(np.float64)).flatten())
                 tmps.append(tmp)
             tmps=np.array(tmps)
         else :
             if(templates is not None) :
-                raise KeyError("Input templates can only be an array or None\n")
+                raise ValueError("Input templates can only be an array or None")
 
         #Form beam
         if isinstance(beam,(list,tuple,np.ndarray)) :
@@ -150,7 +165,7 @@ class NmtFieldFlat(object) :
             if(beam is None) :
                 beam_use=np.array([[-1.],[-1.]])
             else :
-                raise KeyError("Input beam can only be an array or None\n")
+                raise ValueError("Input beam can only be an array or None")
 
         #Generate field
         if isinstance(templates,(list,tuple,np.ndarray)) :
@@ -159,7 +174,9 @@ class NmtFieldFlat(object) :
             self.fl=lib.field_alloc_new_notemp_flat(self.nx,self.ny,lx,ly,msk,mps,beam_use,pure_e,pure_b)
 
     def __del__(self) :
-        lib.field_flat_free(self.fl)
+        if self.fl is not None :
+            lib.field_flat_free(self.fl)
+            self.fl=None
 
     def get_maps(self) :
         """
@@ -168,7 +185,7 @@ class NmtFieldFlat(object) :
         :return: 3D array of flat-sky maps
         """
         maps=np.zeros([self.fl.nmaps,self.fl.npix])
-        for imap in np.arange(self.fl.nmaps) :
+        for imap in range(self.fl.nmaps) :
             maps[imap,:]=lib.get_map_flat(self.fl,imap,int(self.fl.npix))
         mps=maps.reshape([self.fl.nmaps,self.ny,self.nx])
 
@@ -181,8 +198,8 @@ class NmtFieldFlat(object) :
         :return: 4D array of flat-sky maps
         """
         temp=np.zeros([self.fl.ntemp,self.fl.nmaps,self.fl.npix])
-        for itemp in np.arange(self.fl.ntemp) :
-            for imap in np.arange(self.fl.nmaps) :
+        for itemp in range(self.fl.ntemp) :
+            for imap in range(self.fl.nmaps) :
                 temp[itemp,imap,:]=lib.get_temp_flat(self.fl,itemp,imap,int(self.fl.npix))
         tmps=temp.reshape([self.fl.ntemp,self.fl.nmaps,self.ny,self.nx])
 

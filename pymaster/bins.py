@@ -13,6 +13,8 @@ class NmtBin(object) :
     :param int lmax: integer value corresponding to the maximum multiple used by these bandpowers. If None, it will be set to 3*nside-1. In any case the actual maximum multipole will be chosen as the minimum of lmax, 3*nside-1 and the maximum element of ells.
     """
     def __init__(self,nside,bpws=None,ells=None,weights=None,nlb=None,lmax=None) :
+        self.bin=None
+        
         if((bpws is None) and (ells is None) and (weights is None) and (nlb is None)) :
             raise KeyError("Must supply bandpower arrays or constant bandpower width")
 
@@ -24,15 +26,18 @@ class NmtBin(object) :
         if(nlb is None) :
             if((bpws is None) and (ells is None) and (weights is None)) :
                 raise KeyError("Must provide bpws, ells and weights")
-            ell_max=min(3*nside-1,np.amax(ells),lmax_in)
-            self.bin=lib.bins_create_py(bpws.astype(np.int32),ells.astype(np.int32),weights,ell_max)
+            ell_max=min(3*nside-1,lmax_in)
+            self.bin=lib.bins_create_py(bpws.astype(np.int32),ells.astype(np.int32),weights,
+                                        int(ell_max))
         else :
             ell_max=min(3*nside-1,lmax_in)
             self.bin=lib.bins_constant(nlb,ell_max)
         self.lmax=ell_max
 
     def __del__(self) :
-        lib.bins_free(self.bin)
+        if self.bin is not None :
+            lib.bins_free(self.bin)
+            self.bin=None
 
     def get_n_bands(self) :
         """
@@ -83,10 +88,16 @@ class NmtBin(object) :
         :param array-like cls_in: 2D array of power spectra
         :return: array of bandpowers
         """
-        if(len(cls_in[0])>self.lmax+1) :
-            raise KeyError("Input Cl has wrong size")
+        oned=False
+        if(cls_in.ndim!=2) :
+            oned=True
+            cls_in=np.array([cls_in])
+        if((cls_in.ndim>2) or (len(cls_in[0])!=self.lmax+1)) :
+            raise ValueError("Input Cl has wrong size")
         cl1d=lib.bin_cl(self.bin,cls_in,len(cls_in)*self.bin.n_bands)
         clout=np.reshape(cl1d,[len(cls_in),self.bin.n_bands])
+        if oned :
+            clout=clout[0]
         return clout
 
     def unbin_cell(self,cls_in) :
@@ -96,10 +107,16 @@ class NmtBin(object) :
         :param array-like cls_in: array of bandpowers
         :return: array of power spectra
         """
-        if(len(cls_in[0])!=self.bin.n_bands) :
-            raise KeyError("Input Cl has wrong size")
+        oned=False
+        if(cls_in.ndim!=2) :
+            oned=True
+            cls_in=np.array([cls_in])
+        if((cls_in.ndim>2) or (len(cls_in[0])!=self.bin.n_bands)) :
+            raise ValueError("Input Cl has wrong size")
         cl1d=lib.unbin_cl(self.bin,cls_in,len(cls_in)*(self.lmax+1))
         clout=np.reshape(cl1d,[len(cls_in),self.lmax+1])
+        if oned :
+            clout=clout[0]
         return clout
 
 
@@ -111,10 +128,13 @@ class NmtBinFlat(object) :
     :param array-like lf: array of floats corresponding to the upper bound of each bandpower. lf should have the same shape as l0
     """
     def __init__(self,l0,lf) :
+        self.bin=None
         self.bin=lib.bins_flat_create_py(l0,lf)
 
     def __del__(self) :
-        lib.bins_flat_free(self.bin)
+        if self.bin is not None :
+            lib.bins_flat_free(self.bin)
+            self.bin=None
 
     def get_n_bands(self) :
         """
@@ -140,10 +160,16 @@ class NmtBinFlat(object) :
         :param array-like cls_in: 2D array of input power spectra
         :return: array of bandpowers
         """
-        if(len(cls_in[0])!=len(ells)) :
-            raise KeyError("Input Cl has wrong size")
+        oned=False
+        if(cls_in.ndim!=2) :
+            oned=True
+            cls_in=np.array([cls_in])
+        if((cls_in.ndim>2) or (len(cls_in[0])!=len(ells))) :
+            raise ValueError("Input Cl has wrong size")
         cl1d=lib.bin_cl_flat(self.bin,ells,cls_in,len(cls_in)*self.bin.n_bands)
         clout=np.reshape(cl1d,[len(cls_in),self.bin.n_bands])
+        if oned :
+            clout=clout[0]
         return clout
 
     def unbin_cell(self,cls_in,ells) :
@@ -154,8 +180,14 @@ class NmtBinFlat(object) :
         :param array-like ells: array of multipoles at which the power spectra should be intepolated
         :return: array of power spectra
         """
-        if(len(cls_in[0])!=self.bin.n_bands) :
-            raise KeyError("Input Cl has wrong size")
+        oned=False
+        if(cls_in.ndim!=2) :
+            oned=True
+            cls_in=np.array([cls_in])
+        if((cls_in.ndim>2) or (len(cls_in[0])!=self.bin.n_bands)) :
+            raise ValueError("Input Cl has wrong size")
         cl1d=lib.unbin_cl_flat(self.bin,cls_in,ells,len(cls_in)*len(ells))
         clout=np.reshape(cl1d,[len(cls_in),len(ells)])
+        if oned :
+            clout=clout[0]
         return clout

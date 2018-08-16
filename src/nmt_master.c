@@ -184,9 +184,9 @@ nmt_workspace *nmt_compute_coupling_matrix(nmt_field *fl1,nmt_field *fl2,nmt_bin
   int n_cl=fl1->nmaps*fl2->nmaps;
 
   if(fl1->nside!=fl2->nside)
-    report_error(1,"Can't correlate fields with different resolutions\n");
+    report_error(NMT_ERROR_CONSISTENT_RESO,"Can't correlate fields with different resolutions\n");
   if(bin->ell_max>=3*fl1->nside)
-    report_error(1,"Requesting bandpowers for too high a multipole given map resolution\n");
+    report_error(NMT_ERROR_CONSISTENT_RESO,"Requesting bandpowers for too high a multipole given map resolution\n");
   w=nmt_workspace_new(fl1->nside,n_cl,bin);
   beam_prod=my_malloc((w->lmax+1)*sizeof(flouble));
   memcpy(w->mask1,fl1->mask,he_nside2npix(w->nside)*sizeof(flouble));
@@ -441,6 +441,9 @@ void nmt_compute_deprojection_bias(nmt_field *fl1,nmt_field *fl2,
   int nspec=fl1->nmaps*fl2->nmaps;
   int lmax=fl1->lmax;
 
+  if(fl1->nside!=fl2->nside)
+    report_error(NMT_ERROR_CONSISTENT_RESO,"Can't correlate fields with different resolutions\n");
+  
   cl_dum=my_malloc(nspec*sizeof(flouble *));
   for(ii=0;ii<nspec;ii++) {
     cl_dum[ii]=my_calloc((lmax+1),sizeof(flouble));
@@ -643,6 +646,9 @@ void nmt_decouple_cl_l(nmt_workspace *w,flouble **cl_in,flouble **cl_noise_in,
 
 void nmt_compute_coupled_cell(nmt_field *fl1,nmt_field *fl2,flouble **cl_out)
 {
+  if(fl1->lmax!=fl2->lmax)
+    report_error(NMT_ERROR_CONSISTENT_RESO,"Can't correlate fields with different resolutions\n");
+  
   he_alm2cl(fl1->alms,fl2->alms,fl1->pol,fl2->pol,cl_out,fl1->lmax);
 }
 
@@ -654,12 +660,12 @@ nmt_workspace *nmt_compute_power_spectra(nmt_field *fl1,nmt_field *fl2,
   flouble **cl_bias,**cl_data;
   nmt_workspace *w;
 
-  if(w0==NULL)
+  if(w0==NULL) 
     w=nmt_compute_coupling_matrix(fl1,fl2,bin);
   else {
     w=w0;
     if(w->lmax>=3*fl1->nside)
-      report_error(1,"Workspace does not match map resolution\n");
+      report_error(NMT_ERROR_CONSISTENT_RESO,"Workspace does not match map resolution\n");
   }
 
   cl_bias=my_malloc(w->ncls*sizeof(flouble *));

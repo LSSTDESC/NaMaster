@@ -62,49 +62,42 @@ CTEST(nmt,covar_errors) {
   int lmax=wa->lmax;
 
   set_error_policy(THROW_ON_ERROR);
-  printf("\nError messages expected: \n");
 
   //All good
   wb=nmt_workspace_read("test/benchmarks/bm_nc_np_w00.dat");
   try { cw=nmt_covar_workspace_init(wa,wb); }
-  catch(1) {}
-  ASSERT_EQUAL(0,exception_status);
+  ASSERT_EQUAL(0,nmt_exception_status);
   nmt_covar_workspace_free(cw); cw=NULL;
 
   //Wrong reading
   try { cw=nmt_covar_workspace_read("none"); }
-  catch(1) {}
-  ASSERT_EQUAL(1,exception_status);
+  ASSERT_NOT_EQUAL(0,nmt_exception_status);
   ASSERT_NULL(cw);
 
   //Correct reading
   try { cw=nmt_covar_workspace_read("test/benchmarks/bm_nc_np_cw00.dat"); }
-  catch(1) {}
-  ASSERT_EQUAL(0,exception_status);
+  ASSERT_EQUAL(0,nmt_exception_status);
   nmt_covar_workspace_free(cw); cw=NULL;
 
   //Incompatible resolutions
   wb->nside=128;
   try { cw=nmt_covar_workspace_init(wa,wb); }
-  catch(1) {}
   wb->nside=nside;
-  ASSERT_EQUAL(1,exception_status);
+  ASSERT_NOT_EQUAL(0,nmt_exception_status);
   ASSERT_NULL(cw);
 
   //Incompatible lmax
   wb->lmax=3*128-1;
   try { cw=nmt_covar_workspace_init(wa,wb); }
-  catch(1) {}
   wb->lmax=lmax;
-  ASSERT_EQUAL(1,exception_status);
+  ASSERT_NOT_EQUAL(0,nmt_exception_status);
   ASSERT_NULL(cw);
   nmt_workspace_free(wb);
 
   //Spin-2
   wb=nmt_workspace_read("test/benchmarks/bm_nc_np_w02.dat");
   try { cw=nmt_covar_workspace_init(wa,wb); }
-  catch(1) {}
-  ASSERT_EQUAL(1,exception_status);
+  ASSERT_NOT_EQUAL(0,nmt_exception_status);
   ASSERT_NULL(cw);
   nmt_workspace_free(wb);
 

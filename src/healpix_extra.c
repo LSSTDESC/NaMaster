@@ -77,17 +77,17 @@ flouble *he_read_healpix_map(char *fname,long *nside,int nfield)
   fits_read_key_lng(fptr,"NSIDE",nside,NULL,&status);
   npix=12*(*nside)*(*nside);
   if(npix%naxis[1]!=0)
-    report_error(1,"FITS file %s corrupt\n",fname);
+    report_error(NMT_ERROR_READ,"FITS file %s corrupt\n",fname);
 
   if (fits_read_key(fptr, TSTRING, "ORDERING", order_in_file, NULL, &status))
-    report_error(1,"WARNING: Could not find %s keyword in in file %s\n","ORDERING",fname);
+    report_error(NMT_ERROR_READ,"WARNING: Could not find %s keyword in in file %s\n","ORDERING",fname);
   if(!strncmp(order_in_file,"NEST",4))
     nested_in_file=1;
 
   map=my_malloc(npix*sizeof(flouble));
   fits_get_num_cols(fptr,&ncols,&status);
   if(nfield>=ncols)
-    report_error(1,"Not enough columns in FITS file\n");
+    report_error(NMT_ERROR_READ,"Not enough columns in FITS file\n");
 #ifdef _SPREC
   fits_read_col(fptr,TFLOAT,nfield+1,1,1,npix,&nulval,map,&anynul,&status);
 #else //_SPREC
@@ -133,7 +133,7 @@ void he_get_file_params(char *fname,long *nside,int *nfields,int *isnest)
   fits_read_key_lng(fptr,"NSIDE",nside,NULL,&status);
 
   if (fits_read_key(fptr, TSTRING, "ORDERING", order_in_file, NULL, &status)) {
-    report_error(1,"WARNING: Could not find %s keyword in in file %s\n",
+    report_error(NMT_ERROR_READ,"WARNING: Could not find %s keyword in in file %s\n",
 		 "ORDERING",fname);
   }
 
@@ -206,7 +206,7 @@ void he_query_strip(long nside,double theta1,double theta2,
   if((theta2<=theta1)||
      (theta1<0)||(theta1>M_PI)||
      (theta2<0)||(theta2>M_PI)) {
-    report_error(1,"Wrong strip boundaries\n");
+    report_error(NMT_ERROR_HPX,"Wrong strip boundaries\n");
   }
 
   irmin=he_ring_num(nside,z_hi);
@@ -221,7 +221,7 @@ void he_query_strip(long nside,double theta1,double theta2,
     npix_in_strip+=ipix2-ipix1+1;
   }
   if(*npix_strip<npix_in_strip)
-    report_error(1,"Not enough memory in pixlist\n");
+    report_error(NMT_ERROR_MEMORY,"Not enough memory in pixlist\n");
   else
     *npix_strip=npix_in_strip;
 
@@ -472,7 +472,7 @@ void he_in_ring(int nside,int iz,flouble phi0,flouble dphi,
   if(take_all) {
     *nir=ipix2-ipix1+1;
     if(*nir>nir_here)
-      report_error(1,"Not enough memory in listir\n");
+      report_error(NMT_ERROR_MEMORY,"Not enough memory in listir\n");
     for(jj=0;jj<(*nir);jj++)
       listir[jj]=ipix1+jj;
 
@@ -509,7 +509,7 @@ void he_in_ring(int nside,int iz,flouble phi0,flouble dphi,
     (*nir)=nir1+nir2;
 
     if(*nir>nir_here)
-      report_error(1,"Not enough memory in listir\n");
+      report_error(NMT_ERROR_MEMORY,"Not enough memory in listir\n");
     for(jj=0;jj<nir1;jj++)
       listir[jj]=ip_low+jj;
     for(jj=nir1;jj<(*nir);jj++)
@@ -519,7 +519,7 @@ void he_in_ring(int nside,int iz,flouble phi0,flouble dphi,
     (*nir)=ip_hi-ip_low+1;
 
     if(*nir>nir_here)
-      report_error(1,"Not enough memory in listir\n");
+      report_error(NMT_ERROR_MEMORY,"Not enough memory in listir\n");
     for(jj=0;jj<(*nir);jj++)
       listir[jj]=ip_low+jj;
   }
@@ -551,7 +551,7 @@ void he_query_disc(int nside,double cth0,double phi,flouble radius,
   listir=&(listtot[*nlist]);
 
   if((radius<0)||(radius>M_PI))
-    report_error(1,"The angular radius is in RADIAN, and should lie in [0,M_PI]!");
+    report_error(NMT_ERROR_HPX,"The angular radius is in RADIAN, and should lie in [0,M_PI]!");
 
   dth1=1/(3*((flouble)(nside*nside)));
   dth2=2/(3*((flouble)nside));
@@ -625,7 +625,7 @@ void he_query_disc(int nside,double cth0,double phi,flouble radius,
     he_in_ring(nside,iz,phi0,dphi,listir,&nir);
 
     if(*nlist<ilist+nir) {
-      report_error(1,"Not enough memory in listtot %d %d %lf %lf %lf %d\n",
+      report_error(NMT_ERROR_MEMORY,"Not enough memory in listtot %d %d %lf %lf %lf %d\n",
 		   *nlist,ilist+nir,radius,cth0,phi,nside);
     }
     for(kk=0;kk<nir;kk++) {

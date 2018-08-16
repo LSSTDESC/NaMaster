@@ -15,7 +15,7 @@ static void apodize_mask_CX(long nside,flouble *mask_in,flouble *mask_out,floubl
   else if(!strcmp(apotype,"C2"))
     apotyp=1;
   else
-    report_error(1,"Unknown apodization type %s\n",apotype);
+    report_error(NMT_ERROR_APO,"Unknown apodization type %s\n",apotype);
 
   if(mask_out!=mask_in)
     memcpy(mask_out,mask_in,npix*sizeof(flouble));
@@ -131,11 +131,17 @@ static void apodize_mask_smooth(long nside,flouble *mask_in,flouble *mask_out,fl
 
 void nmt_apodize_mask(long nside,flouble *mask_in,flouble *mask_out,flouble aposize,char *apotype)
 {
-  if((!strcmp(apotype,"C1")) || (!strcmp(apotype,"C2"))) {
-    apodize_mask_CX(nside,mask_in,mask_out,aposize,apotype);
+  if(aposize<0)
+    report_error(NMT_ERROR_APO,"Apodization scale must be a positive number\n");
+  else if(aposize==0)
+    memcpy(mask_out,mask_in,he_nside2npix(nside)*sizeof(flouble));
+  else {
+    if((!strcmp(apotype,"C1")) || (!strcmp(apotype,"C2"))) {
+      apodize_mask_CX(nside,mask_in,mask_out,aposize,apotype);
+    }
+    else if(!strcmp(apotype,"Smooth")) 
+      apodize_mask_smooth(nside,mask_in,mask_out,aposize);
+    else
+      report_error(NMT_ERROR_APO,"Unknown apodization type %s. Allowed: \"Smooth\", \"C1\", \"C2\"\n");
   }
-  else if(!strcmp(apotype,"Smooth")) 
-    apodize_mask_smooth(nside,mask_in,mask_out,aposize);
-  else
-    report_error(1,"Unknown apodization type %s. Allowed: \"Smooth\", \"C1\", \"C2\"\n");
 }

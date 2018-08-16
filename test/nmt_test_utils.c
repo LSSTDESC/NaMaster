@@ -125,13 +125,11 @@ CTEST(nmt,ut_drc3jj) {
   ASSERT_DBL_NEAR_TOL(0.000648742,w3[131],1E-5);
 
   set_error_policy(THROW_ON_ERROR);
-  printf("\nError messages expected: \n");
+
   try { r=drc3jj(100,200,2,-2,&l1min,&l1max,w3,100); }
-  catch(1) {}
-  ASSERT_EQUAL(1,exception_status);
+  ASSERT_NOT_EQUAL(0,nmt_exception_status);
   try { r=drc3jj(2,3,3,0,&l1min,&l1max,w3,sizew); }
-  catch(1) {}
-  ASSERT_EQUAL(1,exception_status);
+  ASSERT_NOT_EQUAL(0,nmt_exception_status);
   
   set_error_policy(EXIT_ON_ERROR);
   free(w3);
@@ -254,21 +252,16 @@ CTEST(nmt,ut_my_linecount) {
 CTEST(nmt,ut_errors) {
   set_error_policy(THROW_ON_ERROR);
 
-  printf("\nError messages expected: \n");
-
   //File doesn't exist
   try { FILE *f=my_fopen("test/cls.txtb","r"); }
-  catch(1) {}
-  ASSERT_EQUAL(1,exception_status);
+  ASSERT_NOT_EQUAL(0,nmt_exception_status);
 
   //Wrong allocation params
   try { my_malloc(-1); }
-  catch(1) {}
-  ASSERT_EQUAL(1,exception_status);
+  ASSERT_NOT_EQUAL(0,nmt_exception_status);
 
   try { my_calloc(-1,-1); }
-  catch(1) {}
-  ASSERT_EQUAL(1,exception_status);
+  ASSERT_NOT_EQUAL(0,nmt_exception_status);
 
   set_error_policy(EXIT_ON_ERROR);
 }

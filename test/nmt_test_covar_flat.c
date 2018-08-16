@@ -59,56 +59,48 @@ CTEST(nmt,covar_flat_errors) {
   nmt_workspace_flat *wb,*wa=nmt_workspace_flat_read("test/benchmarks/bm_f_nc_np_w00.dat");
 
   set_error_policy(THROW_ON_ERROR);
-  printf("\nError messages expected: \n");
 
   //All good
   wb=nmt_workspace_flat_read("test/benchmarks/bm_f_nc_np_w00.dat");
   try { cw=nmt_covar_workspace_flat_init(wa,wb); }
-  catch(1) {}
-  ASSERT_EQUAL(0,exception_status);
+  ASSERT_EQUAL(0,nmt_exception_status);
   nmt_covar_workspace_flat_free(cw); cw=NULL;
 
   //Wrong reading
   try { cw=nmt_covar_workspace_flat_read("none"); }
-  catch(1) {}
-  ASSERT_EQUAL(1,exception_status);
+  ASSERT_NOT_EQUAL(0,nmt_exception_status);
   ASSERT_NULL(cw);
 
   //Correct reading
   try { cw=nmt_covar_workspace_flat_read("test/benchmarks/bm_f_nc_np_cw00.dat"); }
-  catch(1) {}
-  ASSERT_EQUAL(0,exception_status);
+  ASSERT_EQUAL(0,nmt_exception_status);
   nmt_covar_workspace_flat_free(cw); cw=NULL;
 
   //Incompatible resolutions
   int nx=wb->fs->nx,ny=wb->fs->ny,n_bands=wb->bin->n_bands;
   wb->fs->nx=2;
   try { cw=nmt_covar_workspace_flat_init(wa,wb); }
-  catch(1) {}
   wb->fs->nx=nx;
-  ASSERT_EQUAL(1,exception_status);
+  ASSERT_NOT_EQUAL(0,nmt_exception_status);
   ASSERT_NULL(cw);
   wb->fs->ny=2;
   try { cw=nmt_covar_workspace_flat_init(wa,wb); }
-  catch(1) {}
   wb->fs->ny=ny;
-  ASSERT_EQUAL(1,exception_status);
+  ASSERT_NOT_EQUAL(0,nmt_exception_status);
   ASSERT_NULL(cw);
 
   //Incompatible bandpowers
   wb->bin->n_bands=2;
   try { cw=nmt_covar_workspace_flat_init(wa,wb); }
-  catch(1) {}
   wb->bin->n_bands=n_bands;
-  ASSERT_EQUAL(1,exception_status);
+  ASSERT_NOT_EQUAL(0,nmt_exception_status);
   ASSERT_NULL(cw);
   nmt_workspace_flat_free(wb);
 
   //Spin-2
   wb=nmt_workspace_flat_read("test/benchmarks/bm_f_nc_np_w02.dat");
   try { cw=nmt_covar_workspace_flat_init(wa,wb); }
-  catch(1) {}
-  ASSERT_EQUAL(1,exception_status);
+  ASSERT_NOT_EQUAL(0,nmt_exception_status);
   ASSERT_NULL(cw);
   nmt_workspace_flat_free(wb);
 

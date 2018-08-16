@@ -22,9 +22,9 @@ static nmt_binning_scheme *nmt_bins_copy(nmt_binning_scheme *b_or)
 nmt_covar_workspace *nmt_covar_workspace_init(nmt_workspace *wa,nmt_workspace *wb)
 {
   if((wa->nside!=wb->nside) || (wa->lmax!=wb->lmax))
-    report_error(1,"Can't compute covariance for fields with different resolutions\n");
+    report_error(NMT_ERROR_COVAR,"Can't compute covariance for fields with different resolutions\n");
   if((wa->ncls!=1) || (wb->ncls!=1))
-    report_error(1,"Gaussian covariance only implemented for spin-0 fields\n");
+    report_error(NMT_ERROR_COVAR,"Gaussian covariance only implemented for spin-0 fields\n");
 
   nmt_covar_workspace *cw=my_malloc(sizeof(nmt_covar_workspace));
   int ii;

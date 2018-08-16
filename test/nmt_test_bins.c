@@ -33,13 +33,11 @@ CTEST(nmt,bins_variable) {
 
   set_error_policy(THROW_ON_ERROR);
 
-  printf("\nError messages expected: \n");
   nmt_bins_free(bin2); bin2=NULL;
   for(i=0;i<4;i++)
     weights[16+i]=0;
   try { bin2=nmt_bins_create(1996,bpws,ells,weights,2000); }
-  catch(1) {}
-  ASSERT_EQUAL(1,exception_status);
+  ASSERT_NOT_EQUAL(0,nmt_exception_status);
   ASSERT_NULL(bin2);
   set_error_policy(EXIT_ON_ERROR);
 
@@ -51,12 +49,10 @@ CTEST(nmt,bins_variable) {
 
 CTEST(nmt,bins_read) {
   set_error_policy(THROW_ON_ERROR);
-  printf("\nError messages expected: \n");
 
   nmt_binning_scheme *b=NULL;
   try { b=nmt_bins_read("test/cls.txt",2000); }
-  catch(1) {}
-  ASSERT_EQUAL(1,exception_status);
+  ASSERT_NOT_EQUAL(0,nmt_exception_status);
   ASSERT_NULL(b);
   set_error_policy(EXIT_ON_ERROR);
 

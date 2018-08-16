@@ -10,25 +10,20 @@ CTEST(nmt,fsk_read_bad) {
   flouble *map;
 
   set_error_policy(THROW_ON_ERROR);
-  printf("\nError messages expected: \n");
 
   //Test non-existent file
   try{ map=fs_read_flat_map("none.fits",&nx,&ny,&lx,&ly,0); }
-  catch(1) {}
-  ASSERT_EQUAL(1,exception_status);
+  ASSERT_NOT_EQUAL(0,nmt_exception_status);
 
   //Test incorrect file format
   try{ map=fs_read_flat_map("test/benchmarks/msk.fits",&nx,&ny,&lx,&ly,1); }
-  catch(1) {}
-  ASSERT_EQUAL(1,exception_status);
+  ASSERT_NOT_EQUAL(0,nmt_exception_status);
   try{ map=fs_read_flat_map("test/benchmarks/msk.fits",&nx,&ny,&lx,&ly,0); }
-  catch(1) {}
-  ASSERT_EQUAL(1,exception_status);
+  ASSERT_NOT_EQUAL(0,nmt_exception_status);
 
   //Test inexistent field
   try{ map=fs_read_flat_map("test/benchmarks/msk_flat.fits",&nx,&ny,&lx,&ly,1); }
-  catch(1) {}
-  ASSERT_EQUAL(1,exception_status);
+  ASSERT_NOT_EQUAL(0,nmt_exception_status);
 
   set_error_policy(EXIT_ON_ERROR);
 }
@@ -363,13 +358,11 @@ CTEST(nmt,fsk_fft) {
 CTEST(nmt,fsk_fft_malloc) {
   set_error_policy(THROW_ON_ERROR);
 
-  printf("\nError messages expected: \n");
-
   double *dum=dftw_malloc(10);
   free(dum);
   try{ dftw_malloc(-1); }
   catch(1) {}
-  ASSERT_EQUAL(1,exception_status);
+  ASSERT_NOT_EQUAL(0,nmt_exception_status);
 
   set_error_policy(EXIT_ON_ERROR);
 }

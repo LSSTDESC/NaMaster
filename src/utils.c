@@ -1,9 +1,10 @@
 #include "utils.h"
 
 #include <setjmp.h>
-jmp_buf exception_buffer;
-int exception_status;
-int error_policy=EXIT_ON_ERROR;
+jmp_buf nmt_exception_buffer;
+int nmt_exception_status;
+int nmt_error_policy=EXIT_ON_ERROR;
+char nmt_error_message[256]="No error\n";
 
 int my_linecount(FILE *f)
 {
@@ -17,7 +18,7 @@ int my_linecount(FILE *f)
 
 void set_error_policy(int i)
 {
-  error_policy=i;
+  nmt_error_policy=i;
 }
 
 void report_error(int level,char *fmt,...)
@@ -30,11 +31,14 @@ void report_error(int level,char *fmt,...)
   va_end(args);
   
   if(level) {
-    fprintf(stderr," Fatal error: %s",msg);
-    if(error_policy==EXIT_ON_ERROR)
+    if(nmt_error_policy==EXIT_ON_ERROR) {
+      fprintf(stderr," Fatal error: %s",msg);
       exit(level);
-    else
+    }
+    else {
+      sprintf(nmt_error_message,"%s",msg);
       throw(level);
+    }
   }
   else
     fprintf(stderr," Warning: %s",msg);
@@ -43,7 +47,7 @@ void report_error(int level,char *fmt,...)
 void *my_malloc(size_t size)
 {
   void *outptr=malloc(size);
-  if(outptr==NULL) report_error(1,"Out of memory\n");
+  if(outptr==NULL) report_error(NMT_ERROR_MEMORY,"Out of memory\n");
 
   return outptr;
 }
@@ -52,7 +56,7 @@ void *my_calloc(size_t nmemb,size_t size)
 {
   void *outptr=calloc(nmemb,size);
   if(outptr==NULL)
-    report_error(1,"Out of memory\n");
+    report_error(NMT_ERROR_MEMORY,"Out of memory\n");
 
   return outptr;
 }
@@ -61,7 +65,7 @@ FILE *my_fopen(const char *path,const char *mode)
 {
   FILE *fout=fopen(path,mode);
   if(fout==NULL)
-    report_error(1,"Couldn't open file %s\n",path);
+    report_error(NMT_ERROR_FOPEN,"Couldn't open file %s\n",path);
 
   return fout;
 }
@@ -69,7 +73,7 @@ FILE *my_fopen(const char *path,const char *mode)
 size_t my_fwrite(const void *ptr, size_t size, size_t nmemb,FILE *stream)
 {
   if(fwrite(ptr,size,nmemb,stream)!=nmemb)
-    report_error(1,"Error fwriting\n");
+    report_error(NMT_ERROR_WRITE,"Error fwriting\n");
 
   return nmemb;
 }
@@ -77,7 +81,7 @@ size_t my_fwrite(const void *ptr, size_t size, size_t nmemb,FILE *stream)
 size_t my_fread(void *ptr,size_t size,size_t count,FILE *stream)
 {
   if(fread(ptr,size,count,stream)!=count)
-    report_error(1,"Error freading\n");
+    report_error(NMT_ERROR_READ,"Error freading\n");
 
   return count;
 }
@@ -155,7 +159,7 @@ int drc3jj(int il2,int il3,int im2, int im3,int *l1min_out,
     sign2=-1;
   
   if((il2-abs(im2)<0)||(il3-abs(im3)<0))
-    report_error(1,"Wrong arguments: %d %d %d %d\n",il2,il3,im2,im3);
+    report_error(NMT_ERROR_WIG3J,"Wrong arguments: %d %d %d %d\n",il2,il3,im2,im3);
   
   //l1 bounds
   l1max=il2+il3;
@@ -164,7 +168,7 @@ int drc3jj(int il2,int il3,int im2, int im3,int *l1min_out,
   *l1min_out=l1min;
   
   if(l1max-l1min<0) //Check for meaningful values
-    report_error(0,"WTF?\n");
+    report_error(NMT_ERROR_WIG3J,"WTF?\n");
   
   if(l1max==l1min) { //If it's only one value:
     thrcof[0]=sign2/sqrt(l1min+l2+l3+1);
@@ -173,7 +177,7 @@ int drc3jj(int il2,int il3,int im2, int im3,int *l1min_out,
   else {
     nfin=l1max-l1min+1;
     if(nfin>size) //Check there's enough space
-      report_error(1,"Output array is too small %d\n",nfin);
+      report_error(NMT_ERROR_WIG3J,"Output array is too small %d\n",nfin);
     else {
       l1=l1min;
       newfac=0.;
@@ -336,7 +340,7 @@ int drc3jj(int il2,int il3,int im2, int im3,int *l1min_out,
 void moore_penrose_pinv(gsl_matrix *M,double threshold)
 {
   if(M->size1!=M->size2)
-    report_error(1,"Matrix must be square\n");
+    report_error(NMT_ERROR_PINV,"Matrix must be square\n");
   
   gsl_eigen_symmv_workspace *w=gsl_eigen_symmv_alloc(M->size1);
   gsl_vector *eval=gsl_vector_alloc(M->size1); 
