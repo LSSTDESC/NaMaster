@@ -174,8 +174,8 @@ class FlatMapInfo(object) :
             ax=fig.add_subplot(111,projection=self.wcs)
         if title is not None :
             ax.set_title(title,fontsize=tfs)
-        image= ax.imshow(map_in.reshape([self.ny,self.nx]),
-			origin='lower', interpolation='nearest')
+        image= ax.imshow(map_in.reshape([self.ny,self.nx]),vmin=colorMin,vmax=colorMax,
+			 origin='lower', interpolation='nearest')
         if addColorbar :
             plt.colorbar(image)
         ax.set_xlabel(xlabel,fontsize=fs)
