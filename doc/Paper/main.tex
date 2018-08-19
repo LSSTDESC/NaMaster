@@ -326,7 +326,7 @@ escapeinside={\%*}{*)}          % if you want to add a comment within your code
         &\wtj{\ell}{\ell'}{\ell''}{2}{-2}{0}+2\frac{\beta_{\ell,2}}{\beta_{\ell,1}\beta_{\ell'',1}}\wtj{\ell}{\ell'}{\ell''}{1}{-2}{1}\\
         &\,\,\,+\frac{\beta_{\ell,2}}{\beta_{\ell'',2}}\wtj{\ell}{\ell'}{\ell''}{0}{-2}{2}.
       \end{align}
-      per purified field. \todo{check this}.
+      per purified field.
       
       Finally, it is also possible to combine purification and contaminant deprojection. Since $E/B$ purifications involves destroying part of the signal (e.g. projecting out all leaked $E$ modes from a $B$-mode component), it is more optimal to use the non-pure maps to compute the contamination coefficients ($\alpha_i$ in Eq. \ref{eq:deproj_coeff}). Therefore we will assume here that purification takes place between the steps (i) and (ii) described at the end of Section \ref{ssec:maths.deproj}, and not before step (i). In this case, although no additional modifications are needed in the mode-coupling matrix, beyond those we have just described, the expression for the deprojection bias (Eq. \ref{eq:dpbias}) must be slightly altered. In particular, although the fields $\tilde{\bf g}^i$ and $\tilde{\bf f}^i$ in Equations \ref{eq:dp.g.aux} and \ref{eq:dp.f.aux} are still computed from the non-pure versions of ${\bf f}^i$ and ${\bf g}^i$, all the maps entering the three instances of ${\rm PCL}_\ell$ in Eq. \ref{eq:dpbias} must be consistently $E/B$-purified before computing those pseudo-$C_\ell$s.
         
@@ -542,35 +542,10 @@ cl_decoupled = wsp.decouple_cell(cl_coupled, cl_bias)
           \includegraphics[width=0.99\columnwidth]{cls_cont_lss}
           \caption{{\sl Top:} signal power spectrum (red) for the auto-correlation of the galaxy overdensity, as well as the contaminants associated to dust (green) and stars (blue). {\sl Middle:} $E$-mode lensing power spectrum (red) and the spectra of the PSF and small-scale contaminants used in our validation set (green and blue respectively). {\sl Bottom:} same as middle panel for the $B$-mode power spectrum. Note that in this case the input signal power spectrum is $0$. In all cases the yellow line shows the combination of signal and contaminants.} \label{fig:lss_cont_cls}
         \end{figure}
-        The first validation suite exemplifies the use of
-        pseudo-$C_\ell$ algorithms in the analysis of large-scale
-        structure data. Current and next-generation imaging surveys
-        such as DES~\citep{2016MNRAS.460.1270D},
-        KiDS~\citep{2017A&A...604A.134D},
-        HSC~\citep{2018PASJ...70S...4A},
-        LSST~\citep{2008arXiv0805.2366I} and
-        Euclid~\citep{2011arXiv1110.3193L} will constrain the growth
-        and geometry of structure through cosmic time by using the
-        overdensity of galaxies as a proxy for the matter
-        inhomogeneities (a spin-0 field) and their correlated shape
-        distortions (a spin-2 field at first order), mostly caused by
-        weak lensing. These measurements will mostly follow a
-        tomographic approach, using the angular auto- and cross-power
-        spectra between these observables across different bins of
-        photometric redshift
-        \citep{2017arXiv170609359K,2018MNRAS.474.4894J,2017arXiv170801530D}.
+        The first validation suite exemplifies the use of pseudo-$C_\ell$ algorithms in the analysis of large-scale structure data. Current and next-generation imaging surveys such as DES~\citep{2016MNRAS.460.1270D},
+        KiDS~\citep{2017A&A...604A.134D}, HSC~\citep{2018PASJ...70S...4A}, LSST~\citep{2008arXiv0805.2366I} and Euclid~\citep{2011arXiv1110.3193L} will constrain the growth and geometry of structure through cosmic time by using the overdensity of galaxies as a proxy for the matter inhomogeneities (a spin-0 field) and their correlated shape distortions (a spin-2 field at first order), mostly caused by weak lensing. These measurements will mostly follow a tomographic approach, using the angular auto- and cross-power spectra between these observables across different bins of photometric redshift \citep{2017arXiv170609359K,2018MNRAS.474.4894J,2017arXiv170801530D}.
         
-        Large-scale structure data are often characterized by
-        inhomogeneous sky coverages and complex mask structures,
-        associated with the presence of bright stars and observational
-        artifacts. They are also affected by many sky contaminants,
-        associated to Galactic sources (dust absorption, star density)
-        and observing conditions (seeing, airmass
-        etc.) as discussed in \citet{2016ApJS..226...24L}. The typically flatter power
-        spectra for both galaxy clustering and lensing (e.g. when
-        compared with the damping tail of CMB temperature
-        fluctuations), makes the pseudo-$C_\ell$ approach ideal for
-        this kind of analysis \citep{2013MNRAS.435.1857L,2016ApJS..226...24L}. This science case therefore allows us to validate several aspects of the code simultaneously:
+        Large-scale structure data are often characterized by inhomogeneous sky coverages and complex mask structures, associated with the presence of bright stars and observational artifacts. They are also affected by many sky contaminants, associated to Galactic sources (dust absorption, star density) and observing conditions (seeing, airmass etc.) as discussed in \citet{2016ApJS..226...24L}. The typically flatter power spectra for both galaxy clustering and lensing (e.g. when compared with the damping tail of CMB temperature fluctuations), makes the pseudo-$C_\ell$ approach ideal for this kind of analysis \citep{2013MNRAS.435.1857L,2016ApJS..226...24L}. This science case therefore allows us to validate several aspects of the code simultaneously:
         \begin{itemize}
           \item The unbiased reconstruction of the 6 possible correlations between spin-0 and spin-2 fields.
           \item The inclusion of inhomogeneous noise and the correction of the associated noise bias.
@@ -684,28 +659,8 @@ cl_decoupled = wsp.decouple_cell(cl_coupled, cl_bias)
       \begin{equation}
         {\sf Cov}=\frac{1}{N_{\rm sim}}\sum_{i=1}^{N_{\rm sim}}({\bf s}_i-\bar{\bf s})({\bf s}_i-\bar{\bf s})^T,\hspace{6pt} \bar{\bf s}\equiv\frac{1}{N_{\rm sim}}\sum_{i=1}^{N_{\rm sim}}{\bf s}_i.
       \end{equation}
-      The full covariance matrix is very close to diagonal, as shown
-      in the right panel of Fig. \ref{fig:lss_val_cls}. Under the
-      assumption that the estimator is unbiased
-      ($\langle{\bf s}\rangle={\bf t}$), the values of $\chi^2_i$
-      should follow a $\chi^2$ distribution with a $N_{\rm dof}$
-      degrees of freedom. Figure \ref{fig:lss_val_chi2} shows the
-      distribution of $\chi^2_i$ across simulations approximating the
-      covariance matrix as diagonal (blue histograms),
-      compared with the predicted $\chi^2$ distribution for
-      $N_{\rm dof}=681$ (marked by the vertical dashed lines) for the
-      six different power spectrum combinations. Both distributions
-      are found to be compatible. Moreover, the dot-dashed lines show
-      the values of $\chi^2$ found for the mean residual with respect
-      to the input power spectra (middle panel of
-      Fig. \ref{fig:lss_val_cls}). The probability to exceed (PTE)
-      associated with these $\chi^2$ values are higher than $10\%$ in
-      all cases, and therefore our validation suite does not show any
-      statistically significant bias in the estimator. This bias, if
-      any, must be at least $\sqrt{1000}\sim30$ times smaller than the
-      statistical uncertainties associated with our validation suite,
-      which are representative of the statistical power of
-      next-generation galaxy surveys.
+      The full covariance matrix is very close to diagonal, as shown in the right panel of Fig. \ref{fig:lss_val_cls}. Under the assumption that the estimator is unbiased ($\langle{\bf s}\rangle={\bf t}$), the values of $\chi^2_i$ should follow a $\chi^2$ distribution with a $N_{\rm dof}$ degrees of freedom. Figure \ref{fig:lss_val_chi2} shows the distribution of $\chi^2_i$ across simulations approximating the covariance matrix as diagonal (blue histograms), compared with the predicted $\chi^2$ distribution for $N_{\rm dof}=681$ (marked by the vertical dashed lines) for the six different power spectrum combinations. Both distributions
+      are found to be compatible. Moreover, the dot-dashed lines show the values of $\chi^2$ found for the mean residual with respect to the input power spectra (middle panel of Fig. \ref{fig:lss_val_cls}). The probability to exceed (PTE) associated with these $\chi^2$ values are higher than $10\%$ in all cases, and therefore our validation suite does not show any statistically significant bias in the estimator. This bias, if any, must be at least $\sqrt{1000}\sim30$ times smaller than the statistical uncertainties associated with our validation suite, which are representative of the statistical power of next-generation galaxy surveys.
       
       Our validation suite also allows us to explore the impact of the sub-optimal inverse-variance weighting of the pseudo-$C_\ell$ estimator. The comparison with the uncertainties associated with optimal quadratic estimators has been made before in the literature \citep{2013MNRAS.435.1857L}, and we will not explore this here. Instead, we can study the impact on the final uncertainties of using a mask that implements exact inverse-noise weighting (i.e. the mask shown in the top left corner of Figure \ref{fig:lss_mocks_sph}, inversely proportional to the number density variations induced by stars and depth fluctuations) against a top-hat mask that weights all pixels equally. Repeating our analysis for the latter mask, we observe a negligible increase of $\sim0.5-1\%$ in the diagonal error bars. Thus, except in the case of large variations in noise properties (as will be the case for inhomogeneous scanning strategies in CMB experiments, for instance), the exact weighting scheme used with the pseudo-$C_\ell$ estimator is unlikely to produce significantly better uncertainties.
 
@@ -721,27 +676,9 @@ cl_decoupled = wsp.decouple_cell(cl_coupled, cl_bias)
         \includegraphics[width=0.80\textwidth]{val_chi2_cmb_sph}
         \caption{Distribution of $\chi^2$ values found for the 1000 simulations in our curved-sky CMB validation suite (blue histograms). Results are shown for the three polarized spectra ($EE$, $EB$ and $BB$), labeled in the top right corner of each panel. The simulated distributions agree well with the expected $\chi^2$ distribution (solid line) assuming Gaussian statistics for $N_{\rm dof}=43$ degrees of freedom (denoted by the dashed vertical lines). The dot-dashed vertical lines mark the $\chi^2$ value found for the mean residual with respect to the input power spectrum (see lower half of the left panel in Fig. \ref{fig:cmb_val_cls}). The associated PTE values are $\gtrsim0.4$, and thus no statistically significant bias is found by our validation suite.} \label{fig:cmb_val_chi2}
       \end{figure*}
-      We have carried out a similar set of tests on an ensemble of
-      1000 simulations from the CMB validation suite described in
-      Section \ref{sssec:validation.suite.cmb}. In our fiducial run we
-      both deprojected the foreground contaminants and subsequently
-      used $B$-mode purification to decouple $E$ and $B$-modes at the
-      map level, since this is the main feature of the code we want to
-      validate. The left panel of Figure \ref{fig:cmb_val_cls} shows
-      the mean of the $EE$, $EB$ and $BB$ power spectra computed for
-      all simulations (solid lines) compared with the expectation from
-      the input spectra for $EE$ and $BB$ (dashed lines, mostly lying
-      under the solid ones). The average residuals normalized over the
-      error on the mean, shown in the lower panel of the same Figure,
-      fluctuate around zero with an amplitude of up to $3\sigma$, as
-      would be expected in the absence of a bias in the
-      estimator. 
+      We have carried out a similar set of tests on an ensemble of 1000 simulations from the CMB validation suite described in Section \ref{sssec:validation.suite.cmb}. In our fiducial run we both deprojected the foreground contaminants and subsequently used $B$-mode purification to decouple $E$ and $B$-modes at the map level, since this is the main feature of the code we want to validate. The left panel of Figure \ref{fig:cmb_val_cls} shows the mean of the $EE$, $EB$ and $BB$ power spectra computed for all simulations (solid lines) compared with the expectation from the input spectra for $EE$ and $BB$ (dashed lines, mostly lying under the solid ones). The average residuals normalized over the error on the mean, shown in the lower panel of the same figure, fluctuate around zero with an amplitude of up to $3\sigma$, as would be expected in the absence of a bias in the estimator. 
 
-      
-      The above figure was created using E/B mode
-      purification. Disabling this option has no impact on the bias of
-      the estimates, but increases its variance as we show in the
-      Figure \ref{fig:cmb_val_sigma}. We plot diagonal error bars with (red) and without (blue) $B$-mode purification for the $BB$ (solid), $EB$ (dashed) and $EE$ (dot-dashed) power spectra. Although there is no practical improvement in the error bars for the $EE$ spectrum (there is even a slight increase due to the loss of the ambiguous $E$ modes to purification), and the improvement is only mild for the $EB$ case, very significant gains can be obtained for the $BB$ power spectrum, reducing uncertainties by up to a factor of $\sim10$ on large scales.
+      The above figure was created using $E/B$ mode purification. Disabling this option has no impact on the bias of the estimates, but increases its variance as we show in the Figure \ref{fig:cmb_val_sigma}. We plot diagonal error bars with (red) and without (blue) $B$-mode purification for the $BB$ (solid), $EB$ (dashed) and $EE$ (dot-dashed) power spectra. Although there is no practical improvement in the error bars for the $EE$ spectrum (there is even a slight increase due to the loss of the ambiguous $E$ modes to purification), and the improvement is only mild for the $EB$ case, very significant gains can be obtained for the $BB$ power spectrum, reducing uncertainties by up to a factor of $\sim10$ on large scales.
       \begin{figure*}
         \centering
         \includegraphics[width=0.99\columnwidth]{val_cl_lss_flat}
@@ -776,6 +713,13 @@ cl_decoupled = wsp.decouple_cell(cl_coupled, cl_bias)
     
     This paper presents \nmt, the first public, validated and easy-to-use power spectrum estimation software package that implements the pseudo-$C_\ell$ method to compute angular cross-power spectra for any pair of spin-0 or spin-2 fields, including all their generalizations (flat-sky, deprojection and purification). We have described the steps taken to validate the code, showing that it is able to provide unbiased results in a wide variety of scenarios. In particular, we have constructed a realistic validation suite that resembles the type of data, masks and contaminants that will affect future wide-area optical galaxy surveys and ground-based CMB polarization experiments. As shown in Section \ref{sec:validation}, we are able to recover the input power spectrum in all cases (which include varying degrees of contamination, purification, different spins etc.) with no detectable bias down to $\lesssim1/30$-th of the statistical uncertainties.
     
+    Besides describing and validating the code, and in order to generalize the pseudo-$C_\ell$ estimator to all the cases supported by \nmt, this paper has also presented a number of results that are, to the best of our knowledge, new. These include:
+    \begin{itemize}
+      \item Extending the analytical treatment of contaminant deprojection presented in \cite{2016MNRAS.456.2095E} to fields of arbitrary spin.
+      \item Combining contaminant deprojection and $E/B$ purification.
+      \item Consistently deriving all of this functionality (standard pseudo-$C_\ell$, deprojection and purification for arbitrary spins) in the flat-sky approximation.
+    \end{itemize}
+    
     Although \nmt~is intended to make power spectrum estimation as easy as possible, some tasks are too dependent upon the properties of the data to be analyzed to automatize them in a general way, and users are therefore in charge of them. We list the most important of these here:
     \begin{itemize}
       \item \nmt~operates directly on {\sl maps}. Galaxy survey data, however, are normally provided in the form of object catalogs, and the conversion those into the desired maps (e.g. galaxy overdensity or shear) must be done externally. 
@@ -784,43 +728,13 @@ cl_decoupled = wsp.decouple_cell(cl_coupled, cl_bias)
       \item Contaminant deprojection will be able to provide an accurate estimate of the power spectrum as long as two conditions are met. First, users must be able to provide a comprehensive list of possible contaminants as would be observed in their data (e.g. beam-smoothed, mean-subtracted etc.). Second, a good estimate of the underlying signal power spectra must be provided in order to calculate and subtract the deprojection bias. We have outlined a possible iterative process to do so in Section \ref{ssec:maths.deproj}.
     \end{itemize}
 
-    \nmt~does not currently produce a covariance matrix estimate. This
-    is done for several reasons. First, for many problems, such as
-    large-scale structure power spectrum estimation, the covariance
-    matrix contains import contributions from the connected four-point
-    function that depend on the precise nature of the problem and go
-    beyond the estimation step that \nmt~strives to do well. Second,
-    with all additional options included, the exact analytical
-    estimates are either computational infeasible or overly
-    approximate. Since majority of the forthcoming experiments will
-    have a large number of mock datasets available for testing
-    systematic effects, these maps also offer a natural path towards
-    estimating the data covariance.
+    \nmt~does not currently produce a covariance matrix estimate. Although computationally efficent analytical estimates of the Gaussian covariance matrix can be derived under certain approximations \citep{2004MNRAS.349..603E,2005MNRAS.360.1262B}, this is not widely supported by the code for several reasons. First, for many problems, such as large-scale structure power spectrum estimation, the covariance matrix contains important contributions from the connected four-point function that depend on the precise nature of the problem and go beyond the estimation step that \nmt~strives to do well. Second, with all additional options included, especially if a large number of contaminant templates are deprojected, the exact analytical estimates are either computational unfeasible or overly approximate. Since a majority of the forthcoming experiments will rely on a large number of mock datasets available for testing systematic effects, these maps also offer a natural path towards estimating the data covariance.
     
-    \nmt~is open-source software and publicly available at \url{https://github.com/LSSTDESC/NaMaster}. To maximize the
-    usefulness of this software for the community, it is accompanied
-    by an extensive documentation and example code\footnote{See \url{
-        https://github.com/LSSTDESC/NaMaster}.}. \nmt~is written in
-    {\tt C} and {\tt OpenMP}-parallelized to maximize its performance,
-    although we encourage its use through the companion {\tt python}
-    wrapper, the fastest-growing language of choice in the analysis of
-    astronomical data. The code is in constant development, and we
-    will strive to implement further functionality to e.g. estimate
-    covariance matrices, extend the range of supported sky
-    pixelizations and enhance its computational performance.
+    \nmt~is open-source software and publicly available at \url{https://github.com/LSSTDESC/NaMaster}. To maximize the usefulness of this software for the community, it is accompanied by an extensive documentation and example code\footnote{See \url{https://github.com/LSSTDESC/NaMaster}.}. \nmt~is written in {\tt C} and {\tt OpenMP}-parallelized to maximize its performance, although we encourage its use through the companion {\tt python} wrapper, the fastest-growing language of choice in the analysis of astronomical data. The code is in constant development, and we will strive to implement further functionality to e.g. estimate covariance matrices, extend the range of supported sky pixelizations and enhance its computational performance.
 
 
 \subsection*{Acknowledgements}
-We would like to thank Rupert Allison, Jo Dunkley, Franz Elsner, Boris
-Leistedt, Thibaut Louis, Mathew Madhavacheril, Sigurd N\ae ss, Hiranya
-Peiris, Naomi Robertson and Ben Thorne for useful comments and
-discussions. DA acknowledges support from the Beecroft trust and from
-the Science and Technology Facilities Council (STFC) through an Ernest
-Rutherford Fellowship, grant reference ST/P004474/1. This research
-used resources of the National Energy Research Scientific Computing
-Center (NERSC), a U.S. Department of Energy Office of Science User
-Facility operated under Contract No. DE-AC02-05CH11231.
-
+We would like to thank Rupert Allison, Scott Dodelson, Jo Dunkley, Franz Elsner, Boris Leistedt, Francois Lanusse, Thibaut Louis, Mathew Madhavacheril, Sigurd N\ae ss, Hiranya Peiris, Naomi Robertson and Ben Thorne for useful comments and discussions. DA acknowledges support from the Beecroft trust and from the Science and Technology Facilities Council (STFC) through an Ernest Rutherford Fellowship, grant reference ST/P004474/1. This research used resources of the National Energy Research Scientific Computing Center (NERSC), a U.S. Department of Energy Office of Science User Facility operated under Contract No. DE-AC02-05CH11231.
 
 \input{contributions}
 
@@ -906,68 +820,33 @@ Facility operated under Contract No. DE-AC02-05CH11231.
         \sum_{mm_1}\wtj{\ell}{\ell_1}{\ell_2}{m}{m_1}{m_2}\wtj{\ell}{\ell_1}{\ell_3}{m}{m_1}{m_3}=\frac{\delta_{\ell_2\ell_3}\delta_{m_2m_3}}{2\ell_2+1}
       \end{equation}
 
-\section{Linear contamination from non-linear
-  contamination} \label{app:lincont}
-\as{It is up to David to decide whether he buys this argument or
-  not. I'm fine with not and then we soften then claim in 2.2. Doesn't
-  really affect any of the paper otherwise.}
-Imagine a contaminant field $c$ (e.g. a point-spread function (PSF) size)
-that affects the observable field $o$ (e.g. the number count
-densities) through a non-linear, but \emph{local} on some scale local
-functional $F$:
-\begin{equation}
-  \delta_o(\nv) \rightarrow \delta_o + F [ \delta_c ]
-\end{equation}
-where we can, without loss of generality, take out the mean effects
-(i.e. there is some mean PSF size and fluctuations around this mean
-size produce additional fluctuations in the number density of
-fluctuations).
+  \section{Linear contamination from non-linear contamination} \label{app:lincont}
+    Consider a contaminant field $c$ (e.g. a point-spread function (PSF) size) that affects the observable field $o$ (e.g. the number count densities) through a non-linear, but \emph{local} on some scale local functional $F$:
+    \begin{equation}
+      \delta_o(\nv) \rightarrow \delta_o + F [ \delta_c ]
+    \end{equation}
+    where we can, without loss of generality, take out the mean effects (i.e. there is some mean PSF size and fluctuations around this mean size produce additional fluctuations in the number density of fluctuations).
 
-In general, for sufficiently non-linear functionals $F$, the Taylor
-expansion around $\delta_c(\nv)$ is not valid. However, one can look
-at the effect of smoothing by a kernel of size $S(R)$, which in
-Fourier space is equivalent by multiplication by $e^{-k^2R^2}$. We get
-\begin{equation}
-  \delta^R_o(\nv) \rightarrow \delta^R_o  + S(R)[F [ \delta_c
-  ]] =  \delta^R_o + F'_R [ \delta^R_c ],
-\end{equation}
-where we used a shorthand $\delta_x^R=S(R)[\delta_x]$ and  $F'_R$ is now a \emph{different} functional that takes a smoothed
-$\delta_c$ and returns out a smoothed $\delta_o$.  The crucial point
-is that $F'_R$ must still be
-local, since one cannot turn a local functional into a non-local one
-by application of smoothing.
+    In general, for sufficiently non-linear functionals $F$, the Taylor expansion around $\delta_c(\nv)$ is not valid. However, one can look at the effect of smoothing by a kernel of size $S(R)$, which in Fourier space is equivalent by multiplication by $e^{-k^2R^2}$. We get
+    \begin{equation}
+      \delta^R_o(\nv) \rightarrow \delta^R_o  + S(R)[F [ \delta_c  ]] =  \delta^R_o + F'_R [ \delta^R_c ],
+    \end{equation}
+    where we used a shorthand $\delta_x^R=S(R)[\delta_x]$ and  $F'_R$ is now a \emph{different} functional that takes a smoothed $\delta_c$ and returns out a smoothed $\delta_o$.  The crucial point is that $F'_R$ must still be local, since one cannot turn a local functional into a non-local one by application of smoothing.
 
-This means, that for a well behaved $\delta_c$, such that variances of
-both $\delta^R_c$ and $\delta^R_o$ are small for a large enough $R$,
-the Taylor expansion is valid for $F'_R$ (even if it is not for $F$),
-giving
-\begin{equation}
-  \delta^R_o(\nv) \rightarrow \delta^R_o  + b \delta^R_c + c \nabla^2 \delta^R_c
-\end{equation}
-or in Fourier space
-\begin{equation}
-    \delta_o(\nv) \rightarrow \delta_o  + b \delta_c + c k^2 \delta_c
-\end{equation}
-for $k\ll R^{-1}$. In other words a ``local'' contaminant becomes
-``linearly biased'' in the $k\rightarrow 0 $ regime, very much like
-very non-linear physics of galaxy formations results in
-linearly biased galaxy field on large scales.
-
-
-
+    This means, that for a well behaved $\delta_c$, such that variances of both $\delta^R_c$ and $\delta^R_o$ are small for a large enough $R$, the Taylor expansion is valid for $F'_R$ (even if it is not for $F$), giving
+    \begin{equation}
+      \delta^R_o(\nv) \rightarrow \delta^R_o  + b \delta^R_c + c \nabla^2 \delta^R_c
+    \end{equation}
+    or in Fourier space
+    \begin{equation}
+      \delta_o(\nv) \rightarrow \delta_o  + b \delta_c + c k^2 \delta_c
+    \end{equation}
+    for $k\ll R^{-1}$. In other words a ``local'' contaminant becomes ``linearly biased'' in the $k\rightarrow 0 $ regime, very much like very non-linear physics of galaxy formations results in linearly biased galaxy field on large scales.
 
   \section{Flat skies and Fourier transforms}\label{app:flat}
     \subsection{Spin-\texorpdfstring{$s$}{s} fields in flat sky}\label{app:flat.fields}
-      In the flat sky we will label a position in the plane by two
-      coordinates $(x,y)\equiv{\bf x}$. These coordinates can be
-      directly related to increments in the spherical coordinates
-      $(\theta,\varphi)$ by considering a sufficiently small map
-      centered around the equator (i.e. $\sin\theta\sim 1$). In
-      this case we identify the $x$ coordinate with a latitude shift
-      ($\delta\theta=-\delta x$) and the $y$ coordinate with longitude
-      shifts ($\delta\varphi=\delta y$) \todo{make a plot of
-        this?}. \as{no, but isn't it other way round? Latitute is $y$
-        in my brain? :)} \dam{it isn't, have a look here: \url{https://healpix.jpl.nasa.gov/html/intronode12.htm}.} Using this dictionary, the differential operator $\eth$ now takes the form:
+      In the flat sky we will label a position in the plane by two coordinates $(x,y)\equiv{\bf x}$. These coordinates can be directly related to increments in the spherical coordinates $(\theta,\varphi)$ by considering a sufficiently small map centered around the equator (i.e. $\sin\theta\sim 1$). In this case we identify the $x$ coordinate with a latitude shift ($\delta\theta=-\delta x$) and the $y$ coordinate with longitude
+      shifts ($\delta\varphi=\delta y$) the differential operator $\eth$ now takes the form: %\todo{make a plot of this?}. \as{no, but isn't it other way round? Latitute is $y$ in my brain? :)} \dam{it isn't, have a look here \url{https://healpix.jpl.nasa.gov/html/intronode12.htm}.} Using this dictionary,       
       \begin{equation}
         \eth= (\partial_x-i\partial_y),\hspace{12pt}\bar{\eth}= (\partial_x+i\partial_y).
       \end{equation}
@@ -1023,7 +902,7 @@ linearly biased galaxy field on large scales.
       Here ${\sf R}(\varphi)$ is a rotation matrix.
     
     \subsection{Discrete description and DFTs}\label{app:flat.dft}
-      As we discuss in \todo{where}, it is more convenient to describe power spectrum estimation methods in a discretized flat sky. Let the patch of the sky under inspection be contained by a rectangle of sides $L_x$ and $L_y$ (in units of radians), and let us discretize this rectangle by dividing it into an $N_x\times N_y$ grid with pixels of area $\Delta{\bf x}^2\equiv\Delta x\Delta y=(L_x/N_x)(L_y/N_y)$. Each pixel in this grid is then labeled by a pair of integers ${\bf n}\equiv(n_x,n_y)$, and is assigned coordinates ${\bf x}_{\bf n}\equiv(n_x\Delta x,n_y\Delta y)$. Each field in the pixelized map ${\bf a}({\bf x})$ is therefore defined for $n_x\in[0,N_x-1]$, $n_y\in[0,N_y-1]$.
+      As we discuss in \ref{sssec:maths.flat.pcl101}, it is more convenient to describe power spectrum estimation methods in a discretized flat sky. Let the patch of the sky under inspection be contained by a rectangle of sides $L_x$ and $L_y$ (in units of radians), and let us discretize this rectangle by dividing it into an $N_x\times N_y$ grid with pixels of area $\Delta{\bf x}^2\equiv\Delta x\Delta y=(L_x/N_x)(L_y/N_y)$. Each pixel in this grid is then labeled by a pair of integers ${\bf n}\equiv(n_x,n_y)$, and is assigned coordinates ${\bf x}_{\bf n}\equiv(n_x\Delta x,n_y\Delta y)$. Each field in the pixelized map ${\bf a}({\bf x})$ is therefore defined for $n_x\in[0,N_x-1]$, $n_y\in[0,N_y-1]$.
     
       In this case, the spin Fourier transform (Eq. \ref{eq:flat_sht}) of the pixelized field can be computed as its discrete Fourier transform (DFT):
       \begin{equation}\label{eq:dft}
