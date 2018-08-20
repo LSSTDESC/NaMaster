@@ -24,15 +24,14 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$TRAVIS_BUILD_DIR/lib:/usr/local/lib
 export LDFLAGS="-L$TRAVIS_BUILD_DIR/lib -L/usr/local/lib"
 export CPPFLAGS="-I$TRAVIS_BUILD_DIR/include -I/usr/local/include -fopenmp"
 export CFLAGS="-fopenmp"
+cd ..
 
 #### Install GSL2.0+ ####
 
-cd $HOME
 wget http://mirror.rise.ph/gnu/gsl/gsl-2.4.tar.gz && tar xzf gsl-2.4.tar.gz && cd gsl-2.4 &&  ./configure --enable-shared && make && sudo make install && cd ..
 
 #### Install NaMaster C ####
 
-cd $HOME/LSSTDESC/NaMaster
 ./configure --prefix=$TRAVIS_BUILD_DIR
 make clean
 make
