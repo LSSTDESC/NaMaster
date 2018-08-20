@@ -19,11 +19,6 @@ make install
 mv auto/bin $TRAVIS_BUILD_DIR
 mv auto/lib $TRAVIS_BUILD_DIR
 mv auto/include $TRAVIS_BUILD_DIR
-export PATH=$TRAVIS_BUILD_DIR/bin:$PATH
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$TRAVIS_BUILD_DIR/lib:/usr/local/lib
-export LDFLAGS="-L$TRAVIS_BUILD_DIR/lib -L/usr/local/lib"
-export CPPFLAGS="-I$TRAVIS_BUILD_DIR/include -I/usr/local/include -fopenmp"
-export CFLAGS="-fopenmp"
 cd ..
 
 #### Install GSL2.0+ ####
