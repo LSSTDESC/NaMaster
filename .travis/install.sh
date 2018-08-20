@@ -36,6 +36,7 @@ cd $HOME
 git clone https://github.com/LSSTDESC/NaMaster.git
 cd NaMaster
 ./configure --prefix=$TRAVIS_BUILD_DIR
+make clean
 make
 sudo make install
 make check
