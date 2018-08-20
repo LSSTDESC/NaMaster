@@ -164,7 +164,7 @@ void nmt_apodize_mask_flat(int nx,int ny,flouble lx,flouble ly,
       apodize_mask_smooth(fs,mask_in,mask_out,aposize);
     else {
       nmt_flatsky_info_free(fs);
-      report_error(NMT_ERROR_APO,"Unknown apodization type %s. Allowed: \"Smooth\", \"C1\", \"C2\"\n");
+      report_error(NMT_ERROR_APO,"Unknown apodization type %s. Allowed: \"Smooth\", \"C1\", \"C2\"\n",apotype);
     }
     nmt_flatsky_info_free(fs);
   }

@@ -142,6 +142,6 @@ void nmt_apodize_mask(long nside,flouble *mask_in,flouble *mask_out,flouble apos
     else if(!strcmp(apotype,"Smooth")) 
       apodize_mask_smooth(nside,mask_in,mask_out,aposize);
     else
-      report_error(NMT_ERROR_APO,"Unknown apodization type %s. Allowed: \"Smooth\", \"C1\", \"C2\"\n");
+      report_error(NMT_ERROR_APO,"Unknown apodization type %s. Allowed: \"Smooth\", \"C1\", \"C2\"\n",apotype);
   }
 }
