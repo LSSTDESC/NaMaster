@@ -32,10 +32,11 @@ matrix:
 
 before_install:
 - "chmod 777 ./.travis/install.sh"
-
+- "chmod 777 ./.travis/install_deps.sh"
+- "./.travis/install_deps.sh"
 script:
 - "./.travis/install.sh"
-- export LDFLAGS="-L$TRAVIS_BUILD_DIR/lib -L/usr/local/lib"
+- export LDFLAGS="-L$TRAVIS_BUILD_DIR/lib -L/usr/local/lib -R$TRAVIS_BUILD_DIR/lib -R/usr/local/lib"
 - python setup.py install
 - export LD_LIBRARY_PATH=$TRAVIS_BUILD/lib:/usr/local/lib:$LD_LIBRARY_PATH
 - python -m unittest -v
