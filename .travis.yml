@@ -1,0 +1,42 @@
+language: python
+sudo: false
+cache:
+    apt: true
+    directories:
+    - "$HOME/libsharp"
+    - "$HOME/NaMaster"
+    - "$HOME/gsl-2.4"
+    - "$HOME/chealpix-3.11.4"
+    pip: true
+
+addons:
+    apt:
+        packages:
+            - libfftw3-bin
+            - libfftw3-dev
+            - libfftw3-3
+            - autotools-dev
+            - autoconf
+            - libcfitsio3-dev
+
+matrix:
+  include:
+  - os: linux
+    python: 2.7
+    sudo: required
+    env: TOXENV=py27
+  - os: linux
+    sudo: required
+    python: 3.6
+    env: TOXENV=py36
+
+before_install:
+- "chmod 777 ./.travis/install.sh"
+
+script:
+- "./.travis/install.sh"
+- export LDFLAGS="-L$TRAVIS_BUILD_DIR/lib -L/usr/local/lib"
+- python setup.py install
+- export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$TRAVIS_BUILD/lib:/usr/local/lib
+- python -m unittest -v
+

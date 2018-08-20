@@ -35,7 +35,7 @@ escapeinside={\%*}{*)}          % if you want to add a comment within your code
 }
 %\usepackage[colorlinks,linkcolor=red,citecolor=blue,urlcolor=blue ]{hyperref}
  %\hypersetup{draft}
-\newcommand{\nv}{\hat{\bf n}}
+\newcommand{\nv}{\hat{\boldsymbol{\theta}}}
 \newcommand{\wtj}[6]{\left(\begin{array}{ccc} #1 & #2 & #3\\#4 & #5 & #6\end{array} \right)}
 \newcommand{\nmt}{{\tt NaMaster}}
 \newcommand{\va}{{\mathbf{a}}}
@@ -77,26 +77,7 @@ escapeinside={\%*}{*)}          % if you want to add a comment within your code
 \maketitlepre
 
 \begin{abstract}
-  The pseudo-$C_\ell$ is an algorithm for estimation of the angular
-  power and cross-power spectra that is very fast and in realistic
-  cases also nearly optimal. The algorithm can be extended to deal
-  with contaminant deprojection and $E/B$ purification, and can
-  therefore be applied in a wide variety of scenarios of interest for
-  current and future cosmological observations. This paper presents
-  \nmt, a public, validated, accurate and easy-to-use software
-  package that, for the first time, provides a unified framework to
-  compute angular cross-power spectra of any pair of spin-0 or spin-2
-  fields, contaminated by an arbitrary number of linear systematics
-  and requiring $B$- or $E$-mode purification, both in the sphere or
-  in the flat-sky approximation. We describe the mathematical
-  background of the estimator, including all the features above, and
-  its software implementation in \nmt. We construct a validation suite
-  that aims to resemble the types of observations that next-generation
-  large-scale structure and ground-based CMB experiments will face,
-  and use it to show that the code is able to recover the input power
-  spectra in the most complex scenarios with no detectable
-  bias. \nmt~can be found at \url{https://github.com/LSSTDESC/NaMaster}, and is provided with
-  comprehensive documentation and a number of code examples.
+  The pseudo-$C_\ell$ is an algorithm for estimation of the angular power and cross-power spectra that is very fast and in realistic cases also nearly optimal. The algorithm can be extended to deal with contaminant deprojection and $E/B$ purification, and can therefore be applied in a wide variety of scenarios of interest for current and future cosmological observations. This paper presents \nmt, a public, validated, accurate and easy-to-use software package that, for the first time, provides a unified framework to compute angular cross-power spectra of any pair of spin-0 or spin-2 fields, contaminated by an arbitrary number of linear systematics and requiring $B$- or $E$-mode purification, both in the sphere or in the flat-sky approximation. We describe the mathematical background of the estimator, including all the features above, and its software implementation in \nmt. We construct a validation suite that aims to resemble the types of observations that next-generation large-scale structure and ground-based CMB experiments will face, and use it to show that the code is able to recover the input power spectra in the most complex scenarios with no detectable bias. \nmt~can be found at \url{https://github.com/LSSTDESC/NaMaster}, and is provided with comprehensive documentation and a number of code examples.
 \end{abstract}
 
 \dockeys{methods: data analysis -- methods: numerical}
@@ -104,41 +85,11 @@ escapeinside={\%*}{*)}          % if you want to add a comment within your code
 \maketitlepost
 
   \section{Introduction}\label{sec:intro}
-  Two-point functions have proven to be the most useful summary
-  statistic for cosmology in terms of data compression, due to the
-  near-Gaussian nature of the modes of the cosmic density field that
-  can be easily analyzed to extract cosmological
-  information~\citep{1995PhRvL..74.4369B,1997PhRvD..55.5895T,2001PhRvD..64f3001T}. Since
-  the only true observables in any astronomical dataset are the
-  intensity and polarization as a function of frequency $\nu$ and sky
-  position $\nv$, angular 2-point correlators play a particularly
-  central role in most cosmological analyses, both in the form of
-  configuration-space two-point correlation functions $\xi(\theta)$
-  and as Fourier-space\footnote{In this paper we use the term
-    ``Fourier'' to describe both the flat space Fourier expansion as
-    well as harmonic-space expansion on the sphere. We will also use
-    the term ``power spectrum'' to describe both the auto power
-    spectrum of a field and cross-power spectra between two fields. }
-  power spectra $C_\ell$
-  \citep{2012MNRAS.427.1891A,2011PhRvD..84f3505B}.  Although
-  correlation functions are often easier to estimate from complex
-  observations~\citep{1993ApJ...412...64L}, a Fourier space analysis
-  is advantageous for many other reasons. The most important is that
-  Fourier space is a natural space for working with statistics of
-  translation-invariant fields. Therefore, Fourier space analysis has
-  a clearer separation between linear and non-linear scales, as well
-  as Gaussian and non-Gaussian
-  modes~\citep{2008PhRvD..77j3013H}. Moreover, individual band-power
-  measurements are typically significantly less correlated compared to
-  configuration-space analysis which makes covariance matrix
-  estimation easier. This has motivated a large body of literature
-  aimed at designing optimal and efficient power spectrum estimators and 
-  used extensively in Cosmic Microwave Background (CMB) two-point measurements.
+    Two-point functions have proven to be the most useful summary statistic for cosmology in terms of data compression, due to the near-Gaussian nature of the modes of the cosmic density field that can be easily analyzed to extract cosmological information~\citep{1995PhRvL..74.4369B,1997PhRvD..55.5895T,2001PhRvD..64f3001T}. Since the only true observables in any astronomical dataset are the intensity and polarization as a function of frequency $\nu$ and sky position $\nv$, angular 2-point correlators play a particularly central role in most cosmological analyses, both in the form of configuration-space two-point correlation functions $\xi(\theta)$ and as Fourier-space\footnote{In this paper we use the term ``Fourier'' to describe both the flat space Fourier expansion as well as harmonic-space expansion on the sphere. We will also use the term ``power spectrum'' to describe both the auto power spectrum of a field and cross-power spectra between two fields. } power spectra $C_\ell$ \citep{2012MNRAS.427.1891A,2011PhRvD..84f3505B}.  Although correlation functions are often easier to estimate from complex observations~\citep{1993ApJ...412...64L}, a Fourier space analysis is advantageous for many other reasons. The most important is that Fourier space is a natural space for working with statistics of translation-invariant fields. Therefore, Fourier space analysis has a clearer separation between linear and non-linear scales, as well as Gaussian and non-Gaussian modes~\citep{2008PhRvD..77j3013H}. Moreover, individual band-power measurements are typically significantly less correlated compared to configuration-space analysis which makes covariance matrix estimation easier. This has motivated a large body of literature aimed at designing optimal and efficient power spectrum estimators and used extensively in Cosmic Microwave Background (CMB) two-point measurements.
     
-    While maximum-likelihood~\citep{1998PhRvD..57.2117B,2003PhRvD..67b3001W} or minimum-variance and quadratic estimators~\citep{1997PhRvD..55.5895T,2000MNRAS.317L..23H,2001PhRvD..64f3001T} can recover the power spectrum with virtually no loss of information, their computational implementation is prohibitively expensive for high resolution data, since these methods scale as $\ell_{\rm max}^6$ and $\ell_{\rm max}^4$ respectively with the maximum multipole $\ell_{\rm max}$. For this reason, pseudo-$C_\ell$ algorithms \citep{1973ApJ...185..413P,2001PhRvD..64h3003W,2001ApJ...561L..11S,2001PhRvD..64h3003W,2002ApJ...567....2H,2002MNRAS.336.1304H,2004MNRAS.350..914C} have become a popular alternative that preserves the $\ell_{\rm max}^3$ scaling of spherical harmonic transforms (and faster in the flat-sky approximation). This method can be used on fields with arbitrary spin \citep{2003ApJS..148..161K} in both curved and flat skies, has been extended to deal with contaminant deprojection in scalar fields \citep{2017MNRAS.465.1847E}, and can be optimized to measure the CMB $E/B$-mode power spectrum \citep{2002PhRvD..65b3505L,2003PhRvD..67b3501B,2006PhRvD..74h3002S,2009PhRvD..79l3515G,2011PhRvD..83h3003B}. Unfortunately, in spite of the advantages of this method, no public, validated and well-maintained codes exist supporting all of these capabilities. This paper presents a public software package, \nmt, that unifies and extends all of these features providing a general framework to estimate pseudo-$C_\ell$ angular power spectra in a wide variety of scenarios.
+    While maximum-likelihood~\citep{1998PhRvD..57.2117B,2003PhRvD..67b3001W} or minimum-variance and quadratic estimators~\citep{1997PhRvD..55.5895T,2000MNRAS.317L..23H,2001PhRvD..64f3001T} can recover the power spectrum with virtually no loss of information, their computational implementation is prohibitively expensive for high resolution data, since these methods scale as $\ell_{\rm max}^6$ and $\ell_{\rm max}^4$ respectively with the maximum multipole $\ell_{\rm max}$. For this reason, pseudo-$C_\ell$ algorithms \citep{1973ApJ...185..413P,2001PhRvD..64h3003W,2001ApJ...561L..11S,2001PhRvD..64h3003W,2002ApJ...567....2H,2002MNRAS.336.1304H,2004MNRAS.350..914C} have become a popular alternative that preserves the $\ell_{\rm max}^3$ scaling of spherical harmonic transforms (and faster in the flat-sky approximation). This method can be used on fields with arbitrary spin \citep{2003ApJS..148..161K} in both curved and flat skies, has been extended to deal with contaminant deprojection in scalar fields \citep{2017MNRAS.465.1847E}, and can be optimized to measure the CMB $E/B$-mode power spectrum \citep{2002PhRvD..65b3505L,2003PhRvD..67b3501B,2006PhRvD..74h3002S,2009PhRvD..79l3515G,2011PhRvD..83h3003B}. Unfortunately, in spite of the advantages of this method, while a number of power spectrum codes solving some of these problems have been put forward, no public, validated and well-maintained code exists supporting all of these capabilities consistently. This paper presents a public software package, \nmt, that unifies and extends all of these features providing a general framework to estimate pseudo-$C_\ell$ angular power spectra in a wide variety of scenarios.
     
     The paper is structured as follows: Section \ref{sec:maths} introduces the pseudo-$C_\ell$ estimator in the curved sky, including mode deprojection and $E/B$ purification. This is then generalized in the flat-sky approximation. In Section \ref{sec:structure} we briefly describe the implementation of these methods on \nmt, as well as its structure and usage. Section \ref{sec:validation} presents the stress tests used to validate the code. We envisage this code to be useful in analysis of both the Cosmic Microwave Background data and in the tomographic large-scale structure from photometric data and this section illustrates not just its validity but also applicability in typical user-case scenarios in both fields. We conclude in Section \ref{sec:discussion}. The appendices provide further details about the mathematical background used throughout the paper, and present some additional validation tests.
-
     
   \section{The pseudo-\texorpdfstring{$C_\ell$}{Cl} estimator}\label{sec:maths}
     Here we introduce the pseudo-$C_\ell$ estimator and its relevant extensions. Many of the results presented here can be found in the literature (e.g. \cite{2002ApJ...567....2H,2003ApJS..148..161K,2006PhRvD..74h3002S,2009PhRvD..79l3515G,2013A&A...554A.112R,2017MNRAS.465.1847E} and references therein), although some others are new as far as we are aware. In what follows we will use boldface symbols for vector fields (e.g. ${\bf a}$) and sans-serif symbols for matrices (e.g. ${\sf C}$).
@@ -146,7 +97,7 @@ escapeinside={\%*}{*)}          % if you want to add a comment within your code
     \subsection{Spherical harmonic transform and pseudo-\texorpdfstring{$C_\ell$}{Cl}s}\label{ssec:maths.pcl101}
       Let ${\bf a}(\nv)$ be a spin-$s_a$ quantity defined on the sphere, where $\nv$ is the unit vector pointing in a particular direction $(\theta,\varphi)$. We define its spherical harmonic coefficients through a spherical harmonic transform (SHT) as:
       \begin{align}\label{eq:sht1}
-        {\bf a}_{\ell m}&\equiv\mathcal{S}\left[{\bf a}(\nv)\right]^{s_a}_{\ell m}\equiv\int d\nv\,_{s_a}{\sf Y}^{s_a\dag}_{\ell m}(\nv)\,{\bf a}(\nv), \\\label{eq:sht2}
+        {\bf a}_{\ell m}&\equiv\mathcal{S}\left[{\bf a}(\nv)\right]^{s_a}_{\ell m}\equiv\int d\nv\,{\sf Y}^{s_a\dag}_{\ell m}(\nv)\,{\bf a}(\nv), \\\label{eq:sht2}
         {\bf a}(\nv)&=\mathcal{S}^{-1}\left[{\bf a}_{\ell m}\right]^{s_a}_{\nv}\equiv\sum_{\ell m}\,{\sf Y}^{s_a}_{\ell m}(\nv)\,{\bf a}_{\ell m}.
       \end{align}
       Note that, in general we will use a vector notation such that, for a complex spin-$s_a$ field $a$, we form the vector ${\bf a}\equiv({\rm Re}(a),{\rm Im}(a))$. The harmonic coefficients above are decomposed in a similar manner into $E$ and $B$ modes: ${\bf a}_{\ell m}\equiv(a^E_{\ell m},a^B_{\ell m})$. The matrices ${\sf Y}^s_{\ell m}$ are defined in terms of the spin-weighed spherical harmonics, and are described in detail in Appendix \ref{app:shts}. To simplify the notation, we will also often abbreviate the pair $(\ell,m)$ as ${\bf l}$. 
@@ -168,16 +119,14 @@ escapeinside={\%*}{*)}          % if you want to add a comment within your code
 
         In the standard incarnation of the optimal quadratic estimator~\citep{1998PhRvD..57.2117B}, the measurement is produced on inverse covariance weighted data, namely
         \begin{equation}
-          {\sf F_{ij}} B_j = \va^\dagger \mC^{-1}
-          \left(\frac{\partial \mC}{\partial B_i} \right)
-          \mC^{-1} \va - \rm{Tr}\left[\left(\frac{\partial \mC}{\partial B_i}
-          \right) {\sf N} \right],
+          {\sf F_{ij}} B_j = \va^\dagger \mC^{-1}\,{\sf P}_i\,\mC^{-1} \va -
+          \rm{Tr}\left[{\sf P}_i\,{\sf N} \right],
         \end{equation}
         where ${\sf F}$ is the Fisher matrix,the covariance matrix is modeled as a linear sum over band-power parameters $B_i$, ie.
         \begin{equation}
-          \mC = \sum_i \left(\frac{\partial \mC}{\partial B_i}\right) + {\sf N},
+          \mC = \sum_i {\sf P}_i\,B_i + {\sf N},
         \end{equation}
-        and the last term correspond to bias of convolved estimates by the presence of noise. Thus, this optimal estimator corresponds to i) inverse-variance weighting the data, ii) calculating the spectrum of the weighted data using the response matrices $\partial {\sf C}/\partial B_i$ and iii) deconvolving these estimates using a mode-coupling matrix which in this particular case happens to be the same as Fisher matrix. The main computational challenge when implementing this estimator usually lies in storing the covariance matrix and its inverse (or computing it on the fly), particularly in order to estimate the Fisher matrix. This motivates the pseudo-$C_\ell$ estimator, which replaces these computationally very intensive steps with numerically more efficient ones at the expense of optimality.
+        and the last term correspond to bias of convolved estimates by the presence of noise. Thus, this optimal estimator corresponds to i) inverse-variance weighting the data, ii) calculating the spectrum of the weighted data using the response matrices ${\sf P}_i$ and iii) deconvolving these estimates using a mode-coupling matrix which in this particular case happens to be the same as Fisher matrix. The main computational challenge when implementing this estimator usually lies in storing the covariance matrix and its inverse (or computing it on the fly), particularly in order to estimate the Fisher matrix. This motivates the pseudo-$C_\ell$ estimator, which replaces these computationally very intensive steps with numerically more efficient ones at the expense of optimality.
 
         The main improvement is gained by replacing the inverse covariance by its diagonal, assuming that the data is uncorrelated between pixels. The response matrices are also replaced by simple spherical harmonic transforms and multiplication of the corresponding harmonic coefficients, followed by an average over bandpowers. Both of these steps reduce to exact optimal estimator in the limit of uncorrelated data. The resulting estimates are still biased and require a mode-decoupling matrix, which can be calculated as we show in Section \ref{sssec:maths.pcl101.mcoup}. 
 
@@ -231,7 +180,7 @@ escapeinside={\%*}{*)}          % if you want to add a comment within your code
         where $\mI$ is the unit matrix, and $P^{vw}_\ell\equiv(2\ell+1)\,{\rm PCL}_\ell(v,w)$.
       
       \subsubsection{Bandpowers}\label{sssec:maths.pcl101.bpws}
-        Given the loss of information implicit in masking the originally full-sky field, it is in general not possible to invert Eq. \ref{eq:modecoup} directly. One solution to this problem is to convolve the theory prediction with the mode-coupling matrix at the likelihood level. A more usual approach is instead to bin the coupled pseudo-$C_\ell$ into bandpowers. A bandpower $q$ is defined as a set of $N_q$ multipoles $\vec{\ell}_q\equiv(\ell_q^1,...,\ell_q^{N_q})$ and a set of weights defined at those multipoles $w^\ell_q$, and normalized such that $\sum_{\ell\in\vec{\ell}_q}w_q^\ell=1$. The $q$-th bandpower for the coupled pseudo-$C_\ell$ is then defined as
+        Given the loss of information implicit in masking the originally full-sky field, it is in general not possible to invert the mode-coupling matrix in Eq. \ref{eq:modecoup} directly. One solution to this problem is to convolve the theory prediction with the mode-coupling matrix at the likelihood level. A more usual approach is instead to bin the coupled pseudo-$C_\ell$ into bandpowers. A bandpower $q$ is defined as a set of $N_q$ multipoles $\vec{\ell}_q\equiv(\ell_q^1,...,\ell_q^{N_q})$ and a set of weights defined at those multipoles $w^\ell_q$, and normalized such that $\sum_{\ell\in\vec{\ell}_q}w_q^\ell=1$. The $q$-th bandpower for the coupled pseudo-$C_\ell$ is then defined as
         \begin{align}\label{eq:bpws}
           {\rm vec}\left[\tilde{\sf B}^{ab}_q\right]&\equiv\sum_{\ell\in\vec{\ell}_q}w_q^\ell\,{\rm vec}\left[{\rm PCL}_{\ell}({\bf a}^v_{\bf l},{\bf b}^w_{\bf l})\right]\\\nonumber
           &=\sum_{\ell\in\vec{\ell}_q}w_q^\ell\sum_{\ell'}{\sf M}^{s_as_b}_{\ell\ell'}\,{\rm vec}\left[{\sf C}^{ab}_{\ell'}\right].
@@ -466,9 +415,9 @@ escapeinside={\%*}{*)}          % if you want to add a comment within your code
       \begin{enumerate}
         \item Full-sky data formats usually store information about the full sphere, even if the data being stored is limited to a small sky patch. This can lead to an inefficient use of memory and storage space, because the standard numerical implementations of spherical transforms operate on full-sky data.
         \item Spherical harmonic transforms are notoriously slower than discrete Fourier transforms (DFTs), both due to the scaling of both algorithms (${\cal O}(N_{\rm pix}^{3/2})$ for SHTs vs. ${\cal O}(N_{\rm pix}\log(N_{\rm pix}))$ for DFTs) and because by SHTs involve operations over the full sphere.
-        \item Fourier transforms over a flat patch offer exact quadrature, which makes them inherently more numerically stable.
+        \item Fourier transforms over a flat patch offer exact quadrature, which makes them inherently more numerically stable\footnote{Note that it is also possible to achieve exact quadrature with certain spherical pixelization schemes (e.g. \cite{2011IJMPD..20.1053D}).}.
       \end{enumerate}
-      For this reason, \nmt, also supports the computation of power spectra from flat-sky maps. Appendix \ref{app:flat} describes the dictionary between spin-$s$ fields and their Fourier/harmonic coefficients defined in flat and curved skies, and we present the flat-sky versions of the pseudo-$C_\ell$ methods described in the previous sections here.
+      For this reason, \nmt\, also supports the computation of power spectra from flat-sky maps. Appendix \ref{app:flat} describes the dictionary between spin-$s$ fields and their Fourier/harmonic coefficients defined in flat and curved skies, and we present the flat-sky versions of the pseudo-$C_\ell$ methods described in the previous sections here.
       
       \subsubsection{Standard pseudo-$C_\ell$}\label{sssec:maths.flat.pcl101}
         Using the definitions presented in Appendix \ref{app:flat}, it is easy to show that the Fourier coefficients of a masked field are given by
@@ -581,7 +530,7 @@ from pymaster import *
 
 f2 = NmtField(mask, [map_q,map_u],
             templates = [[dust_q,dust_u]],
-            purify_b = True,beam=beam_ell)
+            purify_b = True, beam=beam_ell)
 f0 = NmtField(mask, [map_t])
 
 b = NmtBin(nside, nlb = 10)
@@ -605,7 +554,7 @@ cl_decoupled = wsp.decouple_cell(cl_coupled, cl_bias)
       \item In lines 12 and 13 we use an {\tt NmtWorkspace} object to compute the mode-coupling matrix.
       \item The deprojection bias is computed in line 15 using a best-guess for the true underlying power spectrum.
       \item The pseudo-$C_\ell$ is computed in line 17.
-      \item The deconvolved bandpowers are finally estimated using the workspace in line 19.
+      \item The deconvolved bandpowers are finally estimated using the workspace in line 19. Note that the mode-coupling matrix must have been precomputed in line 13 for this to be successful.
     \end{enumerate}
     
     Further details regarding the different features of \nmt~can be found in the online documentation \url{http://namaster.readthedocs.io/}.
@@ -678,23 +627,8 @@ cl_decoupled = wsp.decouple_cell(cl_coupled, cl_bias)
         For this validation suite we therefore use a mock dataset mimicking a typical observation of an LSST-like survey in a particular redshift bin. Slightly different set-ups are used for the full-sky and flat-sky validation suites. The characteristics of these data are as follows:
         \begin{itemize}
           \item {\bf Signal:} we generate maps of the galaxy overdensity $\delta$ and of the shear field $(\gamma_1,\gamma_2)$ for a redshift bin centred at $z\simeq1$ with a width $\Delta z\sim0.1$ and Gaussian photo-$z$ tails with width $\sigma_z=0.06$. For $\delta_g$ we assume unit bias $b(z)=1$ and no contributions from redshift-space distortions or magnification. For $\gamma$, we assume no contribution from intrinsic alignments. The maps are generated as Gaussian realizations of the corresponding angular power spectra computed with the Core Cosmology Library \todo{cite if paper is out} for cosmological parameters compatible with the 2015 Planck measurements~\citet{2016A&A...594A..13P}. These power spectra are shown in Fig. \ref{fig:lss_cls}. Sample realizations of $\delta$ and $\gamma$ can be seen in Figures \ref{fig:lss_mocks_sph} and \ref{fig:lss_mocks_flat} for the full-sky and flat-sky cases respectively.
-          \item {\bf Mask:} for the full-sky data, we use a mask built
-            as a combination of the sky coverage output by the LSST
-            {\tt OpSim} database~\citet{2014SPIE.9150E..15D} and a
-            more conservative galactic cut based on the reddening map
-            of \citet{1998wfsc.conf..297S}. To add an extra layer of
-            complexity, we drill 100 additional 1-degree holes on the
-            resulting combined mask. We also explore the improvement
-            stemming from the down-weighting of higher-noise in an
-            inverse-variance way in the presence of inhomogeneous
-            noise (see description below), which is the reason why the
-            default version of this mask is not binary, but tracers
-            the inverse of the noise variance (see top left panel of
-            Fig. \ref{fig:lss_mocks_sph}). For the flat-sky data, we
-            use a high-resolution mask constructed from the
-            bright-object mask used for the first public data release
-            from the HSC collaboration~\citep{2018PASJ...70S...4A}. The chosen footprint corresponds to the VVDS field, covers approximately 20 deg$^2$ and contains structure on a wide range of scales. As can be seen in the top-left panel of Figure~\ref{fig:lss_mocks_flat}, the mask is not binary, and its value at each pixel correspond to the pixel's fractional masked area.
-          \item {\bf Contaminants:} we contaminate the signal maps described above with several different types of residuals. Maps of these are shown in the 4 bottom panels of Figure~\ref{fig:lss_mocks_sph} and Figure~\ref{fig:lss_mocks_flat}, and their impact on the angular power spectrum is presented in Fig. \ref{fig:lss_cont_cls} for the full-sky case.
+          \item {\bf Mask:} for the full-sky data, we use a mask built as a combination of the sky coverage output by the LSST {\tt OpSim} database~\citet{2014SPIE.9150E..15D} and a more conservative galactic cut based on the reddening map of \citet{1998wfsc.conf..297S}. To add an extra layer of complexity, we drill 100 additional 1-degree holes on the resulting combined mask. We also explore the improvement stemming from the down-weighting of higher-noise in an inverse-variance way in the presence of inhomogeneous noise (see description below), which is the reason why the default version of this mask is not binary, but tracers the inverse of the noise variance (see top left panel of Fig. \ref{fig:lss_mocks_sph}). For the flat-sky data, we use a high-resolution mask constructed from the bright-object mask used for the first public data release from the HSC collaboration~\citep{2018PASJ...70S...4A}. The chosen footprint corresponds to the VVDS field, covers approximately 20 deg$^2$ and contains structure on a wide range of scales. As can be seen in the top-left panel of Figure~\ref{fig:lss_mocks_flat}, the mask is not binary, and its value at each pixel correspond to the pixel's fractional masked area.
+          \item {\bf Contaminants:} we contaminate the signal maps described above with several different types of residuals. In all cases we add contaminants linearly, to avoid deviating from the model described in Section \ref{ssec:maths.deproj}. Maps of these contaminants are shown in the 4 bottom panels of Figure~\ref{fig:lss_mocks_sph} and Figure~\ref{fig:lss_mocks_flat}, and their impact on the angular power spectrum is presented in Fig. \ref{fig:lss_cont_cls} for the full-sky case.
           \begin{itemize}
             \item {\sl Dust.} For the full-sky suite, we include a linear contaminant for $\delta_g$ proportional to the fluctuations around the mean of the dust reddening map of~\citet{1998wfsc.conf..297S}. This contamination affects mostly the largest scales, and simulates the effect of an imperfect correction of the dust absorption on the galaxy number density. The amplitude of the dust fluctuations is chosen so that their power spectrum within the unmasked region be $\sim20\%$ of the galaxy power spectrum at $\ell\sim120$. For the flat-sky suite, we generate a flat-sky Gaussian realization of a field with a power spectrum $C_\ell\propto\ell^{-2.4}$, corresponding to the large-$\ell$ behaviour of the full-sky dust map. The amplitude was chosen such that the contaminant power spectrum be $\sim10\%$ of the signal at $\ell\sim400$.
             \item {\sl Stars.} We add a second contaminant to $\delta_g$ associated with star contamination. For the full-sky realizations this contaminant is proportional to the fluctuation around the mean of a star density map generated using the LSST {\tt CatSim} catalog~\citep{2014SPIE.9150E..14C}. We modify this contaminant slightly by adding a white-noise component that dominates the small-scale spectrum beyond $\ell\simeq400$. We do this in order to simulate the noise-like distribution of stars on small scales as well as to include a contaminant source that, unlike dust, can surpass the signal on small scales. The amplitude of this contaminant is chosen such that its power spectrum is about 3\% of the signal at $\ell\sim400$.
@@ -702,7 +636,7 @@ cl_decoupled = wsp.decouple_cell(cl_coupled, cl_bias)
             \begin{equation}
               C^{EE}_\ell=C^{BB}_\ell\propto\left[2\frac{J_1(\ell\theta_{\rm FoV})}{\ell\theta_{\rm FoV}}\right]^2,
             \end{equation}
-            where $J_1(x)$ is the order-1 Bessel function, and $2J_1(\ell\theta)/\ell\theta$ is the Fourier transform of a circular aperture with radius $\theta$. For this we assume $\theta_{\rm FoV}=1.75^\circ$. The amplitude of the power spectrum is chosen so that the contaminant amounts to $30\%$ of the signal power spectrum at $\ell\sim50$. We use the same prescription for both the full-sky and the flat-sky cases. 
+            where $J_1(x)$ is the order-1 Bessel function, and $2J_1(\ell\theta)/\ell\theta$ is the Fourier transform of a circular aperture with radius $\theta$. For this we assume $\theta_{\rm FoV}=1.75^\circ$, and therefore we try to mimic the signature of PSF fluctuations that vary between different pointings with a 3.5$^\circ$ diameter. The amplitude of the power spectrum is chosen so that the contaminant amounts to $30\%$ of the signal power spectrum at $\ell\sim50$. We use the same prescription for both the full-sky and the flat-sky cases. 
             \item {\sl Small-scale contamination.} Finally we include an additional small-scale contaminant to weak lensing with a flat power spectrum, unit $E$-$B$ ratio, and an amplitude fixed so the contaminant's power spectrum is $20\%$ of the signal at $\ell=500$. Although we do not identify this contaminant with any specific source, it could arise from e.g. the impact of stars or blending on shape measurement.
           \end{itemize}
           \item {\bf Noise:} for the full-sky case we generate inhomogeneous noise realizations. To do this, we first generate maps with Gaussian, white and homogeneous noise with a pixel variance given by $1/n_{\rm pix}$ for $\delta$ and $\sigma_\gamma^2/n_{\rm pix}$ for each shear component, where $n_{\rm pix}$ is the average number of sources in a pixel's area, and $\sigma_\gamma=0.28$ is then intrinsic ellipticity scatter per component. These noise realizations are then locally rescaled by a factor $f(\nv)=f_{\rm star}(\nv)\,f_{\rm depth}(\nv)$ made up of two components:
@@ -742,7 +676,7 @@ cl_decoupled = wsp.decouple_cell(cl_coupled, cl_bias)
         Our first validation suite is therefore inspired on a Southern-Hemisphere, high-sensitivity polarization experiment with the following characteristics:
         \begin{itemize}
           \item {\bf Signal:} we generate $Q$ and $U$ maps of the CMB as Gaussian realization of a lensed power spectrum corresponding to the best-fit parameters from Planck~\citep{2016A&A...594A..13P}. For simplicity we assume no delensing and zero primordial $B$-modes, so that the $B$-mode power spectrum is entirely due to the effects of CMB lensing. The signal power spectra are shown in Fig. \ref{fig:cmb_cls}.
-          \item {\bf Mask:} for the full-sky case we assume a survey targeting a 4000 deg$^2$ footprint. The corresponding mask is analytically apodized using the ``$C^2$'' apodization method of \cite{2009PhRvD..79l3515G} with an apodization scale of 10 degrees. The observed area encompasses one of the lowest-foreground regions observable from the Southern Hemisphere. For the flat-sky case we assume a smaller sky fraction of 500 deg$^2$ with a similar apodization. The assumed masks are shown in the top panels of Figure~\ref{fig:cmb_mocks}.
+          \item {\bf Mask:} for the full-sky case we assume a survey targeting a 4000 deg$^2$ footprint. The corresponding mask is analytically apodized using the ``$C^2$'' apodization method of \cite{2009PhRvD..79l3515G} with an apodization scale of 10 degrees. This apodization method is based on smoothing the transition at the mask edge with a sinusoidal function that interpolates between 0 and 1 in a differentiable manner. The observed area encompasses one of the lowest-foreground regions observable from the Southern Hemisphere. For the flat-sky case we assume a smaller sky fraction of 500 deg$^2$ with a similar apodization. The assumed masks are shown in the top panels of Figure~\ref{fig:cmb_mocks}.
           \item {\bf Noise:} for the full-sky and flat-sky case we assume white noise levels of 1 and 0.5$\mu K\,{\rm arcmin}$ in intensity respectively. We also include a $1/f$-like component associated with atmospheric noise with a characteristic scale $\ell_{\rm knee}$ and tilt $\alpha_{\rm knee}$ such that the noise power spectrum can be written as
           \begin{equation}
             N_\ell=\sigma_N^2\left[1+\left(\frac{\ell_{\rm knee}}{\ell}\right)^{\alpha_{\rm knee}}\right],
@@ -886,7 +820,7 @@ cl_decoupled = wsp.decouple_cell(cl_coupled, cl_bias)
   \section{Discussion}\label{sec:discussion}
     The pseudo-$C_\ell$ power spectrum estimator is one particular example of quadratic minimum-variance estimators as presented by \cite{1997PhRvD..55.5895T} in which the proposal covariance matrix of the data is assumed to be diagonal in real space. This allows us to significantly reduce the computational complexity of the problem, from ${\cal O}(N_{\rm pix}^3)$ to ${\cal O}(N_{\rm pix}^{3/2})$ through both analytical and numerical simplifications, as described in Section \ref{sec:maths}. A number of techniques that are naturally included in the standard quadratic estimator, such as mode deprojection and $B$-mode purification, can also be implemented in the standard pseudo-$C_\ell$ algorithm without altering the computational complexity of the method. Although this speed boost is achieved at the expense of optimality (in terms of the estimator's variance), the degradation in sensitivity will be small or negligible as long as the data does not deviate significantly from the diagonal assumption. This implies that the pseudo-$C_\ell$ approach is a good choice for non-steep power spectra for which the typical correlation length is smaller than the mask structure, and in general on small scales, where the impact of the power spectrum shape drops as the number of available modes increases \citep{2004MNRAS.349..603E,2006MNRAS.370..343E}. As we have argued, this will be the case for a wide range of relevant science cases pursued by next-generation cosmological observations.
     
-    This paper presents \nmt, the first robust, validated and easy-to-use power spectrum estimation software package that implements the pseudo-$C_\ell$ method to compute angular cross-power spectra for any pair of spin-0 or spin-2 fields, including all their generalizations (flat-sky, deprojection and purification). We have described the steps taken to validate the code, showing that it is able to provide unbiased results in a wide variety of scenarios. In particular, we have constructed a realistic validation suite that resembles the type of data, masks and contaminants that will affect future wide-area optical galaxy surveys and ground-based CMB polarization experiments. As shown in Section \ref{sec:validation}, we are able to recover the input power spectrum in all cases (which include varying degrees of contamination, purification, different spins etc.) with no detectable bias down to $\lesssim1/30$-th of the statistical uncertainties.
+    This paper presents \nmt, the first public, validated and easy-to-use power spectrum estimation software package that implements the pseudo-$C_\ell$ method to compute angular cross-power spectra for any pair of spin-0 or spin-2 fields, including all their generalizations (flat-sky, deprojection and purification). We have described the steps taken to validate the code, showing that it is able to provide unbiased results in a wide variety of scenarios. In particular, we have constructed a realistic validation suite that resembles the type of data, masks and contaminants that will affect future wide-area optical galaxy surveys and ground-based CMB polarization experiments. As shown in Section \ref{sec:validation}, we are able to recover the input power spectrum in all cases (which include varying degrees of contamination, purification, different spins etc.) with no detectable bias down to $\lesssim1/30$-th of the statistical uncertainties.
     
     Although \nmt~is intended to make power spectrum estimation as easy as possible, some tasks are too dependent upon the properties of the data to be analyzed to automatize them in a general way, and users are therefore in charge of them. We list the most important of these here:
     \begin{itemize}
