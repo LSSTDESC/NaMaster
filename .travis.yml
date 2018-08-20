@@ -3,18 +3,22 @@ sudo: false
 cache:
     apt: true
     directories:
-    - "$TRAVIS_BUILD_DIR/build/GSL/src"
-    - "$TRAVIS_BUILD_DIR/build/FFTW/src"
-    - "$TRAVIS_BUILD_DIR/build/SWIG/src"
     - "$HOME/libsharp"
-    - "$HOME/miniconda"
+    - "$HOME/NaMaster"
+    - "$HOME/gsl-2.4"
+    - "$HOME/chealpix-3.11.4"
+    pip: true
+
 addons:
     apt:
         packages:
-            - gsl
-            - fftw
+            - libfftw3-bin
+            - libfftw3-dev
+            - libfftw3-3
             - autotools-dev
             - autoconf
+            - libcfitsio3-dev
+
 matrix:
   include:
   - os: linux
@@ -25,22 +29,14 @@ matrix:
     sudo: required
     python: 3.6
     env: TOXENV=py36
-  #- os: osx
-  #  osx_image: xcode9.4
-  #  language: generic
-  #  env: TOXENV=py27
-  #- os: osx
-  #  osx_image: xcode9.4
-  #  language: generic
-  #  env: TOXENV=py36
-install:
-- "./.travis/install.sh"
-- if ! [[ $TRAVIS_OS_NAME == "linux" ]]; then source $HOME/miniconda/bin/activate;
-  fi
-- if ! [[ $TRAVIS_OS_NAME == "linux" ]]; then hash -r ; fi
-- if ! [[ $TRAVIS_OS_NAME == "linux" ]]; then source activate test-environment ; fi
-- export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
-- export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:/usr/local/lib/pkgconfig
-- python --version
+
+before_install:
+- "chmod 777 ./.travis/install.sh"
+
 script:
+- "./.travis/install.sh"
+- export LDFLAGS="-L$TRAVIS_BUILD_DIR/lib -L/usr/local/lib"
 - python setup.py install
+- export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$TRAVIS_BUILD/lib:/usr/local/lib
+- python -m unittest -v
+
