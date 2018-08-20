@@ -3,6 +3,7 @@ import numpy as np
 import pymaster as nmt
 import healpy as hp
 import warnings
+import sys
 from .testutils import normdiff, read_flat_map
 
 #Unit tests associated with the NmtField and NmtFieldFlat classes
@@ -10,7 +11,8 @@ from .testutils import normdiff, read_flat_map
 class TestWorkspaceSph(unittest.TestCase) :
     def setUp(self) :
         #This is to avoid showing an ugly warning that has nothing to do with pymaster
-        warnings.simplefilter("ignore", ResourceWarning)
+        if (sys.version_info > (3, 1)):
+            warnings.simplefilter("ignore", ResourceWarning)
 
         self.nside=64
         self.nlb=16
@@ -198,7 +200,8 @@ class TestWorkspaceSph(unittest.TestCase) :
 class TestWorkspaceFsk(unittest.TestCase) :
     def setUp(self) :
         #This is to avoid showing an ugly warning that has nothing to do with pymaster
-        warnings.simplefilter("ignore", ResourceWarning)
+        if (sys.version_info > (3, 1)):
+            warnings.simplefilter("ignore", ResourceWarning)
 
         self.wcs,self.msk=read_flat_map("test/benchmarks/msk_flat.fits")
         (self.ny,self.nx)=self.msk.shape
