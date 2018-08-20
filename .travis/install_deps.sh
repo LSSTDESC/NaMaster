@@ -6,7 +6,7 @@ wget https://sourceforge.net/projects/healpix/files/Healpix_3.11/autotools_packa
 
 # Install healpy and nose
 
-#pip install nose healpy
+pip install nose healpy
 
 #### Install libsharp ####
 
