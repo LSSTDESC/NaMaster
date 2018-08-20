@@ -37,6 +37,6 @@ script:
 - "./.travis/install.sh"
 - export LDFLAGS="-L$TRAVIS_BUILD_DIR/lib -L/usr/local/lib"
 - python setup.py install
-- export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$TRAVIS_BUILD/lib:/usr/local/lib
+- export LD_LIBRARY_PATH=$TRAVIS_BUILD/lib:/usr/local/lib:$LD_LIBRARY_PATH
 - python -m unittest -v
 
