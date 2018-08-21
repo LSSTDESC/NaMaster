@@ -78,25 +78,25 @@ class TestUtilsSynfastFsk(unittest.TestCase) :
         
     def test_synfast_flat_errors(self) :
         with self.assertRaises(ValueError) : #Single array for polarization
-            nmt.synfast_flat(self.nx,self.ny,self.lx,self.ly,self.cltt,pol=True)
+            nmt.synfast_flat(self.nx,self.ny,self.lx,self.ly,self.cltt,pol=True,seed=1234)
         with self.assertRaises(ValueError) : #Inconsistent array for polarization
-            nmt.synfast_flat(self.nx,self.ny,self.lx,self.ly,[self.cltt,self.clee],pol=True)
+            nmt.synfast_flat(self.nx,self.ny,self.lx,self.ly,[self.cltt,self.clee],pol=True,seed=1234)
         with self.assertRaises(ValueError) : #Inconsistent array for temperature-only
-            nmt.synfast_flat(self.nx,self.ny,self.lx,self.ly,self.cl4)
+            nmt.synfast_flat(self.nx,self.ny,self.lx,self.ly,self.cl4,seed=1234)
         with self.assertRaises(ValueError) : #Inconsistent beam
-            nmt.synfast_flat(self.nx,self.ny,self.lx,self.ly,self.cl4,pol=True,beam=self.beam[:15])
+            nmt.synfast_flat(self.nx,self.ny,self.lx,self.ly,self.cl4,pol=True,beam=self.beam[:15],seed=1234)
         with self.assertRaises(RuntimeError) : #Negative dimensions
-            nmt.synfast_flat(self.nx,self.ny,-self.lx,self.ly,self.cl4,pol=True,beam=self.beam)
-        m=nmt.synfast_flat(self.nx,self.ny,self.lx,self.ly,self.cl4,pol=True,beam=self.beam)
+            nmt.synfast_flat(self.nx,self.ny,-self.lx,self.ly,self.cl4,pol=True,beam=self.beam,seed=1234)
+        m=nmt.synfast_flat(self.nx,self.ny,self.lx,self.ly,self.cl4,pol=True,beam=self.beam,seed=1234)
         self.assertEqual(m.shape,(3,self.ny,self.nx))
 
     def test_synfast_flat_stats(self) :
         #Temperature only
-        m_t=nmt.synfast_flat(self.nx,self.ny,self.lx,self.ly,self.cltt,beam=self.beam)[0]
+        m_t=nmt.synfast_flat(self.nx,self.ny,self.lx,self.ly,self.cltt,beam=self.beam,seed=1234)[0]
         #Polarization (omitting EB and TB)
-        m_p1=nmt.synfast_flat(self.nx,self.ny,self.lx,self.ly,self.cl4,pol=True,beam=self.beam)
+        m_p1=nmt.synfast_flat(self.nx,self.ny,self.lx,self.ly,self.cl4,pol=True,beam=self.beam,seed=1234)
         #Polarization (full monty)
-        m_p2=nmt.synfast_flat(self.nx,self.ny,self.lx,self.ly,self.cl6,pol=True,beam=self.beam)
+        m_p2=nmt.synfast_flat(self.nx,self.ny,self.lx,self.ly,self.cl6,pol=True,beam=self.beam,seed=1234)
         km,nk,ctt1=self.anafast(m_t)
         km,nk,[ctt2,cee2,cbb2,cte2,ceb2,ctb2]=self.anafast(m_p1)
         km,nk,[ctt3,cee3,cbb3,cte3,ceb3,ctb3]=self.anafast(m_p1)
@@ -147,23 +147,23 @@ class TestUtilsSynfastSph(unittest.TestCase) :
     
     def test_synfast_errors(self) :
         with self.assertRaises(ValueError) : #Single array for polarization
-            nmt.synfast_spherical(self.nside,self.cltt,pol=True)
+            nmt.synfast_spherical(self.nside,self.cltt,pol=True,seed=1234)
         with self.assertRaises(ValueError) : #Inconsistent array for polarization
-            nmt.synfast_spherical(self.nside,[self.cltt,self.clee],pol=True)
+            nmt.synfast_spherical(self.nside,[self.cltt,self.clee],pol=True,seed=1234)
         with self.assertRaises(ValueError) : #Inconsistent array for temperature-only
-            nmt.synfast_spherical(self.nside,self.cl4)
+            nmt.synfast_spherical(self.nside,self.cl4,seed=1234)
         with self.assertRaises(ValueError) : #Inconsistent beam
-            nmt.synfast_spherical(self.nside,self.cl4,pol=True,beam=self.beam[:15])
-        m=nmt.synfast_spherical(self.nside,self.cl4,pol=True,beam=self.beam)
+            nmt.synfast_spherical(self.nside,self.cl4,pol=True,beam=self.beam[:15],seed=1234)
+        m=nmt.synfast_spherical(self.nside,self.cl4,pol=True,beam=self.beam,seed=1234)
         self.assertEqual(m.shape,(3,hp.nside2npix(self.nside)))
 
     def test_synfast_stats(self) :
         #Temperature only
-        m_t=nmt.synfast_spherical(self.nside,self.cltt,beam=self.beam)
+        m_t=nmt.synfast_spherical(self.nside,self.cltt,beam=self.beam,seed=1234)
         #Polarization (omitting EB and TB)
-        m_p1=nmt.synfast_spherical(self.nside,self.cl4,pol=True,beam=self.beam)
+        m_p1=nmt.synfast_spherical(self.nside,self.cl4,pol=True,beam=self.beam,seed=1234)
         #Polarization (full monty)
-        m_p2=nmt.synfast_spherical(self.nside,self.cl6,pol=True,beam=self.beam)
+        m_p2=nmt.synfast_spherical(self.nside,self.cl6,pol=True,beam=self.beam,seed=1234)
         ctt1=self.anafast(m_t)
         ctt2,cee2,cbb2,cte2,ceb2,ctb2=self.anafast(m_p1)
         ctt3,cee3,cbb3,cte3,ceb3,ctb3=self.anafast(m_p2)
