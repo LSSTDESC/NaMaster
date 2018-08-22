@@ -1,3 +1,5 @@
+import data.flatmaps as fm
+import pymaster as nmt
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy.stats as st
@@ -24,7 +26,38 @@ def read_cls(fname) :
 l_th,clTT_th,clTE_th,clTB_th,clEE_th,clEB_th,clBE_th,clBB_th=read_cls(prefix_clean+"_cl_th.txt")
 ndof=len(l_th)
 
-print "Reading"
+print("Plotting contamination figure")
+l,cltt,clee,clbb,clte,nltt,nlee,nlbb,nlte=np.loadtxt("data/cls_lss.txt",unpack=True)    
+cltt[0]=0; clee[0]=0; clbb[0]=0; clte[0]=0;
+nltt[0]=0; nlee[0]=0; nlbb[0]=0; nlte[0]=0;
+fmi,mask_hsc=fm.read_flat_map("data/mask_lss_flat.fits")
+dum,fgt=fm.read_flat_map("data/cont_lss_dust_flat.fits") #Dust
+st,sq,su=nmt.synfast_flat(int(fmi.nx),int(fmi.ny),fmi.lx_rad,fmi.ly_rad,
+                          [cltt+nltt,clee+nlee,clbb+nlbb,clte+nlte],pol=True)
+mask_hsc[:]=1
+ff0=nmt.NmtFieldFlat(fmi.lx_rad,fmi.ly_rad,mask_hsc.reshape([fmi.ny,fmi.nx]),
+                     [st+fgt.reshape([fmi.ny,fmi.nx])],
+                     templates=fgt.reshape([1,1,fmi.ny,fmi.nx]))
+plt.figure(figsize=(12,4.75))
+fs_or=matplotlib.rcParams['font.size']
+ax=plt.subplot(221,projection=fmi.wcs);
+fmi.view_map(st.flatten(),ax=ax,addColorbar=False,title='Signal',
+             colorMin=np.amin(st),colorMax=np.amax(st))
+ax=plt.subplot(222,projection=fmi.wcs);
+fmi.view_map(4*fgt,ax=ax,addColorbar=False,title='Contaminant',
+             colorMin=np.amin(st),colorMax=np.amax(st))
+ax=plt.subplot(223,projection=fmi.wcs);
+fmi.view_map(st.flatten()+4*fgt,ax=ax,addColorbar=False,title='Contaminated map',
+             colorMin=np.amin(st),colorMax=np.amax(st))
+ax=plt.subplot(224,projection=fmi.wcs);
+fmi.view_map(ff0.get_maps().flatten(),ax=ax,addColorbar=False,title='Cleaned map',
+             colorMin=np.amin(st),colorMax=np.amax(st))
+plt.savefig("plots_paper/maps_contamination.pdf",bbox_inches='tight')
+plt.show()
+
+'''
+
+print("Reading")
 clTT_clean=[]; clTE_clean=[]; clTB_clean=[]; clEE_clean=[]; clEB_clean=[]; clBB_clean=[];
 clTT_dirty=[]; clTE_dirty=[]; clTB_dirty=[]; clEE_dirty=[]; clEB_dirty=[]; clBB_dirty=[];
 for i in np.arange(nsims) :
@@ -39,7 +72,7 @@ clEE_clean=np.array(clEE_clean); clEB_clean=np.array(clEB_clean); clBB_clean=np.
 clTT_dirty=np.array(clTT_dirty); clTE_dirty=np.array(clTE_dirty); clTB_dirty=np.array(clTB_dirty); 
 clEE_dirty=np.array(clEE_dirty); clEB_dirty=np.array(clEB_dirty); clBB_dirty=np.array(clBB_dirty);
 
-print "Computing statistics"
+print("Computing statistics")
 def compute_stats(y,y_th) :
     mean=np.mean(y,axis=0)
     cov=np.mean(y[:,:,None]*y[:,None,:],axis=0)-mean[:,None]*mean[None,:]
@@ -222,3 +255,4 @@ for a in ax :
 ax[0].legend(loc='upper left',fontsize=12,frameon=False)
 plt.savefig("plots_paper/val_chi2_lss_flat.pdf",bbox_inches='tight')
 plt.show()
+'''
