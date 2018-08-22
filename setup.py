@@ -156,8 +156,7 @@ def _get_build_env():
     env = dict(os.environ)
     cc, cxx, opt, cflags = get_config_vars('CC', 'CXX', 'OPT', 'CFLAGS')
     if 'CFLAGS' in env:
-        env['CFLAGS'] = opt + ' ' + env['CFLAGS']
-    env['CXXFLAGS'] = cflags
+        env['CFLAGS'] = opt + ' ' + env['CFLAGS'] 
     return env
 
 def _check_nmt():

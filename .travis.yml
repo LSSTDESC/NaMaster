@@ -37,7 +37,7 @@ before_install:
 script:
 - "./.travis/install.sh"
 - export LDFLAGS="-L$TRAVIS_BUILD_DIR/lib -L/usr/local/lib -Wl,-rpath=$TRAVIS_BUILD_DIR/lib -Wl,-rpath=/usr/local/lib"
-- python setup.py install
+- export CFLAGS="-I$TRAVIS_BUILD_DIR/include -I/usr/local/include -fopenmp"
+- pip install .
 - export LD_LIBRARY_PATH=$TRAVIS_BUILD/lib:/usr/local/lib:$LD_LIBRARY_PATH
 - python -m unittest discover -v
-
