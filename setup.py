@@ -159,17 +159,18 @@ def _get_build_env():
         env['CFLAGS'] = opt + ' ' + env['CFLAGS'] 
     return env
 
-def _check_nmt():
+def _check_nmt(libraries):
     """check if the C module can be built by trying to compile a small
     program against nmt"""
-
-    libraries = ['nmt']
 
     # write a temporary .c file to compile
     c_code = dedent("""
     #include <stdio.h>
+
     #define CTEST_MAIN
+
     #include "ctest.h"
+ 
     int main(int argc, const char *argv[])
     {
       int result = ctest_main(argc, argv);
@@ -177,6 +178,7 @@ def _check_nmt():
     }
     """)
     tmp_dir = tempfile.mkdtemp(prefix='tmp_ccl_')
+    shutil.copy2('./test/ctest.h',tmp_dir)
     bin_file_name = os.path.join(tmp_dir, 'test_ccl')
     file_name = bin_file_name + '.c'
     with open(file_name, 'w') as fp:
@@ -211,8 +213,11 @@ elif "--prefix" in sys.argv:
     libdir=os.path.realpath(os.path.join(sys.argv[ii+1],'lib'))
 else:
     libdir=os.path.realpath(os.path.join(sys.prefix,'lib'))
+#if "--use-icc" in sys.argv:
+use_icc=True #Set to True if you compiled libsharp with icc
+#else:
+#    use_icc=False
 
-use_icc=False #Set to True if you compiled libsharp with icc
 if use_icc :
     libs=['nmt','fftw3','fftw3_omp','sharp','fftpack','c_utils','chealpix','cfitsio','gsl','gslcblas','m','gomp','iomp5']
     extra=['-openmp',]
@@ -220,8 +225,13 @@ else :
     libs=['nmt','fftw3','fftw3_omp','sharp','fftpack','c_utils','chealpix','cfitsio','gsl','gslcblas','m','gomp']
     extra=['-O4', '-fopenmp',]
 
+if 'LIBARY_PATH' in os.environ:
+    os.environ['LIBRARY_PATH'] += os.pathsep + os.pathsep.join(os.environ['LD_LIBRARY_PATH'])
+else:
+    os.environ['LIBRARY_PATH'] += os.pathsep + os.environ['LD_LIBRARY_PATH']
+
 # We check if we can compile a script against the C nmt library
-if _check_nmt():
+if _check_nmt(libs):
     # If the C library is installed, then we just install the Python library 
     _nmtlib = Extension("_nmtlib",
                     ["pymaster/namaster_wrap.c"],
