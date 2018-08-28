@@ -15,7 +15,7 @@ from distutils.dir_util import mkpath
 import platform
 import shutil
 import site
-from subprocess import check_call, call
+from subprocess import check_call, call, Popen, PIPE
 import tempfile
 from textwrap import dedent
 # Implicit requirement - numpy must already be installed
@@ -204,19 +204,19 @@ def _check_nmt(libraries):
     shutil.rmtree(tmp_dir)
     return ret_val
 
+def _check_compiler():
+    """ Quick workaround to get the compiler type even in
+    pretty obscure platforms"""
+
+    proc = Popen(['cc', '--version'],stdout=PIPE)
+    return proc.stdout.read()[:3]
+
 # CCL setup script
 
-if "--user" in sys.argv:
-    libdir=os.path.realpath(os.path.join(site.USER_BASE,'lib'))
-elif "--prefix" in sys.argv:
-    ii = np.where(np.array(sys.argv)=="--prefix")
-    libdir=os.path.realpath(os.path.join(sys.argv[ii+1],'lib'))
+if _check_compiler()=='icc':
+    use_icc=True
 else:
-    libdir=os.path.realpath(os.path.join(sys.prefix,'lib'))
-#if "--use-icc" in sys.argv:
-use_icc=True #Set to True if you compiled libsharp with icc
-#else:
-#    use_icc=False
+    use_icc=False
 
 if use_icc :
     libs=['nmt','fftw3','fftw3_omp','sharp','fftpack','c_utils','chealpix','cfitsio','gsl','gslcblas','m','gomp','iomp5']
@@ -225,9 +225,17 @@ else :
     libs=['nmt','fftw3','fftw3_omp','sharp','fftpack','c_utils','chealpix','cfitsio','gsl','gslcblas','m','gomp']
     extra=['-O4', '-fopenmp',]
 
-if 'LIBARY_PATH' in os.environ:
-    os.environ['LIBRARY_PATH'] += os.pathsep + os.pathsep.join(os.environ['LD_LIBRARY_PATH'])
+if "--user" in sys.argv:
+    libdir=os.path.realpath(os.path.join(site.USER_BASE,'lib'))
+elif "--prefix" in sys.argv:
+    ii = np.where(np.array(sys.argv)=="--prefix")
+    libdir=os.path.realpath(os.path.join(sys.argv[ii+1],'lib'))
 else:
+    libdir=os.path.realpath(os.path.join(sys.prefix,'lib'))
+
+if ('LIBARY_PATH' in dict(os.environ)) and ('LD_LIBRARY_PATH' in dict(os.environ)):
+    os.environ['LIBRARY_PATH'] += os.pathsep + os.pathsep.join(os.environ['LD_LIBRARY_PATH'])
+if ('LD_LIBRARY_PATH' in dict(os.environ)):
     os.environ['LIBRARY_PATH'] += os.pathsep + os.environ['LD_LIBRARY_PATH']
 
 # We check if we can compile a script against the C nmt library
