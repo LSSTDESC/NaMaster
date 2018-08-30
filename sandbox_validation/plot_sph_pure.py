@@ -4,6 +4,7 @@ import scipy.stats as st
 from matplotlib import rc
 import matplotlib
 import pymaster as nmt
+from mpl_toolkits.axes_grid1.inset_locator import mark_inset,zoomed_inset_axes
 rc('font',**{'family':'sans-serif','sans-serif':['Helvetica']})
 rc('text', usetex=True)
 
@@ -29,7 +30,7 @@ def read_cls(fname) :
 l_th,clEE_th,clEB_th,clBE_th,clBB_th=read_cls(prefix_pure+"_cl_th.txt")
 ndof=len(l_th)
 
-print "Reading"
+print("Reading")
 clEE_pure=[]; clEB_pure=[]; clBB_pure=[];
 clEE_nopu=[]; clEB_nopu=[]; clBB_nopu=[];
 clEE_noco=[]; clEB_noco=[]; clBB_noco=[];
@@ -48,7 +49,7 @@ clEE_nopu=np.array(clEE_nopu); clEB_nopu=np.array(clEB_nopu); clBB_nopu=np.array
 clEE_noco=np.array(clEE_noco); clEB_noco=np.array(clEB_noco); clBB_noco=np.array(clBB_noco);
 clEE_nodb=np.array(clEE_nodb); clEB_nodb=np.array(clEB_nodb); clBB_nodb=np.array(clBB_nodb);
 
-print "Computing statistics"
+print("Computing statistics")
 def compute_stats(y,y_th) :
     mean=np.mean(y,axis=0)
     cov=np.mean(y[:,:,None]*y[:,None,:],axis=0)-mean[:,None]*mean[None,:]
@@ -109,6 +110,14 @@ ax.set_xticks(ndof*(np.arange(3)+0.5))
 ax.set_yticks(ndof*(np.arange(3)+0.5))
 ax.set_xticklabels(['$EE$','$EB$','$BB$'])
 ax.set_yticklabels(['$EE$','$EB$','$BB$'])
+axins=zoomed_inset_axes(ax,2.5,loc=6)
+axins.imshow(cov_pure/np.sqrt(np.diag(cov_pure)[None,:]*np.diag(cov_pure)[:,None]),
+             interpolation='nearest',cmap=plt.cm.Greys)
+axins.get_xaxis().set_visible(False)
+axins.get_yaxis().set_visible(False)
+axins.set_xlim(0.,0.2*ndof)
+axins.set_ylim(0.2*ndof,0.)
+mark_inset(ax, axins, loc1=2, loc2=1, fc="none")#, ec="0.5")
 tickfs(ax)
 plt.colorbar(im)
 plt.savefig("plots_paper/val_covar_cmb_sph.pdf",bbox_inches='tight')
@@ -126,6 +135,14 @@ ax.set_xticks(ndof*(np.arange(3)+0.5))
 ax.set_yticks(ndof*(np.arange(3)+0.5))
 ax.set_xticklabels(['$EE$','$EB$','$BB$'])
 ax.set_yticklabels(['$EE$','$EB$','$BB$'])
+axins=zoomed_inset_axes(ax,2.5,loc=6)
+axins.imshow(cov_noco/np.sqrt(np.diag(cov_noco)[None,:]*np.diag(cov_noco)[:,None]),
+             interpolation='nearest',cmap=plt.cm.Greys)
+axins.get_xaxis().set_visible(False)
+axins.get_yaxis().set_visible(False)
+axins.set_xlim(-0.1,0.2*ndof)
+axins.set_ylim(0.2*ndof,-0.1)
+mark_inset(ax, axins, loc1=2, loc2=1, fc="none")#, ec="0.5")
 tickfs(ax)
 plt.colorbar(im)
 plt.savefig("plots_paper/val_covar_cmb_sph_nocont.pdf",bbox_inches='tight')
@@ -210,7 +227,7 @@ for a in ax :
 ax[0].legend(loc='upper left',fontsize=12,frameon=False)
 plt.savefig("plots_paper/val_chi2_cmb_sph.pdf",bbox_inches='tight')
 
-print "Computing bandpower weights"
+print("Computing bandpower weights")
 ls=np.arange(3*nside,dtype=int)
 bpws=np.zeros(3*nside,dtype=int)-1
 weights=np.ones(3*nside)
