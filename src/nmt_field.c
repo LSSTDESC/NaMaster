@@ -151,6 +151,7 @@ void nmt_purify(nmt_field *fl,flouble *mask,fcomplex **walm0,
   free(palm);
   free(walm);
   free(alm_out);
+  free(f_l);
 }
 
 nmt_field *nmt_field_alloc_sph(long nside,flouble *mask,int pol,flouble **maps,

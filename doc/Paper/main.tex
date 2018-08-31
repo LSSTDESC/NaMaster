@@ -107,6 +107,54 @@ escapeinside={\%*}{*)}          % if you want to add a comment within your code
       \end{equation}
       Note that for a general non-zero spin, vectors $\va$ and $\vb$ have two-components, each of which is a complex number. Nevertheless the rotational invariance requires that elements of the $2\times2$ matrix ${\sf C}_\ell$ be real.
 
+
+      \subsubsection{Pixelization and signal band-limits}
+
+      SHT transforms as written in the Eq.~\ref{eq:sht1} is, strictly
+      speaking, defined on a continuous field on the sky and results
+      in an infinite number of spherical harmonic coefficients. In
+      practice, we have to always deal with a finite number of pixels
+      at which the field is sampled and consequently use a finite
+      number of spherical coefficients. If the sampling of the
+      underlying signal is too sparse, one will get aliasing of higher
+      frequency modes. In flat spaces, Nyquist theorem provides a
+      clear prescription for uniform sampling on a grid. Since there
+      is no such natural sampling on a sphere, the situation is more
+      complex and depends on the pixelization scheme
+      \cite{Driscoll:1994:CFT:184069.184073,
+        DBLP:journals/corr/abs-1110-6297}. Nevertheless, clear
+      heuristic prescriptions exist. Most importantly, the pixel separation needs
+      to be smaller than the wavelength of the highest frequency
+      present in the underlying signal. As a natural consequence, the
+      smoothing of the map must always precede any downgrade in
+      resolution (or equivalently downsampling) if it is necessary to
+      do so for numerical expediency.  Similarly, any mask should be
+      applied at the highest possible resolution and the resulting
+      map smoothed before being down-graded.
+
+      For the same reasons, even if the signal is correctly sampled in
+      a band-limited fashion, one must always estimate power over the
+      entire power band, even if one is not interested in certain
+      region of $\ell$ space. Otherwise, the power spectrum estimator
+      will try to ``explain'' the variance associated with $\ell$
+      modes not considered by artificially inflating the power in the
+      estimated modes. For {\tt HEALPix} \citep{2005ApJ...622..759G}
+      pixelization commonly used in cosmology and also in this paper,
+      \cite{2013MNRAS.435.1857L} suggest the following
+      prescription. If one wants to measure power up to $\ell_{\rm
+        max}$, one should employ pixelisation of
+      \texttt{Nside}=$\ell_{\rm max}/2$ and estimate band-powers up
+      to $2 \ell_{\rm max}$, but then discard measurements above $\ell_{\rm
+        max}$ after correcting for pixel-response suppression and
+      accounting for their contribution to the covariance matrix of
+      measurements. 
+
+      In this paper we do not consider these issues any further as \nmt
+      is a generic tool and it is up to the user to ensure band-limit
+      and pixelization constraints are properly accounted for.
+      
+
+
       \subsubsection{Power-spectrum estimation}
         The problem we are attempting to solve is how to estimate ${\sf C}^{ab}_\ell$ from a single realization of ${\bf a}$ and ${\bf b}$ measured on a cut sky. In general, the input data for measuring the power spectrum come pixelized on a sphere. Instead of dealing with an infinitely sampled field, we have a finite number of measurements
         \begin{equation}
