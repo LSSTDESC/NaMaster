@@ -1,8 +1,12 @@
+from matplotlib import rc
+import matplotlib
 import numpy as np
 import matplotlib.pyplot as plt
+rc('font',**{'family':'sans-serif','sans-serif':['Helvetica']})
+rc('text', usetex=True)
 
 NSIDES=np.array([64,256,1024])
-NCORES=np.array([16]) #[1,2,4,8,16])
+NCORES=np.array([16])
 
 def read_data(prefix) :
     n_ns=len(NSIDES)
@@ -12,25 +16,18 @@ def read_data(prefix) :
 
     for i_c,nc in enumerate(NCORES) :
         for i_n,nn in enumerate(NSIDES) :
-            print prefix+"_ns%d_nc%d.txt"%(nn,nc)
-            d=np.genfromtxt(prefix+"_ns%d_nc%d.txt"%(nn,nc))[3:]
-            print d
+            d=np.genfromtxt('output/'+prefix+"_ns%d_nc%d.txt"%(nn,nc))[3:]
             data[i_c,i_n,:]=d
     return data
 
 t_data={}
 for k in ['field','mcm','deproj','pure','pure_deproj'] :
     t_data[k]=read_data(k)
-    plt.plot(NSIDES,t_data[k][0,:,0],label=k)
-    plt.plot(NSIDES,t_data[k][0,1,0]*((NSIDES+0.)/NSIDES[1])**3,'k--')
-plt.loglog()
-plt.legend(loc='upper left')
-plt.show()
 
 absc=np.array(['Field, $s=0$','Field, $s=2$',
                'Deproj., $s=0$','Deproj., $s=2$',
-               'Purification','Deproj. $+$ purif.',
-               'MCM, 0-0','MCM, 0-2','MCM, 0-3'])
+               'Purification','Deproj. + purif.',
+               'MCM, $0$-$0$','MCM, $0$-$2$','MCM, $2$-$2$'])
 data_1024_plot=np.array([t_data['field'][0,2,0], #Field s0
                          t_data['field'][0,2,1], #Field s2
                          t_data['deproj'][0,2,0], #Deproj s0
@@ -52,12 +49,23 @@ data_256_plot=np.array([t_data['field'][0,1,0], #Field s0
                         t_data['mcm'][0,1,2] #MCM-22
                         ])
 
-plt.figure()
+def tickfs(ax,x=True,y=True,fs=12) :
+    if x :
+        for tick in ax.xaxis.get_major_ticks():
+            tick.label.set_fontsize(fs)
+    if y :
+        for tick in ax.yaxis.get_major_ticks():
+            tick.label.set_fontsize(fs)
+
+plt.figure(figsize=(10,5))
 ax=plt.gca()
-ax.bar(np.arange(len(absc)),data_1024_plot,0.5)
-ax.bar(np.arange(len(absc))+0.5,data_256_plot,0.5)
-ax.set_xlabel('Task')
-ax.set_ylabel('Time (ms)')
-ax.set_xticks(np.arange(len(absc))+0.25)
-ax.set_xticklabels(absc)
+ax.bar(np.arange(len(absc)),data_1024_plot/1000.,0.75)
+ax.text(0.03,0.85,'$N_{\\rm side}=1024$\n 5 contaminant templates.',transform=ax.transAxes,fontsize=15)
+ax.set_xlabel('Task',fontsize=15)
+ax.set_ylabel('Time (s)',fontsize=15)
+ax.set_xticks(np.arange(len(absc)))
+ax.set_xticklabels(absc,rotation=20)
+tickfs(ax,x=False)
+tickfs(ax,y=False,fs=12)
+plt.savefig("../plots_paper/timing.pdf",bbox_inches='tight')
 plt.show()
