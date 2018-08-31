@@ -93,67 +93,19 @@ escapeinside={\%*}{*)}          % if you want to add a comment within your code
   \section{The pseudo-\texorpdfstring{$C_\ell$}{Cl} estimator}\label{sec:maths}
     Here we introduce the pseudo-$C_\ell$ estimator and its relevant extensions. Many of the results presented here can be found in the literature (e.g. \cite{2002ApJ...567....2H,2003ApJS..148..161K,2006PhRvD..74h3002S,2009PhRvD..79l3515G,2013A&A...554A.112R,2017MNRAS.465.1847E} and references therein), although some others are new as far as we are aware. In what follows we will use boldface symbols for vector fields (e.g. ${\bf a}$) and sans-serif symbols for matrices (e.g. ${\sf C}$).
     
-    \subsection{Spherical harmonic transform and pseudo-\texorpdfstring{$C_\ell$}{Cl}s}\label{ssec:maths.pcl101}
+    \subsection{Spherical harmonic transforms and pseudo-\texorpdfstring{$C_\ell$}{Cl}s}\label{ssec:maths.pcl101}
       Let ${\bf a}(\nv)$ be a spin-$s_a$ quantity defined on the sphere, where $\nv$ is the unit vector pointing in a particular direction $(\theta,\varphi)$. We define its spherical harmonic coefficients through a spherical harmonic transform (SHT) as:
       \begin{align}\label{eq:sht1}
         {\bf a}_{\ell m}&\equiv\mathcal{S}\left[{\bf a}(\nv)\right]^{s_a}_{\ell m}\equiv\int d\nv\,{\sf Y}^{s_a\dag}_{\ell m}(\nv)\,{\bf a}(\nv), \\\label{eq:sht2}
         {\bf a}(\nv)&=\mathcal{S}^{-1}\left[{\bf a}_{\ell m}\right]^{s_a}_{\nv}\equiv\sum_{\ell m}\,{\sf Y}^{s_a}_{\ell m}(\nv)\,{\bf a}_{\ell m}.
       \end{align}
-      Note that, in general we will use vector notation such that, for a complex spin-$s_a$ field $a$, we form the vector ${\bf a}\equiv({\rm Re}(a),{\rm Im}(a))$. The harmonic coefficients above are decomposed in a similar manner into $E$ and $B$ modes: ${\bf a}_{\ell m}\equiv(a^E_{\ell m},a^B_{\ell m})$ (e.g. see Appendix \ref{app:shts} and \cite{1997PhRvD..55.1830Z}). The matrices ${\sf Y}^s_{\ell m}$ are defined in terms of the spin-weighed spherical harmonics, and are described in detail in Appendix \ref{app:shts}. To simplify the notation, we will also often abbreviate the pair $(\ell,m)$ as ${\bf l}$. 
+      Note that, in general we will use vector notation such that, for a complex spin-$s_a$ field $a$, we form the vector ${\bf a}\equiv({\rm Re}(a),{\rm Im}(a))$. The harmonic coefficients above are decomposed in a similar manner into $E$ and $B$ modes: ${\bf a}_{\ell m}\equiv(a^E_{\ell m},a^B_{\ell m})$ (e.g. see Appendix \ref{app:shts} and \cite{1997PhRvD..55.1830Z}). The matrices ${\sf Y}^s_{\ell m}$ are defined in terms of the spin-weighed spherical harmonics, and are described in detail in Appendix \ref{app:shts}. Some technical details regarding band-limits and the practicalities of SHTs in a discretized sphere are discussed in \ref{app:shts.blim}. To simplify the notation, we will also often abbreviate the pair $(\ell,m)$ as ${\bf l}$. 
       
       For two isotropic fields ${\bf a}$ and ${\bf b}$, the power spectrum is given by their covariance matrix:
       \begin{equation}\label{eq:cldef}
         \left\langle{\bf a}_{\bf l}{\bf b}_{{\bf l}'}^\dag\right\rangle\equiv{\sf C}^{ab}_\ell\delta_{\ell\ell'}\delta_{mm'}.
       \end{equation}
       Note that for a general non-zero spin, vectors $\va$ and $\vb$ have two-components, each of which is a complex number. Nevertheless the rotational invariance requires that elements of the $2\times2$ matrix ${\sf C}_\ell$ be real.
-
-
-      \subsubsection{Pixelization and signal band-limits}
-
-      SHT transforms as written in the Eq.~\ref{eq:sht1} is, strictly
-      speaking, defined on a continuous field on the sky and results
-      in an infinite number of spherical harmonic coefficients. In
-      practice, we have to always deal with a finite number of pixels
-      at which the field is sampled and consequently use a finite
-      number of spherical coefficients. If the sampling of the
-      underlying signal is too sparse, one will get aliasing of higher
-      frequency modes. In flat spaces, Nyquist theorem provides a
-      clear prescription for uniform sampling on a grid. Since there
-      is no such natural sampling on a sphere, the situation is more
-      complex and depends on the pixelization scheme
-      \cite{Driscoll:1994:CFT:184069.184073,
-        DBLP:journals/corr/abs-1110-6297}. Nevertheless, clear
-      heuristic prescriptions exist. Most importantly, the pixel separation needs
-      to be smaller than the wavelength of the highest frequency
-      present in the underlying signal. As a natural consequence, the
-      smoothing of the map must always precede any downgrade in
-      resolution (or equivalently downsampling) if it is necessary to
-      do so for numerical expediency.  Similarly, any mask should be
-      applied at the highest possible resolution and the resulting
-      map smoothed before being down-graded.
-
-      For the same reasons, even if the signal is correctly sampled in
-      a band-limited fashion, one must always estimate power over the
-      entire power band, even if one is not interested in certain
-      region of $\ell$ space. Otherwise, the power spectrum estimator
-      will try to ``explain'' the variance associated with $\ell$
-      modes not considered by artificially inflating the power in the
-      estimated modes. For {\tt HEALPix} \citep{2005ApJ...622..759G}
-      pixelization commonly used in cosmology and also in this paper,
-      \cite{2013MNRAS.435.1857L} suggest the following
-      prescription. If one wants to measure power up to $\ell_{\rm
-        max}$, one should employ pixelisation of
-      \texttt{Nside}=$\ell_{\rm max}/2$ and estimate band-powers up
-      to $2 \ell_{\rm max}$, but then discard measurements above $\ell_{\rm
-        max}$ after correcting for pixel-response suppression and
-      accounting for their contribution to the covariance matrix of
-      measurements. 
-
-      In this paper we do not consider these issues any further as \nmt
-      is a generic tool and it is up to the user to ensure band-limit
-      and pixelization constraints are properly accounted for.
-      
-
 
       \subsubsection{Power-spectrum estimation}
         The problem we are attempting to solve is how to estimate ${\sf C}^{ab}_\ell$ from a single realization of ${\bf a}$ and ${\bf b}$ measured on a cut sky. In general, the input data for measuring the power spectrum come pixelized on a sphere. Instead of dealing with an infinitely sampled field, we have a finite number of measurements
@@ -234,6 +186,12 @@ escapeinside={\%*}{*)}          % if you want to add a comment within your code
           &M^{\pm}_{\ell\ell'}=\frac{2\ell'+1}{4\pi}\sum_{\ell''}P^{vw}_{\ell''}\wtj{\ell}{\ell'}{\ell''}{2}{-2}{0}^2\frac{1\pm(-1)^{\ell+\ell'+\ell''}}{2},
         \end{align}
         where $\mI$ is the unit matrix, and $P^{vw}_\ell\equiv(2\ell+1)\,{\rm PCL}_\ell(v,w)$.
+        \begin{figure*}
+          \centering
+          \includegraphics[width=0.9\textwidth]{maps_contamination}
+          \caption{Depiction of the contaminant deprojection process. {\sl Top left:} underlying true signal map (galaxy overdensity used in Section \ref{sssec:validation.suite.lss}). {\sl Top right:} sky contaminant (dust contamination used in Section \ref{sssec:validation.suite.lss}). {\sl Bottom left:} contaminated map obtained by adding the previous two maps. {\sl Bottom right:} cleaned map obtained through Eq. \ref{eq:clean_f}. Since only one contaminant is considered in this case, the cleaning is almost perfect. Residual contamination at the power spectrum level must still be subtracted in order to avoid a biased estimate.}
+          \label{fig:lss_cont}
+        \end{figure*}
       
       \subsubsection{Bandpowers}\label{sssec:maths.pcl101.bpws}
         Given the loss of information implicit in masking the originally curved-sky field, it is in general not possible to invert the mode-coupling matrix in Eq. \ref{eq:modecoup} directly. One solution to this problem is to convolve the theory prediction with the mode-coupling matrix at the likelihood level. A more usual approach is instead to bin the coupled pseudo-$C_\ell$ into bandpowers. A bandpower $q$ is defined as a set of $N_q$ multipoles $\vec{\ell}_q\equiv(\ell_q^1,...,\ell_q^{N_q})$ and a set of weights defined at those multipoles $w^\ell_q$, and normalized such that $\sum_{\ell\in\vec{\ell}_q}w_q^\ell=1$. The $q$-th bandpower for the coupled pseudo-$C_\ell$ is then defined as
@@ -242,12 +200,6 @@ escapeinside={\%*}{*)}          % if you want to add a comment within your code
           \left\langle{\rm vec}\left[\tilde{\sf B}^{ab}_q\right]\right\rangle&=\sum_{\ell\in\vec{\ell}_q}w_q^\ell\sum_{\ell'}{\sf M}^{s_as_b}_{\ell\ell'}\,{\rm vec}\left[{\sf C}^{ab}_{\ell'}\right],
         \end{align}
         where in the second line we have taken the expectation value of first one. One then proceeds by assuming that the true power spectrum is a step-wise function, taking constant values over the multipoles corresponding to each bandpower: ${\sf C}^{ab}_\ell\equiv\sum_q{\sf B}^{ab}_q\Theta(\ell\in\vec{\ell}_q)$ (where $\Theta$ is a binary step function). Inserting this in the equation above, it is then possible to find an unbiased estimator for ${\sf B}^{ab}_q$ in terms of the binned pseudo-bandpowers $\tilde{\sf B}^{ab}_q$:
-        \begin{figure*}
-          \centering
-          \includegraphics[width=0.9\textwidth]{maps_contamination}
-          \caption{Depiction of the contaminant deprojection process. {\sl Top left:} underlying true signal map (galaxy overdensity used in Section \ref{sssec:validation.suite.lss}). {\sl Top right:} sky contaminant (dust contamination used in Section \ref{sssec:validation.suite.lss}). {\sl Bottom left:} contaminated map obtained by adding the previous two maps. {\sl Bottom right:} cleaned map obtained through Eq. \ref{eq:clean_f}. Since only one contaminant is considered in this case, the cleaning is almost perfect. Residual contamination at the power spectrum level must still be subtracted in order to avoid a biased estimate.}
-          \label{fig:lss_cont}
-        \end{figure*}
         \begin{equation}\label{eq:decoup}
           {\rm vec}\left[{\sf B}^{ab}_q\right]=\sum_{q'}\left({\cal M}^{s_as_b}\right)^{-1}_{qq'}\,{\rm vec}\left[\tilde{\sf B}^{ab}_{q'}\right],
         \end{equation}
@@ -646,7 +598,7 @@ cl_decoupled = wsp.decouple_cell(cl_coupled, cl_bias)
           \caption{{\sl Left panels:} mask (top), and $Q$ and $U$ components (middle, bottom) of the foreground contaminant used in the CMB curved-sky validation set. {\sl Right panels:} same as left panels for the flat-sky validation set.}
           \label{fig:cmb_mocks}
         \end{figure*}
-        Our second example corresponds to the measurement of $B$-modes in the polarized CMB emission, closely associated with the presence of primordial gravitational waves. This is one of the main science cases targeted by current ground-based Stage-3 experiments such as BICEP/Keck~\citep{2016PhRvL.116c1302B}, Advanced ACTPol~\citep{2016SPIE.9910E..14D,2017JCAP...06..031L} or the Simons Array~\citep{2016JLTP..184..805S,2017ApJ...848..121P}, as well as next-generation facilities such as the Simons Observatory\todo{cite if out} or CMB Stage-4~\citep{2016arXiv161002743A}. Potential future space missions, such as LiteBIRD~\citep{2018JLTP..tmp..124S} will be able to make low-resolution, curved-sky maps of the polarized CMB to put constraints on the primordial $B$-mode signal from its reionization bump, at $\ell<30$, and will likely make use of pixel-based likelihoods and optimal quadratic methods. Ground-based experiments, on the other hand, will be systematics-limited at low $\ell$, and will be able to make higher-resolution maps, for which pseudo-$C_\ell$ methods are better suited.
+        Our second example corresponds to the measurement of $B$-modes in the polarized CMB emission, closely associated with the presence of primordial gravitational waves. This is one of the main science cases targeted by current ground-based Stage-3 experiments such as BICEP/Keck~\citep{2016PhRvL.116c1302B}, Advanced ACTPol~\citep{2016SPIE.9910E..14D,2017JCAP...06..031L} or the Simons Array~\citep{2016JLTP..184..805S,2017ApJ...848..121P}, as well as next-generation facilities such as the Simons Observatory~\citep{2018arXiv180807445T} or CMB Stage-4~\citep{2016arXiv161002743A}. Potential future space missions, such as LiteBIRD~\citep{2018JLTP..tmp..124S} will be able to make low-resolution, curved-sky maps of the polarized CMB to put constraints on the primordial $B$-mode signal from its reionization bump, at $\ell<30$, and will likely make use of pixel-based likelihoods and optimal quadratic methods. Ground-based experiments, on the other hand, will be systematics-limited at low $\ell$, and will be able to make higher-resolution maps, for which pseudo-$C_\ell$ methods are better suited.
         
         The measurement of CMB $B$ modes is affected by two challenges: the presence of foreground residuals left in the data by any component separation method, and the much larger amplitude of the $E$-mode signal, which can dominate the uncertainties in the $B$-mode power spectrum due to $E$-to-$B$ leakage. This science case therefore allows us to validate the code when both contaminant deprojection and $B$-mode purification are required, as well as in the presence of a non-negligible instrumental beam.
         
@@ -659,7 +611,7 @@ cl_decoupled = wsp.decouple_cell(cl_coupled, cl_bias)
             N_\ell=\sigma_N^2\left[1+\left(\frac{\ell_{\rm knee}}{\ell}\right)^{\alpha_{\rm knee}}\right],
           \end{equation}
           where $\sigma_N^2$ is the white-noise variance in one steradian. We use $\alpha_{\rm knee}=2.4$ and $\ell_{\rm knee}=10$ and 300 for the curved-sky and flat-sky cases respectively. The beam-deconvolved noise power spectra in both cases are shown in Fig. \ref{fig:cmb_cls}.
-          \item {\bf Beam:} we assume a Gaussian beam with full-width at half-maximum of $\theta_{\rm FWHM}=20$ and 1.4 arcmin for the curved-sky and flat-sky cases respectively. This resolution corresponds to what could be achieved at 150 GHz with a small aperture experiment (0.4m, S.A.) and a large aperture experiment (6m, L.A.) in either case. The choice of $\ell_{\rm knee}$ described above for the noise curves is also consistent with the atmospheric noise levels achievable with those types of telescopes \todo{cite Simons Observatory paper if out}. As shown in Fig. \ref{fig:cmb_cls}, the combination of beam size and $\ell_{\rm knee}$ makes the two experiments sensitive to the $B$-mode power spectrum in different ranges of scales, corresponding to the primordial $B$-mode signal around the recombination bump (S.A.) and to the high-ell lensing signal (L.A.).
+          \item {\bf Beam:} we assume a Gaussian beam with full-width at half-maximum of $\theta_{\rm FWHM}=20$ and 1.4 arcmin for the curved-sky and flat-sky cases respectively. This resolution corresponds to what could be achieved at 150 GHz with a small aperture experiment (0.4m, S.A.) and a large aperture experiment (6m, L.A.) in either case. The choice of $\ell_{\rm knee}$ described above for the noise curves is also consistent with the atmospheric noise levels achievable with those types of telescopes \citep{2018arXiv180807445T}. As shown in Fig. \ref{fig:cmb_cls}, the combination of beam size and $\ell_{\rm knee}$ makes the two experiments sensitive to the $B$-mode power spectrum in different ranges of scales, corresponding to the primordial $B$-mode signal around the recombination bump (S.A.) and to the high-ell lensing signal (L.A.).
           \item {\bf Contaminants:} we assume a dust-like residual for both the curved-sky an flat-sky cases. For the curved-sky set-up, we use maps of the dust emission at 150 GHz generated by {\tt PySM}~\citep{2017MNRAS.469.2821T} and scaled so that the amplitude of the residual power spectrum is about 10\% of the lensing $B$-mode signal at $\ell=50$. For the flat-sky signal we generate a Gaussian realization of a dust-like component with power spectra
           \begin{equation}
             C_\ell^{EE}\propto\ell^{-2.5},\hspace{12pt}
@@ -868,6 +820,13 @@ We would like to thank Rupert Allison, Scott Dodelson, Jo Dunkley, Franz Elsner,
         \sum_{mm_1}\wtj{\ell}{\ell_1}{\ell_2}{m}{m_1}{m_2}\wtj{\ell}{\ell_1}{\ell_3}{m}{m_1}{m_3}=\frac{\delta_{\ell_2\ell_3}\delta_{m_2m_3}}{2\ell_2+1}
       \end{equation}
 
+      \subsection{Pixelization and signal band-limits}\label{app:shts.blim}
+        SHT transforms as written in the Eq.~\ref{eq:sht1} are, strictly speaking, defined on a continuous field on the sky and results in an infinite number of spherical harmonic coefficients. In practice, we have to always deal with discretized sky maps with a finite number of pixels at which the field is sampled, and consequently use a finite number of spherical coefficients. If the sampling of the underlying signal is too sparse, we will get aliasing of higher frequency modes. In flat spaces, Nyquist's theorem provides a clear prescription for uniform sampling on a grid. Since there is no such natural sampling on a sphere, the situation is more complex and depends on the pixelization scheme used \cite{Driscoll:1994:CFT:184069.184073,DBLP:journals/corr/abs-1110-6297}. Nevertheless, clear heuristic prescriptions exist. Most importantly, the typical pixel separation needs to be smaller than the wavelength of the highest frequency mode present in the underlying signal. As a natural consequence, the smoothing of the map must always precede any downgrade in resolution (or equivalently downsampling) if it is necessary to do so for numerical expediency. Similarly, any mask should be applied at the highest possible resolution and the resulting map smoothed before being down-graded.
+
+        For the same reasons, even if the signal is correctly sampled in a band-limited sense, one must always estimate power over the entire power band, even if one is not interested in certain region of $\ell$ space. Otherwise, the power spectrum estimator will try to ``explain'' the variance associated with $\ell$ modes not considered by artificially inflating the power in the estimated modes. For the {\tt HEALPix} pixelization scheme \citep{2005ApJ...622..759G}, commonly used in cosmology and also in this paper, \cite{2013MNRAS.435.1857L} suggest the following prescription. If one wants to measure power up to $\ell_{\rm max}$, one should employ pixelisation of \texttt{Nside}=$\ell_{\rm max}/2$ and estimate band-powers up to $2 \ell_{\rm max}$, but then discard measurements above $\ell_{\rm max}$ after correcting for pixel-response suppression and  accounting for their contribution to the covariance matrix of measurements. 
+
+        In this paper we do not consider these issues any further as \nmt~is a generic tool and it is up to the user to ensure band-limit and pixelization constraints are properly accounted for.
+      
   \section{Linear contamination from non-linear contamination} \label{app:lincont}
     Consider a contaminant field $c$ (e.g. a point-spread function (PSF) size) that affects the observable field $o$ (e.g. the number count densities) through a non-linear, but \emph{local} on some scale local functional $F$:
     \begin{equation}
@@ -894,7 +853,7 @@ We would like to thank Rupert Allison, Scott Dodelson, Jo Dunkley, Franz Elsner,
   \section{Flat skies and Fourier transforms}\label{app:flat}
     \subsection{Spin-\texorpdfstring{$s$}{s} fields in flat sky}\label{app:flat.fields}
       In the flat sky we will label a position in the plane by two coordinates $(x,y)\equiv{\bf x}$. These coordinates can be directly related to increments in the spherical coordinates $(\theta,\varphi)$ by considering a sufficiently small map centered around the equator (i.e. $\sin\theta\sim 1$). In this case we identify the $x$ coordinate with a latitude shift ($\delta\theta=-\delta x$) and the $y$ coordinate with longitude
-      shifts ($\delta\varphi=\delta y$) the differential operator $\eth$ now takes the form: %\todo{make a plot of this?}. \as{no, but isn't it other way round? Latitute is $y$ in my brain? :)} \dam{it isn't, have a look here \url{https://healpix.jpl.nasa.gov/html/intronode12.htm}.} Using this dictionary,       
+      shifts ($\delta\varphi=\delta y$) the differential operator $\eth$ now takes the form:
       \begin{equation}
         \eth= (\partial_x-i\partial_y),\hspace{12pt}\bar{\eth}= (\partial_x+i\partial_y).
       \end{equation}
