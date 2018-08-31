@@ -53,7 +53,7 @@ double **init_maps(int nside,int nmaps)
 }
 
 //timing_st constructor
-timing_st *timing_st_init(char *name,int nside,int is_1point,
+timing_st *timing_st_init(char *name,int nside,int nruns,
 			  void *(*setup_time)(int,int,int),
 			  void (*func_time)(void *),
 			  void (*free_time)(void *))
@@ -61,7 +61,7 @@ timing_st *timing_st_init(char *name,int nside,int is_1point,
   timing_st *tim=my_malloc(sizeof(timing_st));
   sprintf(tim->name,"%s",name);
   tim->nside=nside;
-  tim->is_1point=is_1point;
+  tim->nruns=nruns;
   tim->setup=setup_time;
   tim->func=func_time;
   tim->free=free_time;
@@ -77,36 +77,41 @@ void timing_st_free(timing_st *tim)
   free(tim);
 }
 
+//timing_st individual timer
+static double timing_st_time_single(timing_st *tim,int ncomp,int spin1,int spin2)
+{
+  int ii;
+  void *data=tim->setup(tim->nside,spin1,spin2);
+  timer(0);
+  for(ii=0;ii<ncomp;ii++) {
+    tim->func(data);
+  }
+  timer(1);
+  tim->free(data);
+  return 1000.*(relend-relbeg)/ncomp;
+}
+
 //timing_st timer
 void timing_st_time(timing_st *tim,int ncomp)
 {
-  int pol2max=1;
-  if(tim->is_1point)
-    pol2max=0;
-
-  int pol2;
-  int ind_write=0;
-  for(pol2=0;pol2<=pol2max;pol2++) {
-    int pol1;
-    for(pol1=pol2;pol1<=1;pol1++) {
-      int ii;
-      void *data=tim->setup(tim->nside,2*pol1,2*pol2);
-      timer(0);
-      for(ii=0;ii<ncomp;ii++) {
-	tim->func(data);
-      }
-      timer(1);
-      tim->free(data);
-      tim->times[ind_write]=1000.*(relend-relbeg)/ncomp;
-      ind_write++;
-    }
+  if(tim->nruns==1) { //One field, just spin-2
+    tim->times[0]=timing_st_time_single(tim,ncomp,2,0);
+  }
+  else if(tim->nruns==2) { //One field, spin-0 and spin-2
+    tim->times[0]=timing_st_time_single(tim,ncomp,0,0);
+    tim->times[1]=timing_st_time_single(tim,ncomp,2,0);
+  }
+  else { //Two fields
+    tim->times[0]=timing_st_time_single(tim,ncomp,0,0);
+    tim->times[1]=timing_st_time_single(tim,ncomp,2,0);
+    tim->times[2]=timing_st_time_single(tim,ncomp,2,2);
   }
 }
 
 //Report timings
 void timing_st_report(timing_st *tim,FILE *f)
 {
-  int nnodes=omp_get_num_threads();
+  int nnodes=omp_get_max_threads();
   fprintf(f,"%s %d %d %.3lE %.3lE %.3lE\n",tim->name,nnodes,tim->nside,
 	  tim->times[0],tim->times[1],tim->times[2]);
 }

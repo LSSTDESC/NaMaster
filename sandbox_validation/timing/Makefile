@@ -1,15 +1,17 @@
-CC = gcc
-OPTIONS = -Wall -fopenmp
-INC=-I/home/alonso/include -I../../src -I./src
-LIB=-L/home/alonso/lib -L/usr/local/lib64
+CC = icc
+OPTIONS = -Wall -openmp -O3
+INC=-I/users/damonge/include -I../../src -I./src
+LIB=-L/users/damonge/lib -L/usr/local/lib64
 LIBALL=-lnmt -lfftw3 -lfftw3_omp -lgsl -lgslcblas -lcfitsio -lsharp -lfftpack -lc_utils -lm
 
 UTILS = src/timing_utils.o
 FIELD = src/timing_field.o
 MCM = src/timing_mcm.o
 PURE = src/timing_pure.o
+DEPROJ = src/timing_deproj.o
+PURE_DEPROJ = src/timing_pure_deproj.o
 MAIN = src/main.c
-OFILES = $(UTILS) $(FIELD) $(MCM) $(PURE)
+OFILES = $(UTILS) $(FIELD) $(MCM) $(PURE) $(DEPROJ) $(PURE_DEPROJ)
 
 EXE = timings
 

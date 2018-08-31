@@ -1,6 +1,8 @@
 #ifndef _TIMING_UTILS_
 #define _TIMING_UTILS_
 
+#define NTEMP 5
+
 extern double relbeg,relend;
 void timer(int i);
 
@@ -16,7 +18,7 @@ double timing(int ncomp,int nside,int spin1,int spin2,
 typedef struct {
   char name[16];
   int nside;
-  int is_1point;
+  int nruns;
   void *(*setup)(int,int,int);
   void (*func)(void *);
   void (*free)(void *);
@@ -24,7 +26,7 @@ typedef struct {
 } timing_st;
 
 //timing_st constructor
-timing_st *timing_st_init(char *name,int nside,int is_1point,
+timing_st *timing_st_init(char *name,int nside,int nruns,
 			  void *(*setup_time)(int,int,int),
 			  void (*func_time)(void *),
 			  void (*free_time)(void *));

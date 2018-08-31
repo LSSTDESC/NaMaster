@@ -13,7 +13,7 @@ typedef struct {
 void *setup_pure(int nside,int spin1,int spin2);
 
 //Evaluator for pure timing
-// - Generates and frees an nmt_pure object
+// - Generates and frees an nmt_field object
 void func_pure(void *data);
 
 //Destructor for pure timing
