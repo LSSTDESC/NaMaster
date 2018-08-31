@@ -57,7 +57,7 @@ def tickfs(ax,x=True,y=True,fs=12) :
         for tick in ax.yaxis.get_major_ticks():
             tick.label.set_fontsize(fs)
 
-plt.figure(figsize=(10,5))
+plt.figure(figsize=(8,4))
 ax=plt.gca()
 ax.bar(np.arange(len(absc)),data_1024_plot/1000.,0.75)
 ax.text(0.03,0.85,'$N_{\\rm side}=1024$\n 5 contaminant templates.',transform=ax.transAxes,fontsize=15)
