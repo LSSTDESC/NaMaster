@@ -1035,19 +1035,11 @@ cl_decoupled = wsp.decouple_cell(cl_coupled, cl_bias)
      
      \begin{figure}
      \centering
-     \includegraphics[width=0.9\columnwidth]{time_scaling}
+     \includegraphics[width=0.99\columnwidth]{time_scaling}
+     \includegraphics[width=0.99\columnwidth]{timing}
      \caption{Computing time for the auto-power spectra of curved-sky spin-0 (data 00, hollow circles), and spin-2 (data 22, solid triangles) contamination-free maps, as wells as their cross-power (data 02, solid circles) as a function of $\ell_{max}$. We include the expected scaling for the pseudo-$C_{\ell}$ estimator (solid line) and force it to go through the point for the spin-0 auto-power at $\ell=96$ showing remarkable agreement.}
      \label{fig:scaling_lmax}
      \end{figure}
 
 \bsp
 \end{document}
-     
-    In addition, we also check the parallel performance of \nmt. We proceed again, as in the previous case, to compute the auto- and cross-power spectra of spin-0 and spin-2 fields with no contaminants for maps with $N_{side}=256$ and $N_{side}=1024$ and we vary the number of \texttt{OpenMP} threads from 1 to 32 in powers of 2. The results can be seen in Figure~\ref{fig:scaling_nthreads}. We can see that the operations involving spin-0 fields seem to be more affected by the number of threads used, however, the spin-2 auto-power spectra computing time seems to be very stable for any number of threads larger than 2. \todo{Discuss this further? Take the second part out? Ideas?}
-    
-    \begin{figure}
-    \centering
-    \includegraphics[width=0.9\columnwidth]{time_scaling_threads}
-     \caption{Computing time for auto-power spectra of spin-0 (red lines) and spin-2 (cyan lines) contaminant-free maps, and their cross-power spectra (blue lines) as a function of the number of \texttt{OpenMP} threads used for the computation. We check maps with $N_{side}=256$ (solid lines) and $N_{side}=1024$ (broken lines).}
-     \label{fig:scaling_nthreads}
-     \end{figure}
