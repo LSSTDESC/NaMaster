@@ -3693,19 +3693,27 @@ void apomask_flat(int nx,int ny,double lx,double ly,
   nmt_apodize_mask_flat(nx,ny,lx,ly,mask,dout,aposize,apotype);
 }
 
-void synfast_new(int nside,int pol,int seed,
+void synfast_new(int nside,
+		 int nfields,int *spin_arr,
+		 int seed,
 		 int ncl1,int nell1,double *cls1,
-		 int nell3,double *weights,
+		 int ncl2,int nell2,double *cls2,
 		 double* ldout,long nldout)
 {
-  int icl,nfields=1,nmaps=1;
+  int ii,icl,nmaps=0;
   long npix=12*nside*nside;
   double **cls,**beams,**maps;
-  int spin_arr[2]={0,2};
-  if(pol) {
-    nfields=2;
-    nmaps=3;
+
+  for(ii=0;ii<nfields;ii++) {
+    if(spin_arr[ii]==0)
+      nmaps+=1;
+    else if(spin_arr[ii]==2)
+      nmaps+=2;
   }
+
+  asserting(ncl2==nfields);
+  asserting(ncl1==(nmaps*(nmaps+1))/2);
+  asserting(nell1==nell2);
 
   cls=malloc(ncl1*sizeof(double *));
   for(icl=0;icl<ncl1;icl++)
@@ -3713,9 +3721,9 @@ void synfast_new(int nside,int pol,int seed,
 
   beams=malloc(nfields*sizeof(double *));
   for(icl=0;icl<nfields;icl++)
-    beams[icl]=weights;
+    beams[icl]=cls2+nell2*icl;
 
-  maps=nmt_synfast_sph(nside,nfields,spin_arr,nell3-1,cls,beams,seed);
+  maps=nmt_synfast_sph(nside,nfields,spin_arr,nell1-1,cls,beams,seed);
 
   for(icl=0;icl<nmaps;icl++) {
     memcpy(&(ldout[npix*icl]),maps[icl],npix*sizeof(double));
@@ -3726,37 +3734,45 @@ void synfast_new(int nside,int pol,int seed,
   free(cls);
 }
 
-void synfast_new_flat(int nx,int ny,double lx,double ly,int pol,int seed,
+void synfast_new_flat(int nx,int ny,double lx,double ly,
+		      int nfields,int *spin_arr,
+		      int seed,
 		      int ncl1,int nell1,double *cls1,
-		      int nell3,double *weights,
+		      int ncl2,int nell2,double *cls2,
 		      double* dout,int ndout)
 {
-  int ii,icl,nfields=1,nmaps=1;
+  int ii,icl,nmaps=0;
   long npix=nx*ny;
   double *larr;
   double **cls,**beams,**maps;
-  int spin_arr[2]={0,2};
-  if(pol) {
-    nfields=2;
-    nmaps=3;
+
+  for(ii=0;ii<nfields;ii++) {
+    if(spin_arr[ii]==0)
+      nmaps+=1;
+    else if(spin_arr[ii]==2)
+      nmaps+=2;
   }
   asserting(lx>0);
   asserting(ly>0);
-
+  
+  asserting(ncl2==nfields);
+  asserting(ncl1==(nmaps*(nmaps+1))/2);
+  asserting(nell1==nell2);
+  
   cls=malloc(ncl1*sizeof(double *));
   for(icl=0;icl<ncl1;icl++)
     cls[icl]=cls1+nell1*icl;
 
   beams=malloc(nfields*sizeof(double *));
   for(icl=0;icl<nfields;icl++)
-    beams[icl]=weights;
+    beams[icl]=cls2+nell2*icl;
 
-  larr=malloc(nell3*sizeof(double));
-  for(ii=0;ii<nell3;ii++)
+  larr=malloc(nell1*sizeof(double));
+  for(ii=0;ii<nell1;ii++)
     larr[ii]=ii;
 
   maps=nmt_synfast_flat(nx,ny,lx,ly,nfields,spin_arr,
-			nell3,larr,beams,nell1,larr,cls,seed);
+			nell1,larr,beams,nell1,larr,cls,seed);
 
   for(icl=0;icl<nmaps;icl++) {
     for(ii=0;ii<npix;ii++)
@@ -15733,25 +15749,27 @@ SWIGINTERN PyObject *_wrap_synfast_new(PyObject *SWIGUNUSEDPARM(self), PyObject 
   PyObject *resultobj = 0;
   int arg1 ;
   int arg2 ;
-  int arg3 ;
+  int *arg3 = (int *) 0 ;
   int arg4 ;
   int arg5 ;
-  double *arg6 = (double *) 0 ;
-  int arg7 ;
-  double *arg8 = (double *) 0 ;
-  double *arg9 = (double *) 0 ;
-  long arg10 ;
+  int arg6 ;
+  double *arg7 = (double *) 0 ;
+  int arg8 ;
+  int arg9 ;
+  double *arg10 = (double *) 0 ;
+  double *arg11 = (double *) 0 ;
+  long arg12 ;
   int val1 ;
   int ecode1 = 0 ;
-  int val2 ;
-  int ecode2 = 0 ;
-  int val3 ;
-  int ecode3 = 0 ;
-  PyArrayObject *array4 = NULL ;
-  int is_new_object4 = 0 ;
-  PyArrayObject *array7 = NULL ;
-  int is_new_object7 = 0 ;
-  PyObject *array9 = NULL ;
+  PyArrayObject *array2 = NULL ;
+  int is_new_object2 = 0 ;
+  int val4 ;
+  int ecode4 = 0 ;
+  PyArrayObject *array5 = NULL ;
+  int is_new_object5 = 0 ;
+  PyArrayObject *array8 = NULL ;
+  int is_new_object8 = 0 ;
+  PyObject *array11 = NULL ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   PyObject * obj2 = 0 ;
@@ -15765,40 +15783,48 @@ SWIGINTERN PyObject *_wrap_synfast_new(PyObject *SWIGUNUSEDPARM(self), PyObject 
     SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "synfast_new" "', argument " "1"" of type '" "int""'");
   } 
   arg1 = (int)(val1);
-  ecode2 = SWIG_AsVal_int(obj1, &val2);
-  if (!SWIG_IsOK(ecode2)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "synfast_new" "', argument " "2"" of type '" "int""'");
-  } 
-  arg2 = (int)(val2);
-  ecode3 = SWIG_AsVal_int(obj2, &val3);
-  if (!SWIG_IsOK(ecode3)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "synfast_new" "', argument " "3"" of type '" "int""'");
-  } 
-  arg3 = (int)(val3);
-  {
-    npy_intp size[2] = {
-      -1, -1 
-    };
-    array4 = obj_to_array_contiguous_allow_conversion(obj3,
-      NPY_DOUBLE,
-      &is_new_object4);
-    if (!array4 || !require_dimensions(array4, 2) ||
-      !require_size(array4, size, 2)) SWIG_fail;
-    arg4 = (int) array_size(array4,0);
-    arg5 = (int) array_size(array4,1);
-    arg6 = (double*) array_data(array4);
-  }
   {
     npy_intp size[1] = {
       -1
     };
-    array7 = obj_to_array_contiguous_allow_conversion(obj4,
+    array2 = obj_to_array_contiguous_allow_conversion(obj1,
+      NPY_INT,
+      &is_new_object2);
+    if (!array2 || !require_dimensions(array2, 1) ||
+      !require_size(array2, size, 1)) SWIG_fail;
+    arg2 = (int) array_size(array2,0);
+    arg3 = (int*) array_data(array2);
+  }
+  ecode4 = SWIG_AsVal_int(obj2, &val4);
+  if (!SWIG_IsOK(ecode4)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "synfast_new" "', argument " "4"" of type '" "int""'");
+  } 
+  arg4 = (int)(val4);
+  {
+    npy_intp size[2] = {
+      -1, -1 
+    };
+    array5 = obj_to_array_contiguous_allow_conversion(obj3,
       NPY_DOUBLE,
-      &is_new_object7);
-    if (!array7 || !require_dimensions(array7, 1) ||
-      !require_size(array7, size, 1)) SWIG_fail;
-    arg7 = (int) array_size(array7,0);
-    arg8 = (double*) array_data(array7);
+      &is_new_object5);
+    if (!array5 || !require_dimensions(array5, 2) ||
+      !require_size(array5, size, 2)) SWIG_fail;
+    arg5 = (int) array_size(array5,0);
+    arg6 = (int) array_size(array5,1);
+    arg7 = (double*) array_data(array5);
+  }
+  {
+    npy_intp size[2] = {
+      -1, -1 
+    };
+    array8 = obj_to_array_contiguous_allow_conversion(obj4,
+      NPY_DOUBLE,
+      &is_new_object8);
+    if (!array8 || !require_dimensions(array8, 2) ||
+      !require_size(array8, size, 2)) SWIG_fail;
+    arg8 = (int) array_size(array8,0);
+    arg9 = (int) array_size(array8,1);
+    arg10 = (double*) array_data(array8);
   }
   {
     npy_intp dims[1];
@@ -15810,15 +15836,15 @@ SWIGINTERN PyObject *_wrap_synfast_new(PyObject *SWIGUNUSEDPARM(self), PyObject 
         typestring);
       SWIG_fail;
     }
-    arg10 = (long) PyInt_AsLong(obj5);
-    dims[0] = (npy_intp) arg10;
-    array9 = PyArray_SimpleNew(1, dims, NPY_DOUBLE);
-    if (!array9) SWIG_fail;
-    arg9 = (double*) array_data(array9);
+    arg12 = (long) PyInt_AsLong(obj5);
+    dims[0] = (npy_intp) arg12;
+    array11 = PyArray_SimpleNew(1, dims, NPY_DOUBLE);
+    if (!array11) SWIG_fail;
+    arg11 = (double*) array_data(array11);
   }
   {
     try {
-      synfast_new(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10);
+      synfast_new(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12);
     }
     finally {
       SWIG_exception(SWIG_RuntimeError,nmt_error_message);
@@ -15826,32 +15852,44 @@ SWIGINTERN PyObject *_wrap_synfast_new(PyObject *SWIGUNUSEDPARM(self), PyObject 
   }
   resultobj = SWIG_Py_Void();
   {
-    resultobj = SWIG_Python_AppendOutput(resultobj,(PyObject*)array9);
+    resultobj = SWIG_Python_AppendOutput(resultobj,(PyObject*)array11);
   }
   {
-    if (is_new_object4 && array4)
+    if (is_new_object2 && array2)
     {
-      Py_DECREF(array4); 
+      Py_DECREF(array2); 
     }
   }
   {
-    if (is_new_object7 && array7)
+    if (is_new_object5 && array5)
     {
-      Py_DECREF(array7); 
+      Py_DECREF(array5); 
+    }
+  }
+  {
+    if (is_new_object8 && array8)
+    {
+      Py_DECREF(array8); 
     }
   }
   return resultobj;
 fail:
   {
-    if (is_new_object4 && array4)
+    if (is_new_object2 && array2)
     {
-      Py_DECREF(array4); 
+      Py_DECREF(array2); 
     }
   }
   {
-    if (is_new_object7 && array7)
+    if (is_new_object5 && array5)
     {
-      Py_DECREF(array7); 
+      Py_DECREF(array5); 
+    }
+  }
+  {
+    if (is_new_object8 && array8)
+    {
+      Py_DECREF(array8); 
     }
   }
   return NULL;
@@ -15865,14 +15903,16 @@ SWIGINTERN PyObject *_wrap_synfast_new_flat(PyObject *SWIGUNUSEDPARM(self), PyOb
   double arg3 ;
   double arg4 ;
   int arg5 ;
-  int arg6 ;
+  int *arg6 = (int *) 0 ;
   int arg7 ;
   int arg8 ;
-  double *arg9 = (double *) 0 ;
-  int arg10 ;
-  double *arg11 = (double *) 0 ;
-  double *arg12 = (double *) 0 ;
-  int arg13 ;
+  int arg9 ;
+  double *arg10 = (double *) 0 ;
+  int arg11 ;
+  int arg12 ;
+  double *arg13 = (double *) 0 ;
+  double *arg14 = (double *) 0 ;
+  int arg15 ;
   int val1 ;
   int ecode1 = 0 ;
   int val2 ;
@@ -15881,15 +15921,15 @@ SWIGINTERN PyObject *_wrap_synfast_new_flat(PyObject *SWIGUNUSEDPARM(self), PyOb
   int ecode3 = 0 ;
   double val4 ;
   int ecode4 = 0 ;
-  int val5 ;
-  int ecode5 = 0 ;
-  int val6 ;
-  int ecode6 = 0 ;
-  PyArrayObject *array7 = NULL ;
-  int is_new_object7 = 0 ;
-  PyArrayObject *array10 = NULL ;
-  int is_new_object10 = 0 ;
-  PyObject *array12 = NULL ;
+  PyArrayObject *array5 = NULL ;
+  int is_new_object5 = 0 ;
+  int val7 ;
+  int ecode7 = 0 ;
+  PyArrayObject *array8 = NULL ;
+  int is_new_object8 = 0 ;
+  PyArrayObject *array11 = NULL ;
+  int is_new_object11 = 0 ;
+  PyObject *array14 = NULL ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   PyObject * obj2 = 0 ;
@@ -15921,40 +15961,48 @@ SWIGINTERN PyObject *_wrap_synfast_new_flat(PyObject *SWIGUNUSEDPARM(self), PyOb
     SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "synfast_new_flat" "', argument " "4"" of type '" "double""'");
   } 
   arg4 = (double)(val4);
-  ecode5 = SWIG_AsVal_int(obj4, &val5);
-  if (!SWIG_IsOK(ecode5)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode5), "in method '" "synfast_new_flat" "', argument " "5"" of type '" "int""'");
-  } 
-  arg5 = (int)(val5);
-  ecode6 = SWIG_AsVal_int(obj5, &val6);
-  if (!SWIG_IsOK(ecode6)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode6), "in method '" "synfast_new_flat" "', argument " "6"" of type '" "int""'");
-  } 
-  arg6 = (int)(val6);
-  {
-    npy_intp size[2] = {
-      -1, -1 
-    };
-    array7 = obj_to_array_contiguous_allow_conversion(obj6,
-      NPY_DOUBLE,
-      &is_new_object7);
-    if (!array7 || !require_dimensions(array7, 2) ||
-      !require_size(array7, size, 2)) SWIG_fail;
-    arg7 = (int) array_size(array7,0);
-    arg8 = (int) array_size(array7,1);
-    arg9 = (double*) array_data(array7);
-  }
   {
     npy_intp size[1] = {
       -1
     };
-    array10 = obj_to_array_contiguous_allow_conversion(obj7,
+    array5 = obj_to_array_contiguous_allow_conversion(obj4,
+      NPY_INT,
+      &is_new_object5);
+    if (!array5 || !require_dimensions(array5, 1) ||
+      !require_size(array5, size, 1)) SWIG_fail;
+    arg5 = (int) array_size(array5,0);
+    arg6 = (int*) array_data(array5);
+  }
+  ecode7 = SWIG_AsVal_int(obj5, &val7);
+  if (!SWIG_IsOK(ecode7)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode7), "in method '" "synfast_new_flat" "', argument " "7"" of type '" "int""'");
+  } 
+  arg7 = (int)(val7);
+  {
+    npy_intp size[2] = {
+      -1, -1 
+    };
+    array8 = obj_to_array_contiguous_allow_conversion(obj6,
       NPY_DOUBLE,
-      &is_new_object10);
-    if (!array10 || !require_dimensions(array10, 1) ||
-      !require_size(array10, size, 1)) SWIG_fail;
-    arg10 = (int) array_size(array10,0);
-    arg11 = (double*) array_data(array10);
+      &is_new_object8);
+    if (!array8 || !require_dimensions(array8, 2) ||
+      !require_size(array8, size, 2)) SWIG_fail;
+    arg8 = (int) array_size(array8,0);
+    arg9 = (int) array_size(array8,1);
+    arg10 = (double*) array_data(array8);
+  }
+  {
+    npy_intp size[2] = {
+      -1, -1 
+    };
+    array11 = obj_to_array_contiguous_allow_conversion(obj7,
+      NPY_DOUBLE,
+      &is_new_object11);
+    if (!array11 || !require_dimensions(array11, 2) ||
+      !require_size(array11, size, 2)) SWIG_fail;
+    arg11 = (int) array_size(array11,0);
+    arg12 = (int) array_size(array11,1);
+    arg13 = (double*) array_data(array11);
   }
   {
     npy_intp dims[1];
@@ -15966,15 +16014,15 @@ SWIGINTERN PyObject *_wrap_synfast_new_flat(PyObject *SWIGUNUSEDPARM(self), PyOb
         typestring);
       SWIG_fail;
     }
-    arg13 = (int) PyInt_AsLong(obj8);
-    dims[0] = (npy_intp) arg13;
-    array12 = PyArray_SimpleNew(1, dims, NPY_DOUBLE);
-    if (!array12) SWIG_fail;
-    arg12 = (double*) array_data(array12);
+    arg15 = (int) PyInt_AsLong(obj8);
+    dims[0] = (npy_intp) arg15;
+    array14 = PyArray_SimpleNew(1, dims, NPY_DOUBLE);
+    if (!array14) SWIG_fail;
+    arg14 = (double*) array_data(array14);
   }
   {
     try {
-      synfast_new_flat(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13);
+      synfast_new_flat(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13,arg14,arg15);
     }
     finally {
       SWIG_exception(SWIG_RuntimeError,nmt_error_message);
@@ -15982,32 +16030,44 @@ SWIGINTERN PyObject *_wrap_synfast_new_flat(PyObject *SWIGUNUSEDPARM(self), PyOb
   }
   resultobj = SWIG_Py_Void();
   {
-    resultobj = SWIG_Python_AppendOutput(resultobj,(PyObject*)array12);
+    resultobj = SWIG_Python_AppendOutput(resultobj,(PyObject*)array14);
   }
   {
-    if (is_new_object7 && array7)
+    if (is_new_object5 && array5)
     {
-      Py_DECREF(array7); 
+      Py_DECREF(array5); 
     }
   }
   {
-    if (is_new_object10 && array10)
+    if (is_new_object8 && array8)
     {
-      Py_DECREF(array10); 
+      Py_DECREF(array8); 
+    }
+  }
+  {
+    if (is_new_object11 && array11)
+    {
+      Py_DECREF(array11); 
     }
   }
   return resultobj;
 fail:
   {
-    if (is_new_object7 && array7)
+    if (is_new_object5 && array5)
     {
-      Py_DECREF(array7); 
+      Py_DECREF(array5); 
     }
   }
   {
-    if (is_new_object10 && array10)
+    if (is_new_object8 && array8)
     {
-      Py_DECREF(array10); 
+      Py_DECREF(array8); 
+    }
+  }
+  {
+    if (is_new_object11 && array11)
+    {
+      Py_DECREF(array11); 
     }
   }
   return NULL;
