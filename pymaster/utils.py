@@ -39,7 +39,7 @@ def synfast_spherical(nside,cls,spin_arr,beam=None,seed=-1) :
     :param array-like spin_arr: array containing the spins of all the fields to generate.
     :param beam array-like: 2D array containing the instrumental beam of each field to simulate (the output map(s) will be convolved with it)
     :param int seed: RNG seed. If negative, will use a random seed.
-    :return: 1 or 3 full-sky maps
+    :return: a number of full-sky maps (1 for each spin-0 field, 2 for each spin-2 field).
     """
     if seed<0 :
         seed=np.random.randint(50000000)
