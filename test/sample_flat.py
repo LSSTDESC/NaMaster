@@ -20,7 +20,7 @@ Nx=602; Ny=410;
 l,cl_tt,cl_ee,cl_bb,cl_te=np.loadtxt('cls.txt',unpack=True);
 beam=np.exp(-(0.25*np.pi/180*l)**2);
 cl_tt*=beam; cl_ee*=beam; cl_bb*=beam; cl_te*=beam; 
-mpt,mpq,mpu=nmt.synfast_flat(Nx,Ny,Lx,Ly,[cl_tt,cl_ee,cl_bb,cl_te],pol=True)
+mpt,mpq,mpu=nmt.synfast_flat(Nx,Ny,Lx,Ly,np.array([cl_tt,cl_te,0*cl_tt,cl_ee,0*cl_ee,cl_bb]),[0,2])
 
 #You can have a look at the maps using matplotlib's imshow:
 plt.figure(); plt.imshow(mpt,interpolation='nearest',origin='lower'); plt.colorbar()

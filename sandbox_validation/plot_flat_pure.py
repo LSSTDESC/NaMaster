@@ -23,14 +23,14 @@ def read_cls(fname) :
 l_th,clEE_th,clEB_th,clBE_th,clBB_th=read_cls(prefix_clean+"_cl_th.txt")
 ndof=len(l_th)
 
-print "Reading"
+print("Reading")
 clEE_clean=[]; clEB_clean=[]; clBB_clean=[];
 for i in np.arange(nsims) :
     ll,ccee,cceb,ccbe,ccbb=read_cls(prefix_clean+"_cl_%04d.txt"%(i+1))
     clEE_clean.append(ccee); clEB_clean.append(cceb); clBB_clean.append(ccbb);
 clEE_clean=np.array(clEE_clean); clEB_clean=np.array(clEB_clean); clBB_clean=np.array(clBB_clean); 
 
-print "Computing statistics"
+print("Computing statistics")
 hartfac=(nsims-ndof-2.)/(nsims-1.)
 def compute_stats(y,y_th) :
     mean=np.mean(y,axis=0)

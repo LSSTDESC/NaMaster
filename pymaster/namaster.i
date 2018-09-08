@@ -27,7 +27,8 @@
                                      (int nell22,double *c22),
                                      (int nell3,double *weights)};
 %apply (int DIM1,int *IN_ARRAY1) {(int nell1,int *bpws),
-                                  (int nell2,int *ells)};
+                                  (int nell2,int *ells),
+                                  (int nfields,int *spin_arr)};
 %apply (int DIM1,int DIM2,double *IN_ARRAY2) {(int nmap_2,int npix_2,double *mps),
                                               (int ncl1  ,int nell1 ,double *cls1),
                                               (int ncl2  ,int nell2 ,double *cls2),
@@ -406,19 +407,27 @@ void apomask_flat(int nx,int ny,double lx,double ly,
   nmt_apodize_mask_flat(nx,ny,lx,ly,mask,dout,aposize,apotype);
 }
 
-void synfast_new(int nside,int pol,int seed,
+void synfast_new(int nside,
+		 int nfields,int *spin_arr,
+		 int seed,
 		 int ncl1,int nell1,double *cls1,
-		 int nell3,double *weights,
+		 int ncl2,int nell2,double *cls2,
 		 double* ldout,long nldout)
 {
-  int icl,nfields=1,nmaps=1;
+  int ii,icl,nmaps=0;
   long npix=12*nside*nside;
   double **cls,**beams,**maps;
-  int spin_arr[2]={0,2};
-  if(pol) {
-    nfields=2;
-    nmaps=3;
+
+  for(ii=0;ii<nfields;ii++) {
+    if(spin_arr[ii]==0)
+      nmaps+=1;
+    else if(spin_arr[ii]==2)
+      nmaps+=2;
   }
+
+  asserting(ncl2==nfields);
+  asserting(ncl1==(nmaps*(nmaps+1))/2);
+  asserting(nell1==nell2);
 
   cls=malloc(ncl1*sizeof(double *));
   for(icl=0;icl<ncl1;icl++)
@@ -426,9 +435,9 @@ void synfast_new(int nside,int pol,int seed,
 
   beams=malloc(nfields*sizeof(double *));
   for(icl=0;icl<nfields;icl++)
-    beams[icl]=weights;
+    beams[icl]=cls2+nell2*icl;
 
-  maps=nmt_synfast_sph(nside,nfields,spin_arr,nell3-1,cls,beams,seed);
+  maps=nmt_synfast_sph(nside,nfields,spin_arr,nell1-1,cls,beams,seed);
 
   for(icl=0;icl<nmaps;icl++) {
     memcpy(&(ldout[npix*icl]),maps[icl],npix*sizeof(double));
@@ -439,37 +448,45 @@ void synfast_new(int nside,int pol,int seed,
   free(cls);
 }
 
-void synfast_new_flat(int nx,int ny,double lx,double ly,int pol,int seed,
+void synfast_new_flat(int nx,int ny,double lx,double ly,
+		      int nfields,int *spin_arr,
+		      int seed,
 		      int ncl1,int nell1,double *cls1,
-		      int nell3,double *weights,
+		      int ncl2,int nell2,double *cls2,
 		      double* dout,int ndout)
 {
-  int ii,icl,nfields=1,nmaps=1;
+  int ii,icl,nmaps=0;
   long npix=nx*ny;
   double *larr;
   double **cls,**beams,**maps;
-  int spin_arr[2]={0,2};
-  if(pol) {
-    nfields=2;
-    nmaps=3;
+
+  for(ii=0;ii<nfields;ii++) {
+    if(spin_arr[ii]==0)
+      nmaps+=1;
+    else if(spin_arr[ii]==2)
+      nmaps+=2;
   }
   asserting(lx>0);
   asserting(ly>0);
-
+  
+  asserting(ncl2==nfields);
+  asserting(ncl1==(nmaps*(nmaps+1))/2);
+  asserting(nell1==nell2);
+  
   cls=malloc(ncl1*sizeof(double *));
   for(icl=0;icl<ncl1;icl++)
     cls[icl]=cls1+nell1*icl;
 
   beams=malloc(nfields*sizeof(double *));
   for(icl=0;icl<nfields;icl++)
-    beams[icl]=weights;
+    beams[icl]=cls2+nell2*icl;
 
-  larr=malloc(nell3*sizeof(double));
-  for(ii=0;ii<nell3;ii++)
+  larr=malloc(nell1*sizeof(double));
+  for(ii=0;ii<nell1;ii++)
     larr[ii]=ii;
 
   maps=nmt_synfast_flat(nx,ny,lx,ly,nfields,spin_arr,
-			nell3,larr,beams,nell1,larr,cls,seed);
+			nell1,larr,beams,nell1,larr,cls,seed);
 
   for(icl=0;icl<nmaps;icl++) {
     for(ii=0;ii<npix;ii++)

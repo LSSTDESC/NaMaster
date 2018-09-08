@@ -23,8 +23,16 @@ class TestUtilsSynfastFsk(unittest.TestCase) :
         self.clte=np.zeros_like(self.cltt)
         self.cleb=np.zeros_like(self.cltt)
         self.cltb=np.zeros_like(self.cltt)
-        self.cl4=np.array([self.cltt,self.clee,self.clbb,self.clte])
-        self.cl6=np.array([self.cltt,self.clee,self.clbb,self.clte,self.cleb,self.cltb])
+        self.cl1=np.array([self.cltt])
+        self.cl2=np.array([self.clee,self.cleb,
+                           self.clbb])
+        self.cl12=np.array([self.cltt,self.clte,self.cltb,
+                            self.clee,self.cleb,
+                            self.clbb])
+        self.cl22=np.array([self.clee,self.cleb,self.cleb,self.cleb,
+                            self.clbb,self.cleb,self.cleb,
+                            self.clee,self.cleb,
+                            self.clbb])
         self.beam=np.ones_like(self.cltt)
 
     def anafast(self,mps) :
@@ -77,29 +85,26 @@ class TestUtilsSynfastFsk(unittest.TestCase) :
 
         
     def test_synfast_flat_errors(self) :
-        with self.assertRaises(ValueError) : #Single array for polarization
-            nmt.synfast_flat(self.nx,self.ny,self.lx,self.ly,self.cltt,pol=True,seed=1234)
-        with self.assertRaises(ValueError) : #Inconsistent array for polarization
-            nmt.synfast_flat(self.nx,self.ny,self.lx,self.ly,[self.cltt,self.clee],pol=True,seed=1234)
-        with self.assertRaises(ValueError) : #Inconsistent array for temperature-only
-            nmt.synfast_flat(self.nx,self.ny,self.lx,self.ly,self.cl4,seed=1234)
+        with self.assertRaises(ValueError) : #Spin != 0 or 2
+            nmt.synfast_flat(self.nx,self.ny,self.lx,self.ly,self.cl1,[1],beam=self.beam,seed=1234)
+        with self.assertRaises(ValueError) : #Not enough power spectra
+            nmt.synfast_flat(self.nx,self.ny,self.lx,self.ly,self.cl2,[0,2],beam=np.array([self.beam,self.beam]),seed=1234)
+        with self.assertRaises(ValueError) : #Not enough beams
+            nmt.synfast_flat(self.nx,self.ny,self.lx,self.ly,self.cl12,[0,2],beam=np.array([self.beam]),seed=1234)
         with self.assertRaises(ValueError) : #Inconsistent beam
-            nmt.synfast_flat(self.nx,self.ny,self.lx,self.ly,self.cl4,pol=True,beam=self.beam[:15],seed=1234)
+            nmt.synfast_flat(self.nx,self.ny,self.lx,self.ly,self.cl12,[0,2],beam=np.array([self.beam[:15],self.beam[:15]]),seed=1234)
         with self.assertRaises(RuntimeError) : #Negative dimensions
-            nmt.synfast_flat(self.nx,self.ny,-self.lx,self.ly,self.cl4,pol=True,beam=self.beam,seed=1234)
-        m=nmt.synfast_flat(self.nx,self.ny,self.lx,self.ly,self.cl4,pol=True,beam=self.beam,seed=1234)
+            nmt.synfast_flat(self.nx,self.ny,-self.lx,self.ly,self.cl2,[2],beam=np.array([self.beam]),seed=1234)
+        m=nmt.synfast_flat(self.nx,self.ny,self.lx,self.ly,self.cl12,[0,2],beam=np.array([self.beam,self.beam]),seed=1234)
         self.assertEqual(m.shape,(3,self.ny,self.nx))
 
     def test_synfast_flat_stats(self) :
         #Temperature only
-        m_t=nmt.synfast_flat(self.nx,self.ny,self.lx,self.ly,self.cltt,beam=self.beam,seed=1234)[0]
-        #Polarization (omitting EB and TB)
-        m_p1=nmt.synfast_flat(self.nx,self.ny,self.lx,self.ly,self.cl4,pol=True,beam=self.beam,seed=1234)
-        #Polarization (full monty)
-        m_p2=nmt.synfast_flat(self.nx,self.ny,self.lx,self.ly,self.cl6,pol=True,beam=self.beam,seed=1234)
+        m_t=nmt.synfast_flat(self.nx,self.ny,self.lx,self.ly,self.cl1,[0],beam=np.array([self.beam]),seed=1234)[0]
+        #Polarization
+        m_p1=nmt.synfast_flat(self.nx,self.ny,self.lx,self.ly,self.cl12,[0,2],beam=np.array([self.beam,self.beam]),seed=1234)
         km,nk,ctt1=self.anafast(m_t)
         km,nk,[ctt2,cee2,cbb2,cte2,ceb2,ctb2]=self.anafast(m_p1)
-        km,nk,[ctt3,cee3,cbb3,cte3,ceb3,ctb3]=self.anafast(m_p1)
         lint=km.astype(int)
         def get_diff(c_d,c_t,c11,c22,c12,nmodes,facsig=5) :
             diff=np.fabs(c_d-c_t[lint]) #Residuals
@@ -108,22 +113,16 @@ class TestUtilsSynfastFsk(unittest.TestCase) :
         #Check TT
         self.assertTrue(get_diff(ctt1,self.cltt,self.cltt,self.cltt,self.cltt,nk).all())
         self.assertTrue(get_diff(ctt2,self.cltt,self.cltt,self.cltt,self.cltt,nk).all())
-        self.assertTrue(get_diff(ctt3,self.cltt,self.cltt,self.cltt,self.cltt,nk).all())
         #Check EE
         self.assertTrue(get_diff(cee2,self.clee,self.clee,self.clee,self.clee,nk).all())
-        self.assertTrue(get_diff(cee3,self.clee,self.clee,self.clee,self.clee,nk).all())
         #Check BB
         self.assertTrue(get_diff(cbb2,self.clbb,self.clbb,self.clbb,self.clbb,nk).all())
-        self.assertTrue(get_diff(cbb3,self.clbb,self.clbb,self.clbb,self.clbb,nk).all())
         #Check TE
         self.assertTrue(get_diff(cte2,self.clte,self.cltt,self.clee,self.clte,nk).all())
-        self.assertTrue(get_diff(cte3,self.clte,self.cltt,self.clee,self.clte,nk).all())
         #Check EB
         self.assertTrue(get_diff(ceb2,self.cleb,self.clbb,self.clee,self.cleb,nk).all())
-        self.assertTrue(get_diff(ceb3,self.cleb,self.clbb,self.clee,self.cleb,nk).all())
         #Check TB
         self.assertTrue(get_diff(ctb2,self.cltb,self.cltt,self.clbb,self.cltb,nk).all())
-        self.assertTrue(get_diff(ctb3,self.cltb,self.cltt,self.clbb,self.cltb,nk).all())
         
 class TestUtilsSynfastSph(unittest.TestCase) :
     def setUp(self) :
@@ -138,35 +137,40 @@ class TestUtilsSynfastSph(unittest.TestCase) :
         self.clte=np.zeros_like(self.cltt)
         self.cleb=np.zeros_like(self.cltt)
         self.cltb=np.zeros_like(self.cltt)
-        self.cl4=np.array([self.cltt,self.clee,self.clbb,self.clte])
-        self.cl6=np.array([self.cltt,self.clee,self.clbb,self.clte,self.cleb,self.cltb])
+        self.cl1=np.array([self.cltt])
+        self.cl2=np.array([self.clee,self.cleb,
+                           self.clbb])
+        self.cl12=np.array([self.cltt,self.clte,self.cltb,
+                            self.clee,self.cleb,
+                            self.clbb])
+        self.cl22=np.array([self.clee,self.cleb,self.cleb,self.cleb,
+                            self.clbb,self.cleb,self.cleb,
+                            self.clee,self.cleb,
+                            self.clbb])
         self.beam=np.ones_like(self.cltt)
 
     def anafast(self,mps) :
         return hp.anafast(mps)
     
     def test_synfast_errors(self) :
-        with self.assertRaises(ValueError) : #Single array for polarization
-            nmt.synfast_spherical(self.nside,self.cltt,pol=True,seed=1234)
-        with self.assertRaises(ValueError) : #Inconsistent array for polarization
-            nmt.synfast_spherical(self.nside,[self.cltt,self.clee],pol=True,seed=1234)
-        with self.assertRaises(ValueError) : #Inconsistent array for temperature-only
-            nmt.synfast_spherical(self.nside,self.cl4,seed=1234)
+        with self.assertRaises(ValueError) : #Spin != 0 or 2
+            nmt.synfast_spherical(self.nside,self.cl1,[1],seed=1234)
+        with self.assertRaises(ValueError) : #Not enough power spectra
+            nmt.synfast_spherical(self.nside,self.cl2,[0,2],seed=1234)
+        with self.assertRaises(ValueError) : #Not enough beams
+            nmt.synfast_spherical(self.nside,self.cl12,[0,2],beam=np.array([self.beam]),seed=1234)
         with self.assertRaises(ValueError) : #Inconsistent beam
-            nmt.synfast_spherical(self.nside,self.cl4,pol=True,beam=self.beam[:15],seed=1234)
-        m=nmt.synfast_spherical(self.nside,self.cl4,pol=True,beam=self.beam,seed=1234)
+            nmt.synfast_spherical(self.nside,self.cl12,[0,2],beam=np.array([self.beam[:15],self.beam[:15]]),seed=1234)
+        m=nmt.synfast_spherical(self.nside,self.cl12,[0,2],beam=np.array([self.beam,self.beam]),seed=1234)
         self.assertEqual(m.shape,(3,hp.nside2npix(self.nside)))
 
     def test_synfast_stats(self) :
         #Temperature only
-        m_t=nmt.synfast_spherical(self.nside,self.cltt,beam=self.beam,seed=1234)
-        #Polarization (omitting EB and TB)
-        m_p1=nmt.synfast_spherical(self.nside,self.cl4,pol=True,beam=self.beam,seed=1234)
-        #Polarization (full monty)
-        m_p2=nmt.synfast_spherical(self.nside,self.cl6,pol=True,beam=self.beam,seed=1234)
+        m_t=nmt.synfast_spherical(self.nside,self.cl1,[0],beam=np.array([self.beam]),seed=1234)
+        #Polarization
+        m_p1=nmt.synfast_spherical(self.nside,self.cl12,[0,2],beam=np.array([self.beam,self.beam]),seed=1234)
         ctt1=self.anafast(m_t)
         ctt2,cee2,cbb2,cte2,ceb2,ctb2=self.anafast(m_p1)
-        ctt3,cee3,cbb3,cte3,ceb3,ctb3=self.anafast(m_p2)
         def get_diff(c_d,c_t,c11,c22,c12,facsig=5) :
             diff=np.fabs(c_d-c_t) #Residuals
             sig=np.sqrt((c11*c22+c12**2)/(2*self.larr+1.)) #1-sigma expected errors
@@ -174,22 +178,16 @@ class TestUtilsSynfastSph(unittest.TestCase) :
         #Check TT
         self.assertTrue(get_diff(ctt1,self.cltt,self.cltt,self.cltt,self.cltt).all())
         self.assertTrue(get_diff(ctt2,self.cltt,self.cltt,self.cltt,self.cltt).all())
-        self.assertTrue(get_diff(ctt3,self.cltt,self.cltt,self.cltt,self.cltt).all())
         #Check EE
         self.assertTrue(get_diff(cee2,self.clee,self.clee,self.clee,self.clee).all())
-        self.assertTrue(get_diff(cee3,self.clee,self.clee,self.clee,self.clee).all())
         #Check BB
         self.assertTrue(get_diff(cbb2,self.clbb,self.clbb,self.clbb,self.clbb).all())
-        self.assertTrue(get_diff(cbb3,self.clbb,self.clbb,self.clbb,self.clbb).all())
         #Check TE
         self.assertTrue(get_diff(cte2,self.clte,self.cltt,self.clee,self.clte).all())
-        self.assertTrue(get_diff(cte3,self.clte,self.cltt,self.clee,self.clte).all())
         #Check EB
         self.assertTrue(get_diff(ceb2,self.cleb,self.clbb,self.clee,self.cleb).all())
-        self.assertTrue(get_diff(ceb3,self.cleb,self.clbb,self.clee,self.cleb).all())
         #Check TB
         self.assertTrue(get_diff(ctb2,self.cltb,self.clbb,self.cltt,self.cltb).all())
-        self.assertTrue(get_diff(ctb3,self.cltb,self.clbb,self.cltt,self.cltb).all())
 
 class TestUtilsMaskSph(unittest.TestCase) :
     def setUp(self) :

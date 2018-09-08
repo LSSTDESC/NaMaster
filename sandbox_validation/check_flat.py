@@ -100,7 +100,7 @@ print(" - Res(x): %.3lf arcmin. Res(y): %.3lf arcmin."%(fmi.lx*60/fmi.nx,fmi.ly*
 print(" - lmax = %d, lmin = %d"%(int(ell_max),int(ell_min)))
 def get_fields() :
     st,sq,su=nmt.synfast_flat(int(fmi.nx),int(fmi.ny),fmi.lx_rad,fmi.ly_rad,
-                              [cltt+nltt,clee+nlee,clbb+nlbb,clte+nlte],pol=True)
+                              [cltt+nltt,clte+nlte,0*cltt,clee+nlee,0*clee,clbb+nlbb],[0,2])
     st=st.flatten(); sq=sq.flatten(); su=su.flatten()
     if w_cont :
         st+=np.sum(fgt,axis=0)[0,:]; sq+=np.sum(fgp,axis=0)[0,:]; su+=np.sum(fgp,axis=0)[1,:];

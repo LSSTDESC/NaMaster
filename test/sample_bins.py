@@ -25,26 +25,26 @@ while 4*(i+1)+2<3*nside :
 bin2=nmt.NmtBin(nside,bpws=bpws,ells=ells,weights=weights)
 
 #At this stage bin1 and bin2 should be identical
-print np.sum(bin1.get_effective_ells()-bin2.get_effective_ells())
+print(np.sum(bin1.get_effective_ells()-bin2.get_effective_ells()))
 
 #Array with effective multipole per bandpower
 ell_eff=bin1.get_effective_ells()
 
 #Bandpower info:
-print "Bandpower info:"
-print " %d bandpowers"%(bin1.get_n_bands())
-print "The columns in the following table are:"
-print " [1]-band index, [2]-list of multipoles, [3]-list of weights, [4]=effective multipole"
-for i in np.arange(bin1.get_n_bands()) :
-    print i, bin1.get_ell_list(i), bin1.get_weight_list(i), ell_eff[i]
-print ""
+print("Bandpower info:")
+print(" %d bandpowers"%(bin1.get_n_bands()))
+print("The columns in the following table are:")
+print(" [1]-band index, [2]-list of multipoles, [3]-list of weights, [4]=effective multipole")
+for i in range(bin1.get_n_bands()) :
+    print(i, bin1.get_ell_list(i), bin1.get_weight_list(i), ell_eff[i])
+print("")
 
 #Binning a power spectrum
 #Read the TT power spectrum
 data=np.loadtxt("cls.txt",unpack=True);
 ell_arr=data[0]; cl_tt=data[1]
 #Bin the power spectrum into bandpowers
-cl_tt_binned=bin1.bin_cell([cl_tt])
+cl_tt_binned=bin1.bin_cell(np.array([cl_tt]))
 #Unbin bandpowers
 cl_tt_binned_unbinned=bin1.unbin_cell(cl_tt_binned)
 #Plot all to see differences

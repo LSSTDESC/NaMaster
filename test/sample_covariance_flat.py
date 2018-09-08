@@ -40,7 +40,7 @@ clarr=((larr+50.)/300.)**(-1.1)+0.5
 
 #This function will generate random fields
 def get_sample_field() :
-    mpt=nmt.synfast_flat(Nx,Ny,Lx,Ly,clarr,pol=False)[0]
+    mpt=nmt.synfast_flat(Nx,Ny,Lx,Ly,np.array([clarr]),[0])[0]
     return nmt.NmtFieldFlat(Lx,Ly,mask,[mpt])
 
 #Convenience function from sample_workspaces.py for flat-sky fields
@@ -51,10 +51,10 @@ def compute_master(f_a,f_b,wsp) :
     return cl_decoupled
 
 #Let's generate one particular sample and its power spectrum
-print "Field"
+print("Field")
 f0=get_sample_field()
 plt.figure(); plt.imshow(f0.get_maps()[0]*mask,interpolation='nearest',origin='lower'); plt.colorbar()
-print "Workspace"
+print("Workspace")
 w=nmt.NmtWorkspaceFlat();
 if not os.path.isfile("w_flat_covar.dat") :
     w.compute_coupling_matrix(f0,f0,b)
@@ -63,7 +63,7 @@ w.read_from("w_flat_covar.dat")
 cl_0=compute_master(f0,f0,w)[0]
 
 #Let's now compute the Gaussian estimate of the covariance!
-print "Covariance"
+print("Covariance")
 #First we generate a NmtCovarianceWorkspaceFlat object to precompute
 #and store the necessary coupling coefficients
 cw=nmt.NmtCovarianceWorkspaceFlat();
@@ -74,12 +74,12 @@ cw.read_from("cw_flat.dat")
 covar=nmt.gaussian_covariance_flat(cw,larr,clarr,clarr,clarr,clarr)
 
 #Let's now compute the sample covariance
-print "Sample covariance"
-nsamp=10000
+print("Sample covariance")
+nsamp=1000
 covar_sample=np.zeros([len(cl_0),len(cl_0)])
 mean_sample=np.zeros(len(cl_0))
 for i in np.arange(nsamp) :
-    print i
+    print(i)
     f=get_sample_field()
     cl=compute_master(f,f,w)[0]
     covar_sample+=cl[None,:]*cl[:,None]

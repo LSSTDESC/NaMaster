@@ -54,7 +54,7 @@ def compute_master(f_a,f_b,wsp,clb) :
     #Compute the power spectrum (a la anafast) of the masked fields
     #Note that we only use n_iter=0 here to speed up the computation,
     #but the default value of 3 is recommended in general.
-    cl_coupled=nmt.compute_coupled_cell(f_a,f_b,n_iter=0)
+    cl_coupled=nmt.compute_coupled_cell(f_a,f_b)
     #Decouple power spectrum into bandpowers inverting the coupling matrix
     cl_decoupled=wsp.decouple_cell(cl_coupled,cl_bias=clb)
 
@@ -70,7 +70,7 @@ nsim=100
 cl_mean=np.zeros_like(cl_master)
 cl_std=np.zeros_like(cl_master)
 for i in np.arange(nsim) :
-    print "%d-th simulation"%i
+    print("%d-th simulation"%i)
     t,q,u=hp.synfast([cltt,clee,clbb,clte],nside,verbose=False)
     f0_sim=nmt.NmtField(mask,[t],templates=[[tm_t]])
     f2_sim=nmt.NmtField(mask,[q,u],templates=[[tm_q,tm_u]])

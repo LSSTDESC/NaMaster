@@ -1015,12 +1015,12 @@ def apomask_flat(nx, ny, lx, ly, npix_1, dout, aposize, apotype):
     return _nmtlib.apomask_flat(nx, ny, lx, ly, npix_1, dout, aposize, apotype)
 apomask_flat = _nmtlib.apomask_flat
 
-def synfast_new(nside, pol, seed, ncl1, nell3, ldout):
-    return _nmtlib.synfast_new(nside, pol, seed, ncl1, nell3, ldout)
+def synfast_new(nside, nfields, seed, ncl1, ncl2, ldout):
+    return _nmtlib.synfast_new(nside, nfields, seed, ncl1, ncl2, ldout)
 synfast_new = _nmtlib.synfast_new
 
-def synfast_new_flat(nx, ny, lx, ly, pol, seed, ncl1, nell3, dout):
-    return _nmtlib.synfast_new_flat(nx, ny, lx, ly, pol, seed, ncl1, nell3, dout)
+def synfast_new_flat(nx, ny, lx, ly, nfields, seed, ncl1, ncl2, dout):
+    return _nmtlib.synfast_new_flat(nx, ny, lx, ly, nfields, seed, ncl1, ncl2, dout)
 synfast_new_flat = _nmtlib.synfast_new_flat
 
 def comp_coupling_matrix(fl1, fl2, bin):
