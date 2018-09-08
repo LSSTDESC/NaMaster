@@ -57,7 +57,7 @@ wcs,msk=read_flat_map("msk_flat.fits")
 lx=np.fabs(nx*wcs.wcs.cdelt[0])*np.pi/180
 ly=np.fabs(ny*wcs.wcs.cdelt[1])*np.pi/180
 dt,dq,du=nmt.synfast_flat(int(nx),int(ny),lx,ly,
-                          [cltt+nltt,clee+nlee,clbb+nlbb,clte+nlte],pol=True)
+                          [cltt+nltt,clte+nlte,0*cltt,clee+nlee,0*clee,clbb+nlbb],[0,2])
 write_flat_map("mps_flat.fits",np.array([dt,dq,du]),wcs,["T","Q","U"])
 d_ell=20; lmax=500.; ledges=np.arange(int(lmax/d_ell)+1)*d_ell+2
 _,st=read_flat_map("tmp_flat.fits",0)

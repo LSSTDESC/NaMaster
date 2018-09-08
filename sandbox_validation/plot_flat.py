@@ -33,7 +33,7 @@ nltt[0]=0; nlee[0]=0; nlbb[0]=0; nlte[0]=0;
 fmi,mask_hsc=fm.read_flat_map("data/mask_lss_flat.fits")
 dum,fgt=fm.read_flat_map("data/cont_lss_dust_flat.fits") #Dust
 st,sq,su=nmt.synfast_flat(int(fmi.nx),int(fmi.ny),fmi.lx_rad,fmi.ly_rad,
-                          [cltt+nltt,clee+nlee,clbb+nlbb,clte+nlte],pol=True)
+                          [cltt+nltt,clte+nlte,0*cltt,clee+nlee,0*clee,clbb+nlbb],[0,2])
 mask_hsc[:]=1
 ff0=nmt.NmtFieldFlat(fmi.lx_rad,fmi.ly_rad,mask_hsc.reshape([fmi.ny,fmi.nx]),
                      [st+fgt.reshape([fmi.ny,fmi.nx])],
@@ -54,8 +54,6 @@ fmi.view_map(ff0.get_maps().flatten(),ax=ax,addColorbar=False,title='Cleaned map
              colorMin=np.amin(st),colorMax=np.amax(st))
 plt.savefig("plots_paper/maps_contamination.pdf",bbox_inches='tight')
 plt.show()
-
-'''
 
 print("Reading")
 clTT_clean=[]; clTE_clean=[]; clTB_clean=[]; clEE_clean=[]; clEB_clean=[]; clBB_clean=[];
@@ -255,4 +253,3 @@ for a in ax :
 ax[0].legend(loc='upper left',fontsize=12,frameon=False)
 plt.savefig("plots_paper/val_chi2_lss_flat.pdf",bbox_inches='tight')
 plt.show()
-'''

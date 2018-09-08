@@ -53,7 +53,7 @@ def compute_master(f_a,f_b,wsp) :
 #We now iterate over several simulations, computing the power spectrum for each of them
 data_np=[]; data_yp=[];
 for i in np.arange(nsim) :
-    print i,nsim
+    print(i,nsim)
     fnp,fyp=get_fields()
     data_np.append(compute_master(fnp,fnp,w_np))
     data_yp.append(compute_master(fyp,fyp,w_yp))

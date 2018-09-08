@@ -36,16 +36,16 @@ def compute_master(f_a,f_b,wsp) :
     return cl_decoupled
 
 #Let's generate one particular sample and its power spectrum.
-print "Field"
+print("Field")
 f0=get_sample_field()
 b=nmt.NmtBin(nside,nlb=20) #We will use 20 multipoles per bandpower.
-print "Workspace"
+print("Workspace")
 w=nmt.NmtWorkspace()
 w.compute_coupling_matrix(f0,f0,b)
 cl_0=compute_master(f0,f0,w)[0]
 
 #Let's now compute the Gaussian estimate of the covariance!
-print "Covariance"
+print("Covariance")
 #First we generate a NmtCovarianceWorkspace object to precompute
 #and store the necessary coupling coefficients
 cw=nmt.NmtCovarianceWorkspace()
@@ -53,12 +53,12 @@ cw.compute_coupling_coefficients(w,w) #<- This is the time-consuming operation
 covar=nmt.gaussian_covariance(cw,clarr,clarr,clarr,clarr)
 
 #Let's now compute the sample covariance
-print "Sample covariance"
+print("Sample covariance")
 nsamp=100
 covar_sample=np.zeros([len(cl_0),len(cl_0)])
 mean_sample=np.zeros(len(cl_0))
 for i in np.arange(nsamp) :
-    print i
+    print(i)
     f=get_sample_field()
     cl=compute_master(f,f,w)[0]
     covar_sample+=cl[None,:]*cl[:,None]
