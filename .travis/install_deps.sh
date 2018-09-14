@@ -15,7 +15,6 @@ cd libsharp
 autoconf -i
 ./configure --enable-pic
 make
-make install
 mv auto/bin $TRAVIS_BUILD_DIR
 mv auto/lib $TRAVIS_BUILD_DIR
 mv auto/include $TRAVIS_BUILD_DIR
