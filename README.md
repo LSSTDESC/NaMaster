@@ -5,9 +5,11 @@ NaMaster is a C library, Python module and standalone program to compute full-sk
 
 ## Installation
 NaMaster has the following dependencies, which should be present in your system before you can install the code:
-* [GSL](https://www.gnu.org/software/gsl/)
-* [FFTW](http://www.fftw.org/)
+* [GSL](https://www.gnu.org/software/gsl/). Version 2 required.
+* [FFTW](http://www.fftw.org/). Version 3 required. Install with `--enable-openmp`.
 * [libsharp](https://github.com/Libsharp/libsharp) (see instructions in [NERSC_installation.md](NERSC_installation.md) for more details on how to install libsharp).
+* [cfitsio](https://heasarc.gsfc.nasa.gov/fitsio/). Any version >3 should work.
+* [HEALPix](https://sourceforge.net/projects/healpix/). Any version >2 should work. You only need to install the C libraries.
 
 ### 1- C library
 First, install the C library `libnmt`. In UNIX, in the simplest case, this should be a matter of running
