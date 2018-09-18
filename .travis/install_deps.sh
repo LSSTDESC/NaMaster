@@ -22,5 +22,5 @@ cd ..
 
 #### Install GSL2.0+ ####
 
-wget ftp://ftp.gnu.org/gnu/gsl/gsl-2.4.tar.gz && tar xzf gsl-2.4.tar.gz && cd gsl-2.4 &&  ./configure --enable-shared && make && sudo make install && cd ..
+wget ftp://ftp.gnu.org/gnu/gsl/gsl-2.5.tar.gz && tar xzf gsl-2.5.tar.gz && cd gsl-2.5 &&  ./configure --enable-shared && make && sudo make install && cd ..
 
