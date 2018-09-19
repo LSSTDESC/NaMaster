@@ -5,7 +5,7 @@ cache:
     directories:
     - "$HOME/libsharp"
     - "$HOME/NaMaster"
-    - "$HOME/gsl-2.4"
+    - "$HOME/gsl-2.5"
     - "$HOME/chealpix-3.11.4"
     pip: true
 
