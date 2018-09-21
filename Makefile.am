@@ -3,6 +3,7 @@ EXTRA_DIST = doc README.md
 lib_LTLIBRARIES = libnmt.la
 libnmt_la_SOURCES = src/utils.c src/flatsky_utils.c src/healpix_extra.c src/nmt_bins.c src/nmt_bins_flat.c src/nmt_field.c src/nmt_field_flat.c src/nmt_mask.c src/nmt_mask_flat.c src/nmt_master.c src/nmt_covar.c src/nmt_master_flat.c src/nmt_covar_flat.c
 libnmt_la_CPPFLAGS = $(OPENMP_CFLAGS) -I./src/
+libnmt_la_LDFLAGS = $(OPENP_CFLAGS) -lfftw3 -lfftw3_omp -lgsl -lgslcblas -lcfitsio -lsharp -lfftpack -lc_utils -lm
 
 include_HEADERS = src/namaster.h
 
