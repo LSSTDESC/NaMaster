@@ -15,7 +15,6 @@ cd libsharp
 autoconf -i
 ./configure --enable-pic
 make
-make install
 mv auto/bin $TRAVIS_BUILD_DIR
 mv auto/lib $TRAVIS_BUILD_DIR
 mv auto/include $TRAVIS_BUILD_DIR
@@ -23,5 +22,5 @@ cd ..
 
 #### Install GSL2.0+ ####
 
-wget http://mirror.rise.ph/gnu/gsl/gsl-2.4.tar.gz && tar xzf gsl-2.4.tar.gz && cd gsl-2.4 &&  ./configure --enable-shared && make && sudo make install && cd ..
+wget ftp://ftp.gnu.org/gnu/gsl/gsl-2.5.tar.gz --passive-ftp && tar xzf gsl-2.5.tar.gz && cd gsl-2.5 &&  ./configure --enable-shared && make && sudo make install && cd ..
 
