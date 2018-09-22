@@ -47,7 +47,7 @@ where the optional `--user` flag can be used if you don't have admin privileges.
 
 You can check that the python installation works by running the unit tests:
 ```
-python -m unittest -v
+python -m unittest discover -v
 ```
 Note that the `test` directory, containing all unit tests, also contains all the sample python scripts described in the documentation (see below).
 
