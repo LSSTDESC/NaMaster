@@ -29,6 +29,12 @@ matrix:
     sudo: required
     python: 3.6
     env: TOXENV=py36
+  - os: osx
+    sudo: required
+    python: 2.7
+  - os: osx
+    sudo: required
+    python: 3.6
 
 before_install:
 - "chmod 777 ./.travis/install.sh"

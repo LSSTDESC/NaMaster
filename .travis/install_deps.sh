@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# If we are using OSX, then install fftw3 and gsl2
+
+if ! [[ $TRAVIS_OS_NAME == "linux" ]]; then brew install gcc; brew install fftw --with-openmp --without-fortran; brew install autotools; brew install autoconf; fi
+
 # Install chealpix
 
 wget https://sourceforge.net/projects/healpix/files/Healpix_3.11/autotools_packages/chealpix-3.11.4.tar.gz && tar xzf chealpix-3.11.4.tar.gz && cd chealpix-3.11.4 && ./configure --enable-shared && make && sudo make install && cd ..
