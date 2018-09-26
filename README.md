@@ -1,6 +1,6 @@
 # NaMaster
 
-NaMaster is a C library, Python module and standalone program to compute full-sky angular cross-power spectra of masked, spin-0 and spin-2 fields with an arbitrary number of known contaminants using a pseudo-Cl (aka MASTER) approach. The code also implements B-mode purification and is available in both full-sky and flat-sky modes.
+NaMaster is a C library, Python module and standalone program to compute full-sky angular cross-power spectra of masked, spin-0 and spin-2 fields with an arbitrary number of known contaminants using a pseudo-Cl (aka MASTER) approach. The code also implements E/B-mode purification and is available in both full-sky and flat-sky modes.
 
 
 ## Installation
