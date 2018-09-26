@@ -62,6 +62,6 @@ The following sources of documentation are available for users:
 ## Licensing, credits and feedback
 You are welcome to re-use the code, which is open source and freely available under terms consistent with BSD 3-Clause licensing (see [LICENSE](LICENSE)).
 
-If you use NaMaster for any scientific publication, we kindly ask you to cite this github repository and the companion paper TBD.
+If you use NaMaster for any scientific publication, we kindly ask you to cite this github repository and the companion paper https://arxiv.org/abs/1809.09603.
 
 For feedback, please contact the author via github issues or emaild (david.alonso@physics.ox.ac.uk).
