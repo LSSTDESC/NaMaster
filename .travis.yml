@@ -42,6 +42,8 @@ before_install:
 - "chmod 777 ./.travis/install.sh"
 - "chmod 777 ./.travis/install_deps.sh"
 - "./.travis/install_deps.sh"
+- if ! [[ $TRAVIS_OS_NAME == "linux" ]]; then source $HOME/miniconda/bin/activate;
+  fi
 script:
 - "./.travis/install.sh"
 - export LDFLAGS="-L$TRAVIS_BUILD_DIR/lib -L/usr/local/lib -Wl,-rpath=$TRAVIS_BUILD_DIR/lib -Wl,-rpath=/usr/local/lib"
