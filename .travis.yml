@@ -31,11 +31,11 @@ matrix:
     env: TOXENV=py36
   - os: osx
     sudo: required
-    python: 2.7
+    language: generic
     env: TOXENV=py27
   - os: osx
     sudo: required
-    python: 3.6
+    language: generic
     env: TOXENV=py36
 
 before_install:
