@@ -92,7 +92,6 @@
               <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="pymaster.html">Python API documentation</a></li>
-<li class="toctree-l1"><a class="reference external" href="index_doxy.html#http://">C API documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sample_simple.html">Example 1: simple pseudo-Cl computation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sample_bins.html">Example 2: Bandpowers</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sample_fields.html">Example 3: Fields</a></li>
@@ -101,6 +100,7 @@
 <li class="toctree-l1"><a class="reference internal" href="sample_pureb.html">Example 6: Pure E and B</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sample_flat.html">Example 7: Flat-sky fields</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Example 8: Computing covariance matrices</a></li>
+<li class="toctree-l1"><a class="reference external" href="index_doxy.html#http://">C API documentation</a></li>
 </ul>
 
             
@@ -205,16 +205,16 @@
     <span class="k">return</span> <span class="n">cl_decoupled</span>
 
 <span class="c1">#Let&#39;s generate one particular sample and its power spectrum.</span>
-<span class="k">print</span> <span class="s2">&quot;Field&quot;</span>
+<span class="k">print</span><span class="p">(</span><span class="s2">&quot;Field&quot;</span><span class="p">)</span>
 <span class="n">f0</span><span class="o">=</span><span class="n">get_sample_field</span><span class="p">()</span>
 <span class="n">b</span><span class="o">=</span><span class="n">nmt</span><span class="o">.</span><span class="n">NmtBin</span><span class="p">(</span><span class="n">nside</span><span class="p">,</span><span class="n">nlb</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span> <span class="c1">#We will use 20 multipoles per bandpower.</span>
-<span class="k">print</span> <span class="s2">&quot;Workspace&quot;</span>
+<span class="k">print</span><span class="p">(</span><span class="s2">&quot;Workspace&quot;</span><span class="p">)</span>
 <span class="n">w</span><span class="o">=</span><span class="n">nmt</span><span class="o">.</span><span class="n">NmtWorkspace</span><span class="p">()</span>
 <span class="n">w</span><span class="o">.</span><span class="n">compute_coupling_matrix</span><span class="p">(</span><span class="n">f0</span><span class="p">,</span><span class="n">f0</span><span class="p">,</span><span class="n">b</span><span class="p">)</span>
 <span class="n">cl_0</span><span class="o">=</span><span class="n">compute_master</span><span class="p">(</span><span class="n">f0</span><span class="p">,</span><span class="n">f0</span><span class="p">,</span><span class="n">w</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
 
 <span class="c1">#Let&#39;s now compute the Gaussian estimate of the covariance!</span>
-<span class="k">print</span> <span class="s2">&quot;Covariance&quot;</span>
+<span class="k">print</span><span class="p">(</span><span class="s2">&quot;Covariance&quot;</span><span class="p">)</span>
 <span class="c1">#First we generate a NmtCovarianceWorkspace object to precompute</span>
 <span class="c1">#and store the necessary coupling coefficients</span>
 <span class="n">cw</span><span class="o">=</span><span class="n">nmt</span><span class="o">.</span><span class="n">NmtCovarianceWorkspace</span><span class="p">()</span>
@@ -222,12 +222,12 @@
 <span class="n">covar</span><span class="o">=</span><span class="n">nmt</span><span class="o">.</span><span class="n">gaussian_covariance</span><span class="p">(</span><span class="n">cw</span><span class="p">,</span><span class="n">clarr</span><span class="p">,</span><span class="n">clarr</span><span class="p">,</span><span class="n">clarr</span><span class="p">,</span><span class="n">clarr</span><span class="p">)</span>
 
 <span class="c1">#Let&#39;s now compute the sample covariance</span>
-<span class="k">print</span> <span class="s2">&quot;Sample covariance&quot;</span>
+<span class="k">print</span><span class="p">(</span><span class="s2">&quot;Sample covariance&quot;</span><span class="p">)</span>
 <span class="n">nsamp</span><span class="o">=</span><span class="mi">100</span>
 <span class="n">covar_sample</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">cl_0</span><span class="p">),</span><span class="nb">len</span><span class="p">(</span><span class="n">cl_0</span><span class="p">)])</span>
 <span class="n">mean_sample</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">cl_0</span><span class="p">))</span>
 <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">nsamp</span><span class="p">)</span> <span class="p">:</span>
-    <span class="k">print</span> <span class="n">i</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
     <span class="n">f</span><span class="o">=</span><span class="n">get_sample_field</span><span class="p">()</span>
     <span class="n">cl</span><span class="o">=</span><span class="n">compute_master</span><span class="p">(</span><span class="n">f</span><span class="p">,</span><span class="n">f</span><span class="p">,</span><span class="n">w</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
     <span class="n">covar_sample</span><span class="o">+=</span><span class="n">cl</span><span class="p">[</span><span class="bp">None</span><span class="p">,:]</span><span class="o">*</span><span class="n">cl</span><span class="p">[:,</span><span class="bp">None</span><span class="p">]</span>

@@ -26,7 +26,7 @@ class NmtWorkspace(object) :
         
     def compute_coupling_matrix(self,fl1,fl2,bins) :
         """
-        Computes coupling matrix associated with the cross-power spectrum of two NmtFields and an NmtBin binning scheme.
+        Computes coupling matrix associated with the cross-power spectrum of two NmtFields and an NmtBin binning scheme. Note that the mode coupling matrix will only contain ells up to the maximum multipole included in the NmtBin bandpowers.
 
         :param NmtField fl1,fl2: fields to correlate
         :param NmtBin bin: binning scheme

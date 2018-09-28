@@ -93,7 +93,6 @@
               <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="pymaster.html">Python API documentation</a></li>
-<li class="toctree-l1"><a class="reference external" href="index_doxy.html#http://">C API documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sample_simple.html">Example 1: simple pseudo-Cl computation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sample_bins.html">Example 2: Bandpowers</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sample_fields.html">Example 3: Fields</a></li>
@@ -102,6 +101,7 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Example 6: Pure E and B</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sample_flat.html">Example 7: Flat-sky fields</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sample_covariance.html">Example 8: Computing covariance matrices</a></li>
+<li class="toctree-l1"><a class="reference external" href="index_doxy.html#http://">C API documentation</a></li>
 </ul>
 
             
@@ -223,7 +223,7 @@
 <span class="c1">#We now iterate over several simulations, computing the power spectrum for each of them</span>
 <span class="n">data_np</span><span class="o">=</span><span class="p">[];</span> <span class="n">data_yp</span><span class="o">=</span><span class="p">[];</span>
 <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">nsim</span><span class="p">)</span> <span class="p">:</span>
-    <span class="k">print</span> <span class="n">i</span><span class="p">,</span><span class="n">nsim</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="n">nsim</span><span class="p">)</span>
     <span class="n">fnp</span><span class="p">,</span><span class="n">fyp</span><span class="o">=</span><span class="n">get_fields</span><span class="p">()</span>
     <span class="n">data_np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">compute_master</span><span class="p">(</span><span class="n">fnp</span><span class="p">,</span><span class="n">fnp</span><span class="p">,</span><span class="n">w_np</span><span class="p">))</span>
     <span class="n">data_yp</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">compute_master</span><span class="p">(</span><span class="n">fyp</span><span class="p">,</span><span class="n">fyp</span><span class="p">,</span><span class="n">w_yp</span><span class="p">))</span>
