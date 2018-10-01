@@ -33,6 +33,9 @@ brew install gcc; brew link --overwrite gcc; export CC=gcc-8; brew install fftw 
             conda create -q -n test-environment python=3.6 pip
             ;;
     esac;
+
+brew upgrade; brew doctor;
+
 fi;
 
 
