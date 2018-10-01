@@ -30,12 +30,10 @@ matrix:
     python: 3.6
     env: TOXENV=py36
   - os: osx
-    compiler: gcc
     sudo: required
     language: generic
     env: TOXENV=py27
   - os: osx
-    compiler: gcc
     sudo: required
     language: generic
     env: TOXENV=py36

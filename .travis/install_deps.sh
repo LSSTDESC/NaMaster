@@ -2,7 +2,7 @@
 
 # If we are using OSX, then install fftw3 and gsl2
 
-if ! [[ $TRAVIS_OS_NAME == "linux" ]]; brew install fftw --with-openmp --without-fortran; brew install autoconf; 
+if ! [[ $TRAVIS_OS_NAME == "linux" ]]; brew install gcc7 && CC=gcc-7; brew install fftw --with-openmp --without-fortran; brew install autoconf; 
 
     # Install some custom requirements on OS X
     if test -e $HOME/miniconda/bin; then
