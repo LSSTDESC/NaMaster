@@ -3,7 +3,7 @@
 # If we are using OSX, then install fftw3 and gsl2
 
 if ! [[ $TRAVIS_OS_NAME == "linux" ]]; then
-brew install fftw --with-openmp --without-fortran; brew install autoconf; 
+export CC=gcc-4.9; brew install fftw --with-openmp --without-fortran; brew install autoconf; 
 
     # Install some custom requirements on OS X
     if test -e $HOME/miniconda/bin; then
@@ -34,8 +34,6 @@ brew install fftw --with-openmp --without-fortran; brew install autoconf;
             ;;
     esac;
 
-brew upgrade; brew doctor;
-
 fi;
 
 
@@ -48,7 +46,7 @@ wget https://sourceforge.net/projects/healpix/files/Healpix_3.11/autotools_packa
 pip install nose healpy scipy
 
 #### Install libsharp ####
-
+export CC=gcc-4.9
 git clone https://github.com/Libsharp/libsharp.git
 cd libsharp
 autoconf -i
