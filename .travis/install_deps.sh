@@ -46,7 +46,9 @@ wget https://sourceforge.net/projects/healpix/files/Healpix_3.11/autotools_packa
 pip install nose healpy scipy
 
 #### Install libsharp ####
+if ! [[ $TRAVIS_OS_NAME == "linux" ]]; then
 export CC=gcc-4.9
+fi
 git clone https://github.com/Libsharp/libsharp.git
 cd libsharp
 autoconf -i
