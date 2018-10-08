@@ -51,7 +51,7 @@ before_install:
 script:
 - "./.travis/install.sh"
 - if ! [[ $TRAVIS_OS_NAME == "linux" ]]; 
-  then LDFLAGS="-L$TRAVIS_BUILD_DIR/lib -L/usr/local/lib -Wl,-rpath,$TRAVIS_BUILD_DIR/lib -Wl,-rpath,/usr/local/lib";
+  then export LDFLAGS="-L$TRAVIS_BUILD_DIR/lib -L/usr/local/lib -Wl,-rpath,$TRAVIS_BUILD_DIR/lib -Wl,-rpath,/usr/local/lib";
   else export LDFLAGS="-L$TRAVIS_BUILD_DIR/lib -L/usr/local/lib -Wl,-rpath=$TRAVIS_BUILD_DIR/lib -Wl,-rpath=/usr/local/lib";
   fi
 - if ! [[ $TRAVIS_OS_NAME == "linux" ]]; 
