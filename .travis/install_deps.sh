@@ -3,7 +3,7 @@
 # If we are using OSX, then install fftw3 and gsl2
 
 if ! [[ $TRAVIS_OS_NAME == "linux" ]]; then
-export CC=gcc-4.9; brew install fftw --with-openmp --without-fortran; brew install autoconf; 
+brew install gcc; export CC=gcc-8; brew install fftw --with-openmp --without-fortran; brew install autoconf; 
 
     # Install some custom requirements on OS X
     if test -e $HOME/miniconda/bin; then
@@ -47,7 +47,7 @@ pip install nose healpy scipy
 
 #### Install libsharp ####
 if ! [[ $TRAVIS_OS_NAME == "linux" ]]; then
-export CC=gcc-4.9
+export CC=gcc-8
 fi
 git clone https://github.com/Libsharp/libsharp.git
 cd libsharp
