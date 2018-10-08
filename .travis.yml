@@ -50,7 +50,10 @@ before_install:
   fi
 script:
 - "./.travis/install.sh"
-- export LDFLAGS="-L$TRAVIS_BUILD_DIR/lib -L/usr/local/lib -Wl,-rpath=$TRAVIS_BUILD_DIR/lib -Wl,-rpath=/usr/local/lib"
+- if ! [[ $TRAVIS_OS_NAME == "linux" ]]; 
+  then LDFLAGS="-L$TRAVIS_BUILD_DIR/lib -L/usr/local/lib -Wl,-rpath,$TRAVIS_BUILD_DIR/lib -Wl,-rpath,/usr/local/lib";
+  else export LDFLAGS="-L$TRAVIS_BUILD_DIR/lib -L/usr/local/lib -Wl,-rpath=$TRAVIS_BUILD_DIR/lib -Wl,-rpath=/usr/local/lib";
+  fi
 - if ! [[ $TRAVIS_OS_NAME == "linux" ]]; 
   then CC=gcc-8 python setup.py install;
   else python setup.py install;
