@@ -3,7 +3,7 @@
 # If we are using OSX, then install fftw3 and gsl2
 
 if ! [[ $TRAVIS_OS_NAME == "linux" ]]; then
-brew install gcc; export CC=gcc-8; brew install fftw --with-openmp --without-fortran; brew install autoconf; 
+brew install gcc -V 0; export CC=gcc-8; brew install fftw --with-openmp --without-fortran -V 0; brew install autoconf -V 0; 
 
     # Install some custom requirements on OS X
     if test -e $HOME/miniconda/bin; then
@@ -43,7 +43,14 @@ wget https://sourceforge.net/projects/healpix/files/Healpix_3.11/autotools_packa
 
 # Install healpy and nose
 
-pip install nose healpy scipy
+if ![[$TRAVIS_OS_NAME == "linux" ]]; then
+conda install -c conda-forge healpy
+pip install nose scipy
+fi
+
+if [[$TRAVIS_OS_NAME == "linux" ]]; then
+pip install nose scipy healpu
+fi
 
 #### Install libsharp ####
 if ! [[ $TRAVIS_OS_NAME == "linux" ]]; then

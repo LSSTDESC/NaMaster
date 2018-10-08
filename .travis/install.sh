@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #### Install NaMaster C ####
-
+exrpot CC=gcc-8
 export PATH=$TRAVIS_BUILD_DIR/bin:$PATH
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$TRAVIS_BUILD_DIR/lib:/usr/local/lib
 export LDFLAGS="-L$TRAVIS_BUILD_DIR/lib -L/usr/local/lib"
