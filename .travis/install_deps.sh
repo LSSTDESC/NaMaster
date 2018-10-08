@@ -49,7 +49,7 @@ pip install nose scipy
 fi
 
 if [[$TRAVIS_OS_NAME == "linux" ]]; then
-pip install nose scipy healpu
+pip install nose scipy healpy
 fi
 
 #### Install libsharp ####

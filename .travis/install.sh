@@ -2,7 +2,7 @@
 
 #### Install NaMaster C ####
 
-if ![[ TRAVIS_OS_NAME == "linux" ]]; then
+if ! [[ $TRAVIS_OS_NAME == "linux" ]]; then
 export CC=gcc-8
 fi
 export PATH=$TRAVIS_BUILD_DIR/bin:$PATH
