@@ -29,8 +29,8 @@ brew install gcc; export CC=gcc-8; brew install fftw --with-openmp --without-for
         py27)
             conda create -q -n test-environment python=2.7 pip
             ;;
-        py36)
-            conda create -q -n test-environment python=3.6 pip
+        py37)
+            conda create -q -n test-environment python=3.7 pip
             ;;
     esac;
 
@@ -45,9 +45,9 @@ wget https://sourceforge.net/projects/healpix/files/Healpix_3.11/autotools_packa
 
 pip install nose scipy healpy
 
-if ! [[$TRAVIS_OS_NAME == "linux" ]]; then
-conda install -c conda-forge healpy --no-deps
-fi
+#if ! [[$TRAVIS_OS_NAME == "linux" ]]; then
+#conda install -c conda-forge healpy --no-deps
+#fi
 
 #### Install libsharp ####
 if ! [[ $TRAVIS_OS_NAME == "linux" ]]; then
