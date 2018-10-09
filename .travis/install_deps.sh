@@ -46,7 +46,7 @@ wget https://sourceforge.net/projects/healpix/files/Healpix_3.11/autotools_packa
 pip install nose scipy healpy
 
 if ! [[$TRAVIS_OS_NAME == "linux" ]]; then
-conda install -c conda-forge healpy
+conda install -c conda-forge healpy --no-deps
 fi
 
 #### Install libsharp ####
