@@ -93,7 +93,6 @@
               <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="pymaster.html">Python API documentation</a></li>
-<li class="toctree-l1"><a class="reference external" href="index_doxy.html#http://">C API documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sample_simple.html">Example 1: simple pseudo-Cl computation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sample_bins.html">Example 2: Bandpowers</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sample_fields.html">Example 3: Fields</a></li>
@@ -102,6 +101,7 @@
 <li class="toctree-l1"><a class="reference internal" href="sample_pureb.html">Example 6: Pure E and B</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sample_flat.html">Example 7: Flat-sky fields</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sample_covariance.html">Example 8: Computing covariance matrices</a></li>
+<li class="toctree-l1"><a class="reference external" href="index_doxy.html#http://">C API documentation</a></li>
 </ul>
 
             
@@ -224,7 +224,7 @@
     <span class="c1">#Compute the power spectrum (a la anafast) of the masked fields</span>
     <span class="c1">#Note that we only use n_iter=0 here to speed up the computation,</span>
     <span class="c1">#but the default value of 3 is recommended in general.</span>
-    <span class="n">cl_coupled</span><span class="o">=</span><span class="n">nmt</span><span class="o">.</span><span class="n">compute_coupled_cell</span><span class="p">(</span><span class="n">f_a</span><span class="p">,</span><span class="n">f_b</span><span class="p">,</span><span class="n">n_iter</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">cl_coupled</span><span class="o">=</span><span class="n">nmt</span><span class="o">.</span><span class="n">compute_coupled_cell</span><span class="p">(</span><span class="n">f_a</span><span class="p">,</span><span class="n">f_b</span><span class="p">)</span>
     <span class="c1">#Decouple power spectrum into bandpowers inverting the coupling matrix</span>
     <span class="n">cl_decoupled</span><span class="o">=</span><span class="n">wsp</span><span class="o">.</span><span class="n">decouple_cell</span><span class="p">(</span><span class="n">cl_coupled</span><span class="p">,</span><span class="n">cl_bias</span><span class="o">=</span><span class="n">clb</span><span class="p">)</span>
 
@@ -240,7 +240,7 @@
 <span class="n">cl_mean</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">cl_master</span><span class="p">)</span>
 <span class="n">cl_std</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">cl_master</span><span class="p">)</span>
 <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">nsim</span><span class="p">)</span> <span class="p">:</span>
-    <span class="k">print</span> <span class="s2">&quot;</span><span class="si">%d</span><span class="s2">-th simulation&quot;</span><span class="o">%</span><span class="n">i</span>
+    <span class="k">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%d</span><span class="s2">-th simulation&quot;</span><span class="o">%</span><span class="n">i</span><span class="p">)</span>
     <span class="n">t</span><span class="p">,</span><span class="n">q</span><span class="p">,</span><span class="n">u</span><span class="o">=</span><span class="n">hp</span><span class="o">.</span><span class="n">synfast</span><span class="p">([</span><span class="n">cltt</span><span class="p">,</span><span class="n">clee</span><span class="p">,</span><span class="n">clbb</span><span class="p">,</span><span class="n">clte</span><span class="p">],</span><span class="n">nside</span><span class="p">,</span><span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
     <span class="n">f0_sim</span><span class="o">=</span><span class="n">nmt</span><span class="o">.</span><span class="n">NmtField</span><span class="p">(</span><span class="n">mask</span><span class="p">,[</span><span class="n">t</span><span class="p">],</span><span class="n">templates</span><span class="o">=</span><span class="p">[[</span><span class="n">tm_t</span><span class="p">]])</span>
     <span class="n">f2_sim</span><span class="o">=</span><span class="n">nmt</span><span class="o">.</span><span class="n">NmtField</span><span class="p">(</span><span class="n">mask</span><span class="p">,[</span><span class="n">q</span><span class="p">,</span><span class="n">u</span><span class="p">],</span><span class="n">templates</span><span class="o">=</span><span class="p">[[</span><span class="n">tm_q</span><span class="p">,</span><span class="n">tm_u</span><span class="p">]])</span>

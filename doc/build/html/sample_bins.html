@@ -93,7 +93,6 @@
               <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="pymaster.html">Python API documentation</a></li>
-<li class="toctree-l1"><a class="reference external" href="index_doxy.html#http://">C API documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sample_simple.html">Example 1: simple pseudo-Cl computation</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Example 2: Bandpowers</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sample_fields.html">Example 3: Fields</a></li>
@@ -102,6 +101,7 @@
 <li class="toctree-l1"><a class="reference internal" href="sample_pureb.html">Example 6: Pure E and B</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sample_flat.html">Example 7: Flat-sky fields</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sample_covariance.html">Example 8: Computing covariance matrices</a></li>
+<li class="toctree-l1"><a class="reference external" href="index_doxy.html#http://">C API documentation</a></li>
 </ul>
 
             
@@ -195,26 +195,26 @@
 <span class="n">bin2</span><span class="o">=</span><span class="n">nmt</span><span class="o">.</span><span class="n">NmtBin</span><span class="p">(</span><span class="n">nside</span><span class="p">,</span><span class="n">bpws</span><span class="o">=</span><span class="n">bpws</span><span class="p">,</span><span class="n">ells</span><span class="o">=</span><span class="n">ells</span><span class="p">,</span><span class="n">weights</span><span class="o">=</span><span class="n">weights</span><span class="p">)</span>
 
 <span class="c1">#At this stage bin1 and bin2 should be identical</span>
-<span class="k">print</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">bin1</span><span class="o">.</span><span class="n">get_effective_ells</span><span class="p">()</span><span class="o">-</span><span class="n">bin2</span><span class="o">.</span><span class="n">get_effective_ells</span><span class="p">())</span>
+<span class="k">print</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">bin1</span><span class="o">.</span><span class="n">get_effective_ells</span><span class="p">()</span><span class="o">-</span><span class="n">bin2</span><span class="o">.</span><span class="n">get_effective_ells</span><span class="p">()))</span>
 
 <span class="c1">#Array with effective multipole per bandpower</span>
 <span class="n">ell_eff</span><span class="o">=</span><span class="n">bin1</span><span class="o">.</span><span class="n">get_effective_ells</span><span class="p">()</span>
 
 <span class="c1">#Bandpower info:</span>
-<span class="k">print</span> <span class="s2">&quot;Bandpower info:&quot;</span>
-<span class="k">print</span> <span class="s2">&quot; </span><span class="si">%d</span><span class="s2"> bandpowers&quot;</span><span class="o">%</span><span class="p">(</span><span class="n">bin1</span><span class="o">.</span><span class="n">get_n_bands</span><span class="p">())</span>
-<span class="k">print</span> <span class="s2">&quot;The columns in the following table are:&quot;</span>
-<span class="k">print</span> <span class="s2">&quot; [1]-band index, [2]-list of multipoles, [3]-list of weights, [4]=effective multipole&quot;</span>
-<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">bin1</span><span class="o">.</span><span class="n">get_n_bands</span><span class="p">())</span> <span class="p">:</span>
-    <span class="k">print</span> <span class="n">i</span><span class="p">,</span> <span class="n">bin1</span><span class="o">.</span><span class="n">get_ell_list</span><span class="p">(</span><span class="n">i</span><span class="p">),</span> <span class="n">bin1</span><span class="o">.</span><span class="n">get_weight_list</span><span class="p">(</span><span class="n">i</span><span class="p">),</span> <span class="n">ell_eff</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
-<span class="k">print</span> <span class="s2">&quot;&quot;</span>
+<span class="k">print</span><span class="p">(</span><span class="s2">&quot;Bandpower info:&quot;</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="s2">&quot; </span><span class="si">%d</span><span class="s2"> bandpowers&quot;</span><span class="o">%</span><span class="p">(</span><span class="n">bin1</span><span class="o">.</span><span class="n">get_n_bands</span><span class="p">()))</span>
+<span class="k">print</span><span class="p">(</span><span class="s2">&quot;The columns in the following table are:&quot;</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="s2">&quot; [1]-band index, [2]-list of multipoles, [3]-list of weights, [4]=effective multipole&quot;</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">bin1</span><span class="o">.</span><span class="n">get_n_bands</span><span class="p">())</span> <span class="p">:</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">bin1</span><span class="o">.</span><span class="n">get_ell_list</span><span class="p">(</span><span class="n">i</span><span class="p">),</span> <span class="n">bin1</span><span class="o">.</span><span class="n">get_weight_list</span><span class="p">(</span><span class="n">i</span><span class="p">),</span> <span class="n">ell_eff</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+<span class="k">print</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
 
 <span class="c1">#Binning a power spectrum</span>
 <span class="c1">#Read the TT power spectrum</span>
 <span class="n">data</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="s2">&quot;cls.txt&quot;</span><span class="p">,</span><span class="n">unpack</span><span class="o">=</span><span class="bp">True</span><span class="p">);</span>
 <span class="n">ell_arr</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">];</span> <span class="n">cl_tt</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
 <span class="c1">#Bin the power spectrum into bandpowers</span>
-<span class="n">cl_tt_binned</span><span class="o">=</span><span class="n">bin1</span><span class="o">.</span><span class="n">bin_cell</span><span class="p">([</span><span class="n">cl_tt</span><span class="p">])</span>
+<span class="n">cl_tt_binned</span><span class="o">=</span><span class="n">bin1</span><span class="o">.</span><span class="n">bin_cell</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">cl_tt</span><span class="p">]))</span>
 <span class="c1">#Unbin bandpowers</span>
 <span class="n">cl_tt_binned_unbinned</span><span class="o">=</span><span class="n">bin1</span><span class="o">.</span><span class="n">unbin_cell</span><span class="p">(</span><span class="n">cl_tt_binned</span><span class="p">)</span>
 <span class="c1">#Plot all to see differences</span>
