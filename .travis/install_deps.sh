@@ -43,6 +43,10 @@ wget https://sourceforge.net/projects/healpix/files/Healpix_3.11/autotools_packa
 
 # Install healpy and nose
 
+if ! [[$TRAVIS_OS_NAME == "linux" ]]; then
+export CXX=g++-8;
+fi
+
 pip install nose scipy healpy
 
 #if ! [[$TRAVIS_OS_NAME == "linux" ]]; then
