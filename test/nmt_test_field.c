@@ -3,7 +3,7 @@
 #include "utils.h"
 #include "nmt_test_utils.h"
 
-CTEST(nmt,field_alloc) {
+CTEST_SKIP(nmt,field_alloc) {
   nmt_field *f;
   int ii,nmaps;
   double ntemp=5;
@@ -180,7 +180,7 @@ CTEST(nmt,field_alloc) {
   free(mask);
 }
 
-CTEST(nmt,field_read) {
+CTEST_SKIP(nmt,field_read) {
   int ii;
   nmt_field *f;
 
@@ -212,7 +212,7 @@ CTEST(nmt,field_read) {
   set_error_policy(EXIT_ON_ERROR);
 }
 
-CTEST(nmt,field_synfast) {
+CTEST_SKIP(nmt,field_synfast) {
   int ii,im1,im2,l,if1,if2;
   long nside=128;
   long lmax=3*nside-1;
