@@ -100,10 +100,10 @@ void test_compare_arrays(int n,double *y,int narr,int iarr,char *fname,double rt
   fclose(fi);
 }
 
-CTEST_SKIP(nmt,ut_drc3jj) {
+CTEST(nmt,ut_drc3jj) {
   int sizew=1000;
   double *w3=my_malloc(sizew*sizeof(double));
-  int r,l1min,l1max;
+  int ii,r,l1min,l1max;
 
   r=drc3jj(2,3,0,0,&l1min,&l1max,w3,sizew);
   ASSERT_EQUAL(r,0);
@@ -128,14 +128,15 @@ CTEST_SKIP(nmt,ut_drc3jj) {
 
   try { r=drc3jj(100,200,2,-2,&l1min,&l1max,w3,100); }
   ASSERT_NOT_EQUAL(0,nmt_exception_status);
-  try { r=drc3jj(2,3,3,0,&l1min,&l1max,w3,sizew); }
-  ASSERT_NOT_EQUAL(0,nmt_exception_status);
-  
+  r=drc3jj(2,3,3,0,&l1min,&l1max,w3,sizew);
+  for(ii=0;ii<=l1max-l1min;ii++)
+    ASSERT_DBL_NEAR_TOL(w3[ii],0.,1E-10);
+
   set_error_policy(EXIT_ON_ERROR);
   free(w3);
 }
 
-CTEST_SKIP(nmt,ut_mp_pinv) {
+CTEST(nmt,ut_mp_pinv) {
   gsl_matrix *M=gsl_matrix_alloc(3,3);
 
   //Non-degenerate matrix
@@ -187,7 +188,7 @@ CTEST_SKIP(nmt,ut_mp_pinv) {
 #define M2_POISSONL 1000. //variance top hat
 #define M2_POISSONS 0.5 //variance top hat
 #define M2_GAUSS 1. //variance Gaussian
-CTEST_SKIP(nmt,ut_rngs) {
+CTEST(nmt,ut_rngs) {
   gsl_rng *r=init_rng(1234);
   int ii;
   double m_01=0,s_01=0;
@@ -242,14 +243,14 @@ CTEST_SKIP(nmt,ut_rngs) {
   end_rng(r);
 }
 
-CTEST_SKIP(nmt,ut_my_linecount) {
+CTEST(nmt,ut_my_linecount) {
   FILE *f=my_fopen("test/cls.txt","r");
   int cnt=my_linecount(f);
   ASSERT_EQUAL(cnt,768);
   fclose(f);
 }
 
-CTEST_SKIP(nmt,ut_errors) {
+CTEST(nmt,ut_errors) {
   set_error_policy(THROW_ON_ERROR);
 
   //File doesn't exist

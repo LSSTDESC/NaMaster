@@ -4,7 +4,7 @@
 #include "nmt_test_utils.h"
 #include <chealpix.h>
 
-CTEST_SKIP(nmt,he_synalm) {
+CTEST(nmt,he_synalm) {
   int ii,l;
   long nside=128;
   long lmax=3*nside-1;
@@ -73,7 +73,7 @@ CTEST_SKIP(nmt,he_synalm) {
   free(cells_out);
 }
 
-CTEST_SKIP(nmt,he_beams) {
+CTEST(nmt,he_beams) {
   int l;
   long nside=128;
   long lmax=3*nside-1;
@@ -88,7 +88,7 @@ CTEST_SKIP(nmt,he_beams) {
   free(beam_he);
 }
 
-CTEST_SKIP(nmt,he_alm2cl)
+CTEST(nmt,he_alm2cl)
 {
   int ii;
   long nside=256;
@@ -140,7 +140,7 @@ CTEST_SKIP(nmt,he_alm2cl)
   free(alms);
 }  
 
-CTEST_SKIP(nmt,he_sht) {
+CTEST(nmt,he_sht) {
   int ii;
   int nmaps=34;
   long nside=16;
@@ -221,7 +221,7 @@ CTEST_SKIP(nmt,he_sht) {
   free(alms);
 }
 
-CTEST_SKIP(nmt,he_io) {
+CTEST(nmt,he_io) {
   set_error_policy(THROW_ON_ERROR);
 
   int ii;
@@ -295,7 +295,7 @@ CTEST_SKIP(nmt,he_qdisc) {
   free(indices);
 }
 
-CTEST_SKIP(nmt,he_qstrip) {
+CTEST(nmt,he_qstrip) {
   long nside=1024;
 
   set_error_policy(THROW_ON_ERROR);
@@ -319,7 +319,7 @@ CTEST_SKIP(nmt,he_qstrip) {
   set_error_policy(EXIT_ON_ERROR);
 }
 
-CTEST_SKIP(nmt,he_ringnum) {
+CTEST(nmt,he_ringnum) {
   //ring_num
   long nside=1024;
   gsl_rng *r=init_rng(1234);
@@ -332,7 +332,7 @@ CTEST_SKIP(nmt,he_ringnum) {
   end_rng(r);
 }
 
-CTEST_SKIP(nmt,he_algb) {
+CTEST(nmt,he_algb) {
   int ii;
   long nside=128;
   long npix=he_nside2npix(nside);
@@ -360,7 +360,7 @@ CTEST_SKIP(nmt,he_algb) {
   free(mpr);
 }
 
-CTEST_SKIP(nmt,he_r2n) {
+CTEST(nmt,he_r2n) {
   int ii;
   long nside=256;
   long listpix[5]={123,453,6,723475,39642};
@@ -383,7 +383,7 @@ CTEST_SKIP(nmt,he_r2n) {
   free(mp);
 }
 
-CTEST_SKIP(nmt,he_ud) {
+CTEST(nmt,he_ud) {
   //ud-grade
   int ii;
   long nside=256,npix=he_nside2npix(nside);
@@ -403,7 +403,7 @@ CTEST_SKIP(nmt,he_ud) {
   free(mplo);  
 }
 
-CTEST_SKIP(nmt,he_x2y) {
+CTEST(nmt,he_x2y) {
   long nside=1024;
   double ip,ip0=1026;
   double vec[3],vec0[3]={0.010057788838065481, 0.015334332284729826, 0.9998318354288737};

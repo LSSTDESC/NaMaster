@@ -221,7 +221,7 @@ nmt_workspace *nmt_compute_coupling_matrix(nmt_field *fl1,nmt_field *fl2,nmt_bin
       wigner_02=my_malloc(2*(w->lmax+1)*sizeof(double));
     }
 
-    if(w->ncls>1)
+    if((w->ncls!=1) && (w->ncls!=7))
       lstart=2;
 
 #pragma omp for schedule(dynamic)
@@ -242,8 +242,14 @@ nmt_workspace *nmt_compute_coupling_matrix(nmt_field *fl1,nmt_field *fl2,nmt_bin
 	  drc3jj(ll2,ll3,0,-2,&lmin_here_02,&lmax_here_02,wigner_02,2*(w->lmax+1));
 	}
 
-	lmin_here=NMT_MAX(lmin_here_00,lmin_here_22);
-	lmax_here=NMT_MIN(lmax_here_00,lmax_here_22);
+	if(w->ncls!=7) {
+	  lmin_here=NMT_MAX(lmin_here_00,lmin_here_22);
+	  lmax_here=NMT_MIN(lmax_here_00,lmax_here_22);
+	}
+	else {
+	  lmin_here=NMT_MIN(lmin_here_00,lmin_here_22);
+	  lmax_here=NMT_MAX(lmax_here_00,lmax_here_22);
+	}
 	if(pure_any) {
 	  lmin_here=NMT_MIN(lmin_here,lmin_here_12);
 	  lmin_here=NMT_MIN(lmin_here,lmin_here_02);

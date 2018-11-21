@@ -5,28 +5,26 @@
 # the SWIG interface file instead.
 
 
+
+
+
 from sys import version_info
-
 if version_info >= (2, 6, 0):
-
     def swig_import_helper():
         from os.path import dirname
         import imp
-
         fp = None
         try:
-            fp, pathname, description = imp.find_module("_nmtlib", [dirname(__file__)])
+            fp, pathname, description = imp.find_module('_nmtlib', [dirname(__file__)])
         except ImportError:
             import _nmtlib
-
             return _nmtlib
         if fp is not None:
             try:
-                _mod = imp.load_module("_nmtlib", fp, pathname, description)
+                _mod = imp.load_module('_nmtlib', fp, pathname, description)
             finally:
                 fp.close()
             return _mod
-
     _nmtlib = swig_import_helper()
     del swig_import_helper
 else:
@@ -39,16 +37,16 @@ except NameError:
 
 
 def _swig_setattr_nondynamic(self, class_type, name, value, static=1):
-    if name == "thisown":
+    if (name == "thisown"):
         return self.this.own(value)
-    if name == "this":
-        if type(value).__name__ == "SwigPyObject":
+    if (name == "this"):
+        if type(value).__name__ == 'SwigPyObject':
             self.__dict__[name] = value
             return
     method = class_type.__swig_setmethods__.get(name, None)
     if method:
         return method(self, value)
-    if not static:
+    if (not static):
         if _newclass:
             object.__setattr__(self, name, value)
         else:
@@ -62,16 +60,15 @@ def _swig_setattr(self, class_type, name, value):
 
 
 def _swig_getattr_nondynamic(self, class_type, name, static=1):
-    if name == "thisown":
+    if (name == "thisown"):
         return self.this.own()
     method = class_type.__swig_getmethods__.get(name, None)
     if method:
         return method(self)
-    if not static:
+    if (not static):
         return object.__getattr__(self, name)
     else:
         raise AttributeError(name)
-
 
 def _swig_getattr(self, class_type, name):
     return _swig_getattr_nondynamic(self, class_type, name, 0)
@@ -82,53 +79,35 @@ def _swig_repr(self):
         strthis = "proxy of " + self.this.__repr__()
     except Exception:
         strthis = ""
-    return "<%s.%s; %s >" % (
-        self.__class__.__module__,
-        self.__class__.__name__,
-        strthis,
-    )
-
+    return "<%s.%s; %s >" % (self.__class__.__module__, self.__class__.__name__, strthis,)
 
 try:
     _object = object
     _newclass = 1
 except AttributeError:
-
     class _object:
         pass
-
     _newclass = 0
 
 
 class binning_scheme_flat(_object):
     __swig_setmethods__ = {}
-    __setattr__ = lambda self, name, value: _swig_setattr(
-        self, binning_scheme_flat, name, value
-    )
+    __setattr__ = lambda self, name, value: _swig_setattr(self, binning_scheme_flat, name, value)
     __swig_getmethods__ = {}
     __getattr__ = lambda self, name: _swig_getattr(self, binning_scheme_flat, name)
     __repr__ = _swig_repr
     __swig_setmethods__["n_bands"] = _nmtlib.binning_scheme_flat_n_bands_set
     __swig_getmethods__["n_bands"] = _nmtlib.binning_scheme_flat_n_bands_get
     if _newclass:
-        n_bands = _swig_property(
-            _nmtlib.binning_scheme_flat_n_bands_get,
-            _nmtlib.binning_scheme_flat_n_bands_set,
-        )
+        n_bands = _swig_property(_nmtlib.binning_scheme_flat_n_bands_get, _nmtlib.binning_scheme_flat_n_bands_set)
     __swig_setmethods__["ell_0_list"] = _nmtlib.binning_scheme_flat_ell_0_list_set
     __swig_getmethods__["ell_0_list"] = _nmtlib.binning_scheme_flat_ell_0_list_get
     if _newclass:
-        ell_0_list = _swig_property(
-            _nmtlib.binning_scheme_flat_ell_0_list_get,
-            _nmtlib.binning_scheme_flat_ell_0_list_set,
-        )
+        ell_0_list = _swig_property(_nmtlib.binning_scheme_flat_ell_0_list_get, _nmtlib.binning_scheme_flat_ell_0_list_set)
     __swig_setmethods__["ell_f_list"] = _nmtlib.binning_scheme_flat_ell_f_list_set
     __swig_getmethods__["ell_f_list"] = _nmtlib.binning_scheme_flat_ell_f_list_get
     if _newclass:
-        ell_f_list = _swig_property(
-            _nmtlib.binning_scheme_flat_ell_f_list_get,
-            _nmtlib.binning_scheme_flat_ell_f_list_set,
-        )
+        ell_f_list = _swig_property(_nmtlib.binning_scheme_flat_ell_f_list_get, _nmtlib.binning_scheme_flat_ell_f_list_set)
 
     def __init__(self):
         this = _nmtlib.new_binning_scheme_flat()
@@ -136,102 +115,65 @@ class binning_scheme_flat(_object):
             self.this.append(this)
         except Exception:
             self.this = this
-
     __swig_destroy__ = _nmtlib.delete_binning_scheme_flat
     __del__ = lambda self: None
-
-
 binning_scheme_flat_swigregister = _nmtlib.binning_scheme_flat_swigregister
 binning_scheme_flat_swigregister(binning_scheme_flat)
 
 
 def bins_flat_constant(nlb, lmax):
     return _nmtlib.bins_flat_constant(nlb, lmax)
-
-
 bins_flat_constant = _nmtlib.bins_flat_constant
-
 
 def bins_flat_create(nell, l0, lf):
     return _nmtlib.bins_flat_create(nell, l0, lf)
-
-
 bins_flat_create = _nmtlib.bins_flat_create
-
 
 def bins_flat_free(bin):
     return _nmtlib.bins_flat_free(bin)
-
-
 bins_flat_free = _nmtlib.bins_flat_free
-
 
 def bin_cls_flat(bin, nl, larr, cls_in, cls_out, ncls):
     return _nmtlib.bin_cls_flat(bin, nl, larr, cls_in, cls_out, ncls)
-
-
 bin_cls_flat = _nmtlib.bin_cls_flat
-
 
 def unbin_cls_flat(bin, cls_in, nl, larr, cls_out, ncls):
     return _nmtlib.unbin_cls_flat(bin, cls_in, nl, larr, cls_out, ncls)
-
-
 unbin_cls_flat = _nmtlib.unbin_cls_flat
-
 
 def ell_eff_flat(bin, larr):
     return _nmtlib.ell_eff_flat(bin, larr)
-
-
 ell_eff_flat = _nmtlib.ell_eff_flat
-
 
 def bins_flat_search_fast(bin, l, il):
     return _nmtlib.bins_flat_search_fast(bin, l, il)
-
-
 bins_flat_search_fast = _nmtlib.bins_flat_search_fast
-
-
 class binning_scheme(_object):
     __swig_setmethods__ = {}
-    __setattr__ = lambda self, name, value: _swig_setattr(
-        self, binning_scheme, name, value
-    )
+    __setattr__ = lambda self, name, value: _swig_setattr(self, binning_scheme, name, value)
     __swig_getmethods__ = {}
     __getattr__ = lambda self, name: _swig_getattr(self, binning_scheme, name)
     __repr__ = _swig_repr
     __swig_setmethods__["n_bands"] = _nmtlib.binning_scheme_n_bands_set
     __swig_getmethods__["n_bands"] = _nmtlib.binning_scheme_n_bands_get
     if _newclass:
-        n_bands = _swig_property(
-            _nmtlib.binning_scheme_n_bands_get, _nmtlib.binning_scheme_n_bands_set
-        )
+        n_bands = _swig_property(_nmtlib.binning_scheme_n_bands_get, _nmtlib.binning_scheme_n_bands_set)
     __swig_setmethods__["nell_list"] = _nmtlib.binning_scheme_nell_list_set
     __swig_getmethods__["nell_list"] = _nmtlib.binning_scheme_nell_list_get
     if _newclass:
-        nell_list = _swig_property(
-            _nmtlib.binning_scheme_nell_list_get, _nmtlib.binning_scheme_nell_list_set
-        )
+        nell_list = _swig_property(_nmtlib.binning_scheme_nell_list_get, _nmtlib.binning_scheme_nell_list_set)
     __swig_setmethods__["ell_list"] = _nmtlib.binning_scheme_ell_list_set
     __swig_getmethods__["ell_list"] = _nmtlib.binning_scheme_ell_list_get
     if _newclass:
-        ell_list = _swig_property(
-            _nmtlib.binning_scheme_ell_list_get, _nmtlib.binning_scheme_ell_list_set
-        )
+        ell_list = _swig_property(_nmtlib.binning_scheme_ell_list_get, _nmtlib.binning_scheme_ell_list_set)
     __swig_setmethods__["w_list"] = _nmtlib.binning_scheme_w_list_set
     __swig_getmethods__["w_list"] = _nmtlib.binning_scheme_w_list_get
     if _newclass:
-        w_list = _swig_property(
-            _nmtlib.binning_scheme_w_list_get, _nmtlib.binning_scheme_w_list_set
-        )
+        w_list = _swig_property(_nmtlib.binning_scheme_w_list_get, _nmtlib.binning_scheme_w_list_set)
     __swig_setmethods__["ell_max"] = _nmtlib.binning_scheme_ell_max_set
     __swig_getmethods__["ell_max"] = _nmtlib.binning_scheme_ell_max_get
     if _newclass:
-        ell_max = _swig_property(
-            _nmtlib.binning_scheme_ell_max_get, _nmtlib.binning_scheme_ell_max_set
-        )
+        ell_max = _swig_property(_nmtlib.binning_scheme_ell_max_get, _nmtlib.binning_scheme_ell_max_set)
 
     def __init__(self):
         this = _nmtlib.new_binning_scheme()
@@ -239,64 +181,39 @@ class binning_scheme(_object):
             self.this.append(this)
         except Exception:
             self.this = this
-
     __swig_destroy__ = _nmtlib.delete_binning_scheme
     __del__ = lambda self: None
-
-
 binning_scheme_swigregister = _nmtlib.binning_scheme_swigregister
 binning_scheme_swigregister(binning_scheme)
 
 
 def bins_constant(nlb, lmax):
     return _nmtlib.bins_constant(nlb, lmax)
-
-
 bins_constant = _nmtlib.bins_constant
-
 
 def bins_create(nell, bpws, ells, weights, lmax):
     return _nmtlib.bins_create(nell, bpws, ells, weights, lmax)
-
-
 bins_create = _nmtlib.bins_create
-
 
 def bins_read(fname, lmax):
     return _nmtlib.bins_read(fname, lmax)
-
-
 bins_read = _nmtlib.bins_read
-
 
 def bins_free(bin):
     return _nmtlib.bins_free(bin)
-
-
 bins_free = _nmtlib.bins_free
-
 
 def bin_cls(bin, cls_in, cls_out, ncls):
     return _nmtlib.bin_cls(bin, cls_in, cls_out, ncls)
-
-
 bin_cls = _nmtlib.bin_cls
-
 
 def unbin_cls(bin, cls_in, cls_out, ncls):
     return _nmtlib.unbin_cls(bin, cls_in, cls_out, ncls)
-
-
 unbin_cls = _nmtlib.unbin_cls
-
 
 def ell_eff(bin, larr):
     return _nmtlib.ell_eff(bin, larr)
-
-
 ell_eff = _nmtlib.ell_eff
-
-
 class k_function(_object):
     __swig_setmethods__ = {}
     __setattr__ = lambda self, name, value: _swig_setattr(self, k_function, name, value)
@@ -306,9 +223,7 @@ class k_function(_object):
     __swig_setmethods__["is_const"] = _nmtlib.k_function_is_const_set
     __swig_getmethods__["is_const"] = _nmtlib.k_function_is_const_get
     if _newclass:
-        is_const = _swig_property(
-            _nmtlib.k_function_is_const_get, _nmtlib.k_function_is_const_set
-        )
+        is_const = _swig_property(_nmtlib.k_function_is_const_get, _nmtlib.k_function_is_const_set)
     __swig_setmethods__["x0"] = _nmtlib.k_function_x0_set
     __swig_getmethods__["x0"] = _nmtlib.k_function_x0_get
     if _newclass:
@@ -336,41 +251,26 @@ class k_function(_object):
             self.this.append(this)
         except Exception:
             self.this = this
-
     __swig_destroy__ = _nmtlib.delete_k_function
     __del__ = lambda self: None
-
-
 k_function_swigregister = _nmtlib.k_function_swigregister
 k_function_swigregister(k_function)
 
 
 def k_function_alloc(nk, karr, farr, y0, yf, is_const):
     return _nmtlib.k_function_alloc(nk, karr, farr, y0, yf, is_const)
-
-
 k_function_alloc = _nmtlib.k_function_alloc
-
 
 def k_function_free(f):
     return _nmtlib.k_function_free(f)
-
-
 k_function_free = _nmtlib.k_function_free
-
 
 def k_function_eval(f, k, intacc):
     return _nmtlib.k_function_eval(f, k, intacc)
-
-
 k_function_eval = _nmtlib.k_function_eval
-
-
 class flatsky_info(_object):
     __swig_setmethods__ = {}
-    __setattr__ = lambda self, name, value: _swig_setattr(
-        self, flatsky_info, name, value
-    )
+    __setattr__ = lambda self, name, value: _swig_setattr(self, flatsky_info, name, value)
     __swig_getmethods__ = {}
     __getattr__ = lambda self, name: _swig_getattr(self, flatsky_info, name)
     __repr__ = _swig_repr
@@ -385,9 +285,7 @@ class flatsky_info(_object):
     __swig_setmethods__["npix"] = _nmtlib.flatsky_info_npix_set
     __swig_getmethods__["npix"] = _nmtlib.flatsky_info_npix_get
     if _newclass:
-        npix = _swig_property(
-            _nmtlib.flatsky_info_npix_get, _nmtlib.flatsky_info_npix_set
-        )
+        npix = _swig_property(_nmtlib.flatsky_info_npix_get, _nmtlib.flatsky_info_npix_set)
     __swig_setmethods__["lx"] = _nmtlib.flatsky_info_lx_set
     __swig_getmethods__["lx"] = _nmtlib.flatsky_info_lx_get
     if _newclass:
@@ -399,33 +297,23 @@ class flatsky_info(_object):
     __swig_setmethods__["pixsize"] = _nmtlib.flatsky_info_pixsize_set
     __swig_getmethods__["pixsize"] = _nmtlib.flatsky_info_pixsize_get
     if _newclass:
-        pixsize = _swig_property(
-            _nmtlib.flatsky_info_pixsize_get, _nmtlib.flatsky_info_pixsize_set
-        )
+        pixsize = _swig_property(_nmtlib.flatsky_info_pixsize_get, _nmtlib.flatsky_info_pixsize_set)
     __swig_setmethods__["n_ell"] = _nmtlib.flatsky_info_n_ell_set
     __swig_getmethods__["n_ell"] = _nmtlib.flatsky_info_n_ell_get
     if _newclass:
-        n_ell = _swig_property(
-            _nmtlib.flatsky_info_n_ell_get, _nmtlib.flatsky_info_n_ell_set
-        )
+        n_ell = _swig_property(_nmtlib.flatsky_info_n_ell_get, _nmtlib.flatsky_info_n_ell_set)
     __swig_setmethods__["dell"] = _nmtlib.flatsky_info_dell_set
     __swig_getmethods__["dell"] = _nmtlib.flatsky_info_dell_get
     if _newclass:
-        dell = _swig_property(
-            _nmtlib.flatsky_info_dell_get, _nmtlib.flatsky_info_dell_set
-        )
+        dell = _swig_property(_nmtlib.flatsky_info_dell_get, _nmtlib.flatsky_info_dell_set)
     __swig_setmethods__["i_dell"] = _nmtlib.flatsky_info_i_dell_set
     __swig_getmethods__["i_dell"] = _nmtlib.flatsky_info_i_dell_get
     if _newclass:
-        i_dell = _swig_property(
-            _nmtlib.flatsky_info_i_dell_get, _nmtlib.flatsky_info_i_dell_set
-        )
+        i_dell = _swig_property(_nmtlib.flatsky_info_i_dell_get, _nmtlib.flatsky_info_i_dell_set)
     __swig_setmethods__["ell_min"] = _nmtlib.flatsky_info_ell_min_set
     __swig_getmethods__["ell_min"] = _nmtlib.flatsky_info_ell_min_get
     if _newclass:
-        ell_min = _swig_property(
-            _nmtlib.flatsky_info_ell_min_get, _nmtlib.flatsky_info_ell_min_set
-        )
+        ell_min = _swig_property(_nmtlib.flatsky_info_ell_min_get, _nmtlib.flatsky_info_ell_min_set)
 
     def __init__(self):
         this = _nmtlib.new_flatsky_info()
@@ -433,29 +321,19 @@ class flatsky_info(_object):
             self.this.append(this)
         except Exception:
             self.this = this
-
     __swig_destroy__ = _nmtlib.delete_flatsky_info
     __del__ = lambda self: None
-
-
 flatsky_info_swigregister = _nmtlib.flatsky_info_swigregister
 flatsky_info_swigregister(flatsky_info)
 
 
 def flatsky_info_alloc(nx, ny, lx, ly):
     return _nmtlib.flatsky_info_alloc(nx, ny, lx, ly)
-
-
 flatsky_info_alloc = _nmtlib.flatsky_info_alloc
-
 
 def flatsky_info_free(fs):
     return _nmtlib.flatsky_info_free(fs)
-
-
 flatsky_info_free = _nmtlib.flatsky_info_free
-
-
 class field_flat(_object):
     __swig_setmethods__ = {}
     __setattr__ = lambda self, name, value: _swig_setattr(self, field_flat, name, value)
@@ -473,15 +351,11 @@ class field_flat(_object):
     __swig_setmethods__["pure_e"] = _nmtlib.field_flat_pure_e_set
     __swig_getmethods__["pure_e"] = _nmtlib.field_flat_pure_e_get
     if _newclass:
-        pure_e = _swig_property(
-            _nmtlib.field_flat_pure_e_get, _nmtlib.field_flat_pure_e_set
-        )
+        pure_e = _swig_property(_nmtlib.field_flat_pure_e_get, _nmtlib.field_flat_pure_e_set)
     __swig_setmethods__["pure_b"] = _nmtlib.field_flat_pure_b_set
     __swig_getmethods__["pure_b"] = _nmtlib.field_flat_pure_b_get
     if _newclass:
-        pure_b = _swig_property(
-            _nmtlib.field_flat_pure_b_get, _nmtlib.field_flat_pure_b_set
-        )
+        pure_b = _swig_property(_nmtlib.field_flat_pure_b_get, _nmtlib.field_flat_pure_b_set)
     __swig_setmethods__["mask"] = _nmtlib.field_flat_mask_set
     __swig_getmethods__["mask"] = _nmtlib.field_flat_mask_get
     if _newclass:
@@ -489,9 +363,7 @@ class field_flat(_object):
     __swig_setmethods__["a_mask"] = _nmtlib.field_flat_a_mask_set
     __swig_getmethods__["a_mask"] = _nmtlib.field_flat_a_mask_get
     if _newclass:
-        a_mask = _swig_property(
-            _nmtlib.field_flat_a_mask_get, _nmtlib.field_flat_a_mask_set
-        )
+        a_mask = _swig_property(_nmtlib.field_flat_a_mask_get, _nmtlib.field_flat_a_mask_set)
     __swig_setmethods__["pol"] = _nmtlib.field_flat_pol_set
     __swig_getmethods__["pol"] = _nmtlib.field_flat_pol_get
     if _newclass:
@@ -499,9 +371,7 @@ class field_flat(_object):
     __swig_setmethods__["nmaps"] = _nmtlib.field_flat_nmaps_set
     __swig_getmethods__["nmaps"] = _nmtlib.field_flat_nmaps_get
     if _newclass:
-        nmaps = _swig_property(
-            _nmtlib.field_flat_nmaps_get, _nmtlib.field_flat_nmaps_set
-        )
+        nmaps = _swig_property(_nmtlib.field_flat_nmaps_get, _nmtlib.field_flat_nmaps_set)
     __swig_setmethods__["maps"] = _nmtlib.field_flat_maps_set
     __swig_getmethods__["maps"] = _nmtlib.field_flat_maps_get
     if _newclass:
@@ -513,9 +383,7 @@ class field_flat(_object):
     __swig_setmethods__["ntemp"] = _nmtlib.field_flat_ntemp_set
     __swig_getmethods__["ntemp"] = _nmtlib.field_flat_ntemp_get
     if _newclass:
-        ntemp = _swig_property(
-            _nmtlib.field_flat_ntemp_get, _nmtlib.field_flat_ntemp_set
-        )
+        ntemp = _swig_property(_nmtlib.field_flat_ntemp_get, _nmtlib.field_flat_ntemp_set)
     __swig_setmethods__["temp"] = _nmtlib.field_flat_temp_set
     __swig_getmethods__["temp"] = _nmtlib.field_flat_temp_get
     if _newclass:
@@ -523,15 +391,11 @@ class field_flat(_object):
     __swig_setmethods__["a_temp"] = _nmtlib.field_flat_a_temp_set
     __swig_getmethods__["a_temp"] = _nmtlib.field_flat_a_temp_get
     if _newclass:
-        a_temp = _swig_property(
-            _nmtlib.field_flat_a_temp_get, _nmtlib.field_flat_a_temp_set
-        )
+        a_temp = _swig_property(_nmtlib.field_flat_a_temp_get, _nmtlib.field_flat_a_temp_set)
     __swig_setmethods__["matrix_M"] = _nmtlib.field_flat_matrix_M_set
     __swig_getmethods__["matrix_M"] = _nmtlib.field_flat_matrix_M_get
     if _newclass:
-        matrix_M = _swig_property(
-            _nmtlib.field_flat_matrix_M_get, _nmtlib.field_flat_matrix_M_set
-        )
+        matrix_M = _swig_property(_nmtlib.field_flat_matrix_M_get, _nmtlib.field_flat_matrix_M_set)
     __swig_setmethods__["beam"] = _nmtlib.field_flat_beam_set
     __swig_getmethods__["beam"] = _nmtlib.field_flat_beam_get
     if _newclass:
@@ -543,103 +407,27 @@ class field_flat(_object):
             self.this.append(this)
         except Exception:
             self.this = this
-
     __swig_destroy__ = _nmtlib.delete_field_flat
     __del__ = lambda self: None
-
-
 field_flat_swigregister = _nmtlib.field_flat_swigregister
 field_flat_swigregister(field_flat)
 
 
 def field_flat_free(fl):
     return _nmtlib.field_flat_free(fl)
-
-
 field_flat_free = _nmtlib.field_flat_free
 
-
-def field_flat_alloc(
-    nx,
-    ny,
-    lx,
-    ly,
-    mask,
-    pol,
-    maps,
-    ntemp,
-    temp,
-    nl_beam,
-    l_beam,
-    beam,
-    pure_e,
-    pure_b,
-    tol_pinv,
-):
-    return _nmtlib.field_flat_alloc(
-        nx,
-        ny,
-        lx,
-        ly,
-        mask,
-        pol,
-        maps,
-        ntemp,
-        temp,
-        nl_beam,
-        l_beam,
-        beam,
-        pure_e,
-        pure_b,
-        tol_pinv,
-    )
-
-
+def field_flat_alloc(nx, ny, lx, ly, mask, pol, maps, ntemp, temp, nl_beam, l_beam, beam, pure_e, pure_b, tol_pinv):
+    return _nmtlib.field_flat_alloc(nx, ny, lx, ly, mask, pol, maps, ntemp, temp, nl_beam, l_beam, beam, pure_e, pure_b, tol_pinv)
 field_flat_alloc = _nmtlib.field_flat_alloc
 
-
-def synfast_flat(
-    nx,
-    ny,
-    lx,
-    ly,
-    nfields,
-    spin_arr,
-    nl_beam,
-    l_beam,
-    beam_fields,
-    nl_cell,
-    l_cell,
-    cell_fields,
-    seed,
-):
-    return _nmtlib.synfast_flat(
-        nx,
-        ny,
-        lx,
-        ly,
-        nfields,
-        spin_arr,
-        nl_beam,
-        l_beam,
-        beam_fields,
-        nl_cell,
-        l_cell,
-        cell_fields,
-        seed,
-    )
-
-
+def synfast_flat(nx, ny, lx, ly, nfields, spin_arr, nl_beam, l_beam, beam_fields, nl_cell, l_cell, cell_fields, seed):
+    return _nmtlib.synfast_flat(nx, ny, lx, ly, nfields, spin_arr, nl_beam, l_beam, beam_fields, nl_cell, l_cell, cell_fields, seed)
 synfast_flat = _nmtlib.synfast_flat
-
 
 def purify_flat(fl, mask, walm0, maps_in, maps_out, alms):
     return _nmtlib.purify_flat(fl, mask, walm0, maps_in, maps_out, alms)
-
-
 purify_flat = _nmtlib.purify_flat
-
-
 class field(_object):
     __swig_setmethods__ = {}
     __setattr__ = lambda self, name, value: _swig_setattr(self, field, name, value)
@@ -705,9 +493,7 @@ class field(_object):
     __swig_setmethods__["matrix_M"] = _nmtlib.field_matrix_M_set
     __swig_getmethods__["matrix_M"] = _nmtlib.field_matrix_M_get
     if _newclass:
-        matrix_M = _swig_property(
-            _nmtlib.field_matrix_M_get, _nmtlib.field_matrix_M_set
-        )
+        matrix_M = _swig_property(_nmtlib.field_matrix_M_get, _nmtlib.field_matrix_M_set)
     __swig_setmethods__["beam"] = _nmtlib.field_beam_set
     __swig_getmethods__["beam"] = _nmtlib.field_beam_get
     if _newclass:
@@ -719,240 +505,113 @@ class field(_object):
             self.this.append(this)
         except Exception:
             self.this = this
-
     __swig_destroy__ = _nmtlib.delete_field
     __del__ = lambda self: None
-
-
 field_swigregister = _nmtlib.field_swigregister
 field_swigregister(field)
 
 
 def field_free(fl):
     return _nmtlib.field_free(fl)
-
-
 field_free = _nmtlib.field_free
 
-
-def field_alloc_sph(
-    nside,
-    mask,
-    pol,
-    maps,
-    ntemp,
-    temp,
-    beam,
-    pure_e,
-    pure_b,
-    n_iter_mask_purify,
-    tol_pinv,
-):
-    return _nmtlib.field_alloc_sph(
-        nside,
-        mask,
-        pol,
-        maps,
-        ntemp,
-        temp,
-        beam,
-        pure_e,
-        pure_b,
-        n_iter_mask_purify,
-        tol_pinv,
-    )
-
-
+def field_alloc_sph(nside, mask, pol, maps, ntemp, temp, beam, pure_e, pure_b, n_iter_mask_purify, tol_pinv):
+    return _nmtlib.field_alloc_sph(nside, mask, pol, maps, ntemp, temp, beam, pure_e, pure_b, n_iter_mask_purify, tol_pinv)
 field_alloc_sph = _nmtlib.field_alloc_sph
 
-
-def field_read(
-    fname_mask,
-    fname_maps,
-    fname_temp,
-    fname_beam,
-    pol,
-    pure_e,
-    pure_b,
-    n_iter_mask_purify,
-    tol_pinv,
-):
-    return _nmtlib.field_read(
-        fname_mask,
-        fname_maps,
-        fname_temp,
-        fname_beam,
-        pol,
-        pure_e,
-        pure_b,
-        n_iter_mask_purify,
-        tol_pinv,
-    )
-
-
+def field_read(fname_mask, fname_maps, fname_temp, fname_beam, pol, pure_e, pure_b, n_iter_mask_purify, tol_pinv):
+    return _nmtlib.field_read(fname_mask, fname_maps, fname_temp, fname_beam, pol, pure_e, pure_b, n_iter_mask_purify, tol_pinv)
 field_read = _nmtlib.field_read
-
 
 def synfast_sph(nside, nfields, spin_arr, lmax, cells, beam_fields, seed):
     return _nmtlib.synfast_sph(nside, nfields, spin_arr, lmax, cells, beam_fields, seed)
-
-
 synfast_sph = _nmtlib.synfast_sph
-
 
 def purify(fl, mask, walm0, maps_in, maps_out, alms):
     return _nmtlib.purify(fl, mask, walm0, maps_in, maps_out, alms)
-
-
 purify = _nmtlib.purify
-
 
 def apodize_mask(nside, mask_in, mask_out, aposize, apotype):
     return _nmtlib.apodize_mask(nside, mask_in, mask_out, aposize, apotype)
-
-
 apodize_mask = _nmtlib.apodize_mask
 
-
 def apodize_mask_flat(nx, ny, lx, ly, mask_in, mask_out, aposize, apotype):
-    return _nmtlib.apodize_mask_flat(
-        nx, ny, lx, ly, mask_in, mask_out, aposize, apotype
-    )
-
-
+    return _nmtlib.apodize_mask_flat(nx, ny, lx, ly, mask_in, mask_out, aposize, apotype)
 apodize_mask_flat = _nmtlib.apodize_mask_flat
-
-
 class workspace_flat(_object):
     __swig_setmethods__ = {}
-    __setattr__ = lambda self, name, value: _swig_setattr(
-        self, workspace_flat, name, value
-    )
+    __setattr__ = lambda self, name, value: _swig_setattr(self, workspace_flat, name, value)
     __swig_getmethods__ = {}
     __getattr__ = lambda self, name: _swig_getattr(self, workspace_flat, name)
     __repr__ = _swig_repr
     __swig_setmethods__["ncls"] = _nmtlib.workspace_flat_ncls_set
     __swig_getmethods__["ncls"] = _nmtlib.workspace_flat_ncls_get
     if _newclass:
-        ncls = _swig_property(
-            _nmtlib.workspace_flat_ncls_get, _nmtlib.workspace_flat_ncls_set
-        )
+        ncls = _swig_property(_nmtlib.workspace_flat_ncls_get, _nmtlib.workspace_flat_ncls_set)
     __swig_setmethods__["ellcut_x"] = _nmtlib.workspace_flat_ellcut_x_set
     __swig_getmethods__["ellcut_x"] = _nmtlib.workspace_flat_ellcut_x_get
     if _newclass:
-        ellcut_x = _swig_property(
-            _nmtlib.workspace_flat_ellcut_x_get, _nmtlib.workspace_flat_ellcut_x_set
-        )
+        ellcut_x = _swig_property(_nmtlib.workspace_flat_ellcut_x_get, _nmtlib.workspace_flat_ellcut_x_set)
     __swig_setmethods__["ellcut_y"] = _nmtlib.workspace_flat_ellcut_y_set
     __swig_getmethods__["ellcut_y"] = _nmtlib.workspace_flat_ellcut_y_get
     if _newclass:
-        ellcut_y = _swig_property(
-            _nmtlib.workspace_flat_ellcut_y_get, _nmtlib.workspace_flat_ellcut_y_set
-        )
+        ellcut_y = _swig_property(_nmtlib.workspace_flat_ellcut_y_get, _nmtlib.workspace_flat_ellcut_y_set)
     __swig_setmethods__["pe1"] = _nmtlib.workspace_flat_pe1_set
     __swig_getmethods__["pe1"] = _nmtlib.workspace_flat_pe1_get
     if _newclass:
-        pe1 = _swig_property(
-            _nmtlib.workspace_flat_pe1_get, _nmtlib.workspace_flat_pe1_set
-        )
+        pe1 = _swig_property(_nmtlib.workspace_flat_pe1_get, _nmtlib.workspace_flat_pe1_set)
     __swig_setmethods__["pe2"] = _nmtlib.workspace_flat_pe2_set
     __swig_getmethods__["pe2"] = _nmtlib.workspace_flat_pe2_get
     if _newclass:
-        pe2 = _swig_property(
-            _nmtlib.workspace_flat_pe2_get, _nmtlib.workspace_flat_pe2_set
-        )
+        pe2 = _swig_property(_nmtlib.workspace_flat_pe2_get, _nmtlib.workspace_flat_pe2_set)
     __swig_setmethods__["pb1"] = _nmtlib.workspace_flat_pb1_set
     __swig_getmethods__["pb1"] = _nmtlib.workspace_flat_pb1_get
     if _newclass:
-        pb1 = _swig_property(
-            _nmtlib.workspace_flat_pb1_get, _nmtlib.workspace_flat_pb1_set
-        )
+        pb1 = _swig_property(_nmtlib.workspace_flat_pb1_get, _nmtlib.workspace_flat_pb1_set)
     __swig_setmethods__["pb2"] = _nmtlib.workspace_flat_pb2_set
     __swig_getmethods__["pb2"] = _nmtlib.workspace_flat_pb2_get
     if _newclass:
-        pb2 = _swig_property(
-            _nmtlib.workspace_flat_pb2_get, _nmtlib.workspace_flat_pb2_set
-        )
+        pb2 = _swig_property(_nmtlib.workspace_flat_pb2_get, _nmtlib.workspace_flat_pb2_set)
     __swig_setmethods__["fs"] = _nmtlib.workspace_flat_fs_set
     __swig_getmethods__["fs"] = _nmtlib.workspace_flat_fs_get
     if _newclass:
-        fs = _swig_property(
-            _nmtlib.workspace_flat_fs_get, _nmtlib.workspace_flat_fs_set
-        )
+        fs = _swig_property(_nmtlib.workspace_flat_fs_get, _nmtlib.workspace_flat_fs_set)
     __swig_setmethods__["mask1"] = _nmtlib.workspace_flat_mask1_set
     __swig_getmethods__["mask1"] = _nmtlib.workspace_flat_mask1_get
     if _newclass:
-        mask1 = _swig_property(
-            _nmtlib.workspace_flat_mask1_get, _nmtlib.workspace_flat_mask1_set
-        )
+        mask1 = _swig_property(_nmtlib.workspace_flat_mask1_get, _nmtlib.workspace_flat_mask1_set)
     __swig_setmethods__["mask2"] = _nmtlib.workspace_flat_mask2_set
     __swig_getmethods__["mask2"] = _nmtlib.workspace_flat_mask2_get
     if _newclass:
-        mask2 = _swig_property(
-            _nmtlib.workspace_flat_mask2_get, _nmtlib.workspace_flat_mask2_set
-        )
+        mask2 = _swig_property(_nmtlib.workspace_flat_mask2_get, _nmtlib.workspace_flat_mask2_set)
     __swig_setmethods__["n_cells"] = _nmtlib.workspace_flat_n_cells_set
     __swig_getmethods__["n_cells"] = _nmtlib.workspace_flat_n_cells_get
     if _newclass:
-        n_cells = _swig_property(
-            _nmtlib.workspace_flat_n_cells_get, _nmtlib.workspace_flat_n_cells_set
-        )
-    __swig_setmethods__[
-        "coupling_matrix_unbinned"
-    ] = _nmtlib.workspace_flat_coupling_matrix_unbinned_set
-    __swig_getmethods__[
-        "coupling_matrix_unbinned"
-    ] = _nmtlib.workspace_flat_coupling_matrix_unbinned_get
+        n_cells = _swig_property(_nmtlib.workspace_flat_n_cells_get, _nmtlib.workspace_flat_n_cells_set)
+    __swig_setmethods__["coupling_matrix_unbinned"] = _nmtlib.workspace_flat_coupling_matrix_unbinned_set
+    __swig_getmethods__["coupling_matrix_unbinned"] = _nmtlib.workspace_flat_coupling_matrix_unbinned_get
     if _newclass:
-        coupling_matrix_unbinned = _swig_property(
-            _nmtlib.workspace_flat_coupling_matrix_unbinned_get,
-            _nmtlib.workspace_flat_coupling_matrix_unbinned_set,
-        )
-    __swig_setmethods__[
-        "coupling_matrix_binned"
-    ] = _nmtlib.workspace_flat_coupling_matrix_binned_set
-    __swig_getmethods__[
-        "coupling_matrix_binned"
-    ] = _nmtlib.workspace_flat_coupling_matrix_binned_get
+        coupling_matrix_unbinned = _swig_property(_nmtlib.workspace_flat_coupling_matrix_unbinned_get, _nmtlib.workspace_flat_coupling_matrix_unbinned_set)
+    __swig_setmethods__["coupling_matrix_binned"] = _nmtlib.workspace_flat_coupling_matrix_binned_set
+    __swig_getmethods__["coupling_matrix_binned"] = _nmtlib.workspace_flat_coupling_matrix_binned_get
     if _newclass:
-        coupling_matrix_binned = _swig_property(
-            _nmtlib.workspace_flat_coupling_matrix_binned_get,
-            _nmtlib.workspace_flat_coupling_matrix_binned_set,
-        )
+        coupling_matrix_binned = _swig_property(_nmtlib.workspace_flat_coupling_matrix_binned_get, _nmtlib.workspace_flat_coupling_matrix_binned_set)
     __swig_setmethods__["bin"] = _nmtlib.workspace_flat_bin_set
     __swig_getmethods__["bin"] = _nmtlib.workspace_flat_bin_get
     if _newclass:
-        bin = _swig_property(
-            _nmtlib.workspace_flat_bin_get, _nmtlib.workspace_flat_bin_set
-        )
+        bin = _swig_property(_nmtlib.workspace_flat_bin_get, _nmtlib.workspace_flat_bin_set)
     __swig_setmethods__["lmax"] = _nmtlib.workspace_flat_lmax_set
     __swig_getmethods__["lmax"] = _nmtlib.workspace_flat_lmax_get
     if _newclass:
-        lmax = _swig_property(
-            _nmtlib.workspace_flat_lmax_get, _nmtlib.workspace_flat_lmax_set
-        )
-    __swig_setmethods__[
-        "coupling_matrix_binned_gsl"
-    ] = _nmtlib.workspace_flat_coupling_matrix_binned_gsl_set
-    __swig_getmethods__[
-        "coupling_matrix_binned_gsl"
-    ] = _nmtlib.workspace_flat_coupling_matrix_binned_gsl_get
+        lmax = _swig_property(_nmtlib.workspace_flat_lmax_get, _nmtlib.workspace_flat_lmax_set)
+    __swig_setmethods__["coupling_matrix_binned_gsl"] = _nmtlib.workspace_flat_coupling_matrix_binned_gsl_set
+    __swig_getmethods__["coupling_matrix_binned_gsl"] = _nmtlib.workspace_flat_coupling_matrix_binned_gsl_get
     if _newclass:
-        coupling_matrix_binned_gsl = _swig_property(
-            _nmtlib.workspace_flat_coupling_matrix_binned_gsl_get,
-            _nmtlib.workspace_flat_coupling_matrix_binned_gsl_set,
-        )
-    __swig_setmethods__[
-        "coupling_matrix_perm"
-    ] = _nmtlib.workspace_flat_coupling_matrix_perm_set
-    __swig_getmethods__[
-        "coupling_matrix_perm"
-    ] = _nmtlib.workspace_flat_coupling_matrix_perm_get
+        coupling_matrix_binned_gsl = _swig_property(_nmtlib.workspace_flat_coupling_matrix_binned_gsl_get, _nmtlib.workspace_flat_coupling_matrix_binned_gsl_set)
+    __swig_setmethods__["coupling_matrix_perm"] = _nmtlib.workspace_flat_coupling_matrix_perm_set
+    __swig_getmethods__["coupling_matrix_perm"] = _nmtlib.workspace_flat_coupling_matrix_perm_get
     if _newclass:
-        coupling_matrix_perm = _swig_property(
-            _nmtlib.workspace_flat_coupling_matrix_perm_get,
-            _nmtlib.workspace_flat_coupling_matrix_perm_set,
-        )
+        coupling_matrix_perm = _swig_property(_nmtlib.workspace_flat_coupling_matrix_perm_get, _nmtlib.workspace_flat_coupling_matrix_perm_set)
 
     def __init__(self):
         this = _nmtlib.new_workspace_flat()
@@ -960,121 +619,51 @@ class workspace_flat(_object):
             self.this.append(this)
         except Exception:
             self.this = this
-
     __swig_destroy__ = _nmtlib.delete_workspace_flat
     __del__ = lambda self: None
-
-
 workspace_flat_swigregister = _nmtlib.workspace_flat_swigregister
 workspace_flat_swigregister(workspace_flat)
 
 
 def workspace_flat_free(w):
     return _nmtlib.workspace_flat_free(w)
-
-
 workspace_flat_free = _nmtlib.workspace_flat_free
-
 
 def workspace_flat_read(fname):
     return _nmtlib.workspace_flat_read(fname)
-
-
 workspace_flat_read = _nmtlib.workspace_flat_read
-
 
 def workspace_flat_write(w, fname):
     return _nmtlib.workspace_flat_write(w, fname)
-
-
 workspace_flat_write = _nmtlib.workspace_flat_write
 
-
 def compute_coupling_matrix_flat(fl1, fl2, bin, lmn_x, lmx_x, lmn_y, lmx_y):
-    return _nmtlib.compute_coupling_matrix_flat(
-        fl1, fl2, bin, lmn_x, lmx_x, lmn_y, lmx_y
-    )
-
-
+    return _nmtlib.compute_coupling_matrix_flat(fl1, fl2, bin, lmn_x, lmx_x, lmn_y, lmx_y)
 compute_coupling_matrix_flat = _nmtlib.compute_coupling_matrix_flat
 
-
-def compute_deprojection_bias_flat(
-    fl1, fl2, bin, lmn_x, lmx_x, lmn_y, lmx_y, nl_prop, l_prop, cl_proposal, cl_bias
-):
-    return _nmtlib.compute_deprojection_bias_flat(
-        fl1, fl2, bin, lmn_x, lmx_x, lmn_y, lmx_y, nl_prop, l_prop, cl_proposal, cl_bias
-    )
-
-
+def compute_deprojection_bias_flat(fl1, fl2, bin, lmn_x, lmx_x, lmn_y, lmx_y, nl_prop, l_prop, cl_proposal, cl_bias):
+    return _nmtlib.compute_deprojection_bias_flat(fl1, fl2, bin, lmn_x, lmx_x, lmn_y, lmx_y, nl_prop, l_prop, cl_proposal, cl_bias)
 compute_deprojection_bias_flat = _nmtlib.compute_deprojection_bias_flat
-
 
 def couple_cl_l_flat_fast(w, nl, larr, cl_in, cl_out):
     return _nmtlib.couple_cl_l_flat_fast(w, nl, larr, cl_in, cl_out)
-
-
 couple_cl_l_flat_fast = _nmtlib.couple_cl_l_flat_fast
-
 
 def couple_cl_l_flat_quick(w, nl, larr, cl_in, cl_out):
     return _nmtlib.couple_cl_l_flat_quick(w, nl, larr, cl_in, cl_out)
-
-
 couple_cl_l_flat_quick = _nmtlib.couple_cl_l_flat_quick
-
 
 def decouple_cl_l_flat(w, cl_in, cl_noise_in, cl_bias, cl_out):
     return _nmtlib.decouple_cl_l_flat(w, cl_in, cl_noise_in, cl_bias, cl_out)
-
-
 decouple_cl_l_flat = _nmtlib.decouple_cl_l_flat
 
-
 def compute_coupled_cell_flat(fl1, fl2, bin, cl_out, lmn_x, lmx_x, lmn_y, lmx_y):
-    return _nmtlib.compute_coupled_cell_flat(
-        fl1, fl2, bin, cl_out, lmn_x, lmx_x, lmn_y, lmx_y
-    )
-
-
+    return _nmtlib.compute_coupled_cell_flat(fl1, fl2, bin, cl_out, lmn_x, lmx_x, lmn_y, lmx_y)
 compute_coupled_cell_flat = _nmtlib.compute_coupled_cell_flat
 
-
-def compute_power_spectra_flat(
-    fl1,
-    fl2,
-    bin,
-    lmn_x,
-    lmx_x,
-    lmn_y,
-    lmx_y,
-    w0,
-    cl_noise,
-    nl_prop,
-    l_prop,
-    cl_prop,
-    cl_out,
-):
-    return _nmtlib.compute_power_spectra_flat(
-        fl1,
-        fl2,
-        bin,
-        lmn_x,
-        lmx_x,
-        lmn_y,
-        lmx_y,
-        w0,
-        cl_noise,
-        nl_prop,
-        l_prop,
-        cl_prop,
-        cl_out,
-    )
-
-
+def compute_power_spectra_flat(fl1, fl2, bin, lmn_x, lmx_x, lmn_y, lmx_y, w0, cl_noise, nl_prop, l_prop, cl_prop, cl_out):
+    return _nmtlib.compute_power_spectra_flat(fl1, fl2, bin, lmn_x, lmx_x, lmn_y, lmx_y, w0, cl_noise, nl_prop, l_prop, cl_prop, cl_out)
 compute_power_spectra_flat = _nmtlib.compute_power_spectra_flat
-
-
 class workspace(_object):
     __swig_setmethods__ = {}
     __setattr__ = lambda self, name, value: _swig_setattr(self, workspace, name, value)
@@ -1085,6 +674,10 @@ class workspace(_object):
     __swig_getmethods__["lmax"] = _nmtlib.workspace_lmax_get
     if _newclass:
         lmax = _swig_property(_nmtlib.workspace_lmax_get, _nmtlib.workspace_lmax_set)
+    __swig_setmethods__["is_teb"] = _nmtlib.workspace_is_teb_set
+    __swig_getmethods__["is_teb"] = _nmtlib.workspace_is_teb_get
+    if _newclass:
+        is_teb = _swig_property(_nmtlib.workspace_is_teb_get, _nmtlib.workspace_is_teb_set)
     __swig_setmethods__["ncls"] = _nmtlib.workspace_ncls_set
     __swig_getmethods__["ncls"] = _nmtlib.workspace_ncls_get
     if _newclass:
@@ -1104,46 +697,23 @@ class workspace(_object):
     __swig_setmethods__["pcl_masks"] = _nmtlib.workspace_pcl_masks_set
     __swig_getmethods__["pcl_masks"] = _nmtlib.workspace_pcl_masks_get
     if _newclass:
-        pcl_masks = _swig_property(
-            _nmtlib.workspace_pcl_masks_get, _nmtlib.workspace_pcl_masks_set
-        )
-    __swig_setmethods__[
-        "coupling_matrix_unbinned"
-    ] = _nmtlib.workspace_coupling_matrix_unbinned_set
-    __swig_getmethods__[
-        "coupling_matrix_unbinned"
-    ] = _nmtlib.workspace_coupling_matrix_unbinned_get
+        pcl_masks = _swig_property(_nmtlib.workspace_pcl_masks_get, _nmtlib.workspace_pcl_masks_set)
+    __swig_setmethods__["coupling_matrix_unbinned"] = _nmtlib.workspace_coupling_matrix_unbinned_set
+    __swig_getmethods__["coupling_matrix_unbinned"] = _nmtlib.workspace_coupling_matrix_unbinned_get
     if _newclass:
-        coupling_matrix_unbinned = _swig_property(
-            _nmtlib.workspace_coupling_matrix_unbinned_get,
-            _nmtlib.workspace_coupling_matrix_unbinned_set,
-        )
+        coupling_matrix_unbinned = _swig_property(_nmtlib.workspace_coupling_matrix_unbinned_get, _nmtlib.workspace_coupling_matrix_unbinned_set)
     __swig_setmethods__["bin"] = _nmtlib.workspace_bin_set
     __swig_getmethods__["bin"] = _nmtlib.workspace_bin_get
     if _newclass:
         bin = _swig_property(_nmtlib.workspace_bin_get, _nmtlib.workspace_bin_set)
-    __swig_setmethods__[
-        "coupling_matrix_binned"
-    ] = _nmtlib.workspace_coupling_matrix_binned_set
-    __swig_getmethods__[
-        "coupling_matrix_binned"
-    ] = _nmtlib.workspace_coupling_matrix_binned_get
+    __swig_setmethods__["coupling_matrix_binned"] = _nmtlib.workspace_coupling_matrix_binned_set
+    __swig_getmethods__["coupling_matrix_binned"] = _nmtlib.workspace_coupling_matrix_binned_get
     if _newclass:
-        coupling_matrix_binned = _swig_property(
-            _nmtlib.workspace_coupling_matrix_binned_get,
-            _nmtlib.workspace_coupling_matrix_binned_set,
-        )
-    __swig_setmethods__[
-        "coupling_matrix_perm"
-    ] = _nmtlib.workspace_coupling_matrix_perm_set
-    __swig_getmethods__[
-        "coupling_matrix_perm"
-    ] = _nmtlib.workspace_coupling_matrix_perm_get
+        coupling_matrix_binned = _swig_property(_nmtlib.workspace_coupling_matrix_binned_get, _nmtlib.workspace_coupling_matrix_binned_set)
+    __swig_setmethods__["coupling_matrix_perm"] = _nmtlib.workspace_coupling_matrix_perm_set
+    __swig_getmethods__["coupling_matrix_perm"] = _nmtlib.workspace_coupling_matrix_perm_get
     if _newclass:
-        coupling_matrix_perm = _swig_property(
-            _nmtlib.workspace_coupling_matrix_perm_get,
-            _nmtlib.workspace_coupling_matrix_perm_set,
-        )
+        coupling_matrix_perm = _swig_property(_nmtlib.workspace_coupling_matrix_perm_get, _nmtlib.workspace_coupling_matrix_perm_set)
 
     def __init__(self):
         this = _nmtlib.new_workspace()
@@ -1151,173 +721,93 @@ class workspace(_object):
             self.this.append(this)
         except Exception:
             self.this = this
-
     __swig_destroy__ = _nmtlib.delete_workspace
     __del__ = lambda self: None
-
-
 workspace_swigregister = _nmtlib.workspace_swigregister
 workspace_swigregister(workspace)
 
 
-def compute_coupling_matrix(fl1, fl2, bin):
-    return _nmtlib.compute_coupling_matrix(fl1, fl2, bin)
-
-
+def compute_coupling_matrix(fl1, fl2, bin, is_teb):
+    return _nmtlib.compute_coupling_matrix(fl1, fl2, bin, is_teb)
 compute_coupling_matrix = _nmtlib.compute_coupling_matrix
-
 
 def workspace_write(w, fname):
     return _nmtlib.workspace_write(w, fname)
-
-
 workspace_write = _nmtlib.workspace_write
-
 
 def workspace_read(fname):
     return _nmtlib.workspace_read(fname)
-
-
 workspace_read = _nmtlib.workspace_read
-
 
 def workspace_free(w):
     return _nmtlib.workspace_free(w)
-
-
 workspace_free = _nmtlib.workspace_free
-
 
 def compute_deprojection_bias(fl1, fl2, cl_proposal, cl_bias):
     return _nmtlib.compute_deprojection_bias(fl1, fl2, cl_proposal, cl_bias)
-
-
 compute_deprojection_bias = _nmtlib.compute_deprojection_bias
-
 
 def compute_uncorr_noise_deprojection_bias(fl1, map_var, cl_bias):
     return _nmtlib.compute_uncorr_noise_deprojection_bias(fl1, map_var, cl_bias)
-
-
 compute_uncorr_noise_deprojection_bias = _nmtlib.compute_uncorr_noise_deprojection_bias
-
 
 def couple_cl_l(w, cl_in, cl_out):
     return _nmtlib.couple_cl_l(w, cl_in, cl_out)
-
-
 couple_cl_l = _nmtlib.couple_cl_l
-
 
 def decouple_cl_l(w, cl_in, cl_noise_in, cl_bias, cl_out):
     return _nmtlib.decouple_cl_l(w, cl_in, cl_noise_in, cl_bias, cl_out)
-
-
 decouple_cl_l = _nmtlib.decouple_cl_l
-
 
 def compute_coupled_cell(fl1, fl2, cl_out):
     return _nmtlib.compute_coupled_cell(fl1, fl2, cl_out)
-
-
 compute_coupled_cell = _nmtlib.compute_coupled_cell
 
-
 def compute_power_spectra(fl1, fl2, bin, w0, cl_noise, cl_proposal, cl_out):
-    return _nmtlib.compute_power_spectra(
-        fl1, fl2, bin, w0, cl_noise, cl_proposal, cl_out
-    )
-
-
+    return _nmtlib.compute_power_spectra(fl1, fl2, bin, w0, cl_noise, cl_proposal, cl_out)
 compute_power_spectra = _nmtlib.compute_power_spectra
-
-
 class covar_workspace_flat(_object):
     __swig_setmethods__ = {}
-    __setattr__ = lambda self, name, value: _swig_setattr(
-        self, covar_workspace_flat, name, value
-    )
+    __setattr__ = lambda self, name, value: _swig_setattr(self, covar_workspace_flat, name, value)
     __swig_getmethods__ = {}
     __getattr__ = lambda self, name: _swig_getattr(self, covar_workspace_flat, name)
     __repr__ = _swig_repr
     __swig_setmethods__["ncls_a"] = _nmtlib.covar_workspace_flat_ncls_a_set
     __swig_getmethods__["ncls_a"] = _nmtlib.covar_workspace_flat_ncls_a_get
     if _newclass:
-        ncls_a = _swig_property(
-            _nmtlib.covar_workspace_flat_ncls_a_get,
-            _nmtlib.covar_workspace_flat_ncls_a_set,
-        )
+        ncls_a = _swig_property(_nmtlib.covar_workspace_flat_ncls_a_get, _nmtlib.covar_workspace_flat_ncls_a_set)
     __swig_setmethods__["ncls_b"] = _nmtlib.covar_workspace_flat_ncls_b_set
     __swig_getmethods__["ncls_b"] = _nmtlib.covar_workspace_flat_ncls_b_get
     if _newclass:
-        ncls_b = _swig_property(
-            _nmtlib.covar_workspace_flat_ncls_b_get,
-            _nmtlib.covar_workspace_flat_ncls_b_set,
-        )
+        ncls_b = _swig_property(_nmtlib.covar_workspace_flat_ncls_b_get, _nmtlib.covar_workspace_flat_ncls_b_set)
     __swig_setmethods__["bin"] = _nmtlib.covar_workspace_flat_bin_set
     __swig_getmethods__["bin"] = _nmtlib.covar_workspace_flat_bin_get
     if _newclass:
-        bin = _swig_property(
-            _nmtlib.covar_workspace_flat_bin_get, _nmtlib.covar_workspace_flat_bin_set
-        )
+        bin = _swig_property(_nmtlib.covar_workspace_flat_bin_get, _nmtlib.covar_workspace_flat_bin_set)
     __swig_setmethods__["xi_1122"] = _nmtlib.covar_workspace_flat_xi_1122_set
     __swig_getmethods__["xi_1122"] = _nmtlib.covar_workspace_flat_xi_1122_get
     if _newclass:
-        xi_1122 = _swig_property(
-            _nmtlib.covar_workspace_flat_xi_1122_get,
-            _nmtlib.covar_workspace_flat_xi_1122_set,
-        )
+        xi_1122 = _swig_property(_nmtlib.covar_workspace_flat_xi_1122_get, _nmtlib.covar_workspace_flat_xi_1122_set)
     __swig_setmethods__["xi_1221"] = _nmtlib.covar_workspace_flat_xi_1221_set
     __swig_getmethods__["xi_1221"] = _nmtlib.covar_workspace_flat_xi_1221_get
     if _newclass:
-        xi_1221 = _swig_property(
-            _nmtlib.covar_workspace_flat_xi_1221_get,
-            _nmtlib.covar_workspace_flat_xi_1221_set,
-        )
-    __swig_setmethods__[
-        "coupling_binned_a"
-    ] = _nmtlib.covar_workspace_flat_coupling_binned_a_set
-    __swig_getmethods__[
-        "coupling_binned_a"
-    ] = _nmtlib.covar_workspace_flat_coupling_binned_a_get
+        xi_1221 = _swig_property(_nmtlib.covar_workspace_flat_xi_1221_get, _nmtlib.covar_workspace_flat_xi_1221_set)
+    __swig_setmethods__["coupling_binned_a"] = _nmtlib.covar_workspace_flat_coupling_binned_a_set
+    __swig_getmethods__["coupling_binned_a"] = _nmtlib.covar_workspace_flat_coupling_binned_a_get
     if _newclass:
-        coupling_binned_a = _swig_property(
-            _nmtlib.covar_workspace_flat_coupling_binned_a_get,
-            _nmtlib.covar_workspace_flat_coupling_binned_a_set,
-        )
-    __swig_setmethods__[
-        "coupling_binned_b"
-    ] = _nmtlib.covar_workspace_flat_coupling_binned_b_set
-    __swig_getmethods__[
-        "coupling_binned_b"
-    ] = _nmtlib.covar_workspace_flat_coupling_binned_b_get
+        coupling_binned_a = _swig_property(_nmtlib.covar_workspace_flat_coupling_binned_a_get, _nmtlib.covar_workspace_flat_coupling_binned_a_set)
+    __swig_setmethods__["coupling_binned_b"] = _nmtlib.covar_workspace_flat_coupling_binned_b_set
+    __swig_getmethods__["coupling_binned_b"] = _nmtlib.covar_workspace_flat_coupling_binned_b_get
     if _newclass:
-        coupling_binned_b = _swig_property(
-            _nmtlib.covar_workspace_flat_coupling_binned_b_get,
-            _nmtlib.covar_workspace_flat_coupling_binned_b_set,
-        )
-    __swig_setmethods__[
-        "coupling_binned_perm_a"
-    ] = _nmtlib.covar_workspace_flat_coupling_binned_perm_a_set
-    __swig_getmethods__[
-        "coupling_binned_perm_a"
-    ] = _nmtlib.covar_workspace_flat_coupling_binned_perm_a_get
+        coupling_binned_b = _swig_property(_nmtlib.covar_workspace_flat_coupling_binned_b_get, _nmtlib.covar_workspace_flat_coupling_binned_b_set)
+    __swig_setmethods__["coupling_binned_perm_a"] = _nmtlib.covar_workspace_flat_coupling_binned_perm_a_set
+    __swig_getmethods__["coupling_binned_perm_a"] = _nmtlib.covar_workspace_flat_coupling_binned_perm_a_get
     if _newclass:
-        coupling_binned_perm_a = _swig_property(
-            _nmtlib.covar_workspace_flat_coupling_binned_perm_a_get,
-            _nmtlib.covar_workspace_flat_coupling_binned_perm_a_set,
-        )
-    __swig_setmethods__[
-        "coupling_binned_perm_b"
-    ] = _nmtlib.covar_workspace_flat_coupling_binned_perm_b_set
-    __swig_getmethods__[
-        "coupling_binned_perm_b"
-    ] = _nmtlib.covar_workspace_flat_coupling_binned_perm_b_get
+        coupling_binned_perm_a = _swig_property(_nmtlib.covar_workspace_flat_coupling_binned_perm_a_get, _nmtlib.covar_workspace_flat_coupling_binned_perm_a_set)
+    __swig_setmethods__["coupling_binned_perm_b"] = _nmtlib.covar_workspace_flat_coupling_binned_perm_b_set
+    __swig_getmethods__["coupling_binned_perm_b"] = _nmtlib.covar_workspace_flat_coupling_binned_perm_b_get
     if _newclass:
-        coupling_binned_perm_b = _swig_property(
-            _nmtlib.covar_workspace_flat_coupling_binned_perm_b_get,
-            _nmtlib.covar_workspace_flat_coupling_binned_perm_b_set,
-        )
+        coupling_binned_perm_b = _swig_property(_nmtlib.covar_workspace_flat_coupling_binned_perm_b_get, _nmtlib.covar_workspace_flat_coupling_binned_perm_b_set)
 
     def __init__(self):
         this = _nmtlib.new_covar_workspace_flat()
@@ -1325,160 +815,89 @@ class covar_workspace_flat(_object):
             self.this.append(this)
         except Exception:
             self.this = this
-
     __swig_destroy__ = _nmtlib.delete_covar_workspace_flat
     __del__ = lambda self: None
-
-
 covar_workspace_flat_swigregister = _nmtlib.covar_workspace_flat_swigregister
 covar_workspace_flat_swigregister(covar_workspace_flat)
 
 
 def covar_workspace_flat_free(cw):
     return _nmtlib.covar_workspace_flat_free(cw)
-
-
 covar_workspace_flat_free = _nmtlib.covar_workspace_flat_free
-
 
 def covar_workspace_flat_init(wa, wb):
     return _nmtlib.covar_workspace_flat_init(wa, wb)
-
-
 covar_workspace_flat_init = _nmtlib.covar_workspace_flat_init
 
-
-def compute_gaussian_covariance_flat(
-    cw, nl, larr, cla1b1, cla1b2, cla2b1, cla2b2, covar_out
-):
-    return _nmtlib.compute_gaussian_covariance_flat(
-        cw, nl, larr, cla1b1, cla1b2, cla2b1, cla2b2, covar_out
-    )
-
-
+def compute_gaussian_covariance_flat(cw, nl, larr, cla1b1, cla1b2, cla2b1, cla2b2, covar_out):
+    return _nmtlib.compute_gaussian_covariance_flat(cw, nl, larr, cla1b1, cla1b2, cla2b1, cla2b2, covar_out)
 compute_gaussian_covariance_flat = _nmtlib.compute_gaussian_covariance_flat
-
 
 def covar_workspace_flat_write(cw, fname):
     return _nmtlib.covar_workspace_flat_write(cw, fname)
-
-
 covar_workspace_flat_write = _nmtlib.covar_workspace_flat_write
-
 
 def covar_workspace_flat_read(fname):
     return _nmtlib.covar_workspace_flat_read(fname)
-
-
 covar_workspace_flat_read = _nmtlib.covar_workspace_flat_read
-
-
 class covar_workspace(_object):
     __swig_setmethods__ = {}
-    __setattr__ = lambda self, name, value: _swig_setattr(
-        self, covar_workspace, name, value
-    )
+    __setattr__ = lambda self, name, value: _swig_setattr(self, covar_workspace, name, value)
     __swig_getmethods__ = {}
     __getattr__ = lambda self, name: _swig_getattr(self, covar_workspace, name)
     __repr__ = _swig_repr
     __swig_setmethods__["lmax_a"] = _nmtlib.covar_workspace_lmax_a_set
     __swig_getmethods__["lmax_a"] = _nmtlib.covar_workspace_lmax_a_get
     if _newclass:
-        lmax_a = _swig_property(
-            _nmtlib.covar_workspace_lmax_a_get, _nmtlib.covar_workspace_lmax_a_set
-        )
+        lmax_a = _swig_property(_nmtlib.covar_workspace_lmax_a_get, _nmtlib.covar_workspace_lmax_a_set)
     __swig_setmethods__["lmax_b"] = _nmtlib.covar_workspace_lmax_b_set
     __swig_getmethods__["lmax_b"] = _nmtlib.covar_workspace_lmax_b_get
     if _newclass:
-        lmax_b = _swig_property(
-            _nmtlib.covar_workspace_lmax_b_get, _nmtlib.covar_workspace_lmax_b_set
-        )
+        lmax_b = _swig_property(_nmtlib.covar_workspace_lmax_b_get, _nmtlib.covar_workspace_lmax_b_set)
     __swig_setmethods__["ncls_a"] = _nmtlib.covar_workspace_ncls_a_set
     __swig_getmethods__["ncls_a"] = _nmtlib.covar_workspace_ncls_a_get
     if _newclass:
-        ncls_a = _swig_property(
-            _nmtlib.covar_workspace_ncls_a_get, _nmtlib.covar_workspace_ncls_a_set
-        )
+        ncls_a = _swig_property(_nmtlib.covar_workspace_ncls_a_get, _nmtlib.covar_workspace_ncls_a_set)
     __swig_setmethods__["ncls_b"] = _nmtlib.covar_workspace_ncls_b_set
     __swig_getmethods__["ncls_b"] = _nmtlib.covar_workspace_ncls_b_get
     if _newclass:
-        ncls_b = _swig_property(
-            _nmtlib.covar_workspace_ncls_b_get, _nmtlib.covar_workspace_ncls_b_set
-        )
+        ncls_b = _swig_property(_nmtlib.covar_workspace_ncls_b_get, _nmtlib.covar_workspace_ncls_b_set)
     __swig_setmethods__["bin_a"] = _nmtlib.covar_workspace_bin_a_set
     __swig_getmethods__["bin_a"] = _nmtlib.covar_workspace_bin_a_get
     if _newclass:
-        bin_a = _swig_property(
-            _nmtlib.covar_workspace_bin_a_get, _nmtlib.covar_workspace_bin_a_set
-        )
+        bin_a = _swig_property(_nmtlib.covar_workspace_bin_a_get, _nmtlib.covar_workspace_bin_a_set)
     __swig_setmethods__["bin_b"] = _nmtlib.covar_workspace_bin_b_set
     __swig_getmethods__["bin_b"] = _nmtlib.covar_workspace_bin_b_get
     if _newclass:
-        bin_b = _swig_property(
-            _nmtlib.covar_workspace_bin_b_get, _nmtlib.covar_workspace_bin_b_set
-        )
+        bin_b = _swig_property(_nmtlib.covar_workspace_bin_b_get, _nmtlib.covar_workspace_bin_b_set)
     __swig_setmethods__["nside"] = _nmtlib.covar_workspace_nside_set
     __swig_getmethods__["nside"] = _nmtlib.covar_workspace_nside_get
     if _newclass:
-        nside = _swig_property(
-            _nmtlib.covar_workspace_nside_get, _nmtlib.covar_workspace_nside_set
-        )
+        nside = _swig_property(_nmtlib.covar_workspace_nside_get, _nmtlib.covar_workspace_nside_set)
     __swig_setmethods__["xi_1122"] = _nmtlib.covar_workspace_xi_1122_set
     __swig_getmethods__["xi_1122"] = _nmtlib.covar_workspace_xi_1122_get
     if _newclass:
-        xi_1122 = _swig_property(
-            _nmtlib.covar_workspace_xi_1122_get, _nmtlib.covar_workspace_xi_1122_set
-        )
+        xi_1122 = _swig_property(_nmtlib.covar_workspace_xi_1122_get, _nmtlib.covar_workspace_xi_1122_set)
     __swig_setmethods__["xi_1221"] = _nmtlib.covar_workspace_xi_1221_set
     __swig_getmethods__["xi_1221"] = _nmtlib.covar_workspace_xi_1221_get
     if _newclass:
-        xi_1221 = _swig_property(
-            _nmtlib.covar_workspace_xi_1221_get, _nmtlib.covar_workspace_xi_1221_set
-        )
-    __swig_setmethods__[
-        "coupling_binned_a"
-    ] = _nmtlib.covar_workspace_coupling_binned_a_set
-    __swig_getmethods__[
-        "coupling_binned_a"
-    ] = _nmtlib.covar_workspace_coupling_binned_a_get
+        xi_1221 = _swig_property(_nmtlib.covar_workspace_xi_1221_get, _nmtlib.covar_workspace_xi_1221_set)
+    __swig_setmethods__["coupling_binned_a"] = _nmtlib.covar_workspace_coupling_binned_a_set
+    __swig_getmethods__["coupling_binned_a"] = _nmtlib.covar_workspace_coupling_binned_a_get
     if _newclass:
-        coupling_binned_a = _swig_property(
-            _nmtlib.covar_workspace_coupling_binned_a_get,
-            _nmtlib.covar_workspace_coupling_binned_a_set,
-        )
-    __swig_setmethods__[
-        "coupling_binned_b"
-    ] = _nmtlib.covar_workspace_coupling_binned_b_set
-    __swig_getmethods__[
-        "coupling_binned_b"
-    ] = _nmtlib.covar_workspace_coupling_binned_b_get
+        coupling_binned_a = _swig_property(_nmtlib.covar_workspace_coupling_binned_a_get, _nmtlib.covar_workspace_coupling_binned_a_set)
+    __swig_setmethods__["coupling_binned_b"] = _nmtlib.covar_workspace_coupling_binned_b_set
+    __swig_getmethods__["coupling_binned_b"] = _nmtlib.covar_workspace_coupling_binned_b_get
     if _newclass:
-        coupling_binned_b = _swig_property(
-            _nmtlib.covar_workspace_coupling_binned_b_get,
-            _nmtlib.covar_workspace_coupling_binned_b_set,
-        )
-    __swig_setmethods__[
-        "coupling_binned_perm_a"
-    ] = _nmtlib.covar_workspace_coupling_binned_perm_a_set
-    __swig_getmethods__[
-        "coupling_binned_perm_a"
-    ] = _nmtlib.covar_workspace_coupling_binned_perm_a_get
+        coupling_binned_b = _swig_property(_nmtlib.covar_workspace_coupling_binned_b_get, _nmtlib.covar_workspace_coupling_binned_b_set)
+    __swig_setmethods__["coupling_binned_perm_a"] = _nmtlib.covar_workspace_coupling_binned_perm_a_set
+    __swig_getmethods__["coupling_binned_perm_a"] = _nmtlib.covar_workspace_coupling_binned_perm_a_get
     if _newclass:
-        coupling_binned_perm_a = _swig_property(
-            _nmtlib.covar_workspace_coupling_binned_perm_a_get,
-            _nmtlib.covar_workspace_coupling_binned_perm_a_set,
-        )
-    __swig_setmethods__[
-        "coupling_binned_perm_b"
-    ] = _nmtlib.covar_workspace_coupling_binned_perm_b_set
-    __swig_getmethods__[
-        "coupling_binned_perm_b"
-    ] = _nmtlib.covar_workspace_coupling_binned_perm_b_get
+        coupling_binned_perm_a = _swig_property(_nmtlib.covar_workspace_coupling_binned_perm_a_get, _nmtlib.covar_workspace_coupling_binned_perm_a_set)
+    __swig_setmethods__["coupling_binned_perm_b"] = _nmtlib.covar_workspace_coupling_binned_perm_b_set
+    __swig_getmethods__["coupling_binned_perm_b"] = _nmtlib.covar_workspace_coupling_binned_perm_b_get
     if _newclass:
-        coupling_binned_perm_b = _swig_property(
-            _nmtlib.covar_workspace_coupling_binned_perm_b_get,
-            _nmtlib.covar_workspace_coupling_binned_perm_b_set,
-        )
+        coupling_binned_perm_b = _swig_property(_nmtlib.covar_workspace_coupling_binned_perm_b_get, _nmtlib.covar_workspace_coupling_binned_perm_b_set)
 
     def __init__(self):
         this = _nmtlib.new_covar_workspace()
@@ -1486,413 +905,227 @@ class covar_workspace(_object):
             self.this.append(this)
         except Exception:
             self.this = this
-
     __swig_destroy__ = _nmtlib.delete_covar_workspace
     __del__ = lambda self: None
-
-
 covar_workspace_swigregister = _nmtlib.covar_workspace_swigregister
 covar_workspace_swigregister(covar_workspace)
 
 
 def covar_workspace_free(cw):
     return _nmtlib.covar_workspace_free(cw)
-
-
 covar_workspace_free = _nmtlib.covar_workspace_free
-
 
 def covar_workspace_init(wa, wb):
     return _nmtlib.covar_workspace_init(wa, wb)
-
-
 covar_workspace_init = _nmtlib.covar_workspace_init
 
-
 def compute_gaussian_covariance(cw, cla1b1, cla1b2, cla2b1, cla2b2, covar_out):
-    return _nmtlib.compute_gaussian_covariance(
-        cw, cla1b1, cla1b2, cla2b1, cla2b2, covar_out
-    )
-
-
+    return _nmtlib.compute_gaussian_covariance(cw, cla1b1, cla1b2, cla2b1, cla2b2, covar_out)
 compute_gaussian_covariance = _nmtlib.compute_gaussian_covariance
-
 
 def covar_workspace_write(cw, fname):
     return _nmtlib.covar_workspace_write(cw, fname)
-
-
 covar_workspace_write = _nmtlib.covar_workspace_write
-
 
 def covar_workspace_read(fname):
     return _nmtlib.covar_workspace_read(fname)
-
-
 covar_workspace_read = _nmtlib.covar_workspace_read
-
 
 def get_nell_list(bins, iout):
     return _nmtlib.get_nell_list(bins, iout)
-
-
 get_nell_list = _nmtlib.get_nell_list
-
 
 def get_nell(bins, ibin):
     return _nmtlib.get_nell(bins, ibin)
-
-
 get_nell = _nmtlib.get_nell
-
 
 def get_ell_list(bins, ibin, iout):
     return _nmtlib.get_ell_list(bins, ibin, iout)
-
-
 get_ell_list = _nmtlib.get_ell_list
-
 
 def get_weight_list(bins, ibin, dout):
     return _nmtlib.get_weight_list(bins, ibin, dout)
-
-
 get_weight_list = _nmtlib.get_weight_list
-
 
 def get_ell_eff(bins, dout):
     return _nmtlib.get_ell_eff(bins, dout)
-
-
 get_ell_eff = _nmtlib.get_ell_eff
-
 
 def get_ell_eff_flat(bins, dout):
     return _nmtlib.get_ell_eff_flat(bins, dout)
-
-
 get_ell_eff_flat = _nmtlib.get_ell_eff_flat
-
 
 def bins_create_py(nell1, nell2, nell3, lmax):
     return _nmtlib.bins_create_py(nell1, nell2, nell3, lmax)
-
-
 bins_create_py = _nmtlib.bins_create_py
-
 
 def bins_flat_create_py(npix_1, nell3):
     return _nmtlib.bins_flat_create_py(npix_1, nell3)
-
-
 bins_flat_create_py = _nmtlib.bins_flat_create_py
-
 
 def bin_cl(bins, ncl1, dout):
     return _nmtlib.bin_cl(bins, ncl1, dout)
-
-
 bin_cl = _nmtlib.bin_cl
-
 
 def bin_cl_flat(bins, nell3, ncl1, dout):
     return _nmtlib.bin_cl_flat(bins, nell3, ncl1, dout)
-
-
 bin_cl_flat = _nmtlib.bin_cl_flat
-
 
 def unbin_cl(bins, ncl1, dout):
     return _nmtlib.unbin_cl(bins, ncl1, dout)
-
-
 unbin_cl = _nmtlib.unbin_cl
-
 
 def unbin_cl_flat(bins, ncl1, nell3, dout):
     return _nmtlib.unbin_cl_flat(bins, ncl1, nell3, dout)
-
-
 unbin_cl_flat = _nmtlib.unbin_cl_flat
 
-
-def field_alloc_new(
-    npix_1, nmap_2, ntmp_3, nell3, pure_e, pure_b, n_iter_mask_purify, tol_pinv
-):
-    return _nmtlib.field_alloc_new(
-        npix_1, nmap_2, ntmp_3, nell3, pure_e, pure_b, n_iter_mask_purify, tol_pinv
-    )
-
-
+def field_alloc_new(npix_1, nmap_2, ntmp_3, nell3, pure_e, pure_b, n_iter_mask_purify, tol_pinv):
+    return _nmtlib.field_alloc_new(npix_1, nmap_2, ntmp_3, nell3, pure_e, pure_b, n_iter_mask_purify, tol_pinv)
 field_alloc_new = _nmtlib.field_alloc_new
 
-
 def field_alloc_new_notemp(npix_1, nmap_2, nell3, pure_e, pure_b, n_iter_mask_purify):
-    return _nmtlib.field_alloc_new_notemp(
-        npix_1, nmap_2, nell3, pure_e, pure_b, n_iter_mask_purify
-    )
-
-
+    return _nmtlib.field_alloc_new_notemp(npix_1, nmap_2, nell3, pure_e, pure_b, n_iter_mask_purify)
 field_alloc_new_notemp = _nmtlib.field_alloc_new_notemp
 
-
-def field_alloc_new_flat(
-    nx, ny, lx, ly, npix_1, nmap_2, ntmp_3, ncl1, pure_e, pure_b, tol_pinv
-):
-    return _nmtlib.field_alloc_new_flat(
-        nx, ny, lx, ly, npix_1, nmap_2, ntmp_3, ncl1, pure_e, pure_b, tol_pinv
-    )
-
-
+def field_alloc_new_flat(nx, ny, lx, ly, npix_1, nmap_2, ntmp_3, ncl1, pure_e, pure_b, tol_pinv):
+    return _nmtlib.field_alloc_new_flat(nx, ny, lx, ly, npix_1, nmap_2, ntmp_3, ncl1, pure_e, pure_b, tol_pinv)
 field_alloc_new_flat = _nmtlib.field_alloc_new_flat
 
-
 def field_alloc_new_notemp_flat(nx, ny, lx, ly, npix_1, nmap_2, ncl1, pure_e, pure_b):
-    return _nmtlib.field_alloc_new_notemp_flat(
-        nx, ny, lx, ly, npix_1, nmap_2, ncl1, pure_e, pure_b
-    )
-
-
+    return _nmtlib.field_alloc_new_notemp_flat(nx, ny, lx, ly, npix_1, nmap_2, ncl1, pure_e, pure_b)
 field_alloc_new_notemp_flat = _nmtlib.field_alloc_new_notemp_flat
-
 
 def get_map(fl, imap, ldout):
     return _nmtlib.get_map(fl, imap, ldout)
-
-
 get_map = _nmtlib.get_map
-
 
 def get_map_flat(fl, imap, dout):
     return _nmtlib.get_map_flat(fl, imap, dout)
-
-
 get_map_flat = _nmtlib.get_map_flat
-
 
 def get_temp(fl, itemp, imap, ldout):
     return _nmtlib.get_temp(fl, itemp, imap, ldout)
-
-
 get_temp = _nmtlib.get_temp
-
 
 def get_temp_flat(fl, itemp, imap, dout):
     return _nmtlib.get_temp_flat(fl, itemp, imap, dout)
-
-
 get_temp_flat = _nmtlib.get_temp_flat
-
 
 def apomask(npix_1, ldout, aposize, apotype):
     return _nmtlib.apomask(npix_1, ldout, aposize, apotype)
-
-
 apomask = _nmtlib.apomask
-
 
 def apomask_flat(nx, ny, lx, ly, npix_1, dout, aposize, apotype):
     return _nmtlib.apomask_flat(nx, ny, lx, ly, npix_1, dout, aposize, apotype)
-
-
 apomask_flat = _nmtlib.apomask_flat
-
 
 def synfast_new(nside, nfields, seed, ncl1, ncl2, ldout):
     return _nmtlib.synfast_new(nside, nfields, seed, ncl1, ncl2, ldout)
-
-
 synfast_new = _nmtlib.synfast_new
-
 
 def synfast_new_flat(nx, ny, lx, ly, nfields, seed, ncl1, ncl2, dout):
     return _nmtlib.synfast_new_flat(nx, ny, lx, ly, nfields, seed, ncl1, ncl2, dout)
-
-
 synfast_new_flat = _nmtlib.synfast_new_flat
-
 
 def comp_coupling_matrix(fl1, fl2, bin):
     return _nmtlib.comp_coupling_matrix(fl1, fl2, bin)
-
-
 comp_coupling_matrix = _nmtlib.comp_coupling_matrix
-
 
 def comp_coupling_matrix_flat(fl1, fl2, bin, lmn_x, lmx_x, lmn_y, lmx_y):
     return _nmtlib.comp_coupling_matrix_flat(fl1, fl2, bin, lmn_x, lmx_x, lmn_y, lmx_y)
-
-
 comp_coupling_matrix_flat = _nmtlib.comp_coupling_matrix_flat
-
 
 def read_workspace(fname):
     return _nmtlib.read_workspace(fname)
-
-
 read_workspace = _nmtlib.read_workspace
-
 
 def write_workspace(w, fname):
     return _nmtlib.write_workspace(w, fname)
-
-
 write_workspace = _nmtlib.write_workspace
-
 
 def read_workspace_flat(fname):
     return _nmtlib.read_workspace_flat(fname)
-
-
 read_workspace_flat = _nmtlib.read_workspace_flat
-
 
 def write_workspace_flat(w, fname):
     return _nmtlib.write_workspace_flat(w, fname)
-
-
 write_workspace_flat = _nmtlib.write_workspace_flat
-
 
 def comp_uncorr_noise_deproj_bias(fl1, npix_1, dout):
     return _nmtlib.comp_uncorr_noise_deproj_bias(fl1, npix_1, dout)
-
-
 comp_uncorr_noise_deproj_bias = _nmtlib.comp_uncorr_noise_deproj_bias
-
 
 def comp_deproj_bias(fl1, fl2, ncl1, dout):
     return _nmtlib.comp_deproj_bias(fl1, fl2, ncl1, dout)
-
-
 comp_deproj_bias = _nmtlib.comp_deproj_bias
 
-
 def comp_deproj_bias_flat(fl1, fl2, bin, lmn_x, lmx_x, lmn_y, lmx_y, nell3, ncl1, dout):
-    return _nmtlib.comp_deproj_bias_flat(
-        fl1, fl2, bin, lmn_x, lmx_x, lmn_y, lmx_y, nell3, ncl1, dout
-    )
-
-
+    return _nmtlib.comp_deproj_bias_flat(fl1, fl2, bin, lmn_x, lmx_x, lmn_y, lmx_y, nell3, ncl1, dout)
 comp_deproj_bias_flat = _nmtlib.comp_deproj_bias_flat
-
 
 def write_covar_workspace(cw, fname):
     return _nmtlib.write_covar_workspace(cw, fname)
-
-
 write_covar_workspace = _nmtlib.write_covar_workspace
-
 
 def read_covar_workspace(fname):
     return _nmtlib.read_covar_workspace(fname)
-
-
 read_covar_workspace = _nmtlib.read_covar_workspace
-
 
 def covar_workspace_init_py(wa, wb):
     return _nmtlib.covar_workspace_init_py(wa, wb)
-
-
 covar_workspace_init_py = _nmtlib.covar_workspace_init_py
-
 
 def write_covar_workspace_flat(cw, fname):
     return _nmtlib.write_covar_workspace_flat(cw, fname)
-
-
 write_covar_workspace_flat = _nmtlib.write_covar_workspace_flat
-
 
 def read_covar_workspace_flat(fname):
     return _nmtlib.read_covar_workspace_flat(fname)
-
-
 read_covar_workspace_flat = _nmtlib.read_covar_workspace_flat
-
 
 def covar_workspace_flat_init_py(wa, wb):
     return _nmtlib.covar_workspace_flat_init_py(wa, wb)
-
-
 covar_workspace_flat_init_py = _nmtlib.covar_workspace_flat_init_py
-
 
 def comp_gaussian_covariance(cw, nell11, nell12, nell21, nell22, dout):
     return _nmtlib.comp_gaussian_covariance(cw, nell11, nell12, nell21, nell22, dout)
-
-
 comp_gaussian_covariance = _nmtlib.comp_gaussian_covariance
 
-
 def comp_gaussian_covariance_flat(cw, nell3, nell11, nell12, nell21, nell22, dout):
-    return _nmtlib.comp_gaussian_covariance_flat(
-        cw, nell3, nell11, nell12, nell21, nell22, dout
-    )
-
-
+    return _nmtlib.comp_gaussian_covariance_flat(cw, nell3, nell11, nell12, nell21, nell22, dout)
 comp_gaussian_covariance_flat = _nmtlib.comp_gaussian_covariance_flat
-
 
 def comp_pspec_coupled(fl1, fl2, dout):
     return _nmtlib.comp_pspec_coupled(fl1, fl2, dout)
-
-
 comp_pspec_coupled = _nmtlib.comp_pspec_coupled
 
-
 def comp_pspec_coupled_flat(fl1, fl2, bin, dout, lmn_x, lmx_x, lmn_y, lmx_y):
-    return _nmtlib.comp_pspec_coupled_flat(
-        fl1, fl2, bin, dout, lmn_x, lmx_x, lmn_y, lmx_y
-    )
-
-
+    return _nmtlib.comp_pspec_coupled_flat(fl1, fl2, bin, dout, lmn_x, lmx_x, lmn_y, lmx_y)
 comp_pspec_coupled_flat = _nmtlib.comp_pspec_coupled_flat
-
 
 def decouple_cell_py(w, ncl1, ncl2, ncl3, dout):
     return _nmtlib.decouple_cell_py(w, ncl1, ncl2, ncl3, dout)
-
-
 decouple_cell_py = _nmtlib.decouple_cell_py
-
 
 def decouple_cell_py_flat(w, ncl1, ncl2, ncl3, dout):
     return _nmtlib.decouple_cell_py_flat(w, ncl1, ncl2, ncl3, dout)
-
-
 decouple_cell_py_flat = _nmtlib.decouple_cell_py_flat
-
 
 def couple_cell_py(w, ncl1, dout):
     return _nmtlib.couple_cell_py(w, ncl1, dout)
-
-
 couple_cell_py = _nmtlib.couple_cell_py
-
 
 def couple_cell_py_flat(w, nell3, ncl1, dout):
     return _nmtlib.couple_cell_py_flat(w, nell3, ncl1, dout)
-
-
 couple_cell_py_flat = _nmtlib.couple_cell_py_flat
-
 
 def comp_pspec(fl1, fl2, bin, w0, ncl1, ncl2, dout):
     return _nmtlib.comp_pspec(fl1, fl2, bin, w0, ncl1, ncl2, dout)
-
-
 comp_pspec = _nmtlib.comp_pspec
 
-
-def comp_pspec_flat(
-    fl1, fl2, bin, w0, ncl1, nell3, ncl2, dout, lmn_x, lmx_x, lmn_y, lmx_y
-):
-    return _nmtlib.comp_pspec_flat(
-        fl1, fl2, bin, w0, ncl1, nell3, ncl2, dout, lmn_x, lmx_x, lmn_y, lmx_y
-    )
-
-
+def comp_pspec_flat(fl1, fl2, bin, w0, ncl1, nell3, ncl2, dout, lmn_x, lmx_x, lmn_y, lmx_y):
+    return _nmtlib.comp_pspec_flat(fl1, fl2, bin, w0, ncl1, nell3, ncl2, dout, lmn_x, lmx_x, lmn_y, lmx_y)
 comp_pspec_flat = _nmtlib.comp_pspec_flat
 # This file is compatible with both classic and new-style classes.
+
+

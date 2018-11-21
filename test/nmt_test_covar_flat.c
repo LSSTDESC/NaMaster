@@ -3,7 +3,7 @@
 #include "utils.h"
 #include "nmt_test_utils.h"
 
-CTEST_SKIP(nmt,covar) {
+CTEST(nmt,covar) {
   int ii;
   nmt_workspace_flat *w=nmt_workspace_flat_read("test/benchmarks/bm_f_nc_np_w00.dat");
   nmt_covar_workspace_flat *cw=nmt_covar_workspace_flat_init(w,w);
@@ -54,7 +54,7 @@ CTEST_SKIP(nmt,covar) {
   nmt_covar_workspace_flat_free(cw);
 }
 
-CTEST_SKIP(nmt,covar_flat_errors) {
+CTEST(nmt,covar_flat_errors) {
   nmt_covar_workspace_flat *cw=NULL;
   nmt_workspace_flat *wb,*wa=nmt_workspace_flat_read("test/benchmarks/bm_f_nc_np_w00.dat");
 

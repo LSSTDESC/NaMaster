@@ -158,14 +158,17 @@ int drc3jj(int il2,int il3,int im2, int im3,int *l1min_out,
   else
     sign2=-1;
   
-  if((il2-abs(im2)<0)||(il3-abs(im3)<0))
-    report_error(NMT_ERROR_WIG3J,"Wrong arguments: %d %d %d %d\n",il2,il3,im2,im3);
-  
   //l1 bounds
   l1max=il2+il3;
   l1min=NMT_MAX((abs(il2-il3)),(abs(im1)));
   *l1max_out=l1max;
   *l1min_out=l1min;
+
+  if((il2-abs(im2)<0)||(il3-abs(im3)<0)) {
+    for(ii=0;ii<=l1max-l1min;ii++)
+      thrcof[ii]=0;
+    return 0;
+  }
   
   if(l1max-l1min<0) //Check for meaningful values
     report_error(NMT_ERROR_WIG3J,"WTF?\n");
