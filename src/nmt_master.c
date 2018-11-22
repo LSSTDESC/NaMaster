@@ -79,6 +79,7 @@ nmt_workspace *nmt_workspace_read(char *fname)
   nmt_workspace *w=my_malloc(sizeof(nmt_workspace));
   FILE *fi=my_fopen(fname,"rb");
 
+  my_fread(&(w->is_teb),sizeof(int),1,fi);
   my_fread(&(w->lmax),sizeof(int),1,fi);
   my_fread(&(w->nside),sizeof(int),1,fi);
   my_fread(&(w->ncls),sizeof(int),1,fi);
@@ -126,6 +127,7 @@ void nmt_workspace_write(nmt_workspace *w,char *fname)
   int ii;
   FILE *fo=my_fopen(fname,"wb");
 
+  my_fwrite(&(w->is_teb),sizeof(int),1,fo);
   my_fwrite(&(w->lmax),sizeof(int),1,fo);
   my_fwrite(&(w->nside),sizeof(int),1,fo);
   my_fwrite(&(w->ncls),sizeof(int),1,fo);

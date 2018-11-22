@@ -508,7 +508,7 @@ nmt_workspace_flat *comp_coupling_matrix_flat(nmt_field_flat *fl1,nmt_field_flat
 					      nmt_binning_scheme_flat *bin,
 					      double lmn_x,double lmx_x,double lmn_y,double lmx_y)
 {
-  return nmt_compute_coupling_matrix_flat(fl1,fl2,bin,lmn_x,lmx_x,lmn_y,lmx_y);
+  return nmt_compute_coupling_matrix_flat(fl1,fl2,bin,lmn_x,lmx_x,lmn_y,lmx_y,0);
 }
 
 nmt_workspace *read_workspace(char *fname)

@@ -637,6 +637,7 @@ typedef struct {
   int pb1; //!< Is the B-mode component of the first field purified?
   int pb2; //!< Is the B-mode component of the second field purified?
   nmt_flatsky_info *fs; //!< Contains information about rectangular flat-sky patch.
+  int is_teb; //!< Does it hold all MCM elements to compute all of spin0-spin0, 0-2 and 2-2 correlations?
   flouble *mask1; //!< Mask of the first field being correlated
   flouble *mask2; //!< Mask of the second field being correlated
 #ifdef _ENABLE_FLAT_THEORY_ACCURATE
@@ -691,11 +692,12 @@ void nmt_workspace_flat_write(nmt_workspace_flat *w,char *fname);
  *        if \p lmx_x < \p lmn_x, no Fourier-space masked is performed.
  * @param lmn_y Same as \p lmn_x for the y direction.
  * @param lmx_y Same as \p lmx_x for the y direction.
+ * @param is_teb if !=0, all mode-coupling matrices (0-0,0-2,2-2) will be computed at the same time.
  */
 nmt_workspace_flat *nmt_compute_coupling_matrix_flat(nmt_field_flat *fl1,nmt_field_flat *fl2,
 						     nmt_binning_scheme_flat *bin,
 						     flouble lmn_x,flouble lmx_x,
-						     flouble lmn_y,flouble lmx_y);
+						     flouble lmn_y,flouble lmx_y,int is_teb);
 
 /**
  * @brief Computes deprojection bias.

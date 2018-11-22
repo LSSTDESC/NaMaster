@@ -64,7 +64,7 @@ CTEST(nmt,master_22_flat_full) {
   			  DX_TEST*NX_TEST*M_PI/180,
 			  DY_TEST*NY_TEST*M_PI/180,
 			  msk,1,mps2,0,NULL,0,NULL,NULL,0,0,1E-10);
-  w22=nmt_compute_coupling_matrix_flat(f2,f2,bin,1,-1,1,-1);
+  w22=nmt_compute_coupling_matrix_flat(f2,f2,bin,1,-1,1,-1,0);
   nmt_couple_cl_l_flat_fast(w22,nlth,lth,cell_noise,cell_noise_coup);
   nmt_compute_coupled_cell_flat(f2,f2,bin,cell,1,-1,1,-1);
   nmt_decouple_cl_l_flat(w22,cell,cell_noise_coup,cell_deproj,cell_out);
@@ -78,7 +78,7 @@ CTEST(nmt,master_22_flat_full) {
   			  DX_TEST*NX_TEST*M_PI/180,
 			  DY_TEST*NY_TEST*M_PI/180,
 			  msk,1,mps2,0,NULL,0,NULL,NULL,0,1,1E-10);
-  w22=nmt_compute_coupling_matrix_flat(f2,f2,bin,1,-1,1,-1);
+  w22=nmt_compute_coupling_matrix_flat(f2,f2,bin,1,-1,1,-1,0);
   nmt_couple_cl_l_flat_fast(w22,nlth,lth,cell_noise,cell_noise_coup);
   nmt_compute_coupled_cell_flat(f2,f2,bin,cell,1,-1,1,-1);
   nmt_decouple_cl_l_flat(w22,cell,cell_noise_coup,cell_deproj,cell_out);
@@ -92,7 +92,7 @@ CTEST(nmt,master_22_flat_full) {
   			  DX_TEST*NX_TEST*M_PI/180,
 			  DY_TEST*NY_TEST*M_PI/180,
 			  msk,1,mps2,1,&tmp2,0,NULL,NULL,0,0,1E-10);
-  w22=nmt_compute_coupling_matrix_flat(f2,f2,bin,1,-1,1,-1);
+  w22=nmt_compute_coupling_matrix_flat(f2,f2,bin,1,-1,1,-1,0);
   nmt_couple_cl_l_flat_fast(w22,nlth,lth,cell_noise,cell_noise_coup);
   nmt_compute_deprojection_bias_flat(f2,f2,bin,1,-1,1,-1,nlth,lth,cell_signal,cell_deproj);
   for(ii=0;ii<ncls;ii++) {
@@ -111,7 +111,7 @@ CTEST(nmt,master_22_flat_full) {
   			  DX_TEST*NX_TEST*M_PI/180,
 			  DY_TEST*NY_TEST*M_PI/180,
 			  msk,1,mps2,1,&tmp2,0,NULL,NULL,0,1,1E-10);
-  w22=nmt_compute_coupling_matrix_flat(f2,f2,bin,1,-1,1,-1);
+  w22=nmt_compute_coupling_matrix_flat(f2,f2,bin,1,-1,1,-1,0);
   nmt_couple_cl_l_flat_fast(w22,nlth,lth,cell_noise,cell_noise_coup);
   nmt_compute_deprojection_bias_flat(f2,f2,bin,1,-1,1,-1,nlth,lth,cell_signal,cell_deproj);
   for(ii=0;ii<ncls;ii++) {
@@ -217,7 +217,7 @@ CTEST(nmt,master_02_flat_full) {
   			  DX_TEST*NX_TEST*M_PI/180,
 			  DY_TEST*NY_TEST*M_PI/180,
 			  msk,1,mps2,0,NULL,0,NULL,NULL,0,0,1E-10);
-  w02=nmt_compute_coupling_matrix_flat(f0,f2,bin,1,-1,1,-1);
+  w02=nmt_compute_coupling_matrix_flat(f0,f2,bin,1,-1,1,-1,0);
   nmt_couple_cl_l_flat_fast(w02,nlth,lth,cell_noise,cell_noise_coup);
   nmt_compute_coupled_cell_flat(f0,f2,bin,cell,1,-1,1,-1);
   nmt_decouple_cl_l_flat(w02,cell,cell_noise_coup,cell_deproj,cell_out);
@@ -236,7 +236,7 @@ CTEST(nmt,master_02_flat_full) {
   			  DX_TEST*NX_TEST*M_PI/180,
 			  DY_TEST*NY_TEST*M_PI/180,
 			  msk,1,mps2,0,NULL,0,NULL,NULL,0,1,1E-10);
-  w02=nmt_compute_coupling_matrix_flat(f0,f2,bin,1,-1,1,-1);
+  w02=nmt_compute_coupling_matrix_flat(f0,f2,bin,1,-1,1,-1,0);
   nmt_couple_cl_l_flat_fast(w02,nlth,lth,cell_noise,cell_noise_coup);
   nmt_compute_coupled_cell_flat(f0,f2,bin,cell,1,-1,1,-1);
   nmt_decouple_cl_l_flat(w02,cell,cell_noise_coup,cell_deproj,cell_out);
@@ -255,7 +255,7 @@ CTEST(nmt,master_02_flat_full) {
   			  DX_TEST*NX_TEST*M_PI/180,
 			  DY_TEST*NY_TEST*M_PI/180,
 			  msk,1,mps2,1,&tmp2,0,NULL,NULL,0,0,1E-10);
-  w02=nmt_compute_coupling_matrix_flat(f0,f2,bin,1,-1,1,-1);
+  w02=nmt_compute_coupling_matrix_flat(f0,f2,bin,1,-1,1,-1,0);
   nmt_couple_cl_l_flat_fast(w02,nlth,lth,cell_noise,cell_noise_coup);
   nmt_compute_deprojection_bias_flat(f0,f2,bin,1,-1,1,-1,nlth,lth,cell_signal,cell_deproj);
   for(ii=0;ii<ncls;ii++) {
@@ -279,7 +279,7 @@ CTEST(nmt,master_02_flat_full) {
     			  DX_TEST*NX_TEST*M_PI/180,
 			  DY_TEST*NY_TEST*M_PI/180,
 			  msk,1,mps2,1,&tmp2,0,NULL,NULL,0,1,1E-10);
-  w02=nmt_compute_coupling_matrix_flat(f0,f2,bin,1,-1,1,-1);
+  w02=nmt_compute_coupling_matrix_flat(f0,f2,bin,1,-1,1,-1,0);
   nmt_couple_cl_l_flat_fast(w02,nlth,lth,cell_noise,cell_noise_coup);
   nmt_compute_deprojection_bias_flat(f0,f2,bin,1,-1,1,-1,nlth,lth,cell_signal,cell_deproj);
   for(ii=0;ii<ncls;ii++) {
@@ -379,7 +379,7 @@ CTEST(nmt,master_00_flat_full) {
   			  DX_TEST*NX_TEST*M_PI/180,
 			  DY_TEST*NY_TEST*M_PI/180,
 			  msk,0,&mps,0,NULL,0,NULL,NULL,0,0,1E-10);
-  w00=nmt_compute_coupling_matrix_flat(f0,f0,bin,1,-1,1,-1);
+  w00=nmt_compute_coupling_matrix_flat(f0,f0,bin,1,-1,1,-1,0);
   nmt_couple_cl_l_flat_fast(w00,nlth,lth,cell_noise,cell_noise_coup);
   nmt_compute_coupled_cell_flat(f0,f0,bin,cell,1,-1,1,-1);
   nmt_decouple_cl_l_flat(w00,cell,cell_noise_coup,cell_deproj,cell_out);
@@ -393,7 +393,7 @@ CTEST(nmt,master_00_flat_full) {
   			  DX_TEST*NX_TEST*M_PI/180,
 			  DY_TEST*NY_TEST*M_PI/180,
 			  msk,0,&mps,1,&tmp,0,NULL,NULL,0,0,1E-10);
-  w00=nmt_compute_coupling_matrix_flat(f0,f0,bin,1,-1,1,-1);
+  w00=nmt_compute_coupling_matrix_flat(f0,f0,bin,1,-1,1,-1,0);
   nmt_couple_cl_l_flat_fast(w00,nlth,lth,cell_noise,cell_noise_coup);
   nmt_compute_deprojection_bias_flat(f0,f0,bin,1,-1,1,-1,nlth,lth,cell_signal,cell_deproj);
   for(ii=0;ii<ncls;ii++) {
@@ -462,7 +462,7 @@ CTEST(nmt,master_flat_errors) {
 
   //Mismatching resolutions
   bin=nmt_bins_flat_create(nell,larr,&(larr[1]));
-  try { w=nmt_compute_coupling_matrix_flat(f0,f0b,bin,1,-1,1,-1); }
+  try { w=nmt_compute_coupling_matrix_flat(f0,f0b,bin,1,-1,1,-1,0); }
   ASSERT_NOT_EQUAL(0,nmt_exception_status);
   ASSERT_NULL(w);
   //Try through nmt_compute_power_spectra
@@ -474,7 +474,7 @@ CTEST(nmt,master_flat_errors) {
   ASSERT_NOT_EQUAL(0,nmt_exception_status);
   ASSERT_NULL(w);
   //nmt_compute_power_spectra with mis-matching input workspace
-  w=nmt_compute_coupling_matrix_flat(f0,f0,bin,1,-1,1,-1);
+  w=nmt_compute_coupling_matrix_flat(f0,f0,bin,1,-1,1,-1,0);
   nmt_bins_flat_free(bin);
   bin=nmt_bins_flat_create(nell/2,larr,&(larr[1]));
   try { wb=nmt_compute_power_spectra_flat(f0b,f0b,bin,1,-1,1,-1,w,NULL,0,NULL,NULL,NULL); }

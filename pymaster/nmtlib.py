@@ -576,6 +576,10 @@ class workspace_flat(_object):
     __swig_getmethods__["fs"] = _nmtlib.workspace_flat_fs_get
     if _newclass:
         fs = _swig_property(_nmtlib.workspace_flat_fs_get, _nmtlib.workspace_flat_fs_set)
+    __swig_setmethods__["is_teb"] = _nmtlib.workspace_flat_is_teb_set
+    __swig_getmethods__["is_teb"] = _nmtlib.workspace_flat_is_teb_get
+    if _newclass:
+        is_teb = _swig_property(_nmtlib.workspace_flat_is_teb_get, _nmtlib.workspace_flat_is_teb_set)
     __swig_setmethods__["mask1"] = _nmtlib.workspace_flat_mask1_set
     __swig_getmethods__["mask1"] = _nmtlib.workspace_flat_mask1_get
     if _newclass:
@@ -637,8 +641,8 @@ def workspace_flat_write(w, fname):
     return _nmtlib.workspace_flat_write(w, fname)
 workspace_flat_write = _nmtlib.workspace_flat_write
 
-def compute_coupling_matrix_flat(fl1, fl2, bin, lmn_x, lmx_x, lmn_y, lmx_y):
-    return _nmtlib.compute_coupling_matrix_flat(fl1, fl2, bin, lmn_x, lmx_x, lmn_y, lmx_y)
+def compute_coupling_matrix_flat(fl1, fl2, bin, lmn_x, lmx_x, lmn_y, lmx_y, is_teb):
+    return _nmtlib.compute_coupling_matrix_flat(fl1, fl2, bin, lmn_x, lmx_x, lmn_y, lmx_y, is_teb)
 compute_coupling_matrix_flat = _nmtlib.compute_coupling_matrix_flat
 
 def compute_deprojection_bias_flat(fl1, fl2, bin, lmn_x, lmx_x, lmn_y, lmx_y, nl_prop, l_prop, cl_proposal, cl_bias):
