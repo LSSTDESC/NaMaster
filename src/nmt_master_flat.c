@@ -37,10 +37,12 @@ void nmt_workspace_flat_free(nmt_workspace_flat *w)
 
 static nmt_workspace_flat *nmt_workspace_flat_new(int ncls,nmt_flatsky_info *fs,
 						  nmt_binning_scheme_flat *bin,
-						  flouble lmn_x,flouble lmx_x,flouble lmn_y,flouble lmx_y)
+						  flouble lmn_x,flouble lmx_x,
+						  flouble lmn_y,flouble lmx_y,int is_teb)
 {
   int ii,ib=0;
   nmt_workspace_flat *w=my_malloc(sizeof(nmt_workspace_flat));
+  w->is_teb=is_teb;
   w->ncls=ncls;
 
   w->ellcut_x[0]=lmn_x;
@@ -82,6 +84,7 @@ nmt_workspace_flat *nmt_workspace_flat_read(char *fname)
   nmt_workspace_flat *w=my_malloc(sizeof(nmt_workspace_flat));
   FILE *fi=my_fopen(fname,"rb");
 
+  my_fread(&(w->is_teb),sizeof(int),1,fi);
   my_fread(&(w->ncls),sizeof(int),1,fi);
 
   my_fread(w->ellcut_x,sizeof(flouble),2,fi);
@@ -144,6 +147,7 @@ void nmt_workspace_flat_write(nmt_workspace_flat *w,char *fname)
   int ii;
   FILE *fo=my_fopen(fname,"wb");
 
+  my_fwrite(&(w->is_teb),sizeof(int),1,fo);
   my_fwrite(&(w->ncls),sizeof(int),1,fo);
   my_fwrite(w->ellcut_x,sizeof(flouble),2,fo);
   my_fwrite(w->ellcut_y,sizeof(flouble),2,fo);
@@ -194,14 +198,22 @@ static int check_flatsky_infos(nmt_flatsky_info *fs1,nmt_flatsky_info *fs2)
 nmt_workspace_flat *nmt_compute_coupling_matrix_flat(nmt_field_flat *fl1,nmt_field_flat *fl2,
 						     nmt_binning_scheme_flat *bin,
 						     flouble lmn_x,flouble lmx_x,
-						     flouble lmn_y,flouble lmx_y)
+						     flouble lmn_y,flouble lmx_y,int is_teb)
 {
   if(check_flatsky_infos(fl1->fs,fl2->fs))
     report_error(NMT_ERROR_CONSISTENT_RESO,"Can only correlate fields defined on the same pixels!\n");
 
+  int n_cl=fl1->nmaps*fl2->nmaps;
+  if(is_teb) {
+    if(!((fl1->pol==0) && (fl2->pol==1)))
+      report_error(NMT_ERROR_INCONSISTENT,"For T-E-B MCM the first input field must be spin-0 and the se\
+cond spin-2\n");
+    n_cl=7;
+  }
+  
   int ii;
-  nmt_workspace_flat *w=nmt_workspace_flat_new(fl1->nmaps*fl2->nmaps,fl1->fs,bin,
-					       lmn_x,lmx_x,lmn_y,lmx_y);
+  nmt_workspace_flat *w=nmt_workspace_flat_new(n_cl,fl1->fs,bin,
+					       lmn_x,lmx_x,lmn_y,lmx_y,is_teb);
   nmt_flatsky_info *fs=fl1->fs;
   w->pe1=fl1->pure_e;
   w->pe2=fl2->pure_e;
@@ -398,7 +410,7 @@ nmt_workspace_flat *nmt_compute_coupling_matrix_flat(nmt_field_flat *fl1,nmt_fie
 		if(ik2>=0)
 		  coup_binned_thr[ik1+0][ik2+0]+=mp;
 	      }
-	      if(w->ncls==2) {
+	      else if(w->ncls==2) {
 		flouble fc[2],fs[2];
 		fc[0]=cdiff*mp;
 		fs[0]=sdiff*mp;
@@ -418,7 +430,7 @@ nmt_workspace_flat *nmt_compute_coupling_matrix_flat(nmt_field_flat *fl1,nmt_fie
 		  coup_binned_thr[ik1+1][ik2+1]+=fc[pb1+pb2]; //TB,TB
 		}
 	      }
-	      if(w->ncls==4) {
+	      else if(w->ncls==4) {
 		flouble fc[2],fs[2];
 		fc[0]=cdiff; fs[0]=sdiff;
 		if(pure_any) {
@@ -461,6 +473,59 @@ nmt_workspace_flat *nmt_compute_coupling_matrix_flat(nmt_field_flat *fl1,nmt_fie
 		  coup_binned_thr[ik1+3][ik2+3]+=fc[pb1]*fc[pb2]*mp; //BB,BB
 		}
 	      }
+	      else if(w->ncls==7) {
+		flouble fc[2],fs[2];
+		fc[0]=cdiff; fs[0]=sdiff;
+		if(pure_any) {
+		  fc[1]=kr; fs[1]=0;
+		}
+		if(ir2>=0) {
+		  coup_unbinned_thr[ik1+0][ir2+0]+=mp; //TT,TT
+		  coup_unbinned_thr[ik1+1][ir2+1]+=fc[pe1+pe2]*mp; //TE,TE
+		  coup_unbinned_thr[ik1+1][ir2+2]-=fs[pe1+pe2]*mp; //TE,TB
+		  coup_unbinned_thr[ik1+2][ir2+1]+=fs[pb1+pb2]*mp; //TB,TE
+		  coup_unbinned_thr[ik1+2][ir2+2]+=fc[pb1+pb2]*mp; //TB,TB
+		  coup_unbinned_thr[ik1+3][ir2+3]+=fc[pe2]*fc[pe2]*mp; //EE,EE
+		  coup_unbinned_thr[ik1+3][ir2+4]-=fc[pe2]*fs[pe2]*mp; //EE,EB
+		  coup_unbinned_thr[ik1+3][ir2+5]-=fs[pe2]*fc[pe2]*mp; //EE,BE
+		  coup_unbinned_thr[ik1+3][ir2+6]+=fs[pe2]*fs[pe2]*mp; //EE,BB
+		  coup_unbinned_thr[ik1+4][ir2+3]+=fc[pe2]*fs[pb2]*mp; //EB,EE
+		  coup_unbinned_thr[ik1+4][ir2+4]+=fc[pe2]*fc[pb2]*mp; //EB,EB
+		  coup_unbinned_thr[ik1+4][ir2+5]-=fs[pe2]*fs[pb2]*mp; //EB,BE
+		  coup_unbinned_thr[ik1+4][ir2+6]-=fs[pe2]*fc[pb2]*mp; //EB,BB
+		  coup_unbinned_thr[ik1+5][ir2+3]+=fs[pb2]*fc[pe2]*mp; //BE,EE
+		  coup_unbinned_thr[ik1+5][ir2+4]-=fs[pb2]*fs[pe2]*mp; //BE,EB
+		  coup_unbinned_thr[ik1+5][ir2+5]+=fc[pb2]*fc[pe2]*mp; //BE,BE
+		  coup_unbinned_thr[ik1+5][ir2+6]-=fc[pb2]*fs[pe2]*mp; //BE,BB
+		  coup_unbinned_thr[ik1+6][ir2+3]+=fs[pb2]*fs[pb2]*mp; //BB,EE
+		  coup_unbinned_thr[ik1+6][ir2+4]+=fs[pb2]*fc[pb2]*mp; //BB,EB
+		  coup_unbinned_thr[ik1+6][ir2+5]+=fc[pb2]*fs[pb2]*mp; //BB,BE
+		  coup_unbinned_thr[ik1+6][ir2+6]+=fc[pb2]*fc[pb2]*mp; //BB,BB
+		}
+		if(ik2>=0) {
+		  coup_binned_thr[ik1+0][ik2+0]+=mp; //TT,TT
+		  coup_binned_thr[ik1+1][ik2+1]+=fc[pe1+pe2]*mp; //TE,TE
+		  coup_binned_thr[ik1+1][ik2+2]-=fs[pe1+pe2]*mp; //TE,TB
+		  coup_binned_thr[ik1+2][ik2+1]+=fs[pb1+pb2]*mp; //TB,TE
+		  coup_binned_thr[ik1+2][ik2+2]+=fc[pb1+pb2]*mp; //TB,TB
+		  coup_binned_thr[ik1+3][ik2+3]+=fc[pe2]*fc[pe2]*mp; //EE,EE
+		  coup_binned_thr[ik1+3][ik2+4]-=fc[pe2]*fs[pe2]*mp; //EE,EB
+		  coup_binned_thr[ik1+3][ik2+5]-=fs[pe2]*fc[pe2]*mp; //EE,BE
+		  coup_binned_thr[ik1+3][ik2+6]+=fs[pe2]*fs[pe2]*mp; //EE,BB
+		  coup_binned_thr[ik1+4][ik2+3]+=fc[pe2]*fs[pb2]*mp; //EB,EE
+		  coup_binned_thr[ik1+4][ik2+4]+=fc[pe2]*fc[pb2]*mp; //EB,EB
+		  coup_binned_thr[ik1+4][ik2+5]-=fs[pe2]*fs[pb2]*mp; //EB,BE
+		  coup_binned_thr[ik1+4][ik2+6]-=fs[pe2]*fc[pb2]*mp; //EB,BB
+		  coup_binned_thr[ik1+5][ik2+3]+=fs[pb2]*fc[pe2]*mp; //BE,EE
+		  coup_binned_thr[ik1+5][ik2+4]-=fs[pb2]*fs[pe2]*mp; //BE,EB
+		  coup_binned_thr[ik1+5][ik2+5]+=fc[pb2]*fc[pe2]*mp; //BE,BE
+		  coup_binned_thr[ik1+5][ik2+6]-=fc[pb2]*fs[pe2]*mp; //BE,BB
+		  coup_binned_thr[ik1+6][ik2+3]+=fs[pb2]*fs[pb2]*mp; //BB,EE
+		  coup_binned_thr[ik1+6][ik2+4]+=fs[pb2]*fc[pb2]*mp; //BB,EB
+		  coup_binned_thr[ik1+6][ik2+5]+=fc[pb2]*fs[pb2]*mp; //BB,BE
+		  coup_binned_thr[ik1+6][ik2+6]+=fc[pb2]*fc[pb2]*mp; //BB,BB
+		}
+	      }		
 	    }
 	  }
 	}
@@ -1154,7 +1219,7 @@ nmt_workspace_flat *nmt_compute_power_spectra_flat(nmt_field_flat *fl1,nmt_field
   nmt_workspace_flat *w;
 
   if(w0==NULL)
-    w=nmt_compute_coupling_matrix_flat(fl1,fl2,bin,lmn_x,lmx_x,lmn_y,lmx_y);
+    w=nmt_compute_coupling_matrix_flat(fl1,fl2,bin,lmn_x,lmx_x,lmn_y,lmx_y,0);
   else {
     w=w0;
     if((check_flatsky_infos(fl1->fs,w->fs)) || (check_flatsky_infos(fl2->fs,w->fs)))
