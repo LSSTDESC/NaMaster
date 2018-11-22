@@ -193,6 +193,9 @@ CTEST(nmt,master_teb_full) {
   free(cell_out); free(cell_out_teb);
 
   nmt_bins_free(bin);
+  for(ii=0;ii<2;ii++)
+    free(mps2[ii]);
+  free(mps0[0]);
   free(mps0);
   free(mps2);
   free(msk);
