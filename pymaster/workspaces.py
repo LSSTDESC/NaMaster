@@ -121,7 +121,7 @@ class NmtWorkspaceFlat(object):
         self.wsp = lib.read_workspace_flat(fname)
 
     def compute_coupling_matrix(
-        self, fl1, fl2, bins, ell_cut_x=[1., -1.], ell_cut_y=[1., -1.]
+            self, fl1, fl2, bins, ell_cut_x=[1., -1.], ell_cut_y=[1., -1.], is_teb=False
     ):
         """
         Computes coupling matrix associated with the cross-power spectrum of two NmtFieldFlats and an NmtBinFlat binning scheme.
@@ -130,6 +130,7 @@ class NmtWorkspaceFlat(object):
         :param NmtBinFlat bin: binning scheme
         :param float(2) ell_cut_x: remove all modes with ell_x in the interval [ell_cut_x[0],ell_cut_x[1]] from the calculation.
         :param float(2) ell_cut_y: remove all modes with ell_y in the interval [ell_cut_y[0],ell_cut_y[1]] from the calculation.
+        :param boolean is_teb: if true, all mode-coupling matrices (0-0,0-2,2-2) will be computed at the same time. In this case, fl1 must be a spin-0 field and fl1 must be spin-2.
         """
         if self.wsp is not None:
             lib.workspace_flat_free(self.wsp)
@@ -143,6 +144,7 @@ class NmtWorkspaceFlat(object):
             ell_cut_x[1],
             ell_cut_y[0],
             ell_cut_y[1],
+            int(is_teb),
         )
 
     def write_to(self, fname):

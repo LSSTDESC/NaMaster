@@ -1035,8 +1035,8 @@ def comp_coupling_matrix(fl1, fl2, bin, is_teb):
     return _nmtlib.comp_coupling_matrix(fl1, fl2, bin, is_teb)
 comp_coupling_matrix = _nmtlib.comp_coupling_matrix
 
-def comp_coupling_matrix_flat(fl1, fl2, bin, lmn_x, lmx_x, lmn_y, lmx_y):
-    return _nmtlib.comp_coupling_matrix_flat(fl1, fl2, bin, lmn_x, lmx_x, lmn_y, lmx_y)
+def comp_coupling_matrix_flat(fl1, fl2, bin, lmn_x, lmx_x, lmn_y, lmx_y, is_teb):
+    return _nmtlib.comp_coupling_matrix_flat(fl1, fl2, bin, lmn_x, lmx_x, lmn_y, lmx_y, is_teb)
 comp_coupling_matrix_flat = _nmtlib.comp_coupling_matrix_flat
 
 def read_workspace(fname):

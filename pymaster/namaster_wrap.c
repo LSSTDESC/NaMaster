@@ -3792,9 +3792,10 @@ void synfast_new_flat(int nx,int ny,double lx,double ly,
 
 nmt_workspace_flat *comp_coupling_matrix_flat(nmt_field_flat *fl1,nmt_field_flat *fl2,
 					      nmt_binning_scheme_flat *bin,
-					      double lmn_x,double lmx_x,double lmn_y,double lmx_y)
+					      double lmn_x,double lmx_x,double lmn_y,double lmx_y,
+					      int is_teb)
 {
-  return nmt_compute_coupling_matrix_flat(fl1,fl2,bin,lmn_x,lmx_x,lmn_y,lmx_y,0);
+  return nmt_compute_coupling_matrix_flat(fl1,fl2,bin,lmn_x,lmx_x,lmn_y,lmx_y,is_teb);
 }
 
 nmt_workspace *read_workspace(char *fname)
@@ -16261,6 +16262,7 @@ SWIGINTERN PyObject *_wrap_comp_coupling_matrix_flat(PyObject *SWIGUNUSEDPARM(se
   double arg5 ;
   double arg6 ;
   double arg7 ;
+  int arg8 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   void *argp2 = 0 ;
@@ -16275,6 +16277,8 @@ SWIGINTERN PyObject *_wrap_comp_coupling_matrix_flat(PyObject *SWIGUNUSEDPARM(se
   int ecode6 = 0 ;
   double val7 ;
   int ecode7 = 0 ;
+  int val8 ;
+  int ecode8 = 0 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   PyObject * obj2 = 0 ;
@@ -16282,9 +16286,10 @@ SWIGINTERN PyObject *_wrap_comp_coupling_matrix_flat(PyObject *SWIGUNUSEDPARM(se
   PyObject * obj4 = 0 ;
   PyObject * obj5 = 0 ;
   PyObject * obj6 = 0 ;
+  PyObject * obj7 = 0 ;
   nmt_workspace_flat *result = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"OOOOOOO:comp_coupling_matrix_flat",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOOOOOOO:comp_coupling_matrix_flat",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6,&obj7)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_field_flat, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "comp_coupling_matrix_flat" "', argument " "1"" of type '" "nmt_field_flat *""'"); 
@@ -16320,9 +16325,14 @@ SWIGINTERN PyObject *_wrap_comp_coupling_matrix_flat(PyObject *SWIGUNUSEDPARM(se
     SWIG_exception_fail(SWIG_ArgError(ecode7), "in method '" "comp_coupling_matrix_flat" "', argument " "7"" of type '" "double""'");
   } 
   arg7 = (double)(val7);
+  ecode8 = SWIG_AsVal_int(obj7, &val8);
+  if (!SWIG_IsOK(ecode8)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode8), "in method '" "comp_coupling_matrix_flat" "', argument " "8"" of type '" "int""'");
+  } 
+  arg8 = (int)(val8);
   {
     try {
-      result = (nmt_workspace_flat *)comp_coupling_matrix_flat(arg1,arg2,arg3,arg4,arg5,arg6,arg7);
+      result = (nmt_workspace_flat *)comp_coupling_matrix_flat(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8);
     }
     finally {
       SWIG_exception(SWIG_RuntimeError,nmt_error_message);
