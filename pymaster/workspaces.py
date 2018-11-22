@@ -26,17 +26,18 @@ class NmtWorkspace(object):
             self.wsp = None
         self.wsp = lib.read_workspace(fname)
 
-    def compute_coupling_matrix(self, fl1, fl2, bins):
+    def compute_coupling_matrix(self, fl1, fl2, bins, is_teb=False):
         """
         Computes coupling matrix associated with the cross-power spectrum of two NmtFields and an NmtBin binning scheme. Note that the mode coupling matrix will only contain ells up to the maximum multipole included in the NmtBin bandpowers.
 
         :param NmtField fl1,fl2: fields to correlate
         :param NmtBin bin: binning scheme
+        :param boolean is_teb: if true, all mode-coupling matrices (0-0,0-2,2-2) will be computed at the same time. In this case, fl1 must be a spin-0 field and fl1 must be spin-2.
         """
         if self.wsp is not None:
             lib.workspace_free(self.wsp)
             self.wsp = None
-        self.wsp = lib.comp_coupling_matrix(fl1.fl, fl2.fl, bins.bin)
+        self.wsp = lib.comp_coupling_matrix(fl1.fl, fl2.fl, bins.bin, int(is_teb))
 
     def write_to(self, fname):
         """
@@ -65,7 +66,7 @@ class NmtWorkspace(object):
         """
         Decouples a set of pseudo-Cl power spectra into a set of bandpowers by inverting the binned coupling matrix (se Eq. 4 of the C API documentation).
 
-        :param cl_in: set of input power spectra. The number of power spectra must correspond to the spins of the two fields that this NmtWorkspace object was initialized with (i.e. 1 for two spin-0 fields, 2 for one spin-0 and one spin-2 field and 4 for two spin-2 fields).
+        :param cl_in: set of input power spectra. The number of power spectra must correspond to the spins of the two fields that this NmtWorkspace object was initialized with (i.e. 1 for two spin-0 fields, 2 for one spin-0 and one spin-2 field, 4 for two spin-2 fields and 7 if this NmtWorkspace was created using `is_teb=True`).
         :param cl_bias: bias to the power spectrum associated to contaminant residuals (optional). This can be computed through :func:`pymaster.deprojection_bias`.
         :param cl_noise: noise bias (i.e. angular power spectrum of masked noise realizations).
         :return: set of decoupled bandpowers

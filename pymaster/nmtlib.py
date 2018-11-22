@@ -1027,8 +1027,8 @@ def synfast_new_flat(nx, ny, lx, ly, nfields, seed, ncl1, ncl2, dout):
     return _nmtlib.synfast_new_flat(nx, ny, lx, ly, nfields, seed, ncl1, ncl2, dout)
 synfast_new_flat = _nmtlib.synfast_new_flat
 
-def comp_coupling_matrix(fl1, fl2, bin):
-    return _nmtlib.comp_coupling_matrix(fl1, fl2, bin)
+def comp_coupling_matrix(fl1, fl2, bin, is_teb):
+    return _nmtlib.comp_coupling_matrix(fl1, fl2, bin, is_teb)
 comp_coupling_matrix = _nmtlib.comp_coupling_matrix
 
 def comp_coupling_matrix_flat(fl1, fl2, bin, lmn_x, lmx_x, lmn_y, lmx_y):

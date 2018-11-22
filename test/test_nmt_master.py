@@ -41,7 +41,7 @@ class TestWorkspaceSph(unittest.TestCase) :
         self.nlbb=nlbb[:3*self.nside]
         self.nlte=nlte[:3*self.nside]
         
-    def mastest(self,wtemp,wpure) :
+    def mastest(self,wtemp,wpure,do_teb=False) :
         prefix="test/benchmarks/bm"
         if wtemp :
             prefix+="_yc"
@@ -83,6 +83,29 @@ class TestWorkspaceSph(unittest.TestCase) :
                 tl=np.loadtxt(prefix+'_c%d%d.txt'%(2*ip1,2*ip2),unpack=True)[1:,:]
                 self.assertTrue((np.fabs(cl-tl)<=np.fmin(np.fabs(cl),np.fabs(tl))*1E-5).all())
 
+        #TEB
+        if do_teb :
+            clth=np.array([self.cltt,self.clte,0*self.clte,self.clee,0*self.clee,0*self.clbb,self.clbb])
+            nlth=np.array([self.nltt,self.nlte,0*self.nlte,self.nlee,0*self.nlee,0*self.nlbb,self.nlbb])
+            w=nmt.NmtWorkspace()
+            w.compute_coupling_matrix(f[0],f[1],self.b,is_teb=True)
+            c00=nmt.compute_coupled_cell(f[0],f[0])
+            c02=nmt.compute_coupled_cell(f[0],f[1])
+            c22=nmt.compute_coupled_cell(f[1],f[1])
+            cl=np.array([c00[0],c02[0],c02[1],c22[0],c22[1],c22[2],c22[3]])
+            t00=np.loadtxt(prefix+'_c00.txt',unpack=True)[1:,:]
+            t02=np.loadtxt(prefix+'_c02.txt',unpack=True)[1:,:]
+            t22=np.loadtxt(prefix+'_c22.txt',unpack=True)[1:,:]
+            tl=np.array([t00[0],t02[0],t02[1],t22[0],t22[1],t22[2],t22[3]])
+            cl=w.decouple_cell(cl,cl_bias=nlth)
+            self.assertTrue((np.fabs(cl-tl)<=np.fmin(np.fabs(cl),np.fabs(tl))*1E-5).all())
+
+    def test_workspace_master_teb_np(self) :
+        self.mastest(False,False,do_teb=True)
+        
+    def test_workspace_master_teb_yp(self) :
+        self.mastest(False,True,do_teb=True)
+        
     def test_workspace_master_nc_np(self) :
         self.mastest(False,False)
 
