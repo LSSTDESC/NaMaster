@@ -528,7 +528,7 @@
 <dd><p>NmtWorkspace objects are used to compute and store the coupling matrix associated with an incomplete sky coverage, and used in the MASTER algorithm. When initialized, this object is practically empty. The information describing the coupling matrix must be computed or read from a file afterwards.</p>
 <dl class="method">
 <dt id="pymaster.workspaces.NmtWorkspace.compute_coupling_matrix">
-<code class="descname">compute_coupling_matrix</code><span class="sig-paren">(</span><em>fl1</em>, <em>fl2</em>, <em>bins</em><span class="sig-paren">)</span><a class="headerlink" href="#pymaster.workspaces.NmtWorkspace.compute_coupling_matrix" title="Permalink to this definition">¶</a></dt>
+<code class="descname">compute_coupling_matrix</code><span class="sig-paren">(</span><em>fl1</em>, <em>fl2</em>, <em>bins</em>, <em>is_teb=False</em><span class="sig-paren">)</span><a class="headerlink" href="#pymaster.workspaces.NmtWorkspace.compute_coupling_matrix" title="Permalink to this definition">¶</a></dt>
 <dd><p>Computes coupling matrix associated with the cross-power spectrum of two NmtFields and an NmtBin binning scheme. Note that the mode coupling matrix will only contain ells up to the maximum multipole included in the NmtBin bandpowers.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -537,6 +537,7 @@
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>fl1</strong><strong>,</strong><strong>fl2</strong> (<a class="reference internal" href="#pymaster.field.NmtField" title="pymaster.field.NmtField"><em>NmtField</em></a>) – fields to correlate</li>
 <li><strong>bin</strong> (<a class="reference internal" href="#pymaster.bins.NmtBin" title="pymaster.bins.NmtBin"><em>NmtBin</em></a>) – binning scheme</li>
+<li><strong>is_teb</strong> (<em>boolean</em>) – if true, all mode-coupling matrices (0-0,0-2,2-2) will be computed at the same time. In this case, fl1 must be a spin-0 field and fl1 must be spin-2.</li>
 </ul>
 </td>
 </tr>
@@ -569,7 +570,7 @@
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>cl_in</strong> – set of input power spectra. The number of power spectra must correspond to the spins of the two fields that this NmtWorkspace object was initialized with (i.e. 1 for two spin-0 fields, 2 for one spin-0 and one spin-2 field and 4 for two spin-2 fields).</li>
+<li><strong>cl_in</strong> – set of input power spectra. The number of power spectra must correspond to the spins of the two fields that this NmtWorkspace object was initialized with (i.e. 1 for two spin-0 fields, 2 for one spin-0 and one spin-2 field, 4 for two spin-2 fields and 7 if this NmtWorkspace was created using <cite>is_teb=True</cite>).</li>
 <li><strong>cl_bias</strong> – bias to the power spectrum associated to contaminant residuals (optional). This can be computed through <code class="xref py py-func docutils literal"><span class="pre">pymaster.deprojection_bias()</span></code>.</li>
 <li><strong>cl_noise</strong> – noise bias (i.e. angular power spectrum of masked noise realizations).</li>
 </ul>
@@ -618,7 +619,7 @@
 <dd><p>NmtWorkspaceFlat objects are used to compute and store the coupling matrix associated with an incomplete sky coverage, and used in the flat-sky version of the MASTER algorithm. When initialized, this object is practically empty. The information describing the coupling matrix must be computed or read from a file afterwards.</p>
 <dl class="method">
 <dt id="pymaster.workspaces.NmtWorkspaceFlat.compute_coupling_matrix">
-<code class="descname">compute_coupling_matrix</code><span class="sig-paren">(</span><em>fl1, fl2, bins, ell_cut_x=[1.0, -1.0], ell_cut_y=[1.0, -1.0]</em><span class="sig-paren">)</span><a class="headerlink" href="#pymaster.workspaces.NmtWorkspaceFlat.compute_coupling_matrix" title="Permalink to this definition">¶</a></dt>
+<code class="descname">compute_coupling_matrix</code><span class="sig-paren">(</span><em>fl1, fl2, bins, ell_cut_x=[1.0, -1.0], ell_cut_y=[1.0, -1.0], is_teb=False</em><span class="sig-paren">)</span><a class="headerlink" href="#pymaster.workspaces.NmtWorkspaceFlat.compute_coupling_matrix" title="Permalink to this definition">¶</a></dt>
 <dd><p>Computes coupling matrix associated with the cross-power spectrum of two NmtFieldFlats and an NmtBinFlat binning scheme.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -629,6 +630,7 @@
 <li><strong>bin</strong> (<a class="reference internal" href="#pymaster.bins.NmtBinFlat" title="pymaster.bins.NmtBinFlat"><em>NmtBinFlat</em></a>) – binning scheme</li>
 <li><strong>ell_cut_x</strong> (<em>float</em><em>(</em><em>2</em><em>)</em>) – remove all modes with ell_x in the interval [ell_cut_x[0],ell_cut_x[1]] from the calculation.</li>
 <li><strong>ell_cut_y</strong> (<em>float</em><em>(</em><em>2</em><em>)</em>) – remove all modes with ell_y in the interval [ell_cut_y[0],ell_cut_y[1]] from the calculation.</li>
+<li><strong>is_teb</strong> (<em>boolean</em>) – if true, all mode-coupling matrices (0-0,0-2,2-2) will be computed at the same time. In this case, fl1 must be a spin-0 field and fl1 must be spin-2.</li>
 </ul>
 </td>
 </tr>

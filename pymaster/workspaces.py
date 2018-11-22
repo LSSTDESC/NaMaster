@@ -177,7 +177,7 @@ class NmtWorkspaceFlat(object):
         """
         Decouples a set of pseudo-Cl power spectra into a set of bandpowers by inverting the binned coupling matrix (se Eq. 4 of the C API documentation).
 
-        :param cl_in: set of input power spectra. The number of power spectra must correspond to the spins of the two fields that this NmtWorkspaceFlat object was initialized with (i.e. 1 for two spin-0 fields, 2 for one spin-0 and one spin-2 field and 4 for two spin-2 fields). These power spectra must be defined at the multipoles returned by :func:`get_ell_sampling` for any of the fields used to create the workspace.
+        :param cl_in: set of input power spectra. The number of power spectra must correspond to the spins of the two fields that this NmtWorkspaceFlat object was initialized with (i.e. 1 for two spin-0 fields, 2 for one spin-0 and one spin-2 field, 4 for two spin-2 fields and 7 if this NmtWorkspaceFlat was created using `is_teb=True`). These power spectra must be defined at the multipoles returned by :func:`get_ell_sampling` for any of the fields used to create the workspace.
         :param cl_bias: bias to the power spectrum associated to contaminant residuals (optional). This can be computed through :func:`pymaster.deprojection_bias_flat`.
         :param cl_noise: noise bias (i.e. angular power spectrum of masked noise realizations).
         :return: set of decoupled bandpowers
