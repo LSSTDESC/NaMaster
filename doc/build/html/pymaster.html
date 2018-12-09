@@ -584,6 +584,20 @@
 </dd></dl>
 
 <dl class="method">
+<dt id="pymaster.workspaces.NmtWorkspace.get_coupling_matrix">
+<code class="descname">get_coupling_matrix</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pymaster.workspaces.NmtWorkspace.get_coupling_matrix" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the currently stored mode-coupling matrix.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">mode-coupling matrix. The matrix will have shape <cite>[nrows,nrows]</cite>, with <cite>nrows = n_cls * n_ells</cite>, where <cite>n_cls</cite> is the number of power spectra (1, 2 or 4 for spin0-0, spin0-2 and spin2-2 correlations) and <cite>n_ells = lmax + 1</cite> (normally <cite>lmax = 3 * nside - 1</cite>). The assumed ordering of power spectra is such that the <cite>l</cite>-th element of the <cite>i</cite>-th power spectrum be stored with index <cite>l * n_cls + i</cite>.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
 <dt id="pymaster.workspaces.NmtWorkspace.read_from">
 <code class="descname">read_from</code><span class="sig-paren">(</span><em>fname</em><span class="sig-paren">)</span><a class="headerlink" href="#pymaster.workspaces.NmtWorkspace.read_from" title="Permalink to this definition">¶</a></dt>
 <dd><p>Reads the contents of an NmtWorkspace object from a file (encoded using an internal binary format).</p>
@@ -592,6 +606,21 @@
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>fname</strong> (<em>str</em>) – input file name</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pymaster.workspaces.NmtWorkspace.update_coupling_matrix">
+<code class="descname">update_coupling_matrix</code><span class="sig-paren">(</span><em>new_matrix</em><span class="sig-paren">)</span><a class="headerlink" href="#pymaster.workspaces.NmtWorkspace.update_coupling_matrix" title="Permalink to this definition">¶</a></dt>
+<dd><p>Updates the stored mode-coupling matrix.</p>
+<p>The new matrix (<cite>new_matrix</cite>) must have shape <cite>[nrows,nrows]</cite>, with <cite>nrows = n_cls * n_ells</cite>, where <cite>n_cls</cite> is the number of power spectra (1, 2 or 4 for spin0-0, spin0-2 and spin2-2 correlations) and <cite>n_ells = lmax + 1</cite> (normally <cite>lmax = 3 * nside - 1</cite>). The assumed ordering of power spectra is such that the <cite>l</cite>-th element of the <cite>i</cite>-th power spectrum be stored with index <cite>l * n_cls + i</cite>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>new_matrix</strong> – matrix that will replace the mode-coupling matrix.</td>
 </tr>
 </tbody>
 </table>
@@ -668,7 +697,7 @@
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>cl_in</strong> – set of input power spectra. The number of power spectra must correspond to the spins of the two fields that this NmtWorkspaceFlat object was initialized with (i.e. 1 for two spin-0 fields, 2 for one spin-0 and one spin-2 field and 4 for two spin-2 fields). These power spectra must be defined at the multipoles returned by <code class="xref py py-func docutils literal"><span class="pre">get_ell_sampling()</span></code> for any of the fields used to create the workspace.</li>
+<li><strong>cl_in</strong> – set of input power spectra. The number of power spectra must correspond to the spins of the two fields that this NmtWorkspaceFlat object was initialized with (i.e. 1 for two spin-0 fields, 2 for one spin-0 and one spin-2 field, 4 for two spin-2 fields and 7 if this NmtWorkspaceFlat was created using <cite>is_teb=True</cite>). These power spectra must be defined at the multipoles returned by <code class="xref py py-func docutils literal"><span class="pre">get_ell_sampling()</span></code> for any of the fields used to create the workspace.</li>
 <li><strong>cl_bias</strong> – bias to the power spectrum associated to contaminant residuals (optional). This can be computed through <code class="xref py py-func docutils literal"><span class="pre">pymaster.deprojection_bias_flat()</span></code>.</li>
 <li><strong>cl_noise</strong> – noise bias (i.e. angular power spectrum of masked noise realizations).</li>
 </ul>

@@ -49,6 +49,31 @@ class NmtWorkspace(object):
             raise RuntimeError("Must initialize workspace before writing")
         lib.write_workspace(self.wsp, fname)
 
+    def get_coupling_matrix(self) :
+        """
+        Returns the currently stored mode-coupling matrix.
+
+        :return: mode-coupling matrix. The matrix will have shape `[nrows,nrows]`, with `nrows = n_cls * n_ells`, where `n_cls` is the number of power spectra (1, 2 or 4 for spin0-0, spin0-2 and spin2-2 correlations) and `n_ells = lmax + 1` (normally `lmax = 3 * nside - 1`). The assumed ordering of power spectra is such that the `l`-th element of the `i`-th power spectrum be stored with index `l * n_cls + i`.
+        """
+        if self.wsp is None:
+            raise RuntimeError("Must initialize workspace before getting a MCM")
+        nrows=(self.wsp.lmax+1)*self.wsp.ncls
+        return lib.get_mcm(self.wsp,nrows*nrows).reshape([nrows,nrows])
+
+    def update_coupling_matrix(self,new_matrix) :
+        """
+        Updates the stored mode-coupling matrix.
+
+        The new matrix (`new_matrix`) must have shape `[nrows,nrows]`, with `nrows = n_cls * n_ells`, where `n_cls` is the number of power spectra (1, 2 or 4 for spin0-0, spin0-2 and spin2-2 correlations) and `n_ells = lmax + 1` (normally `lmax = 3 * nside - 1`). The assumed ordering of power spectra is such that the `l`-th element of the `i`-th power spectrum be stored with index `l * n_cls + i`.
+
+        :param new_matrix: matrix that will replace the mode-coupling matrix.
+        """
+        if self.wsp is None:
+            raise RuntimeError("Must initialize workspace before updating MCM")
+        if len(new_matrix)!=(self.wsp.lmax+1)*self.wsp.ncls :
+            raise ValueError("Input matrix has an inconsistent size")
+        lib.update_mcm(self.wsp,len(new_matrix),new_matrix.flatten())
+
     def couple_cell(self, cl_in):
         """
         Convolves a set of input power spectra with a coupling matrix (see Eq. 6 of the C API documentation).

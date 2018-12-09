@@ -881,7 +881,7 @@ nmt_workspace *nmt_compute_coupling_matrix(nmt_field *fl1,nmt_field *fl2,nmt_bin
  * The new matrix must be provided as a single 1D array of size n_rows\f$^2\f$.
  * Here n_rows=n_cls * n_ell is the size of the flattened power spectra, where n_cls is the number
  * of power spectra (1, 2 or 4 for spin0-0, spin0-2 and spin2-2 correlations) and n_ells=lmax+1
- * where (by default lmax=3*nside-1). The ordering of the power spectra should be such that the
+ * (by default lmax=3*nside-1). The ordering of the power spectra should be such that the
  * l-th element of the i-th power spectrum is stored with index l * n_cls + i.
  * @param w nmt_workspace to be updated.
  * @param n_rows size of the flattened power spectra.

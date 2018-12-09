@@ -74,6 +74,7 @@ var searchData=
   ['nmt_5fsynfast_5fsph',['nmt_synfast_sph',['../namaster_8h.html#a5d72deec9d6976d1a170fe4a81f6a4d8',1,'namaster.h']]],
   ['nmt_5funbin_5fcls',['nmt_unbin_cls',['../namaster_8h.html#a964988a16d8e68216abb18928d62d14b',1,'namaster.h']]],
   ['nmt_5funbin_5fcls_5fflat',['nmt_unbin_cls_flat',['../namaster_8h.html#a4376423019232f46dcecbf1e4b1a3ed5',1,'namaster.h']]],
+  ['nmt_5fupdate_5fcoupling_5fmatrix',['nmt_update_coupling_matrix',['../namaster_8h.html#a3954855f8a5f03c8d2a71cc99f1837cb',1,'namaster.h']]],
   ['nmt_5fworkspace',['nmt_workspace',['../structnmt__workspace.html',1,'']]],
   ['nmt_5fworkspace_5fflat',['nmt_workspace_flat',['../structnmt__workspace__flat.html',1,'']]],
   ['nmt_5fworkspace_5fflat_5ffree',['nmt_workspace_flat_free',['../namaster_8h.html#ad8fd223d7657c5577da06acba3c0b169',1,'namaster.h']]],
