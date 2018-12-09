@@ -107,6 +107,26 @@ nmt_binning_scheme *bins_create_py(int nell1,int *bpws,
   return nmt_bins_create(nell1,bpws,ells,weights,lmax);
 }
 
+void update_mcm(nmt_workspace *w,int n_rows,int nell3,double *weights)
+{
+  asserting(nell3==n_rows*n_rows);
+
+  nmt_update_coupling_matrix(w,n_rows,weights);
+}
+
+void get_mcm(nmt_workspace *w,double *dout,int ndout)
+{
+  int ii,nrows=(w->lmax+1)*w->ncls;
+
+  for(ii=0;ii<nrows;ii++) {
+    int jj;
+    for(jj=0;jj<nrows;jj++) {
+      long index=(long)(ii*nrows)+jj;
+      dout[index]=w->coupling_matrix_unbinned[ii][jj];
+    }
+  }
+}
+
 nmt_binning_scheme_flat *bins_flat_create_py(int npix_1,double *mask,
 					     int nell3,double *weights)
 {

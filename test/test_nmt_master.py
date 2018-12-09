@@ -7,7 +7,6 @@ import sys
 from .testutils import normdiff, read_flat_map
 
 #Unit tests associated with the NmtField and NmtFieldFlat classes
-
 class TestWorkspaceSph(unittest.TestCase) :
     def setUp(self) :
         #This is to avoid showing an ugly warning that has nothing to do with pymaster
@@ -124,6 +123,11 @@ class TestWorkspaceSph(unittest.TestCase) :
             w.write_to("test/wspc.dat")
         w.read_from("test/benchmarks/bm_yc_yp_w02.dat") #OK read
         self.assertEqual(w.wsp.nside,64)
+        mcm_old=w.get_coupling_matrix() #Read mode coupling matrix
+        mcm_new=np.identity(3*w.wsp.nside*2) #Updating mode-coupling matrix
+        w.update_coupling_matrix(mcm_new)
+        mcm_back=w.get_coupling_matrix() #Retireve MCM and check it's correct
+        self.assertTrue(np.fabs(np.sum(np.diagonal(mcm_back))-3*w.wsp.nside*2)<=1E-16)
         with self.assertRaises(RuntimeError) :  #Can't write on that file
             w.write_to("tests/wspc.dat")
         with self.assertRaises(RuntimeError) : #File doesn't exist

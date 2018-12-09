@@ -876,6 +876,20 @@ typedef struct {
 nmt_workspace *nmt_compute_coupling_matrix(nmt_field *fl1,nmt_field *fl2,nmt_binning_scheme *bin,int is_teb);
 
 /**
+ * @brief Updates the mode coupling matrix with a new one.Saves nmt_workspace structure to file
+ *
+ * The new matrix must be provided as a single 1D array of size n_rows\f$^2\f$.
+ * Here n_rows=n_cls * n_ell is the size of the flattened power spectra, where n_cls is the number
+ * of power spectra (1, 2 or 4 for spin0-0, spin0-2 and spin2-2 correlations) and n_ells=lmax+1
+ * (by default lmax=3*nside-1). The ordering of the power spectra should be such that the
+ * l-th element of the i-th power spectrum is stored with index l * n_cls + i.
+ * @param w nmt_workspace to be updated.
+ * @param n_rows size of the flattened power spectra.
+ * @param new_matrix new mode-coupling matrix (flattened).
+ */
+void nmt_update_coupling_matrix(nmt_workspace *w,int n_rows,double *new_matrix);
+
+/**
  * @brief Saves nmt_workspace structure to file
  *
  * The output file uses a native binary format. In combination with nmt_workspace_read(),

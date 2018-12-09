@@ -176,6 +176,20 @@ static void bin_coupling_matrix(nmt_workspace *w)
   gsl_linalg_LU_decomp(w->coupling_matrix_binned,w->coupling_matrix_perm,&sig);
 }
 
+void nmt_update_coupling_matrix(nmt_workspace *w,int n_rows,double *new_matrix)
+{
+  int ii;
+  
+  if(n_rows!=w->ncls*(w->lmax+1)) {
+    report_error(NMT_ERROR_INCONSISTENT,"Input matrix has the wrong size. Expected %d, got %d\n",
+		 w->ncls*(w->lmax+1),n_rows);
+  }
+
+  for(ii=0;ii<n_rows;ii++)
+    memcpy(w->coupling_matrix_unbinned[ii],&(new_matrix[ii*n_rows]),n_rows*sizeof(flouble));
+  bin_coupling_matrix(w);
+}
+
 //Computes binned coupling matrix
 // fl1,fl2 (in) : fields we're correlating
 // coupling_matrix_out (out) : unbinned coupling matrix

@@ -735,6 +735,10 @@ def compute_coupling_matrix(fl1, fl2, bin, is_teb):
     return _nmtlib.compute_coupling_matrix(fl1, fl2, bin, is_teb)
 compute_coupling_matrix = _nmtlib.compute_coupling_matrix
 
+def update_coupling_matrix(w, n_rows, new_matrix):
+    return _nmtlib.update_coupling_matrix(w, n_rows, new_matrix)
+update_coupling_matrix = _nmtlib.update_coupling_matrix
+
 def workspace_write(w, fname):
     return _nmtlib.workspace_write(w, fname)
 workspace_write = _nmtlib.workspace_write
@@ -962,6 +966,14 @@ get_ell_eff_flat = _nmtlib.get_ell_eff_flat
 def bins_create_py(nell1, nell2, nell3, lmax):
     return _nmtlib.bins_create_py(nell1, nell2, nell3, lmax)
 bins_create_py = _nmtlib.bins_create_py
+
+def update_mcm(w, n_rows, nell3):
+    return _nmtlib.update_mcm(w, n_rows, nell3)
+update_mcm = _nmtlib.update_mcm
+
+def get_mcm(w, dout):
+    return _nmtlib.get_mcm(w, dout)
+get_mcm = _nmtlib.get_mcm
 
 def bins_flat_create_py(npix_1, nell3):
     return _nmtlib.bins_flat_create_py(npix_1, nell3)
