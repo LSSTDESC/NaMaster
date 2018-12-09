@@ -485,7 +485,6 @@ CTEST(nmt,master_00_full) {
   nmt_workspace_free(w00);
   nmt_field_free(f0);
 
-  /*
   //With contaminants
   f0=nmt_field_alloc_sph(nside,msk,0,&mps,1,&tmp,NULL,0,0,3,1E-10);
   w00=nmt_compute_coupling_matrix(f0,f0,bin,0);
@@ -498,7 +497,7 @@ CTEST(nmt,master_00_full) {
     test_compare_arrays(bin->n_bands,cell_out[ii],ncls,ii,"test/benchmarks/bm_yc_np_c00.txt",1E-3);
   nmt_workspace_free(w00);
   nmt_field_free(f0);
-  */
+
   //Free up power spectra
   for(ii=0;ii<ncls;ii++) {
     free(cell[ii]);
@@ -558,6 +557,15 @@ CTEST(nmt,master_errors) {
   try { wb=nmt_compute_power_spectra(f0b,f0b,bin,w,NULL,NULL,NULL); }
   ASSERT_NOT_EQUAL(0,nmt_exception_status);
   ASSERT_NULL(wb);
+  //nmt_update_coupling_matrix with wrong input
+  double *mat=calloc(3*nside*3*nside,sizeof(double));
+  try { nmt_update_coupling_matrix(w,3*nside*2,mat); }
+  ASSERT_NOT_EQUAL(0,nmt_exception_status);
+  //nmt_update_coupling_matrix works as expected
+  mat[3*nside*2+nside+1]=1.2345;
+  nmt_update_coupling_matrix(w,3*nside,mat);
+  ASSERT_DBL_NEAR_TOL(w->coupling_matrix_unbinned[2][nside+1],1.2345,1E-10);
+  free(mat);
   nmt_workspace_free(w);
   set_error_policy(EXIT_ON_ERROR);
 
