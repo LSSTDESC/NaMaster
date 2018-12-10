@@ -1,8 +1,6 @@
 #!/usr/bin/env python
-
-from distutils.core import *
-from distutils import sysconfig
-import os.path
+import sys
+from setuptools import setup, Extension
 
 # Get numpy include directory (works across versions)
 import numpy
@@ -11,14 +9,20 @@ try:
 except AttributeError:
     numpy_include = numpy.get_numpy_include()
 
+if '--enable-fftw3-pthreads' in sys.argv:
+    sys.argv.pop(sys.argv.index('--enable-fftw3-pthreads'))
+    FFTW_LIBS = ['fftw3', 'fftw3_threads', 'pthread']
+else:
+    FFTW_LIBS = ['fftw3', 'fftw3_omp']
+
 
 use_icc=False #Set to True if you compiled libsharp with icc
 if use_icc :
-    libs=['nmt','fftw3','fftw3_omp','sharp','fftpack','c_utils','chealpix','cfitsio','gsl','gslcblas','m','gomp','iomp5']
+    libs=['nmt','sharp','fftpack','c_utils','chealpix','cfitsio','gsl','gslcblas','m','gomp','iomp5'] + FFTW_LIBS
     extra=['-openmp',]
 else :
-    libs=['nmt','fftw3','fftw3_omp','sharp','fftpack','c_utils','chealpix','cfitsio','gsl','gslcblas','m','gomp']
-    extra=['-O4', '-fopenmp',]
+    libs=['nmt','fftw3','fftw3_omp','sharp','fftpack','c_utils','chealpix','cfitsio','gsl','gslcblas','m','gomp'] + FFTW_LIBS
+    extra=['-O4','-fopenmp']
 
 
 _nmtlib = Extension("_nmtlib",
