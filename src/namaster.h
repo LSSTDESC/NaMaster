@@ -38,9 +38,9 @@ typedef double complex fcomplex;
  *
  * Welcome to the documentation of NaMaster's C API. Navigate through the tabs above to learn more
  * about the different functionality implemented in the code.
- * 
+ *
  * \section general_notes General notes
- *   - Most users will prefer to use the python wrapper "pymaster", which mostly calls the 
+ *   - Most users will prefer to use the python wrapper "pymaster", which mostly calls the
        C-based functions.
  *   - NaMaster uses a "row-major" order to define the ordering of power spectra into vectors.
        E.g. the cross-correlation of two spin-2 fields 'a' and 'b' would give rise to 4 power
@@ -50,15 +50,15 @@ typedef double complex fcomplex;
        spin-2 field.
  *   - The abbreviation MCM will often be used instead of "mode-coupling matrix".
  *   - SHT will sometimes be used for "Spherical Harmonic Transform". In the context of flat-sky
-       fields, this should be understood as a standard Fast Fourier Transform (FFT) (with 
+       fields, this should be understood as a standard Fast Fourier Transform (FFT) (with
        appropriate trigonometric factors if dealing with spin-2 fields).
  *   - FWHM will sometimes be used for "Full-width at half-max".
- * 
+ *
  * \section more_info More info
  *
  * Please refer to the README and LICENSE files for further information on installation,
  * credits and licensing. Do not hesitate to contact the authors (preferably via github
- * issues on https://github.com/LSSTDESC/NaMaster) if you encounter any problems using 
+ * issues on https://github.com/LSSTDESC/NaMaster) if you encounter any problems using
  * the code.
  */
 
@@ -66,7 +66,7 @@ typedef double complex fcomplex;
  * @brief Flat-sky bandpowers.
  *
  * This structure defines bandpowers for flat-sky power spectra.
- * These are currently defined only by band edges (assumed 
+ * These are currently defined only by band edges (assumed
  * flat weights within band).
  */
 typedef struct {
@@ -109,7 +109,7 @@ void nmt_bins_flat_free(nmt_binning_scheme_flat *bin);
  * @param larr Array containing the \p nl multipoles at which the input power
  *        spectrum is defined.
  * @param cls_in Array of \p ncls input power spectra.
- * @param cls_out Array of \p ncls averaged output power spectra. 
+ * @param cls_out Array of \p ncls averaged output power spectra.
  *        Should be allocated to the number of bandpowers defined \p bin.
  * @param ncls Number of input/output power spectra.
  */
@@ -118,13 +118,13 @@ void nmt_bin_cls_flat(nmt_binning_scheme_flat *bin,int nl,flouble *larr,flouble 
 
 /**
  * @brief Returns binned power spectra interpolated into an given set of multipoles.
- * 
+ *
  * Nearest-neighbours interpolation is used.
  * @param bin nmt_binning_scheme_flat structure defining the bandpowers.
- * @param cls_in Array of \p ncls input power spectra. Must have the same number of 
+ * @param cls_in Array of \p ncls input power spectra. Must have the same number of
  *        elements as bandpowers defined by \p bin.
  * @param nl Number of elements in the output power spectra.
- * @param larr Array containing the \p nl multipoles at which the output power 
+ * @param larr Array containing the \p nl multipoles at which the output power
  *        spectrum are requested.
  * @param cls_out Array of \p ncls interpolated output power spectra.
  * @param ncls Number of input/output power spectra.
@@ -134,7 +134,7 @@ void nmt_unbin_cls_flat(nmt_binning_scheme_flat *bin,flouble **cls_in,
 
 /**
  * @brief Returns effective multipoles.
- * 
+ *
  * Returns the mid point of each bandpower defined in \p bin.
  * @param bin nmt_binning_scheme_flat structure defining the bandpowers.
  * @param larr Output array containing mid-points of the bandpowers.
@@ -160,7 +160,7 @@ int nmt_bins_flat_search_fast(nmt_binning_scheme_flat *bin,flouble l,int il);
  * @brief Full-sky bandpowers.
  *
  * This structure defines bandpowers for full-sky power spectra.
- * Although a given multipole ell can only contribute to one bandpower, 
+ * Although a given multipole ell can only contribute to one bandpower,
  * the distribution of ells per bandpower and their relative weights
  * is left completely free.
  */
@@ -190,7 +190,7 @@ nmt_binning_scheme *nmt_bins_constant(int nlb,int lmax);
  * @param bpws Array of bandpower indices.
  * @param ells Array of multipole values. This function collects all multipoles
  *        into their associated bandpowers.
- * @param weights Array of weights associated to each multipole. Weights are 
+ * @param weights Array of weights associated to each multipole. Weights are
  *        normalized to 1 within each bandpower.
  * @param lmax Maximum multipole to consider.
  * @return Allocated binning structure.
@@ -219,7 +219,7 @@ void nmt_bins_free(nmt_binning_scheme *bin);
  * @brief Returns average of input power spectrum into bandpowers.
  *
  * @param bin nmt_binning_scheme structure defining the bandpowers.
- * @param cls_in Array of \p ncls input power spectra. They should be 
+ * @param cls_in Array of \p ncls input power spectra. They should be
  *        defined in all ells that go into any bandpower defined by \p bin.
  * @param cls_out Array of \p ncls averaged output power spectra.
  *        Should be allocated to the number of bandpowers defined \p bin.
@@ -253,7 +253,7 @@ void nmt_ell_eff(nmt_binning_scheme *bin,flouble *larr);
 /**
  * @brief Flat-sky Fourier-space function
  *
- * Unlike multipoles in harmonic space, in the case of full-sky operations, 
+ * Unlike multipoles in harmonic space, in the case of full-sky operations,
  * wavenumbers k in Fourier space for flat-sky fields are in general continuous
  * variables. This structure helps define functions of these continuous variables.
  */
@@ -385,8 +385,8 @@ void nmt_field_flat_free(nmt_field_flat *fl);
  * @param pure_b Set to >0 if you want purified B-modes.
  * @param tol_pinv Contaminant deprojection requires the inversion of the template
           covariance matrix. This could be ill-defined if some templates are linearly
-	  related. In this case we use a pseudo-inverse that accounts for this 
-	  possibility in a consistent way. Effectively this is a singular-value 
+	  related. In this case we use a pseudo-inverse that accounts for this
+	  possibility in a consistent way. Effectively this is a singular-value
 	  decomposition. All eigenvalues that are smaller than \p tol_pinv the largest
 	  eigenvalue will be discarded.
  */
@@ -396,9 +396,9 @@ nmt_field_flat *nmt_field_flat_alloc(int nx,int ny,flouble lx,flouble ly,
 				     int pure_e,int pure_b,double tol_pinv);
 
 /**
- * @brief Gaussian realizations of flat-sky fields 
+ * @brief Gaussian realizations of flat-sky fields
  *
- * Generates a Gaussian realization of an arbitrary list of possibly-correlated 
+ * Generates a Gaussian realization of an arbitrary list of possibly-correlated
  * fields with different spins.
  * @param nx Number of grid points in the x dimension.
  * @param ny Number of grid points in the y dimension.
@@ -439,6 +439,32 @@ flouble **nmt_synfast_flat(int nx,int ny,flouble lx,flouble ly,int nfields,int *
 void nmt_purify_flat(nmt_field_flat *fl,flouble *mask,fcomplex **walm0,
 		     flouble **maps_in,flouble **maps_out,fcomplex **alms);
 
+
+
+
+enum nmt_curvedsky_type {HEALPIX_FIELD, CAR_FIELD};
+
+/**
+* @brief Curved-sky information.
+*
+* This structure contains all the information defining a given
+* rectangular curved-sky patch.
+*/
+typedef struct {
+ nmt_curvedsky_type field_type; //!< healpix or CAR flag
+ long nside; //!< Healpix nside if applicable, -1 if not
+
+ long max_pix; //!< equivalent of nside, max pixels in a ring
+ int nx; //!< Number of grid points in the x dimension
+ int ny; //!< Number of grid points in the y dimension
+ long npix; //!< Total number of pixels (given by \p nx * \p ny
+ flouble Delta_theta; //!< pixel size in y direction
+ flouble Delta_phi; //!< pixel size in x direction
+ flouble phi0; // longitude of first pixel
+ flouble theta0; // latitude of first pixel
+} nmt_curvedsky_info;
+
+
 /**
  * @brief Full-sky field
  *
@@ -476,7 +502,7 @@ void nmt_field_free(nmt_field *fl);
  * @param nside HEALPix resolution parameter.
  * @param mask Field's mask (an array of 12 * \p nside^2 values).
  * @param pol >0 if this is a spin-2 field (spin-0 otherwise).
- * @param maps Observed field values BEFORE multiplying by the mask 
+ * @param maps Observed field values BEFORE multiplying by the mask
           (this is irrelevant for binary masks).
  * @param ntemp Number of contaminant templates affecting this field.
  * @param temp Contaminant template maps (again, NOT multiplied by the mask).
@@ -491,8 +517,8 @@ void nmt_field_free(nmt_field *fl);
 	  the cost of computational time).
  * @param tol_pinv Contaminant deprojection requires the inversion of the template
           covariance matrix. This could be ill-defined if some templates are linearly
-	  related. In this case we use a pseudo-inverse that accounts for this 
-	  possibility in a consistent way. Effectively this is a singular-value 
+	  related. In this case we use a pseudo-inverse that accounts for this
+	  possibility in a consistent way. Effectively this is a singular-value
 	  decomposition. All eigenvalues that are smaller than \p tol_pinv the largest
 	  eigenvalue will be discarded.
  */
@@ -523,8 +549,8 @@ nmt_field *nmt_field_alloc_sph(long nside,flouble *mask,int pol,flouble **maps,
 	  the cost of computational time).
  * @param tol_pinv Contaminant deprojection requires the inversion of the template
           covariance matrix. This could be ill-defined if some templates are linearly
-	  related. In this case we use a pseudo-inverse that accounts for this 
-	  possibility in a consistent way. Effectively this is a singular-value 
+	  related. In this case we use a pseudo-inverse that accounts for this
+	  possibility in a consistent way. Effectively this is a singular-value
 	  decomposition. All eigenvalues that are smaller than \p tol_pinv the largest
 	  eigenvalue will be discarded.
  */
@@ -532,7 +558,7 @@ nmt_field *nmt_field_read(char *fname_mask,char *fname_maps,char *fname_temp,cha
 			  int pol,int pure_e,int pure_b,int n_iter_mask_purify,double tol_pinv);
 
 /**
- * @brief Gaussian realizations of full-sky fields 
+ * @brief Gaussian realizations of full-sky fields
  *
  * Generates a Gaussian realization of an arbitrary list of possibly-correlated fields with different spins.
  * @param nside HEALPix resolution parameter.
@@ -661,7 +687,7 @@ void nmt_workspace_flat_free(nmt_workspace_flat *w);
  * @brief Builds nmt_workspace_flat structure from file
  *
  * The input file uses a native binary format. In combination with nmt_workspace_flat_write(),
- * this can be used to save the information contained in a given workspace and reuse it for 
+ * this can be used to save the information contained in a given workspace and reuse it for
  * future power spectrum computations. The same workspace can be used on any pair of fields
  * with the same masks.
  * @param fname Path to input file.
@@ -672,7 +698,7 @@ nmt_workspace_flat *nmt_workspace_flat_read(char *fname);
  * @brief Saves nmt_workspace_flat structure to file
  *
  * The output file uses a native binary format. In combination with nmt_workspace_flat_read(),
- * this can be used to save the information contained in a given workspace and reuse it for 
+ * this can be used to save the information contained in a given workspace and reuse it for
  * future power spectrum computations. The same workspace can be used on any pair of fields
  * with the same masks.
  * @param w nmt_workspace_flat to be saved.
@@ -734,7 +760,7 @@ void nmt_couple_cl_l_flat_accurate(nmt_workspace_flat *w,int nl,flouble *larr,fl
 /**
  * @brief Mode-couples an input power spectrum
  *
- * This function applies the effects of the mode-coupling the pseudo-CL estimator for a given 
+ * This function applies the effects of the mode-coupling the pseudo-CL estimator for a given
  * input power spectrum. This function should be used in conjunction with nmt_decouple_cl_l_flat()
  * to compute the theory prediction of the pseudo-CL estimator. See the scientific documentation
  * or the companion paper for further details on how this is done in particular for the flat-sky
@@ -821,7 +847,7 @@ void nmt_compute_coupled_cell_flat(nmt_field_flat *fl1,nmt_field_flat *fl2,
  *        if \p lmx_x < \p lmn_x, no Fourier-space masked is performed.
  * @param lmn_y Same as \p lmn_x for the y direction.
  * @param lmx_y Same as \p lmx_x for the y direction.
- * @param w0 nmt_workspace_flat structure containing the mode-coupling matrix. If NULL, a new 
+ * @param w0 nmt_workspace_flat structure containing the mode-coupling matrix. If NULL, a new
           computation of the MCM will be carried out and stored in the output nmt_workspace_flat.
 	  Otherwise, \p w0 will be used and returned by this function.
  * @param nl_prop Number of multipoles over which the proposed power spectrum is defined.
@@ -829,9 +855,9 @@ void nmt_compute_coupled_cell_flat(nmt_field_flat *fl1,nmt_field_flat *fl2,
  * @param cl_prop Proposed power spectrum. Should have shape [ncls][\p nl_prop], where
           \p ncls is the appropriate number of power spectra given the spins of the input
 	  fields (e.g. \p ncls = 2*2 = 4 if both fields have spin=2).
- * @param cl_noise Noise bias. Should have shape [ncls][nbpw], where \p ncls is 
+ * @param cl_noise Noise bias. Should have shape [ncls][nbpw], where \p ncls is
  *        defined above and \p nbpw is the number of bandpowers defined by \p bin.
- * @param cl_out Ouptput power spectrum. Should be allocated to shape [ncls][nbpw], 
+ * @param cl_out Ouptput power spectrum. Should be allocated to shape [ncls][nbpw],
           where \p ncls is defined above and \p nbpw is the number of bandpowers defined
 	  by \p bin.
  * @return Newly allocated nmt_workspace_flat structure containing the mode-coupling matrix
@@ -893,7 +919,7 @@ void nmt_update_coupling_matrix(nmt_workspace *w,int n_rows,double *new_matrix);
  * @brief Saves nmt_workspace structure to file
  *
  * The output file uses a native binary format. In combination with nmt_workspace_read(),
- * this can be used to save the information contained in a given workspace and reuse it for 
+ * this can be used to save the information contained in a given workspace and reuse it for
  * future power spectrum computations. The same workspace can be used on any pair of fields
  * with the same masks.
  * @param w nmt_workspace to be saved.
@@ -905,7 +931,7 @@ void nmt_workspace_write(nmt_workspace *w,char *fname);
  * @brief Builds nmt_workspace structure from file
  *
  * The input file uses a native binary format. In combination with nmt_workspace_write(),
- * this can be used to save the information contained in a given workspace and reuse it for 
+ * this can be used to save the information contained in a given workspace and reuse it for
  * future power spectrum computations. The same workspace can be used on any pair of fields
  * with the same masks.
  * @param fname Path to input file.
@@ -950,7 +976,7 @@ void nmt_compute_uncorr_noise_deprojection_bias(nmt_field *fl1,flouble *map_var,
 /**
  * @brief Mode-couples an input power spectrum
  *
- * This function applies the effects of the mode-coupling the pseudo-CL estimator for a given 
+ * This function applies the effects of the mode-coupling the pseudo-CL estimator for a given
  * input power spectrum. This function should be used in conjunction with nmt_decouple_cl_l()
  * to compute the theory prediction of the pseudo-CL estimator.
  * See notes about power spectrum ordering in the main page of this documentation.
@@ -1004,14 +1030,14 @@ void nmt_compute_coupled_cell(nmt_field *fl1,nmt_field *fl2,flouble **cl_out);
  * @param fl1 nmt_field structure defining the first field to correlate.
  * @param fl2 nmt_field structure defining the second field to correlate.
  * @param bin nmt_binning_scheme defining the power spectrum bandpowers.
- * @param w0 nmt_workspace structure containing the mode-coupling matrix. If NULL, a new 
+ * @param w0 nmt_workspace structure containing the mode-coupling matrix. If NULL, a new
           computation of the MCM will be carried out and stored in the output nmt_workspace.
 	  Otherwise, \p w0 will be used and returned by this function.
  * @param cl_proposal Proposed power spectrum. Should have shape [ncls][3 * \p nside], where
           \p ncls is the appropriate number of power spectra given the spins of the input
 	  fields (e.g. \p ncls = 2*2 = 4 if both fields have spin=2).
  * @param cl_noise Noise bias (same shape as \p cl_prop).
- * @param cl_out Ouptput power spectrum. Should be allocated to shape [ncls][nbpw], 
+ * @param cl_out Ouptput power spectrum. Should be allocated to shape [ncls][nbpw],
           where \p ncls is defined above and \p nbpw is the number of bandpowers defined
 	  by \p bin.
  * @return Newly allocated nmt_workspace structure containing the mode-coupling matrix
@@ -1061,7 +1087,7 @@ nmt_covar_workspace_flat *nmt_covar_workspace_flat_init(nmt_workspace_flat *wa,n
 
 /**
  * @brief Compute flat-sky Gaussian covariance matrix
- * 
+ *
  * Computes the covariance matrix for two sets of power spectra given input predicted spectra
  * and a nmt_covar_workspace_flat structure.
  * @param cw nmt_covar_workspace_flat structure containing the information necessary to compute the
@@ -1085,7 +1111,7 @@ void nmt_compute_gaussian_covariance_flat(nmt_covar_workspace_flat *cw,
  * @brief Saves nmt_covar_workspace_flat structure to file
  *
  * The output file uses a native binary format. In combination with nmt_covar_workspace_flat_read(),
- * this can be used to save the information contained in a given workspace and reuse it for 
+ * this can be used to save the information contained in a given workspace and reuse it for
  * future covariance matrix computations. The same workspace can be used on any pair of power spectra
  * between fields with the same masks.
  * @param cw nmt_covar_workspace_flat to be saved.
@@ -1098,14 +1124,14 @@ void nmt_covar_workspace_flat_write(nmt_covar_workspace_flat *cw,char *fname);
  * @brief Builds nmt_covar_workspace_flat structure from file
  *
  * The input file uses a native binary format. In combination with nmt_covar_workspace_flat_write(),
- * this can be used to save the information contained in a given workspace and reuse it for 
+ * this can be used to save the information contained in a given workspace and reuse it for
  * future covariance matrix computations. The same workspace can be used on any pair of power spectra
  * between fields with the same masks.
  * @param fname Path to input file.
  * @warning All covariance-related functionality is still under development, and in the future will hopefully support.
  */
 nmt_covar_workspace_flat *nmt_covar_workspace_flat_read(char *fname);
-  
+
 /**
  * @brief Full-sky Gaussian covariance matrix
  *
@@ -1150,7 +1176,7 @@ nmt_covar_workspace *nmt_covar_workspace_init(nmt_workspace *wa,nmt_workspace *w
 
 /**
  * @brief Compute full-sky Gaussian covariance matrix
- * 
+ *
  * Computes the covariance matrix for two sets of power spectra given input predicted spectra
  * and a nmt_covar_workspace structure.
  * @param cw nmt_covar_workspace structure containing the information necessary to compute the
@@ -1173,7 +1199,7 @@ void  nmt_compute_gaussian_covariance(nmt_covar_workspace *cw,
  * @brief Saves nmt_covar_workspace structure to file
  *
  * The output file uses a native binary format. In combination with nmt_covar_workspace_read(),
- * this can be used to save the information contained in a given workspace and reuse it for 
+ * this can be used to save the information contained in a given workspace and reuse it for
  * future covariance matrix computations. The same workspace can be used on any pair of power spectra
  * between fields with the same masks.
  * @param cw nmt_covar_workspace to be saved.
@@ -1186,7 +1212,7 @@ void nmt_covar_workspace_write(nmt_covar_workspace *cw,char *fname);
  * @brief Builds nmt_covar_workspace structure from file
  *
  * The input file uses a native binary format. In combination with nmt_covar_workspace_write(),
- * this can be used to save the information contained in a given workspace and reuse it for 
+ * this can be used to save the information contained in a given workspace and reuse it for
  * future covariance matrix computations. The same workspace can be used on any pair of power spectra
  * between fields with the same masks.
  * @param fname Path to input file.
