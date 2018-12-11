@@ -441,9 +441,6 @@ void nmt_purify_flat(nmt_field_flat *fl,flouble *mask,fcomplex **walm0,
 
 
 
-
-enum nmt_curvedsky_type {HEALPIX_FIELD, CAR_FIELD};
-
 /**
 * @brief Curved-sky information.
 *
@@ -451,9 +448,6 @@ enum nmt_curvedsky_type {HEALPIX_FIELD, CAR_FIELD};
 * rectangular curved-sky patch.
 */
 typedef struct {
- nmt_curvedsky_type field_type; //!< healpix or CAR flag
- long nside; //!< Healpix nside if applicable, -1 if not
-
  long max_pix; //!< equivalent of nside, max pixels in a ring
  int nx; //!< Number of grid points in the x dimension
  int ny; //!< Number of grid points in the y dimension
@@ -465,6 +459,12 @@ typedef struct {
 } nmt_curvedsky_info;
 
 
+typedef enum {
+   NMT_HEALPIX,
+   NMT_CAR
+} nmt_curvedsky_type;
+
+
 /**
  * @brief Full-sky field
  *
@@ -472,8 +472,11 @@ typedef struct {
  * This includes field values, masking, purification and contamination.
  */
 typedef struct {
+  nmt_curvedsky_type field_type; //!< healpix or CAR flag
+  nmt_curvedsky_info sky_info; //!< Describes pixel information for CAR
   long nside; //!< HEALPix resolution parameters
   long npix; //!< Number of pixels in all maps
+  long beam_lmax; //!< Number of ell used for the beam, for healpix = 3*nside
   int lmax; //!< Maximum multipole used
   int pure_e; //!< >0 if E-modes have been purified
   int pure_b; //!< >0 if B-modes have been purified
@@ -554,9 +557,9 @@ nmt_field *nmt_field_alloc_sph(long nside,flouble *mask,int pol,flouble **maps,
 	  decomposition. All eigenvalues that are smaller than \p tol_pinv the largest
 	  eigenvalue will be discarded.
  */
-nmt_field *nmt_field_read(char *fname_mask,char *fname_maps,char *fname_temp,char *fname_beam,
-			  int pol,int pure_e,int pure_b,int n_iter_mask_purify,double tol_pinv);
-
+ nmt_field *nmt_field_read(char *fname_mask,char *fname_maps,char *fname_temp,char *fname_beam,
+ 			  int pol,int pure_e,int pure_b,int n_iter_mask_purify,double tol_pinv,
+       nmt_curvedsky_type field_type);
 /**
  * @brief Gaussian realizations of full-sky fields
  *
