@@ -251,8 +251,7 @@ int main(int argc,char **argv)
   if(n_lbin<=0)
     report_error(NMT_ERROR_BADNO,"#ell per bin must be positive\n");
 
-  fl1=nmt_field_read(fname_mask_1,fname_map_1,fname_temp_1,
-		fname_beam_1,pol_1,pure_e_1,pure_b_1,10,1E-10, NMT_HEALPIX);
+  fl1=nmt_field_read(fname_mask_1,fname_map_1,fname_temp_1,fname_beam_1,pol_1,pure_e_1,pure_b_1,10,1E-10);
 
   if(!strcmp(fname_map_2,"none")) {
     fl2=fl1;
@@ -261,8 +260,7 @@ int main(int argc,char **argv)
   else {
     if(!strcmp(fname_mask_2,"none"))
       sprintf(fname_mask_2,"%s",fname_mask_1);
-    fl2=nmt_field_read(fname_mask_2,fname_map_2,fname_temp_2,fname_beam_2,
-			pol_2,pure_e_2,pure_b_2,10,1E-10, NMT_HEALPIX);
+    fl2=nmt_field_read(fname_mask_2,fname_map_2,fname_temp_2,fname_beam_2,pol_2,pure_e_2,pure_b_2,10,1E-10);
   }
 
   run_master(fl1,fl2,

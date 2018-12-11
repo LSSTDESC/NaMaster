@@ -154,9 +154,6 @@ void nmt_purify(nmt_field *fl,flouble *mask,fcomplex **walm0,
   free(f_l);
 }
 
-
-
-// healpix alloc_sph
 nmt_field *nmt_field_alloc_sph(long nside,flouble *mask,int pol,flouble **maps,
 			       int ntemp,flouble ***temp,flouble *beam,
 			       int pure_e,int pure_b,int n_iter_mask_purify,double tol_pinv)
@@ -224,7 +221,7 @@ nmt_field *nmt_field_alloc_sph(long nside,flouble *mask,int pol,flouble **maps,
       he_map_product(fl->nside,maps[ii],fl->mask,fl->maps[ii]);
     flouble *prods=my_calloc(fl->ntemp,sizeof(flouble));
     for(itemp=0;itemp<fl->ntemp;itemp++) {
-      for(imap=0;imap<fl->nmaps;imap++)
+      for(imap=0;imap<fl->nmaps;imap++) 
 	prods[itemp]+=he_map_dot(fl->nside,fl->temp[itemp][imap],fl->maps[imap]);
     }
     for(itemp=0;itemp<fl->ntemp;itemp++) {
@@ -301,167 +298,9 @@ nmt_field *nmt_field_alloc_sph(long nside,flouble *mask,int pol,flouble **maps,
 	he_map2alm(fl->nside,fl->lmax,1,2*fl->pol,fl->temp[itemp],fl->a_temp[itemp],HE_NITER_DEFAULT);
     }
   }
-
+  
   return fl;
 }
-
-
-// CAR alloc_sph
-nmt_field *rect_field_alloc_sph(nmt_curvedsky_info sky_info, flouble *mask,
-    int pol,flouble **maps, int ntemp,flouble ***temp,flouble *beam,
-		int pure_e,int pure_b,int n_iter_mask_purify,double tol_pinv)
-{
-  int ii,itemp,itemp2,imap;
-  nmt_field *fl=my_malloc(sizeof(nmt_field));
-  // set nside to the CAR equivalent, max_pix
-  fl->nside=sky_info.max_pix;
-  fl->lmax=3*fl->nside-1;
-  fl->npix=sky_info.npix;
-  fl->pol=pol;
-  if(pol) fl->nmaps=2;
-  else fl->nmaps=1;
-  fl->ntemp=ntemp;
-
-  fl->pure_e=0;
-  fl->pure_b=0;
-  if(pol) {
-    if(pure_e)
-      fl->pure_e=1;
-    if(pure_b)
-      fl->pure_b=1;
-  }
-
-  fl->beam=my_malloc(3*fl->nside*sizeof(flouble));
-  if(beam==NULL) {
-    for(ii=0;ii<3*fl->nside;ii++)
-      fl->beam[ii]=1.;
-  }
-  else
-    memcpy(fl->beam,beam,3*fl->nside*sizeof(flouble));
-
-
-  fl->mask=my_malloc(fl->npix*sizeof(flouble));
-  memcpy(fl->mask,mask,fl->npix*sizeof(flouble));
-
-  fl->maps=my_malloc(fl->nmaps*sizeof(flouble *));
-  for(ii=0;ii<fl->nmaps;ii++)
-    fl->maps[ii]=my_malloc(fl->npix*sizeof(flouble));
-
-  if(fl->ntemp>0) {
-    fl->temp=my_malloc(fl->ntemp*sizeof(flouble **));
-    for(itemp=0;itemp<fl->ntemp;itemp++) {
-      fl->temp[itemp]=my_malloc(fl->nmaps*sizeof(flouble *));
-      for(imap=0;imap<fl->nmaps;imap++) {
-	fl->temp[itemp][imap]=my_malloc(fl->npix*sizeof(flouble));
-	rect_map_product(&sky_info,temp[itemp][imap],fl->mask,fl->temp[itemp][imap]); //Multiply by mask
-      }
-    }
-
-    //Compute normalization matrix
-    fl->matrix_M=gsl_matrix_alloc(fl->ntemp,fl->ntemp);
-    for(itemp=0;itemp<fl->ntemp;itemp++) {
-      for(itemp2=itemp;itemp2<fl->ntemp;itemp2++) {
-	flouble matrix_element=0;
-	for(imap=0;imap<fl->nmaps;imap++)
-	  matrix_element+=rect_map_dot(&sky_info,fl->temp[itemp][imap],fl->temp[itemp2][imap]);
-	gsl_matrix_set(fl->matrix_M,itemp,itemp2,matrix_element);
-	if(itemp2!=itemp)
-	  gsl_matrix_set(fl->matrix_M,itemp2,itemp,matrix_element);
-      }
-    }
-    moore_penrose_pinv(fl->matrix_M,tol_pinv);
-
-    //Deproject
-    for(ii=0;ii<fl->nmaps;ii++) //Need to multiply observed map by mask first
-      rect_map_product(&sky_info,maps[ii],fl->mask,fl->maps[ii]);
-    flouble *prods=my_calloc(fl->ntemp,sizeof(flouble));
-    for(itemp=0;itemp<fl->ntemp;itemp++) {
-      for(imap=0;imap<fl->nmaps;imap++)
-	prods[itemp]+=rect_map_dot(&sky_info,fl->temp[itemp][imap],fl->maps[imap]);
-    }
-    for(itemp=0;itemp<fl->ntemp;itemp++) {
-      flouble alpha=0;
-      for(itemp2=0;itemp2<fl->ntemp;itemp2++) {
-	double mij=gsl_matrix_get(fl->matrix_M,itemp,itemp2);
-	alpha+=mij*prods[itemp2];
-      }
-#ifdef _DEBUG
-      printf("alpha_%d = %lE\n",itemp,alpha);
-#endif //_DEBUG
-      for(imap=0;imap<fl->nmaps;imap++) {
-	long ip;
-	for(ip=0;ip<fl->npix;ip++)
-	  maps[imap][ip]-=alpha*temp[itemp][imap][ip]; //Correct unmasked field (in case of purification)
-      }
-    }
-    free(prods);
-  }
-
-  //Allocate harmonic coefficients
-  fl->alms=my_malloc(fl->nmaps*sizeof(fcomplex *));
-  for(ii=0;ii<fl->nmaps;ii++)
-    fl->alms[ii]=my_malloc(he_nalms(fl->lmax)*sizeof(fcomplex));
-  if(fl->ntemp>0) {
-    fl->a_temp=my_malloc(fl->ntemp*sizeof(fcomplex **));
-    for(itemp=0;itemp<fl->ntemp;itemp++) {
-      fl->a_temp[itemp]=my_malloc(fl->nmaps*sizeof(fcomplex *));
-      for(imap=0;imap<fl->nmaps;imap++)
-	fl->a_temp[itemp][imap]=my_malloc(he_nalms(fl->lmax)*sizeof(fcomplex));
-    }
-  }
-
-
-  if(fl->pol && (fl->pure_e || fl->pure_b)) {
-    printf("PURIFYING\n");
-    //If purification is needed:
-    // 1- Compute mask alms
-    // 2- Purify de-contaminated map
-    // 3- Compute purified contaminants
-
-    //Compute mask SHT (store in fl->a_mask)
-    fl->a_mask=my_malloc(fl->nmaps*sizeof(fcomplex *));
-    for(imap=0;imap<fl->nmaps;imap++)
-      fl->a_mask[imap]=my_calloc(he_nalms(fl->lmax),sizeof(fcomplex));
-    rect_map2alm(&sky_info,fl->lmax,1,0,&(fl->mask),fl->a_mask,n_iter_mask_purify);
-
-    //Purify map
-    nmt_purify(fl,fl->mask,fl->a_mask,maps,fl->maps,fl->alms);
-
-    //Compute purified contaminant SHTs
-    if(fl->ntemp>0) {
-      for(itemp=0;itemp<fl->ntemp;itemp++) {
-	nmt_purify(fl,fl->mask,fl->a_mask,temp[itemp],fl->temp[itemp],fl->a_temp[itemp]);
-	for(imap=0;imap<fl->nmaps;imap++) //Store non-pure map
-	  rect_map_product(&sky_info,temp[itemp][imap],fl->mask,fl->temp[itemp][imap]);
-      }
-      //IMPORTANT: at this stage, fl->maps and fl->alms contain the purified map and SH coefficients
-      //           However, although fl->a_temp contains the purified SH coefficients,
-      //           fl->temp contains the ***non-purified*** maps. This is to speed up the calculation
-      //           of the deprojection bias.
-    }
-  }
-  else {
-    //If no purification, just multiply by mask and SHT
-    fl->a_mask=NULL; //No need to store extra-pure mask harmonic coefficients
-
-    //Masked map and harmonic coefficients
-    for(imap=0;imap<fl->nmaps;imap++)
-      rect_map_product(&sky_info,maps[imap],fl->mask,fl->maps[imap]);
-    rect_map2alm(&sky_info,fl->lmax,1,2*fl->pol,fl->maps,fl->alms,HE_NITER_DEFAULT);
-
-
-    //Compute template harmonic coefficients too
-    if(fl->ntemp>0) {
-      for(itemp=0;itemp<fl->ntemp;itemp++)
-	rect_map2alm(&sky_info,fl->lmax,1,2*fl->pol,fl->temp[itemp],fl->a_temp[itemp],HE_NITER_DEFAULT);
-    }
-  }
-
-  return fl;
-}
-
-
-
 
 flouble **nmt_synfast_sph(int nside,int nfields,int *spin_arr,int lmax,
 			  flouble **cells,flouble **beam_fields,int seed)
@@ -509,14 +348,9 @@ flouble **nmt_synfast_sph(int nside,int nfields,int *spin_arr,int lmax,
 }
 
 nmt_field *nmt_field_read(char *fname_mask,char *fname_maps,char *fname_temp,char *fname_beam,
-			  int pol,int pure_e,int pure_b,int n_iter_mask_purify,double tol_pinv,
-      nmt_curvedsky_type field_type)
+			  int pol,int pure_e,int pure_b,int n_iter_mask_purify,double tol_pinv)
 {
-  long nside,nside_dum; // info for Healpix maps
-  nmt_curvedsky_info sky_info, sky_info_dum; // info for CAR maps
-  long beam_lmax;
-  int nfields;
-
+  long nside,nside_dum;
   nmt_field *fl;
   flouble *beam;
   flouble *mask;
@@ -525,20 +359,8 @@ nmt_field *nmt_field_read(char *fname_mask,char *fname_maps,char *fname_temp,cha
   int ii,ntemp,itemp,imap,nmaps=1;
   if(pol) nmaps=2;
 
-
   //Read mask and compute nside, lmax etc.
-  if (field_type == NMT_HEALPIX)
-  {
-    mask=he_read_healpix_map(fname_mask,&nside,0);
-    beam_lmax = 3 * nside;
-  }
-  else if(field_type == NMT_CAR)
-  {
-    mask=rect_read_CAR_map(fname_mask,&sky_info,0);
-    beam_lmax = 3 * sky_info.max_pix;
-  }
-
-
+  mask=he_read_healpix_map(fname_mask,&nside,0);
 
   //Read beam
   if(!strcmp(fname_beam,"none"))
@@ -546,60 +368,38 @@ nmt_field *nmt_field_read(char *fname_mask,char *fname_maps,char *fname_temp,cha
   else {
     FILE *fi=my_fopen(fname_beam,"r");
     int nlines=my_linecount(fi); rewind(fi);
-    if(nlines!=beam_lmax)
+    if(nlines!=3*nside)
       report_error(NMT_ERROR_READ,"Beam file must have 3*nside rows and two columns\n");
-    beam=my_malloc(beam_lmax*sizeof(flouble));
-    for(ii=0;ii<beam_lmax;ii++) {
+    beam=my_malloc(3*nside*sizeof(flouble));
+    for(ii=0;ii<3*nside;ii++) {
       int l;
       double b;
       int stat=fscanf(fi,"%d %lf\n",&l,&b);
       if(stat!=2)
 	report_error(NMT_ERROR_READ,"Error reading file %s, line %d\n",fname_beam,ii+1);
-      if((l>beam_lmax-1) || (l<0))
+      if((l>3*nside-1) || (l<0))
 	report_error(NMT_ERROR_READ,"Wrong multipole %d\n",l);
       beam[l]=b;
     }
   }
 
-
   //Read data maps
   maps=my_malloc(nmaps*sizeof(flouble *));
   for(ii=0;ii<nmaps;ii++) {
-
-    if (field_type == NMT_HEALPIX)
-    {
-      maps[ii]=he_read_healpix_map(fname_maps,&(nside_dum),ii);
-      if(nside_dum!=nside)
-        report_error(NMT_ERROR_READ,"Wrong nside %ld\n",nside_dum);
-    }
-    else if (field_type == NMT_CAR)
-    {
-      maps[ii]=rect_read_CAR_map(fname_maps,&(sky_info_dum),ii);
-      if (sky_info_dum.max_pix != sky_info.max_pix)
-        report_error(NMT_ERROR_READ,"Wrong max_pix %ld\n",sky_info_dum.max_pix);
-    }
+    maps[ii]=he_read_healpix_map(fname_maps,&(nside_dum),ii);
+    if(nside_dum!=nside)
+      report_error(NMT_ERROR_READ,"Wrong nside %ld\n",nside_dum);
   }
 
   //Read templates and deproject
   if(strcmp(fname_temp,"none")) {
     int ncols,isnest;
-    if (field_type == NMT_HEALPIX)
-    {
-      printf("fname_temp %s\n", fname_temp);
-      he_get_file_params(fname_temp,&nside_dum,&ncols,&isnest);
-      if(nside_dum!=nside)
-        report_error(NMT_ERROR_READ,"Wrong nside %ld\n",nside_dum);
-      if((ncols==0) || (ncols%nmaps!=0))
-        report_error(NMT_ERROR_READ,"Not enough templates in file %s\n",fname_temp);
-      ntemp=ncols/nmaps;
-    }
-    else if (field_type == NMT_CAR)
-    {
-      rect_get_file_params(fname_temp, &sky_info_dum, &nfields);
-      ntemp = 0; // currently CAR templates do not work
-      printf("THIS IS BROKEN: CAR contaminants do not work!\n");
-    }
-
+    he_get_file_params(fname_temp,&nside_dum,&ncols,&isnest);
+    if(nside_dum!=nside)
+      report_error(NMT_ERROR_READ,"Wrong nside %ld\n",nside_dum);
+    if((ncols==0) || (ncols%nmaps!=0))
+      report_error(NMT_ERROR_READ,"Not enough templates in file %s\n",fname_temp);
+    ntemp=ncols/nmaps;
     temp=my_malloc(ntemp*sizeof(flouble **));
     for(itemp=0;itemp<ntemp;itemp++) {
       temp[itemp]=my_malloc(nmaps*sizeof(flouble *));
@@ -612,12 +412,7 @@ nmt_field *nmt_field_read(char *fname_mask,char *fname_maps,char *fname_temp,cha
     temp=NULL;
   }
 
-  if (field_type == NMT_HEALPIX)
-    fl=nmt_field_alloc_sph(nside,mask,pol,maps,ntemp,temp,beam,pure_e,pure_b,
-      n_iter_mask_purify,tol_pinv);
-  else if (field_type == NMT_CAR)
-    fl=rect_field_alloc_sph(sky_info,mask,pol,maps,ntemp,temp,beam,pure_e,pure_b,
-      n_iter_mask_purify,tol_pinv);
+  fl=nmt_field_alloc_sph(nside,mask,pol,maps,ntemp,temp,beam,pure_e,pure_b,n_iter_mask_purify,tol_pinv);
 
   if(beam!=NULL)
     free(beam);
@@ -633,7 +428,6 @@ nmt_field *nmt_field_read(char *fname_mask,char *fname_maps,char *fname_temp,cha
     }
     free(temp);
   }
-
 
   return fl;
 }

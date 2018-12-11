@@ -4,15 +4,6 @@
 #ifndef NO_DOXY
 #include "namaster.h"
 
-// libsharp includes for map2alm and alm2map
-#include <sharp.h>
-#include <sharp_almhelpers.h>
-#include <sharp_geomhelpers.h>
-#include "sharp_legendre_roots.h"
-#include "c_utils.h"
-#include "ls_fft.h"
-
-
 #include <setjmp.h>
 
 #define EXIT_ON_ERROR 0
@@ -77,7 +68,7 @@ int rng_poisson(double lambda,gsl_rng *rng);
  * @param phase Output random phase.
  * @param rng A random number generator.
  * @param sigma2 Input variance.
- * @warning From \p module and \p phase you could build a complex number with real
+ * @warning From \p module and \p phase you could build a complex number with real 
             and imaginary parts \p re and \p im. The input \p sigma2 parameter is
             the mean modulus squared, i.e. \p sigma2 = < \p re^2 + \p im^2 >. Therefore
  	    the variance of either \p re or \p im on their own is \p sigma2 / 2.
@@ -193,7 +184,7 @@ int drc3jj(int il2,int il3,int im2, int im3,int *l1min_out,
  * Returns the <a href="https://en.wikipedia.org/wiki/Moore%E2%80%93Penrose_inverse">Moore-Penrose pseudo-inverse</a>.
  *
  * @param M Input matrix to invert. Will be overwritten with inverse.
- * @param threshold When inverting, all eigenvalues smaller than \p threshold times
+ * @param threshold When inverting, all eigenvalues smaller than \p threshold times 
           the largest eigenvalue will be discarded (i.e. the corresponding eigenvalue
 	  of the pseudo-inverse will be set to zero).
  */
@@ -246,8 +237,8 @@ flouble fs_map_dot(nmt_flatsky_info *fs,flouble *mp1,flouble *mp2);
 
 /**
  * @brief Flat-sky SHT
- *
- * Computes the direct SHT of a set of spin-s flat-sky fields.
+ * 
+ * Computes the direct SHT of a set of spin-s flat-sky fields. 
  * See scientific documentation and companion paper for further details.
  * @param fs nmt_flatsky_info structure describing the flat-sky patch.
  * @param ntrans Number of transfoms to carry out.
@@ -263,8 +254,8 @@ void fs_map2alm(nmt_flatsky_info *fs,int ntrans,int spin,flouble **map,fcomplex 
 
 /**
  * @brief Flat-sky inverse SHT
- *
- * Computes the inverse SHT of a set of spin-s flat-sky fields.
+ * 
+ * Computes the inverse SHT of a set of spin-s flat-sky fields. 
  * See scientific documentation and companion paper for further details.
  * @param fs nmt_flatsky_info structure describing the flat-sky patch.
  * @param ntrans Number of transfoms to carry out.
@@ -290,7 +281,7 @@ nmt_k_function *fs_generate_beam_window(double fwhm_amin);
 
 /**
  * @brief Zero SHT coefficients.
- *
+ * 
  * Sets all elements of a set of flat-sky Fourier coefficients to zero.
  * @param fs nmt_flatsky_info structure describing the flat-sky patch.
  * @param alm Set of Fourier coefficients to zero.
@@ -327,7 +318,7 @@ void fs_alter_alm(nmt_flatsky_info *fs,double fwhm_amin,fcomplex *alm_in,fcomple
  * @param pol_1 >0 if alms_1 has spin-2 (otherwise it's spin-0).
  * @param pol_2 >0 if alms_2 has spin-2 (otherwise it's spin-0).
  * @param cls Will hold the output power spectra. Should have shape [\p ncls][\p nbands],
-          where \p ncls is the appropriate number of power spectra given the
+          where \p ncls is the appropriate number of power spectra given the 
 	  spins of the input fields  (e.g. \p ncls = 2*2 = 4 if both fields have
 	  spin=2) and \p nbpw is the number of bandpowers defined by \p bin.
  * @param lmn_x Lower end of the range of multipoles in the x direction that should be masked.
@@ -351,7 +342,7 @@ void fs_alm2cl(nmt_flatsky_info *fs,nmt_binning_scheme_flat *bin,
  * @param pol_1 >0 if alms_1 has spin-2 (otherwise it's spin-0).
  * @param pol_2 >0 if alms_2 has spin-2 (otherwise it's spin-0).
  * @param cls Will hold the output power spectra. Should have shape [\p ncls][\p nbands],
-          where \p ncls is the appropriate number of power spectra given the
+          where \p ncls is the appropriate number of power spectra given the 
 	  spins of the input fields  (e.g. \p ncls = 2*2 = 4 if both fields have
 	  spin=2). and \p nbpw is the number of bandpowers defined by \p bin.
  */
@@ -381,7 +372,7 @@ fcomplex **fs_synalm(int nx,int ny,flouble lx,flouble ly,int nmaps,
 /**
  * @brief Reads flat-sky map
  *
- * Reads a flat-sky map from a FITS file. The flat map should be in an image HDU with
+ * Reads a flat-sky map from a FITS file. The flat map should be in an image HDU with 
  * WCS header keywords defining the sky patch (read from file).
  * @param fname Path to input file.
  * @param nx Number of grid points in the x dimension (read from file).
@@ -416,7 +407,7 @@ void he_pix2vec_ring(long nside, long ipix, double *vec);
 
 /**
  * @brief Modified HEALPix ang2pix
- *
+ * 
  * Returns pixel containing a given point in the sphere.
  * @param nside HEALPix resolution parameter
  * @param phi Azimuth spherical coordinate \f$\varphi\f$ (in radians).
@@ -427,7 +418,7 @@ long he_ang2pix(long nside,double cth,double phi);
 
 /**
  * @brief Number of alm coefficients
- *
+ * 
  * Returns number of harmonic coefficients up to a given multipole order.
  * @param lmax Maximum multipole order.
  * @return Number of harmonic coefficients.
@@ -436,7 +427,7 @@ long he_nalms(int lmax);
 
 /**
  * @brief Harmonic coefficient ordering.
- *
+ * 
  * Returns the position of a given harmonic coefficient.
  * @param l \f$\ell\f$ index
  * @param m \f$m\f$ index
@@ -447,8 +438,8 @@ long he_indexlm(int l,int m,int lmax);
 
 /**
  * @brief Full-sky inverse SHT
- *
- * Computes the inverse SHT of a set of spin-s full-sky fields.
+ * 
+ * Computes the inverse SHT of a set of spin-s full-sky fields. 
  * See scientific documentation and companion paper for further details.
  * @param nside HEALPix resolution parameter
  * @param lmax maximum multipole order.
@@ -458,15 +449,15 @@ long he_indexlm(int l,int m,int lmax);
           where \p nmap is 1 or 2 for spin-0 and spin-2 respectively, and \p npix is
 	  the number of pixels associated with \p nside.
  * @param alms SHT coefficients to inverse-transform. Must have shape
-          [\p ntrans * \p nmap][\p nalm], where \p nmap is defined above and
+          [\p ntrans * \p nmap][\p nalm], where \p nmap is defined above and 
 	  \p nalm can be computed with he_nalm().
  */
 void he_alm2map(int nside,int lmax,int ntrans,int spin,flouble **maps,fcomplex **alms);
 
 /**
  * @brief Full-sky SHT
- *
- * Computes the direct SHT of a set of spin-s full-sky fields.
+ * 
+ * Computes the direct SHT of a set of spin-s full-sky fields. 
  * See scientific documentation and companion paper for further details.
  * @param nside HEALPix resolution parameter
  * @param lmax maximum multipole order.
@@ -476,7 +467,7 @@ void he_alm2map(int nside,int lmax,int ntrans,int spin,flouble **maps,fcomplex *
           where \p nmap is 1 or 2 for spin-0 and spin-2 respectively, and \p npix is
 	  the number of pixels associated with \p nside.
  * @param alms Will hold the output SHT coefficients. Must have shape
-          [\p ntrans * \p nmap][\p nalm], where \p nmap is defined above and
+          [\p ntrans * \p nmap][\p nalm], where \p nmap is defined above and 
 	  \p nalm can be computed with he_nalm().
  * @param niter Number of iterations to use when computing the spherical harmonic transforms.
  */
@@ -491,7 +482,7 @@ void he_map2alm(int nside,int lmax,int ntrans,int spin,flouble **maps,fcomplex *
  * @param pol_1 >0 if alms_1 has spin-2 (otherwise it's spin-0).
  * @param pol_2 >0 if alms_2 has spin-2 (otherwise it's spin-0).
  * @param cls Will hold the output power spectra. Should have shape [\p ncls][\p lmax + 1],
-          where \p ncls is the appropriate number of power spectra given the
+          where \p ncls is the appropriate number of power spectra given the 
 	  spins of the input fields  (e.g. \p ncls = 2*2 = 4 if both fields have spin=2).
  * @param lmax maximum multipole order.
  */
@@ -506,7 +497,7 @@ void he_alm2cl(fcomplex **alms_1,fcomplex **alms_2,int pol_1,int pol_2,flouble *
  * @param pol_1 >0 if alms_1 has spin-2 (otherwise it's spin-0).
  * @param pol_2 >0 if alms_2 has spin-2 (otherwise it's spin-0).
  * @param cls Will hold the output power spectra. Should have shape [\p ncls][\p lmax + 1],
-          where \p ncls is the appropriate number of power spectra given the
+          where \p ncls is the appropriate number of power spectra given the 
 	  spins of the input fields  (e.g. \p ncls = 2*2 = 4 if both fields have spin=2).
  * @param nside HEALPix resolution parameter
  * @param lmax maximum multipole order.
@@ -535,11 +526,6 @@ void he_write_healpix_map(flouble **tmap,int nfields,long nside,char *fname);
  */
 void he_get_file_params(char *fname,long *nside,int *nfields,int *isnest);
 
-
-// get CAR file params
-void rect_get_file_params(char *fname,nmt_curvedsky_info *sky_info,int *nfields);
-
-
 /**
  * @brief Reads full-sky map from FITS file.
  *
@@ -566,7 +552,7 @@ int he_ring_num(long nside,double z);
  * @param theta1 Lower edge of latitude range.
  * @param theta2 Upper edge of latitude range.
  * @param pixlist Output list of pixels
- * @param npix_strip On input, it should hold the number
+ * @param npix_strip On input, it should hold the number 
           of elements allocated in \p pixlist. On output,
 	  it contains the number of pixels in the strip.
  */
@@ -598,7 +584,7 @@ void he_nest2ring_inplace(flouble *map_in,long nside);
  * @param phi0 Center of azimuth range.
  * @param dphi Width of azimuth range.
  * @param listir Output list of pixels
- * @param nir On input, it should hold the number
+ * @param nir On input, it should hold the number 
           of elements allocated in \p listir. On output,
 	  it contains the number of pixels in the ring.
  */
@@ -612,7 +598,7 @@ void he_in_ring(int nside,int iz,flouble phi0,flouble dphi,int *listir,int *nir)
  * @param phi Azimuth for the disc centre.
  * @param radius Disc radius in radians.
  * @param listtot Output list of pixels
- * @param nlist On input, it should hold the number
+ * @param nlist On input, it should hold the number 
           of elements allocated in \p listtot. On output,
 	  it contains the number of pixels in the disc.
  * @param inclusive If >0, include all pixels that are
@@ -714,123 +700,5 @@ flouble he_map_dot(int nside,flouble *mp1,flouble *mp2);
            with he_nalms().
  */
 fcomplex **he_synalm(int nside,int nmaps,int lmax,flouble **cells,flouble **beam,int seed);
-
-
-
-
-/**
- * @brief Creates libsharp geometry info for a set of CAR rings.
- *
- * This replaces the libsharp geometry helper function `sharp_make_cc_geom_info_`
- * corresponding to Curtis-Clenshaw ring weights, with first and last rings
- * lying on single points at the poles. It constructs a set of rings on the entire
- * sphere, and then removes the rings which are not on the map.
- * @param nrings Total number of rings on the sphere, assuming
- * @param ppring pixels per ring
- * @param phi0 azimuthal angle of first pixel
- * @param stride_lon stride length between pixels adjacent in a ring
- * @param stride_lat stride length between neighboring pixels in adjacent rings
- * @param geom_info geometry object pointer
- * @param subrings number of rings in the actual map
- * @param i0 index of first ring on the actual map, relative to the full sphere
- */
-void sharp_make_cc_geom_info_stripe (int nrings, int ppring, double phi0,
-  int stride_lon, int stride_lat, sharp_geom_info **geom_info,
-  int nsubrings, int i0);
-
-
-/**
- * @brief Reads full-sky map from FITS file.
-
- * Currently doesn't do anything to the curved sky information yet.
- *
- * @param fname Path to input FITS file.
- * @param map_info curved sky information
- */
-flouble *rect_read_CAR_map(char *fname, nmt_curvedsky_info *sky_info, int nfield);
-
-void rect_sht_wrapper(int spin, int lmax, nmt_curvedsky_info *sky_info,
-  int ntrans, flouble **maps,fcomplex **alms,int alm2map);
-
-/**
- * @brief Full-sky SHT
- *
- * Computes the direct SHT of a set of spin-s full-sky fields.
- * See scientific documentation and companion paper for further details.
- * @param nside HEALPix resolution parameter
- * @param lmax maximum multipole order.
- * @param ntrans Number of transfoms to carry out.
- * @param spin Spin of the fields to transform (0 or 2).
- * @param maps Maps to transform. Must have shape [\p ntrans * \p nmap][\p npix],
-          where \p nmap is 1 or 2 for spin-0 and spin-2 respectively, and \p npix is
-	  the number of pixels associated with \p nside.
- * @param alms Will hold the output SHT coefficients. Must have shape
-          [\p ntrans * \p nmap][\p nalm], where \p nmap is defined above and
-	  \p nalm can be computed with he_nalm().
- * @param niter Number of iterations to use when computing the spherical harmonic transforms.
- */
-void rect_map2alm(nmt_curvedsky_info *sky_info,int lmax,int ntrans,
-  int spin,flouble **maps,fcomplex **alms,int niter);
-
-
-  /**
-   * @brief Full-sky inverse SHT
-   *
-   * Computes the inverse SHT of a set of spin-s full-sky fields.
-   * See scientific documentation and companion paper for further details.
-   * @param nside HEALPix resolution parameter
-   * @param lmax maximum multipole order.
-   * @param ntrans Number of transfoms to carry out.
-   * @param spin Spin of the fields to transform (0 or 2).
-   * @param maps Will hold the output maps. Must have shape [\p ntrans * \p nmap][\p npix],
-            where \p nmap is 1 or 2 for spin-0 and spin-2 respectively, and \p npix is
-  	  the number of pixels associated with \p nside.
-   * @param alms SHT coefficients to inverse-transform. Must have shape
-            [\p ntrans * \p nmap][\p nalm], where \p nmap is defined above and
-  	  \p nalm can be computed with he_nalm().
-   */
-  void rect_alm2map(nmt_curvedsky_info *sky_info,int lmax,int ntrans,
-    int spin,flouble **maps,fcomplex **alms);
-
-
-/**
- * @brief Multiplies two full-sky maps.
- *
- * @param nside HEALPix resolution parameter
- * @param mp1 First map to multiply
- * @param mp2 Second map to multiply.
- * @param mp_out Output map containing the product of \p mp1 and \p mp2. It is safe to
-          pass either of the input maps as \p mp_out, in which case that map will be
-	  overwritten with the product.
- */
-void rect_map_product(nmt_curvedsky_info *sky_info,flouble *mp1,flouble *mp2,
-  flouble *mp_out);
-
-/**
- * @brief Dot product of full-sky maps.
- *
- * Computes the integral over the full sphere of the product of two maps:
- * \f[
- *    \int d\Omega\, m_1(\hat{\bf n})\,m_2(\hat{\bf n}),
- * \f]
- * The integral is computed as a Riemann sum over all pixels in the map.
- * @param nside HEALPix resolution parameter
- * @param mp1 First map to multiply.
- * @param mp2 Second map to multiply.
- * @return Dot product.
- */
-flouble rect_map_dot(nmt_curvedsky_info *sky_info,flouble *mp1,flouble *mp2);
-
-
-
-
-
-
-
-
-
-
-
-
 
 #endif //_NM_UTILS_

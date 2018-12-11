@@ -116,7 +116,7 @@ nmt_workspace *nmt_workspace_read(char *fname)
   w->coupling_matrix_perm=gsl_permutation_alloc(w->ncls*w->bin->n_bands);
   gsl_matrix_fread(fi,w->coupling_matrix_binned);
   gsl_permutation_fread(fi,w->coupling_matrix_perm);
-
+  
   fclose(fi);
 
   return w;
@@ -146,14 +146,14 @@ void nmt_workspace_write(nmt_workspace *w,char *fname)
 
   gsl_matrix_fwrite(fo,w->coupling_matrix_binned);
   gsl_permutation_fwrite(fo,w->coupling_matrix_perm);
-
+  
   fclose(fo);
 }
 
 static void bin_coupling_matrix(nmt_workspace *w)
 {
   int icl_a,icl_b,ib2,ib3,l2,l3,i2,i3,sig;
-
+  
   for(icl_a=0;icl_a<w->ncls;icl_a++) {
     for(icl_b=0;icl_b<w->ncls;icl_b++) {
       for(ib2=0;ib2<w->bin->n_bands;ib2++) {
@@ -179,7 +179,7 @@ static void bin_coupling_matrix(nmt_workspace *w)
 void nmt_update_coupling_matrix(nmt_workspace *w,int n_rows,double *new_matrix)
 {
   int ii;
-
+  
   if(n_rows!=w->ncls*(w->lmax+1)) {
     report_error(NMT_ERROR_INCONSISTENT,"Input matrix has the wrong size. Expected %d, got %d\n",
 		 w->ncls*(w->lmax+1),n_rows);
@@ -456,7 +456,7 @@ void nmt_compute_uncorr_noise_deprojection_bias(nmt_field *fl1,flouble *map_var,
 	//Int[v^2*sigma^2*f^j*f^r]
 	for(im1=0;im1<fl1->nmaps;im1++)
 	  mat_prod[iti*fl1->ntemp+itj]+=he_map_dot(fl1->nside,map_dum[im1],fl1->temp[iti][im1]);
-
+	
 	//SHT[v^2*sigma^2*f^j]
 	he_map2alm(fl1->nside,fl1->lmax,1,2*fl1->pol,map_dum,alm_dum,HE_NITER_DEFAULT);
 	//Sum_m(SHT[v^2*sigma^2*f^j]*f^i)/(2l+1)
@@ -510,7 +510,7 @@ void nmt_compute_deprojection_bias(nmt_field *fl1,nmt_field *fl2,
 
   if(fl1->nside!=fl2->nside)
     report_error(NMT_ERROR_CONSISTENT_RESO,"Can't correlate fields with different resolutions\n");
-
+  
   cl_dum=my_malloc(nspec*sizeof(flouble *));
   for(ii=0;ii<nspec;ii++) {
     cl_dum[ii]=my_calloc((lmax+1),sizeof(flouble));
@@ -715,7 +715,7 @@ void nmt_compute_coupled_cell(nmt_field *fl1,nmt_field *fl2,flouble **cl_out)
 {
   if(fl1->lmax!=fl2->lmax)
     report_error(NMT_ERROR_CONSISTENT_RESO,"Can't correlate fields with different resolutions\n");
-
+  
   he_alm2cl(fl1->alms,fl2->alms,fl1->pol,fl2->pol,cl_out,fl1->lmax);
 }
 
@@ -727,7 +727,7 @@ nmt_workspace *nmt_compute_power_spectra(nmt_field *fl1,nmt_field *fl2,
   flouble **cl_bias,**cl_data;
   nmt_workspace *w;
 
-  if(w0==NULL)
+  if(w0==NULL) 
     w=nmt_compute_coupling_matrix(fl1,fl2,bin,0);
   else {
     w=w0;
@@ -735,18 +735,13 @@ nmt_workspace *nmt_compute_power_spectra(nmt_field *fl1,nmt_field *fl2,
       report_error(NMT_ERROR_CONSISTENT_RESO,"Workspace does not match map resolution\n");
   }
 
-  printf("1.\n");
-
   cl_bias=my_malloc(w->ncls*sizeof(flouble *));
   cl_data=my_malloc(w->ncls*sizeof(flouble *));
   for(ii=0;ii<w->ncls;ii++) {
     cl_bias[ii]=my_calloc((fl1->lmax+1),sizeof(flouble));
     cl_data[ii]=my_calloc((fl1->lmax+1),sizeof(flouble));
   }
-
   nmt_compute_coupled_cell(fl1,fl2,cl_data);
-
-  printf("2.\n");
   nmt_compute_deprojection_bias(fl1,fl2,cl_proposal,cl_bias);
   nmt_decouple_cl_l(w,cl_data,cl_noise,cl_bias,cl_out);
   for(ii=0;ii<w->ncls;ii++) {
