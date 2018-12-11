@@ -18,8 +18,8 @@ int main(int argc,char **argv)
   char mask_name[] = "cosmojpg_carmask.fits";
 
   //Create spin-0 field
-  nmt_field *fl1=nmt_field_read(mask_name, map_name,"none","none",0,0,0,0,
-    1e-10, NMT_CAR);
+  nmt_field_CAR *fl1=nmt_field_CAR_read(mask_name, map_name,"none","none",0,0,0,0,
+    1e-10);
 
   //Create a binning scheme (20 multipoles per bandpower)
   nmt_binning_scheme *bin=nmt_bins_constant(20,fl1->lmax);
@@ -35,7 +35,7 @@ int main(int argc,char **argv)
   //and we have assumed the field is not contaminated
   double *cl_dum=calloc((fl1->lmax+1),sizeof(double));
 
-  nmt_compute_coupling_matrix(fl1,fl1,bin,0);
+  // nmt_compute_coupling_matrix(fl1,fl1,bin,0);
 
   //Compute pseudo-Cl estimator
   // nmt_workspace *w=nmt_compute_power_spectra(fl1,fl1,bin,NULL,&cl_dum,&cl_dum,&cl_out);
