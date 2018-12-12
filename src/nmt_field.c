@@ -480,7 +480,7 @@ nmt_field_CAR *nmt_field_CAR_alloc_sph(nmt_curvedsky_info *cs,flouble *mask,int 
 			       int pure_e,int pure_b,int n_iter_mask_purify,double tol_pinv)
 {
   int ii,itemp,itemp2,imap;
-  nmt_field_CAR *fl=my_malloc(sizeof(nmt_field));
+  nmt_field_CAR *fl=my_malloc(sizeof(nmt_field_CAR));
   fl->cs=cs;
   fl->lmax=3*cs->n_eq-1;
   fl->npix=cs->npix;
@@ -623,6 +623,7 @@ nmt_field_CAR *nmt_field_CAR_alloc_sph(nmt_curvedsky_info *cs,flouble *mask,int 
   return fl;
 }
 
+// compare different curvedsky_info
 int diff_curvedsky_info(nmt_curvedsky_info *c1, nmt_curvedsky_info *c2)
 {
   return (( c1->nx==c2->ny) && (c1->ny==c2->ny)
@@ -636,7 +637,7 @@ nmt_field_CAR *nmt_field_CAR_read(char *fname_mask,char *fname_maps,
         char *fname_temp,char *fname_beam,
 			  int pol,int pure_e,int pure_b,int n_iter_mask_purify,double tol_pinv)
 {
-  nmt_curvedsky_info cs, cs_dum;
+  nmt_curvedsky_info *cs, *cs_dum;
   nmt_field_CAR *fl;
   flouble *beam;
   flouble *mask;
@@ -645,25 +646,27 @@ nmt_field_CAR *nmt_field_CAR_read(char *fname_mask,char *fname_maps,
   int ii,ntemp,itemp,imap,nmaps=1;
   if(pol) nmaps=2;
 
-  //Read mask and compute nside, lmax etc.
-  mask=rect_read_CAR_map(fname_mask,&cs,0);
+  cs = my_malloc(sizeof(nmt_curvedsky_info));
+  cs_dum = my_malloc(sizeof(nmt_curvedsky_info));
 
+  //Read mask and compute nside, lmax etc.
+  mask=rect_read_CAR_map(fname_mask,cs,0);
   //Read beam
   if(!strcmp(fname_beam,"none"))
     beam=NULL;
   else {
     FILE *fi=my_fopen(fname_beam,"r");
     int nlines=my_linecount(fi); rewind(fi);
-    if(nlines!=3*cs.n_eq)
+    if(nlines!=3*cs->n_eq)
       report_error(NMT_ERROR_READ,"Beam file must have 3*nside rows and two columns\n");
-    beam=my_malloc(3*cs.n_eq*sizeof(flouble));
-    for(ii=0;ii<3*cs.n_eq;ii++) {
+    beam=my_malloc(3*cs->n_eq*sizeof(flouble));
+    for(ii=0;ii<3*cs->n_eq;ii++) {
       int l;
       double b;
       int stat=fscanf(fi,"%d %lf\n",&l,&b);
       if(stat!=2)
 	report_error(NMT_ERROR_READ,"Error reading file %s, line %d\n",fname_beam,ii+1);
-      if((l>3*cs.n_eq-1) || (l<0))
+      if((l>3*cs->n_eq-1) || (l<0))
 	report_error(NMT_ERROR_READ,"Wrong multipole %d\n",l);
       beam[l]=b;
     }
@@ -672,16 +675,16 @@ nmt_field_CAR *nmt_field_CAR_read(char *fname_mask,char *fname_maps,
   //Read data maps
   maps=my_malloc(nmaps*sizeof(flouble *));
   for(ii=0;ii<nmaps;ii++) {
-    maps[ii]=rect_read_CAR_map(fname_maps,&cs_dum,ii);
-    if(diff_curvedsky_info(&cs, &cs_dum))
+    maps[ii]=rect_read_CAR_map(fname_maps,cs_dum,ii);
+    if(diff_curvedsky_info(cs, cs_dum))
       report_error(NMT_ERROR_READ,"Wrong cs\n");
   }
 
   //Read templates and deproject
   if(strcmp(fname_temp,"none")) {
     int ncols,isnest;
-    rect_get_file_params(fname_temp,&cs_dum,&ncols);
-    if(diff_curvedsky_info(&cs, &cs_dum))
+    rect_get_file_params(fname_temp,cs_dum,&ncols);
+    if(diff_curvedsky_info(cs, cs_dum))
       report_error(NMT_ERROR_READ,"Wrong cs\n");
     if((ncols==0) || (ncols%nmaps!=0))
       report_error(NMT_ERROR_READ,"Not enough templates in file %s\n",fname_temp);
@@ -690,7 +693,7 @@ nmt_field_CAR *nmt_field_CAR_read(char *fname_mask,char *fname_maps,
     for(itemp=0;itemp<ntemp;itemp++) {
       temp[itemp]=my_malloc(nmaps*sizeof(flouble *));
       for(imap=0;imap<nmaps;imap++)
-	temp[itemp][imap]=rect_read_CAR_map(fname_temp,&cs_dum,itemp*nmaps+imap);
+	temp[itemp][imap]=rect_read_CAR_map(fname_temp,cs_dum,itemp*nmaps+imap);
     }
   }
   else {
@@ -698,7 +701,7 @@ nmt_field_CAR *nmt_field_CAR_read(char *fname_mask,char *fname_maps,
     temp=NULL;
   }
 
-  fl=nmt_field_CAR_alloc_sph(&cs,mask,pol,maps,ntemp,temp,beam,pure_e,pure_b,n_iter_mask_purify,tol_pinv);
+  fl=nmt_field_CAR_alloc_sph(cs,mask,pol,maps,ntemp,temp,beam,pure_e,pure_b,n_iter_mask_purify,tol_pinv);
 
   if(beam!=NULL)
     free(beam);

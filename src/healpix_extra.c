@@ -1190,11 +1190,11 @@ flouble *rect_read_CAR_map(char *fname, nmt_curvedsky_info *sky_info, int nfield
   sky_info->nx = axes[0];
   sky_info->ny = axes[1];
   sky_info->npix = nelements;
-  sky_info->Delta_phi = Delta_phi;
-  sky_info->Delta_theta = Delta_theta;
-  sky_info->phi0 = phi0;
-  sky_info->theta0 = 90 - theta0;
-  sky_info->n_eq = fmin(fabs(180.0/Delta_theta), fabs(180.0/Delta_phi));
+  sky_info->Delta_phi = Delta_phi * M_PI / 180.0;
+  sky_info->Delta_theta = Delta_theta * M_PI / 180.0;
+  sky_info->phi0 = phi0 * M_PI / 180.0;
+  sky_info->theta0 = (90 - theta0) * M_PI / 180.0;
+  sky_info->n_eq = fmin(fabs(180.0/Delta_theta), fabs(180.0/Delta_phi)) / 2;
 
   // printf("nx: %i, ny: %i, npix: %li\n",
   //   sky_info.nx, sky_info.ny, sky_info.npix );
@@ -1255,11 +1255,11 @@ void rect_get_file_params(char *fname,nmt_curvedsky_info *sky_info,int *nfields)
   sky_info->nx = axes[0];
   sky_info->ny = axes[1];
   sky_info->npix = nelements;
-  sky_info->Delta_phi = Delta_phi;
-  sky_info->Delta_theta = Delta_theta;
-  sky_info->phi0 = phi0;
-  sky_info->theta0 = 90 - theta0;
-  sky_info->n_eq = fmax(180.0/Delta_theta, 360.0/Delta_phi);
+  sky_info->Delta_phi = Delta_phi * M_PI / 180.0;
+  sky_info->Delta_theta = Delta_theta * M_PI / 180.0;
+  sky_info->phi0 = phi0 * M_PI / 180.0;
+  sky_info->theta0 = (90 - theta0) * M_PI / 180.0;
+  sky_info->n_eq = fmin(fabs(180.0/Delta_theta), fabs(180.0/Delta_phi)) / 2;
 
   fits_close_file(fptr,&status);
 }
@@ -1281,7 +1281,7 @@ void rect_sht_wrapper(int spin, int lmax, nmt_curvedsky_info *sky_info,
 
   // first nrings is total
   flouble Delta_theta = fabs(sky_info->Delta_theta);
-  int tot_sphere_rings = round(180.0 / Delta_theta) + 1;
+  int tot_sphere_rings = round(M_PI / Delta_theta) + 1;
   flouble theta1 = sky_info->theta0 - sky_info->ny * Delta_theta;
   int first_ring = round(theta1 / Delta_theta) + 1;
   // printf("total sphere rings: %i\nfirst ring: %i\n",
@@ -1289,7 +1289,7 @@ void rect_sht_wrapper(int spin, int lmax, nmt_curvedsky_info *sky_info,
 
   // sharp_make_weighted_healpix_geom_info(nside,1,NULL,&geom_info);
   sharp_make_cc_geom_info_stripe( tot_sphere_rings,
-    sky_info->nx, sky_info->phi0,
+    sky_info->nx, sky_info->phi0, // DEGREES OR RADIANS??
     1, sky_info->nx, //stride_lon ,stride_lat
     &geom_info,
     sky_info->ny, first_ring ); //nsubrings, start_index of ring
@@ -1329,7 +1329,7 @@ flouble rect_get_pix_area(nmt_curvedsky_info *sky_info, int i)
 {
   flouble theta1 = (int)(i / sky_info->nx) * sky_info->Delta_theta
     + sky_info->theta0;
-  return sin(theta1 * M_PI / 180.0) * sky_info->Delta_phi * sky_info->Delta_theta;
+  return sin(theta1) * sky_info->Delta_phi * sky_info->Delta_theta;
 }
 
 void rect_map2alm(nmt_curvedsky_info *sky_info,int lmax,int ntrans,
@@ -1447,4 +1447,40 @@ flouble rect_map_dot(nmt_curvedsky_info *sky_info,flouble *mp1,flouble *mp2)
   } //end omp parallel
 
   return (flouble)(sum);
+}
+
+void rect_anafast(flouble **maps_1,flouble **maps_2,
+		int pol_1,int pol_2,flouble **cls,
+		nmt_curvedsky_info *cs,int lmax,int iter)
+{
+  fcomplex **alms_1,**alms_2;
+  int i1,lmax_here=NMT_MAX(lmax,3*cs->n_eq-1);
+  int nmaps_1=1, nmaps_2=1;
+  if(pol_1) nmaps_1=2;
+  if(pol_2) nmaps_2=2;
+
+  alms_1=my_malloc(nmaps_1*sizeof(fcomplex *));
+  for(i1=0;i1<nmaps_1;i1++)
+    alms_1[i1]=my_malloc(he_nalms(lmax_here)*sizeof(fcomplex));
+  rect_map2alm(cs,lmax,1,2*pol_1,maps_1,alms_1,iter);
+
+  if(maps_1==maps_2)
+    alms_2=alms_1;
+  else {
+    alms_2=my_malloc(nmaps_2*sizeof(fcomplex *));
+    for(i1=0;i1<nmaps_2;i1++)
+      alms_2[i1]=my_malloc(he_nalms(lmax_here)*sizeof(fcomplex));
+    rect_map2alm(cs,lmax,1,2*pol_2,maps_2,alms_2,iter);
+  }
+
+  he_alm2cl(alms_1,alms_2,pol_1,pol_2,cls,lmax);
+
+  for(i1=0;i1<nmaps_1;i1++)
+    free(alms_1[i1]);
+  free(alms_1);
+  if(alms_1!=alms_2) {
+    for(i1=0;i1<nmaps_2;i1++)
+      free(alms_2[i1]);
+    free(alms_2);
+  }
 }

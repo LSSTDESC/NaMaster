@@ -5,7 +5,7 @@
 #include "utils.h"
 #include <fitsio.h>
 
-const int lmax=12000;
+const int lmax=1000;
 // from healpix_extra.c
 static void sht_wrapper(int spin,int lmax,int nside,int ntrans,flouble **maps,
   fcomplex **alms,int alm2map);

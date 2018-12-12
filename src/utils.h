@@ -723,6 +723,8 @@ void rect_map2alm(nmt_curvedsky_info *sky_info,int lmax,int ntrans,
   int spin,flouble **maps,fcomplex **alms,int niter);
 void rect_map_product(nmt_curvedsky_info *sky_info,flouble *mp1,flouble *mp2,flouble *mp_out);
 flouble rect_map_dot(nmt_curvedsky_info *sky_info,flouble *mp1,flouble *mp2);
-
+void rect_anafast(flouble **maps_1,flouble **maps_2,
+		int pol_1,int pol_2,flouble **cls,
+		nmt_curvedsky_info *cs,int lmax,int iter);
 
 #endif //_NM_UTILS_
