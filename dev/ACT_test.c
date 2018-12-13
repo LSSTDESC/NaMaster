@@ -3,10 +3,7 @@
 #include <namaster.h>
 #include <math.h>
 
-// TODO
-// make this code work for CAR
-// map2alm works, but the utility functions do not
-// write a global constant? or put a flag in the nside
+
 int CAR()
 {
     long i;
