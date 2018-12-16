@@ -1166,7 +1166,7 @@ flouble *rect_read_CAR_map(char *fname, nmt_curvedsky_info *sky_info, int nfield
   flouble *map, nulval;
 
   comment =  (char*) malloc(FLEN_COMMENT * sizeof(char));
-  
+
   fits_open_file(&fptr, fname, READONLY, &status);
   // fits_get_hdu_num(&fptr, hdutype);
   fits_movabs_hdu(fptr, nfield+1, &hdutype, &status); //change hdu
@@ -1234,6 +1234,9 @@ void rect_get_file_params(char *fname,nmt_curvedsky_info *sky_info,int *nfields)
   long fpixel[] = {1,1,1};
 
   flouble *map, nulval;
+
+  comment =  (char*) malloc(FLEN_COMMENT * sizeof(char));
+  
   fits_open_file(&fptr, fname, READONLY, &status);
   // fits_get_hdu_num(&fptr, hdutype);
   fits_movabs_hdu(fptr, nfield, &hdutype, &status); //change hdu
