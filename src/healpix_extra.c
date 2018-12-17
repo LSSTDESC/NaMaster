@@ -1161,28 +1161,24 @@ flouble *rect_read_CAR_map(char *fname, nmt_curvedsky_info *sky_info, int nfield
   long *axes;
   int naxes;
   long nelements;
-  long fpixel[] = {1,1,1};
+  long fpixel[3];
 
   flouble *map, nulval;
 
   comment =  (char*) malloc(FLEN_COMMENT * sizeof(char));
 
   fits_open_file(&fptr, fname, READONLY, &status);
-  // fits_get_hdu_num(&fptr, hdutype);
-  fits_movabs_hdu(fptr, nfield+1, &hdutype, &status); //change hdu
   fits_get_hdrspace(fptr, &nkeys, NULL, &status);
 
   for (ii = 1; ii <= nkeys; ii++) {
     fits_read_record(fptr, ii, card, &status);
-    // printf("%s, %s\n", card, value);
   }
 
   fits_get_img_dim(fptr, &naxes, &status);
   axes = (long*) malloc(naxes * sizeof(long));
   fits_get_img_size(fptr, 3, axes, &status);
-  // printf("\n\n%i, (%li, %li, %li)\n", naxes, axes[0], axes[1], axes[2]);
 
-  nelements = axes[0] * axes[1] * axes[2];
+  nelements = axes[0] * axes[1];
 
   double Delta_phi, Delta_theta, phi0, theta0;
   fits_read_key(fptr, TDOUBLE, "CDELT1", &Delta_phi, comment, &status);
@@ -1199,12 +1195,9 @@ flouble *rect_read_CAR_map(char *fname, nmt_curvedsky_info *sky_info, int nfield
   sky_info->theta0 = (90 - theta0) * M_PI / 180.0;
   sky_info->n_eq = fmin(fabs(180.0/Delta_theta), fabs(180.0/Delta_phi)) / 2;
 
-  // printf("nx: %i, ny: %i, npix: %li\n",
-  //   sky_info.nx, sky_info.ny, sky_info.npix );
-  // printf("Delta_phi: %e, Delta_theta: %e\nphi0: %e, theta0: %e\n",
-  //   sky_info.Delta_phi, sky_info.Delta_theta,
-  // sky_info.phi0, sky_info.theta0);
-
+  fpixel[0] = 1;
+  fpixel[1] = 1;
+  fpixel[2] = nfield + 1;
   map = (flouble*) malloc(nelements* sizeof(flouble));
   fits_read_pix(fptr, TDOUBLE, fpixel, nelements, 0, map, &anynul, &status);
 
@@ -1236,10 +1229,9 @@ void rect_get_file_params(char *fname,nmt_curvedsky_info *sky_info,int *nfields)
   flouble *map, nulval;
 
   comment =  (char*) malloc(FLEN_COMMENT * sizeof(char));
-  
+
   fits_open_file(&fptr, fname, READONLY, &status);
   // fits_get_hdu_num(&fptr, hdutype);
-  fits_movabs_hdu(fptr, nfield, &hdutype, &status); //change hdu
   fits_get_hdrspace(fptr, &nkeys, NULL, &status);
 
   for (ii = 1; ii <= nkeys; ii++) {
@@ -1250,7 +1242,7 @@ void rect_get_file_params(char *fname,nmt_curvedsky_info *sky_info,int *nfields)
   axes = (long*) malloc(naxes * sizeof(long));
   fits_get_img_size(fptr, 3, axes, &status);
 
-  nelements = axes[0] * axes[1] * axes[2];
+  nelements = axes[0] * axes[1];
 
   double Delta_phi, Delta_theta, phi0, theta0;
   fits_read_key(fptr, TDOUBLE, "CDELT1", &Delta_phi, comment, &status);
