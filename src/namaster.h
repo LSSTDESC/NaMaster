@@ -1290,17 +1290,17 @@ void nmt_compute_coupled_cell_CAR(nmt_field_CAR *fl1,nmt_field_CAR *fl2,flouble 
 
 void nmt_decouple_cl_l_CAR(nmt_workspace_CAR *w,flouble **cl_in,flouble **cl_noise_in,
   		       flouble **cl_bias,flouble **cl_out);
-// -- mark
+
 
 nmt_workspace_CAR *nmt_compute_power_spectra_CAR(nmt_field_CAR *fl1,nmt_field_CAR *fl2,
 					 nmt_binning_scheme *bin,nmt_workspace_CAR *w0,
 					 flouble **cl_noise,flouble **cl_proposal,flouble **cl_out);
 
 
-// TODO : READ AND WRITE CAR WORKSPACES
-// nmt_workspace_CAR *nmt_workspace_CAR_read(char *fname);
-// void nmt_workspace_CAR_write(nmt_workspace_CAR *w,char *fname);
+nmt_workspace_CAR *nmt_workspace_CAR_read(char *fname);
+void nmt_workspace_CAR_write(nmt_workspace_CAR *w,char *fname);
 
+//
 void nmt_update_coupling_matrix_CAR(nmt_workspace_CAR *w,int n_rows,double *new_matrix);
 
 void nmt_compute_uncorr_noise_deprojection_bias_CAR(nmt_field_CAR *fl1,flouble *map_var,flouble **cl_bias);
