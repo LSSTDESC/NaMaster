@@ -1262,6 +1262,7 @@ flouble **nmt_synfast_sph_CAR(nmt_curvedsky_info *cs,int nfields,int *spin_arr,i
 void nmt_purify_CAR(nmt_field_CAR *fl,flouble *mask,fcomplex **walm0,
 	flouble **maps_in,flouble **maps_out,fcomplex **alms);
 
+// TODO
 // void nmt_apodize_mask_CAR(nmt_curvedsky_info *cs,flouble *mask_in,
 //   flouble *mask_out,flouble aposize,char *apotype);
 

@@ -1153,7 +1153,8 @@ flouble *rect_read_CAR_map(char *fname, nmt_curvedsky_info *sky_info, int nfield
   int status=0, hdutype;
   fitsfile *fptr;
 
-  int nkeys, ii;
+  int nkeys, ii, jj, final_ii, final_jj;
+  int flipx, flipy;
   char card[FLEN_CARD], value[FLEN_VALUE];
   char *comment;
 
@@ -1162,8 +1163,11 @@ flouble *rect_read_CAR_map(char *fname, nmt_curvedsky_info *sky_info, int nfield
   int naxes;
   long nelements;
   long fpixel[3];
+  long full_x; // number of pixels in a ring
+
 
   flouble *map, nulval;
+  flouble *ringed_map; // full rings
 
   comment =  (char*) malloc(FLEN_COMMENT * sizeof(char));
 
@@ -1178,7 +1182,6 @@ flouble *rect_read_CAR_map(char *fname, nmt_curvedsky_info *sky_info, int nfield
   axes = (long*) malloc(naxes * sizeof(long));
   fits_get_img_size(fptr, 3, axes, &status);
 
-  nelements = axes[0] * axes[1];
 
   double Delta_phi, Delta_theta, phi0, theta0;
   fits_read_key(fptr, TDOUBLE, "CDELT1", &Delta_phi, comment, &status);
@@ -1186,9 +1189,18 @@ flouble *rect_read_CAR_map(char *fname, nmt_curvedsky_info *sky_info, int nfield
   fits_read_key(fptr, TDOUBLE, "CRVAL1", &phi0, comment, &status);
   fits_read_key(fptr, TDOUBLE, "CRVAL2", &theta0, comment, &status);
 
-  sky_info->nx = axes[0];
+  flipx = Delta_phi < 0;
+  flipy = Delta_theta > 0;
+
+  // printf("flipx %i flipy %i \n", flipx, flipy);
+  // printf("%li %li \n", full_x, axes[0]);
+
+  full_x = (int) round(360.0 / Delta_phi); // have to fill in ring
+
+
+  sky_info->nx = full_x;
   sky_info->ny = axes[1];
-  sky_info->npix = nelements;
+  sky_info->npix = full_x * axes[1];
   sky_info->Delta_phi = Delta_phi * M_PI / 180.0;
   sky_info->Delta_theta = Delta_theta * M_PI / 180.0;
   sky_info->phi0 = phi0 * M_PI / 180.0;
@@ -1198,8 +1210,34 @@ flouble *rect_read_CAR_map(char *fname, nmt_curvedsky_info *sky_info, int nfield
   fpixel[0] = 1;
   fpixel[1] = 1;
   fpixel[2] = nfield + 1;
+
+  nelements = axes[0] * axes[1];
   map = (flouble*) malloc(nelements* sizeof(flouble));
   fits_read_pix(fptr, TDOUBLE, fpixel, nelements, 0, map, &anynul, &status);
+
+  if (full_x != axes[0]) {
+    ringed_map = (flouble*) malloc(sky_info->npix * sizeof(flouble));
+    // now populate the ringed map
+    for(ii=0; ii < sky_info->nx; ii++) {
+      for(jj=0; jj < sky_info->ny; jj++) {
+
+        // sharp wants theta, phi increasing
+        final_ii = ii;
+        final_jj = jj;
+        if (flipy) final_jj = (sky_info->ny-1) - jj;
+        if (flipx) final_ii = (sky_info->nx-1) - ii;
+
+        if(ii < axes[0]) {
+          ringed_map[final_jj*sky_info->nx +final_ii] = map[jj*axes[0] +ii];
+        }
+        else {
+          ringed_map[final_jj*sky_info->nx +final_ii] = 0.0;
+        }
+      }
+    }
+    free(map);
+    map = ringed_map;
+  }
 
   if (status)
     fits_report_error(stderr, status);
