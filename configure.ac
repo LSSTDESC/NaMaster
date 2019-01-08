@@ -22,6 +22,13 @@ AM_PROG_CC_C_O
 AM_MAINTAINER_MODE
 AC_OPENMP
 
+# Deal with openmp versus pthreads for fftw3
+AC_ARG_ENABLE([fftw_pthreads],
+    AS_HELP_STRING([--enable-fftw-pthreads], [Enable using pthreads instead of OpenMP with FFTW]))
+AS_IF(
+    [test "x$enable_fftw_pthreads" = "xyes"], [AC_SUBST([fftw_thread_type], "-lfftw3_threads -lpthread")],
+    [test "x$enable_fftw_pthreads" != "xyes"], [AC_SUBST([fftw_thread_type], "-lfftw3_omp")])
+
 # Checks for libraries.
 AC_SEARCH_LIBS([pow],[m],[],AC_MSG_ERROR(Couldn't find libm. Required.))
 AC_SEARCH_LIBS([cblas_dgemm],[gslcblas],[],AC_MSG_ERROR(Couldn't find libgslcblas.))

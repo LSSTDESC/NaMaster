@@ -54,10 +54,16 @@ script:
   then export LDFLAGS="-L$TRAVIS_BUILD_DIR/lib -L/usr/local/lib -Wl,-rpath,$TRAVIS_BUILD_DIR/lib -Wl,-rpath,/usr/local/lib";
   else export LDFLAGS="-L$TRAVIS_BUILD_DIR/lib -L/usr/local/lib -Wl,-rpath=$TRAVIS_BUILD_DIR/lib -Wl,-rpath=/usr/local/lib";
   fi
-- if ! [[ $TRAVIS_OS_NAME == "linux" ]]; 
-  then CC=gcc-8 python setup.py install;
-  else python setup.py install;
-  fi
+- export LDFLAGS="-L$TRAVIS_BUILD_DIR/lib -L/usr/local/lib -Wl,-rpath=$TRAVIS_BUILD_DIR/lib -Wl,-rpath=/usr/local/lib"
+- "pip install ."
 - export LD_LIBRARY_PATH=$TRAVIS_BUILD/lib:/usr/local/lib:$LD_LIBRARY_PATH
 - python -m unittest discover -v
-
+- "pip uninstall pymaster -y"
+- "./.travis/install.sh --enable-fftw-pthreads --disable-openmp"
+- if ! [[ $TRAVIS_OS_NAME == "linux" ]]; 
+  then export LDFLAGS="-L$TRAVIS_BUILD_DIR/lib -L/usr/local/lib -Wl,-rpath,$TRAVIS_BUILD_DIR/lib -Wl,-rpath,/usr/local/lib";
+  else export LDFLAGS="-L$TRAVIS_BUILD_DIR/lib -L/usr/local/lib -Wl,-rpath=$TRAVIS_BUILD_DIR/lib -Wl,-rpath=/usr/local/lib";
+  fi
+- "pip install --install-option='--enable-fftw-pthreads' --install-option='--disable-openmp' . "
+- export LD_LIBRARY_PATH=$TRAVIS_BUILD/lib:/usr/local/lib:$LD_LIBRARY_PATH
+- python -m unittest discover -v

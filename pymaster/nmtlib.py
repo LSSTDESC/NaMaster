@@ -576,6 +576,10 @@ class workspace_flat(_object):
     __swig_getmethods__["fs"] = _nmtlib.workspace_flat_fs_get
     if _newclass:
         fs = _swig_property(_nmtlib.workspace_flat_fs_get, _nmtlib.workspace_flat_fs_set)
+    __swig_setmethods__["is_teb"] = _nmtlib.workspace_flat_is_teb_set
+    __swig_getmethods__["is_teb"] = _nmtlib.workspace_flat_is_teb_get
+    if _newclass:
+        is_teb = _swig_property(_nmtlib.workspace_flat_is_teb_get, _nmtlib.workspace_flat_is_teb_set)
     __swig_setmethods__["mask1"] = _nmtlib.workspace_flat_mask1_set
     __swig_getmethods__["mask1"] = _nmtlib.workspace_flat_mask1_get
     if _newclass:
@@ -637,8 +641,8 @@ def workspace_flat_write(w, fname):
     return _nmtlib.workspace_flat_write(w, fname)
 workspace_flat_write = _nmtlib.workspace_flat_write
 
-def compute_coupling_matrix_flat(fl1, fl2, bin, lmn_x, lmx_x, lmn_y, lmx_y):
-    return _nmtlib.compute_coupling_matrix_flat(fl1, fl2, bin, lmn_x, lmx_x, lmn_y, lmx_y)
+def compute_coupling_matrix_flat(fl1, fl2, bin, lmn_x, lmx_x, lmn_y, lmx_y, is_teb):
+    return _nmtlib.compute_coupling_matrix_flat(fl1, fl2, bin, lmn_x, lmx_x, lmn_y, lmx_y, is_teb)
 compute_coupling_matrix_flat = _nmtlib.compute_coupling_matrix_flat
 
 def compute_deprojection_bias_flat(fl1, fl2, bin, lmn_x, lmx_x, lmn_y, lmx_y, nl_prop, l_prop, cl_proposal, cl_bias):
@@ -674,6 +678,10 @@ class workspace(_object):
     __swig_getmethods__["lmax"] = _nmtlib.workspace_lmax_get
     if _newclass:
         lmax = _swig_property(_nmtlib.workspace_lmax_get, _nmtlib.workspace_lmax_set)
+    __swig_setmethods__["is_teb"] = _nmtlib.workspace_is_teb_set
+    __swig_getmethods__["is_teb"] = _nmtlib.workspace_is_teb_get
+    if _newclass:
+        is_teb = _swig_property(_nmtlib.workspace_is_teb_get, _nmtlib.workspace_is_teb_set)
     __swig_setmethods__["ncls"] = _nmtlib.workspace_ncls_set
     __swig_getmethods__["ncls"] = _nmtlib.workspace_ncls_get
     if _newclass:
@@ -723,9 +731,13 @@ workspace_swigregister = _nmtlib.workspace_swigregister
 workspace_swigregister(workspace)
 
 
-def compute_coupling_matrix(fl1, fl2, bin):
-    return _nmtlib.compute_coupling_matrix(fl1, fl2, bin)
+def compute_coupling_matrix(fl1, fl2, bin, is_teb):
+    return _nmtlib.compute_coupling_matrix(fl1, fl2, bin, is_teb)
 compute_coupling_matrix = _nmtlib.compute_coupling_matrix
+
+def update_coupling_matrix(w, n_rows, new_matrix):
+    return _nmtlib.update_coupling_matrix(w, n_rows, new_matrix)
+update_coupling_matrix = _nmtlib.update_coupling_matrix
 
 def workspace_write(w, fname):
     return _nmtlib.workspace_write(w, fname)
@@ -955,6 +967,14 @@ def bins_create_py(nell1, nell2, nell3, lmax):
     return _nmtlib.bins_create_py(nell1, nell2, nell3, lmax)
 bins_create_py = _nmtlib.bins_create_py
 
+def update_mcm(w, n_rows, nell3):
+    return _nmtlib.update_mcm(w, n_rows, nell3)
+update_mcm = _nmtlib.update_mcm
+
+def get_mcm(w, dout):
+    return _nmtlib.get_mcm(w, dout)
+get_mcm = _nmtlib.get_mcm
+
 def bins_flat_create_py(npix_1, nell3):
     return _nmtlib.bins_flat_create_py(npix_1, nell3)
 bins_flat_create_py = _nmtlib.bins_flat_create_py
@@ -1023,12 +1043,12 @@ def synfast_new_flat(nx, ny, lx, ly, nfields, seed, ncl1, ncl2, dout):
     return _nmtlib.synfast_new_flat(nx, ny, lx, ly, nfields, seed, ncl1, ncl2, dout)
 synfast_new_flat = _nmtlib.synfast_new_flat
 
-def comp_coupling_matrix(fl1, fl2, bin):
-    return _nmtlib.comp_coupling_matrix(fl1, fl2, bin)
+def comp_coupling_matrix(fl1, fl2, bin, is_teb):
+    return _nmtlib.comp_coupling_matrix(fl1, fl2, bin, is_teb)
 comp_coupling_matrix = _nmtlib.comp_coupling_matrix
 
-def comp_coupling_matrix_flat(fl1, fl2, bin, lmn_x, lmx_x, lmn_y, lmx_y):
-    return _nmtlib.comp_coupling_matrix_flat(fl1, fl2, bin, lmn_x, lmx_x, lmn_y, lmx_y)
+def comp_coupling_matrix_flat(fl1, fl2, bin, lmn_x, lmx_x, lmn_y, lmx_y, is_teb):
+    return _nmtlib.comp_coupling_matrix_flat(fl1, fl2, bin, lmn_x, lmx_x, lmn_y, lmx_y, is_teb)
 comp_coupling_matrix_flat = _nmtlib.comp_coupling_matrix_flat
 
 def read_workspace(fname):

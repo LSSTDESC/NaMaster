@@ -39,8 +39,28 @@ All sky maps accepted and returned by these functions are in the form of HEALPix
 """
 from pymaster import nmtlib as lib
 import numpy as np
-from pymaster.utils import mask_apodization, mask_apodization_flat, synfast_spherical, synfast_flat
+from pymaster.utils import (
+    mask_apodization,
+    mask_apodization_flat,
+    synfast_spherical,
+    synfast_flat,
+)
 from pymaster.field import NmtField, NmtFieldFlat
 from pymaster.bins import NmtBin, NmtBinFlat
-from pymaster.workspaces import NmtWorkspace, NmtWorkspaceFlat, deprojection_bias, compute_coupled_cell, compute_full_master, deprojection_bias_flat, compute_coupled_cell_flat, compute_full_master_flat, uncorr_noise_deprojection_bias
-from pymaster.covariance import NmtCovarianceWorkspace, gaussian_covariance, NmtCovarianceWorkspaceFlat, gaussian_covariance_flat
+from pymaster.workspaces import (
+    NmtWorkspace,
+    NmtWorkspaceFlat,
+    deprojection_bias,
+    compute_coupled_cell,
+    compute_full_master,
+    deprojection_bias_flat,
+    compute_coupled_cell_flat,
+    compute_full_master_flat,
+    uncorr_noise_deprojection_bias,
+)
+from pymaster.covariance import (
+    NmtCovarianceWorkspace,
+    gaussian_covariance,
+    NmtCovarianceWorkspaceFlat,
+    gaussian_covariance_flat,
+)

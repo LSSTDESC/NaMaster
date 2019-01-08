@@ -11,7 +11,7 @@ export LDFLAGS="-L$TRAVIS_BUILD_DIR/lib -L/usr/local/lib"
 export CPPFLAGS="-I$TRAVIS_BUILD_DIR/include -I/usr/local/include -fopenmp"
 export CFLAGS="-fopenmp"
 
-./configure --prefix=$TRAVIS_BUILD_DIR
+./configure --prefix=$TRAVIS_BUILD_DIR $@
 make clean
 make
 sudo make install

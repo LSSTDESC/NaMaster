@@ -7,7 +7,6 @@ import sys
 from .testutils import normdiff, read_flat_map
 
 #Unit tests associated with the NmtField and NmtFieldFlat classes
-
 class TestWorkspaceSph(unittest.TestCase) :
     def setUp(self) :
         #This is to avoid showing an ugly warning that has nothing to do with pymaster
@@ -41,7 +40,7 @@ class TestWorkspaceSph(unittest.TestCase) :
         self.nlbb=nlbb[:3*self.nside]
         self.nlte=nlte[:3*self.nside]
         
-    def mastest(self,wtemp,wpure) :
+    def mastest(self,wtemp,wpure,do_teb=False) :
         prefix="test/benchmarks/bm"
         if wtemp :
             prefix+="_yc"
@@ -83,6 +82,29 @@ class TestWorkspaceSph(unittest.TestCase) :
                 tl=np.loadtxt(prefix+'_c%d%d.txt'%(2*ip1,2*ip2),unpack=True)[1:,:]
                 self.assertTrue((np.fabs(cl-tl)<=np.fmin(np.fabs(cl),np.fabs(tl))*1E-5).all())
 
+        #TEB
+        if do_teb :
+            clth=np.array([self.cltt,self.clte,0*self.clte,self.clee,0*self.clee,0*self.clbb,self.clbb])
+            nlth=np.array([self.nltt,self.nlte,0*self.nlte,self.nlee,0*self.nlee,0*self.nlbb,self.nlbb])
+            w=nmt.NmtWorkspace()
+            w.compute_coupling_matrix(f[0],f[1],self.b,is_teb=True)
+            c00=nmt.compute_coupled_cell(f[0],f[0])
+            c02=nmt.compute_coupled_cell(f[0],f[1])
+            c22=nmt.compute_coupled_cell(f[1],f[1])
+            cl=np.array([c00[0],c02[0],c02[1],c22[0],c22[1],c22[2],c22[3]])
+            t00=np.loadtxt(prefix+'_c00.txt',unpack=True)[1:,:]
+            t02=np.loadtxt(prefix+'_c02.txt',unpack=True)[1:,:]
+            t22=np.loadtxt(prefix+'_c22.txt',unpack=True)[1:,:]
+            tl=np.array([t00[0],t02[0],t02[1],t22[0],t22[1],t22[2],t22[3]])
+            cl=w.decouple_cell(cl,cl_bias=nlth)
+            self.assertTrue((np.fabs(cl-tl)<=np.fmin(np.fabs(cl),np.fabs(tl))*1E-5).all())
+
+    def test_workspace_master_teb_np(self) :
+        self.mastest(False,False,do_teb=True)
+        
+    def test_workspace_master_teb_yp(self) :
+        self.mastest(False,True,do_teb=True)
+        
     def test_workspace_master_nc_np(self) :
         self.mastest(False,False)
 
@@ -101,6 +123,11 @@ class TestWorkspaceSph(unittest.TestCase) :
             w.write_to("test/wspc.dat")
         w.read_from("test/benchmarks/bm_yc_yp_w02.dat") #OK read
         self.assertEqual(w.wsp.nside,64)
+        mcm_old=w.get_coupling_matrix() #Read mode coupling matrix
+        mcm_new=np.identity(3*w.wsp.nside*2) #Updating mode-coupling matrix
+        w.update_coupling_matrix(mcm_new)
+        mcm_back=w.get_coupling_matrix() #Retireve MCM and check it's correct
+        self.assertTrue(np.fabs(np.sum(np.diagonal(mcm_back))-3*w.wsp.nside*2)<=1E-16)
         with self.assertRaises(RuntimeError) :  #Can't write on that file
             w.write_to("tests/wspc.dat")
         with self.assertRaises(RuntimeError) : #File doesn't exist
@@ -114,6 +141,8 @@ class TestWorkspaceSph(unittest.TestCase) :
             w.compute_coupling_matrix(self.f0,self.f0,self.b_doub)
         with self.assertRaises(RuntimeError) : #Incompatible resolutions
             w.compute_coupling_matrix(self.f0,self.f0_half,self.b)
+        with self.assertRaises(RuntimeError) : #Wrong fields for TEB
+            w.compute_coupling_matrix(self.f0,self.f0,self.b,is_teb=True)
 
         w.compute_coupling_matrix(self.f0,self.f0,self.b)
 
@@ -196,7 +225,7 @@ class TestWorkspaceSph(unittest.TestCase) :
         self.assertEqual(c.shape,(1,self.f0.fl.lmax+1)) 
         with self.assertRaises(ValueError) : #Different resolutions
             c=nmt.compute_coupled_cell(self.f0,self.f0_half)
-            
+
 class TestWorkspaceFsk(unittest.TestCase) :
     def setUp(self) :
         #This is to avoid showing an ugly warning that has nothing to do with pymaster
@@ -236,7 +265,7 @@ class TestWorkspaceFsk(unittest.TestCase) :
         self.nb_bad=np.zeros([2,self.b.bin.n_bands])
         
         
-    def mastest(self,wtemp,wpure) :
+    def mastest(self,wtemp,wpure,do_teb=False) :
         prefix="test/benchmarks/bm_f"
         if wtemp :
             prefix+="_yc"
@@ -278,6 +307,29 @@ class TestWorkspaceFsk(unittest.TestCase) :
                 tl=np.loadtxt(prefix+'_c%d%d.txt'%(2*ip1,2*ip2),unpack=True)[1:,:]
                 self.assertTrue((np.fabs(cl-tl)<=np.fmin(np.fabs(cl),np.fabs(tl))*1E-5).all())
 
+        #TEB
+        if do_teb :
+            clth=np.array([self.cltt,self.clte,0*self.clte,self.clee,0*self.clee,0*self.clbb,self.clbb])
+            nlth=np.array([self.nltt,self.nlte,0*self.nlte,self.nlee,0*self.nlee,0*self.nlbb,self.nlbb])
+            w=nmt.NmtWorkspaceFlat()
+            w.compute_coupling_matrix(f[0],f[1],self.b,is_teb=True)
+            c00=nmt.compute_coupled_cell_flat(f[0],f[0],self.b)
+            c02=nmt.compute_coupled_cell_flat(f[0],f[1],self.b)
+            c22=nmt.compute_coupled_cell_flat(f[1],f[1],self.b)
+            cl=np.array([c00[0],c02[0],c02[1],c22[0],c22[1],c22[2],c22[3]])
+            t00=np.loadtxt(prefix+'_c00.txt',unpack=True)[1:,:]
+            t02=np.loadtxt(prefix+'_c02.txt',unpack=True)[1:,:]
+            t22=np.loadtxt(prefix+'_c22.txt',unpack=True)[1:,:]
+            tl=np.array([t00[0],t02[0],t02[1],t22[0],t22[1],t22[2],t22[3]])
+            cl=w.decouple_cell(cl,cl_bias=w.couple_cell(self.l,nlth))
+            self.assertTrue((np.fabs(cl-tl)<=np.fmin(np.fabs(cl),np.fabs(tl))*1E-5).all())
+
+    def test_workspace_flat_master_teb_np(self) :
+        self.mastest(False,False,do_teb=True)
+        
+    def test_workspace_flat_master_teb_yp(self) :
+        self.mastest(False,True,do_teb=True)
+        
     def test_workspace_flat_master_nc_np(self) :
         self.mastest(False,False)
 
@@ -307,6 +359,8 @@ class TestWorkspaceFsk(unittest.TestCase) :
         self.assertEqual(self.msk.shape,(w.wsp.fs.ny,w.wsp.fs.nx))
         with self.assertRaises(RuntimeError) : #Incompatible resolutions
             w.compute_coupling_matrix(self.f0,self.f0_half,self.b)
+        with self.assertRaises(RuntimeError) : #Wrong fields for TEB
+            w.compute_coupling_matrix(self.f0,self.f0,self.b,is_teb=True)
 
         w.compute_coupling_matrix(self.f0,self.f0,self.b)
 
