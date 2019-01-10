@@ -4,12 +4,6 @@
 #ifndef NO_DOXY
 #include "namaster.h"
 
-
-// libsharp includes for map2alm and alm2map
-#include <sharp.h>
-#include <sharp_almhelpers.h>
-#include <sharp_geomhelpers.h>
-
 #include <setjmp.h>
 
 #define EXIT_ON_ERROR 0
@@ -447,7 +441,7 @@ long he_indexlm(int l,int m,int lmax);
  *
  * Computes the inverse SHT of a set of spin-s full-sky fields.
  * See scientific documentation and companion paper for further details.
- * @param nside HEALPix resolution parameter
+ * @param cs curved sky geometry information.
  * @param lmax maximum multipole order.
  * @param ntrans Number of transfoms to carry out.
  * @param spin Spin of the fields to transform (0 or 2).
@@ -458,14 +452,14 @@ long he_indexlm(int l,int m,int lmax);
           [\p ntrans * \p nmap][\p nalm], where \p nmap is defined above and
 	  \p nalm can be computed with he_nalm().
  */
-void he_alm2map(int nside,int lmax,int ntrans,int spin,flouble **maps,fcomplex **alms);
+void he_alm2map(nmt_curvedsky_info *cs,int lmax,int ntrans,int spin,flouble **maps,fcomplex **alms);
 
 /**
  * @brief Full-sky SHT
  *
  * Computes the direct SHT of a set of spin-s full-sky fields.
  * See scientific documentation and companion paper for further details.
- * @param nside HEALPix resolution parameter
+ * @param cs curved sky geometry information.
  * @param lmax maximum multipole order.
  * @param ntrans Number of transfoms to carry out.
  * @param spin Spin of the fields to transform (0 or 2).
@@ -495,6 +489,15 @@ void he_map2alm(int nside,int lmax,int ntrans,int spin,flouble **maps,fcomplex *
 void he_alm2cl(fcomplex **alms_1,fcomplex **alms_2,int pol_1,int pol_2,flouble **cls,int lmax);
 
 /**
+ * @brief Get maximum multipole
+ * 
+ * Computes the maximum multipole probed by a map.
+ * @param cs curved sky geometry info.
+ * @return maximum multipole.
+ */
+int he_get_lmax(nmt_curvedsky_info *cs);
+
+/**
  * @brief Computes Full-sky power spectrum from maps.
  *
  * Computes the angular power spectrum of two sets of maps.
@@ -505,12 +508,12 @@ void he_alm2cl(fcomplex **alms_1,fcomplex **alms_2,int pol_1,int pol_2,flouble *
  * @param cls Will hold the output power spectra. Should have shape [\p ncls][\p lmax + 1],
           where \p ncls is the appropriate number of power spectra given the
 	  spins of the input fields  (e.g. \p ncls = 2*2 = 4 if both fields have spin=2).
- * @param nside HEALPix resolution parameter
+ * @param cs curved sky geometry information.
  * @param lmax maximum multipole order.
  * @param iter Number of iterations to use when computing the spherical harmonic transforms.
  */
 void he_anafast(flouble **maps_1,flouble **maps_2,int pol_1,int pol_2,flouble **cls,
-		int nside,int lmax,int iter);
+		nmt_curvedsky_info *cs,int lmax,int iter);
 
 /**
  * @brief Writes full-sky maps to FITS file.
@@ -526,21 +529,22 @@ void he_write_healpix_map(flouble **tmap,int nfields,long nside,char *fname);
  * @brief Read map parameters from FITS file.
  *
  * @param fname Path to input FITS file.
- * @param nfields Number of maps in file.
+ * @param is_healpix Whether pixelization should be HEALPix.
  * @param nside HEALPix resolution parameter.
  * @param isnest >0 if maps are in NESTED ordering.
+ * @return curved sky geometry information.
  */
-void he_get_file_params(char *fname,long *nside,int *nfields,int *isnest);
+nmt_curvedsky_info *he_get_file_params(char *fname,int is_healpix,int *nfields,int *isnest);
 
 /**
  * @brief Reads full-sky map from FITS file.
  *
  * @param fname Path to input FITS file.
- * @param nside HEALPix resolution parameter (read from file).
+ * @param sky_info curved sky geometry information.
  * @param nfield Which field to read (i.e. HDU number to read the map from, starting from 0).
  * @return Read map.
  */
-flouble *he_read_healpix_map(char *fname,long *nside,int nfield);
+flouble *he_read_map(char *fname,nmt_curvedsky_info *sky_info,int nfield);
 
 /**
  * @brief HEALPix ring number.
@@ -663,16 +667,25 @@ void he_alter_alm(int lmax,double fwhm_amin,fcomplex *alm_in,fcomplex *alm_out,
 		  double *window,int add_to_out);
 
 /**
+ * @brief Computes pixel area
+ *
+ * @param cs curved sky geometry info.
+ * @param i ring number.
+ * @return pixel area in sterad.
+ */
+flouble he_get_pix_area(nmt_curvedsky_info *cs,long i);
+  
+/**
  * @brief Multiplies two full-sky maps.
  *
- * @param nside HEALPix resolution parameter
+ * @param cs curved sky geometry information.
  * @param mp1 First map to multiply
  * @param mp2 Second map to multiply.
  * @param mp_out Output map containing the product of \p mp1 and \p mp2. It is safe to
           pass either of the input maps as \p mp_out, in which case that map will be
 	  overwritten with the product.
  */
-void he_map_product(int nside,flouble *mp1,flouble *mp2,flouble *mp_out);
+void he_map_product(nmt_curvedsky_info *cs,flouble *mp1,flouble *mp2,flouble *mp_out);
 
 /**
  * @brief Dot product of full-sky maps.
@@ -682,18 +695,18 @@ void he_map_product(int nside,flouble *mp1,flouble *mp2,flouble *mp_out);
  *    \int d\Omega\, m_1(\hat{\bf n})\,m_2(\hat{\bf n}),
  * \f]
  * The integral is computed as a Riemann sum over all pixels in the map.
- * @param nside HEALPix resolution parameter
+ * @param cs curved sky geometry information.
  * @param mp1 First map to multiply.
  * @param mp2 Second map to multiply.
  * @return Dot product.
  */
-flouble he_map_dot(int nside,flouble *mp1,flouble *mp2);
+flouble he_map_dot(nmt_curvedsky_info *cs,flouble *mp1,flouble *mp2);
 
 /**
  * @brief Gaussian realizations of full-sky harmonic coefficients.
  *
  * Generates a Gaussian realization of a set of harmonic coefficients given an input power spectrum.
- * @param nside HEALPix resolution parameter
+ * @param cs curved sky geometry information.
  * @param nmaps Number of fields to generate.
  * @param lmax Maximum multipole order
  * @param cells Set of \p nmaps * (\p nmaps + 1) / 2 arrays of length \p lmax + 1 defining each
@@ -705,26 +718,6 @@ flouble he_map_dot(int nside,flouble *mp1,flouble *mp2);
  * @return Gaussian realization with shape [\p nmaps][\p nalm], where \p nalm can be computed
            with he_nalms().
  */
-fcomplex **he_synalm(int nside,int nmaps,int lmax,flouble **cells,flouble **beam,int seed);
-
-
-// CAR
-void sharp_make_cc_geom_info_stripe (int nrings, int ppring, double phi0,
-  int stride_lon, int stride_lat, sharp_geom_info **geom_info,
-  int nsubrings, int i0);
-flouble *rect_read_CAR_map(char *fname, nmt_curvedsky_info *sky_info, int nfield);
-void rect_get_file_params(char *fname,nmt_curvedsky_info *sky_info,int *nfields);
-void rect_sht_wrapper(int spin, int lmax, nmt_curvedsky_info *sky_info,
-  int ntrans, flouble **maps,fcomplex **alms,int alm2map);
-void rect_alm2map(nmt_curvedsky_info *sky_info,int lmax,int ntrans,
-  int spin,flouble **maps,fcomplex **alms);
-flouble rect_get_pix_area(nmt_curvedsky_info *sky_info, int i);
-void rect_map2alm(nmt_curvedsky_info *sky_info,int lmax,int ntrans,
-  int spin,flouble **maps,fcomplex **alms,int niter);
-void rect_map_product(nmt_curvedsky_info *sky_info,flouble *mp1,flouble *mp2,flouble *mp_out);
-flouble rect_map_dot(nmt_curvedsky_info *sky_info,flouble *mp1,flouble *mp2);
-void rect_anafast(flouble **maps_1,flouble **maps_2,
-		int pol_1,int pol_2,flouble **cls,
-		nmt_curvedsky_info *cs,int lmax,int iter);
+fcomplex **he_synalm(nmt_curvedsky_info *cs,int nmaps,int lmax,flouble **cells,flouble **beam,int seed);
 
 #endif //_NM_UTILS_

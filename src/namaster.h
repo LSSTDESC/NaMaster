@@ -440,13 +440,30 @@ void nmt_purify_flat(nmt_field_flat *fl,flouble *mask,fcomplex **walm0,
 		     flouble **maps_in,flouble **maps_out,fcomplex **alms);
 
 /**
+* @brief Curved-sky information.
+*
+* This structure contains all the information defining a given
+* rectangular curved-sky patch.
+*/
+typedef struct {
+  long n_eq; //!< equivalent of nside, number of pixels in the equatorial ring
+  int nx; //!< Number of grid points in the x dimension
+  int ny; //!< Number of grid points in the y dimension
+  long npix; //!< Total number of pixels (given by \p nx * \p ny
+  flouble Delta_theta; //!< pixel size in y direction
+  flouble Delta_phi; //!< pixel size in x direction
+  flouble phi0; // longitude of first pixel
+  flouble theta0; // latitude of first pixel
+} nmt_curvedsky_info;
+
+/**
  * @brief Full-sky field
  *
  * This structure contains all the information defining a spin-s full-sky field.
  * This includes field values, masking, purification and contamination.
  */
 typedef struct {
-  long nside; //!< HEALPix resolution parameters
+  nmt_curvedsky_info *cs; //!< pixelization parameters
   long npix; //!< Number of pixels in all maps
   int lmax; //!< Maximum multipole used
   int pure_e; //!< >0 if E-modes have been purified
@@ -1198,48 +1215,6 @@ nmt_covar_workspace *nmt_covar_workspace_read(char *fname);
 // --------------------------------CAR-------------------------------------------
 
 
-
-/**
-* @brief Curved-sky information.
-*
-* This structure contains all the information defining a given
-* rectangular curved-sky patch.
-*/
-typedef struct {
-long n_eq; //!< equivalent of nside, number of pixels in the equatorial ring
-int nx; //!< Number of grid points in the x dimension
-int ny; //!< Number of grid points in the y dimension
-long npix; //!< Total number of pixels (given by \p nx * \p ny
-flouble Delta_theta; //!< pixel size in y direction
-flouble Delta_phi; //!< pixel size in x direction
-flouble phi0; // longitude of first pixel
-flouble theta0; // latitude of first pixel
-} nmt_curvedsky_info;
-
-/**
- * @brief Full-sky field
- *
- * This structure contains all the information defining a spin-s full-sky field.
- * This includes field values, masking, purification and contamination.
- */
-typedef struct {
-  nmt_curvedsky_info *cs; //!< pixelization parameters
-  long npix; //!< Number of pixels in all maps
-  int lmax; //!< Maximum multipole used
-  int pure_e; //!< >0 if E-modes have been purified
-  int pure_b; //!< >0 if B-modes have been purified
-  flouble *mask; //!< Field's mask (an array of \p npix values).
-  fcomplex **a_mask; //!< Spherical transform of the mask. Only computed if E or B are purified.
-  int pol; //!< >0 if field is spin-2 (otherwise it's spin-0).
-  int nmaps; //!< Number of maps in the field (2 for spin-2, 1 for spin-0).
-  flouble **maps; //!< Observed field values. When initialized, these maps are already multiplied by the mask, contaminant-deprojected and purified if requested.
-  fcomplex **alms; //!< Spherical harmonic transfoms of the maps.
-  int ntemp; //!< Number of contaminant templates
-  flouble ***temp; //!< Contaminant template maps (mask-multiplied but NOT purified).
-  fcomplex ***a_temp; //!< Spherical harmonic transfomrs of template maps (mask-multiplied AND purified if requested).
-  gsl_matrix *matrix_M; //!< Inverse contaminant covariance matrix (see scientific documentation or companion paper).
-  flouble *beam; //!< Field's beam (defined on all multipoles up to \p lmax).
-} nmt_field_CAR;
 
 /**
  * @brief nmt_field destructor.
