@@ -900,7 +900,7 @@ typedef struct {
   int lmax; //!< Maximum multipole used
   int is_teb; //!< Does it hold all MCM elements to compute all of spin0-spin0, 0-2 and 2-2 correlations?
   int ncls; //!< Number of power spectra (1, 2 or 4 depending of the spins of the fields being correlated.
-  int nside; //!< HEALPix resolution parameter
+  nmt_curvedsky_info *cs; //!< curved sky geometry information.
   flouble *mask1; //!< Mask of the first field being correlated.
   flouble *mask2; //!< Mask of the second field being correlated.
   flouble *pcl_masks; //!< Pseudo-CL of the masks.
@@ -1239,51 +1239,5 @@ void nmt_covar_workspace_write(nmt_covar_workspace *cw,char *fname);
  * @warning All covariance-related functionality is still under development, and in the future will hopefully support.
  */
 nmt_covar_workspace *nmt_covar_workspace_read(char *fname);
-
-
-typedef struct {
-  int lmax; //!< Maximum multipole used
-  int is_teb; //!< Does it hold all MCM elements to compute all of spin0-spin0, 0-2 and 2-2 correlations?
-  int ncls; //!< Number of power spectra (1, 2 or 4 depending of the spins of the fields being correlated.
-  nmt_curvedsky_info *cs; //!< CAR resolution parameters
-  flouble *mask1; //!< Mask of the first field being correlated.
-  flouble *mask2; //!< Mask of the second field being correlated.
-  flouble *pcl_masks; //!< Pseudo-CL of the masks.
-  flouble **coupling_matrix_unbinned; //!< Unbinned mode-coupling matrix
-  nmt_binning_scheme *bin; //!< Bandpowers defining the binning
-  gsl_matrix *coupling_matrix_binned; //!< GSL version of MCM (prepared for inversion)
-  gsl_permutation *coupling_matrix_perm; //!< Complements \p coupling_matrix_binned_gsl for inversion.
-} nmt_workspace_CAR;
-
-void nmt_workspace_CAR_free(nmt_workspace_CAR *w);
-
-nmt_workspace_CAR *nmt_compute_coupling_matrix_CAR(nmt_field_CAR *fl1,nmt_field_CAR *fl2,nmt_binning_scheme *bin,int is_teb);
-
-void nmt_compute_deprojection_bias_CAR(nmt_field_CAR *fl1,nmt_field_CAR *fl2,
-  				   flouble **cl_proposal,flouble **cl_bias);
-
-void nmt_compute_coupled_cell_CAR(nmt_field_CAR *fl1,nmt_field_CAR *fl2,flouble **cl_out);
-
-void nmt_decouple_cl_l_CAR(nmt_workspace_CAR *w,flouble **cl_in,flouble **cl_noise_in,
-  		       flouble **cl_bias,flouble **cl_out);
-
-
-nmt_workspace_CAR *nmt_compute_power_spectra_CAR(nmt_field_CAR *fl1,nmt_field_CAR *fl2,
-					 nmt_binning_scheme *bin,nmt_workspace_CAR *w0,
-					 flouble **cl_noise,flouble **cl_proposal,flouble **cl_out);
-
-
-nmt_workspace_CAR *nmt_workspace_CAR_read(char *fname);
-void nmt_workspace_CAR_write(nmt_workspace_CAR *w,char *fname);
-
-//
-void nmt_update_coupling_matrix_CAR(nmt_workspace_CAR *w,int n_rows,double *new_matrix);
-
-void nmt_compute_uncorr_noise_deprojection_bias_CAR(nmt_field_CAR *fl1,flouble *map_var,flouble **cl_bias);
-
-void nmt_couple_cl_l_CAR(nmt_workspace_CAR *w,flouble **cl_in,flouble **cl_out);
-
-
-// -----------------------------------------------------------------------------
 
 #endif //_NAMASTER_H_
