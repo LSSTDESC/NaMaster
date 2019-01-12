@@ -459,7 +459,8 @@ nmt_field *nmt_field_read(int is_healpix,char *fname_mask,char *fname_maps,char 
   //Read templates and deproject
   if(strcmp(fname_temp,"none")) {
     int ncols,isnest;
-    he_get_file_params(fname_temp,cs_dum,&ncols,&isnest);
+    free(cs_dum);
+    cs_dum=he_get_file_params(fname_temp,is_healpix,&ncols,&isnest);
     if(nmt_diff_curvedsky_info(cs,cs_dum))
       report_error(NMT_ERROR_READ,"Wrong pixelization\n");
     if((ncols==0) || (ncols%nmaps!=0))

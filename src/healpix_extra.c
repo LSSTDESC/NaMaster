@@ -1075,7 +1075,7 @@ int he_get_lmax(nmt_curvedsky_info *cs)
   if(cs->is_healpix)
     return 3*cs->n_eq-1;
   else {
-    double dxmin=NMT_MIN(cs->Delta_phi,cs->Delta_dtheta);
+    double dxmin=NMT_MIN(cs->Delta_phi,cs->Delta_theta);
     return (int)(M_PI/dxmin);
   }
 }

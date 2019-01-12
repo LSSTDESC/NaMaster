@@ -14,7 +14,7 @@ void run_master(nmt_field *fl1,nmt_field *fl2,
   int nspec=fl1->nmaps*fl2->nmaps;
   flouble **cl_noise,**cl_proposal,**cl_out,**cl_bias,**cl_data;
 
-  if(fl1->nside!=fl2->nside)
+  if(nmt_diff_curvedsky_info(fl1->cs,fl2->cs))
     report_error(NMT_ERROR_CONSISTENT_RESO,"Can't correlate fields with different resolution\n");
 
   //Binning
@@ -251,7 +251,7 @@ int main(int argc,char **argv)
   if(n_lbin<=0)
     report_error(NMT_ERROR_BADNO,"#ell per bin must be positive\n");
 
-  fl1=nmt_field_read(fname_mask_1,fname_map_1,fname_temp_1,fname_beam_1,pol_1,pure_e_1,pure_b_1,10,1E-10);
+  fl1=nmt_field_read(1,fname_mask_1,fname_map_1,fname_temp_1,fname_beam_1,pol_1,pure_e_1,pure_b_1,10,1E-10);
 
   if(!strcmp(fname_map_2,"none")) {
     fl2=fl1;
@@ -260,7 +260,7 @@ int main(int argc,char **argv)
   else {
     if(!strcmp(fname_mask_2,"none"))
       sprintf(fname_mask_2,"%s",fname_mask_1);
-    fl2=nmt_field_read(fname_mask_2,fname_map_2,fname_temp_2,fname_beam_2,pol_2,pure_e_2,pure_b_2,10,1E-10);
+    fl2=nmt_field_read(1,fname_mask_2,fname_map_2,fname_temp_2,fname_beam_2,pol_2,pure_e_2,pure_b_2,10,1E-10);
   }
 
   run_master(fl1,fl2,

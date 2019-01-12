@@ -13,7 +13,7 @@ CTEST(nmt,covar) {
   ASSERT_EQUAL(cwr->lmax_b,cw->lmax_b);
   ASSERT_EQUAL(cwr->ncls_a,cw->ncls_a);
   ASSERT_EQUAL(cwr->ncls_b,cw->ncls_b);
-  ASSERT_EQUAL(cwr->nside,cw->nside);
+  ASSERT_FALSE(nmt_diff_curvedsky_info(cwr->cs,cw->cs));
   for(ii=0;ii<cw->ncls_a*(cw->lmax_a+1);ii++) {
     int jj;
     for(jj=0;jj<cw->ncls_b*(cw->lmax_b+1);jj++) {
@@ -27,10 +27,11 @@ CTEST(nmt,covar) {
 
   //Init power spectra
   int ncls=1;
-  double *cell=my_malloc(3*cw->nside*sizeof(double));
+  long lmax=he_get_lmax(cw->cs);
+  double *cell=my_malloc((lmax+1)*sizeof(double));
   //Read signal and noise power spectrum
   FILE *fi=my_fopen("test/benchmarks/cls_lss.txt","r");
-  for(ii=0;ii<3*cw->nside;ii++) {
+  for(ii=0;ii<=lmax;ii++) {
     double dum,cl,nl;
     int stat=fscanf(fi,"%lf %lf %lf %lf %lf %lf %lf %lf %lf",&dum,
 		    &cl,&dum,&dum,&dum,&nl,&dum,&dum,&dum);
@@ -58,7 +59,7 @@ CTEST(nmt,covar) {
 CTEST(nmt,covar_errors) {
   nmt_covar_workspace *cw=NULL;
   nmt_workspace *wb,*wa=nmt_workspace_read("test/benchmarks/bm_nc_np_w00.dat");
-  int nside=wa->nside;
+  int nside=wa->cs->n_eq;
   int lmax=wa->lmax;
 
   set_error_policy(THROW_ON_ERROR);
@@ -80,9 +81,9 @@ CTEST(nmt,covar_errors) {
   nmt_covar_workspace_free(cw); cw=NULL;
 
   //Incompatible resolutions
-  wb->nside=128;
+  wb->cs->n_eq=128;
   try { cw=nmt_covar_workspace_init(wa,wb); }
-  wb->nside=nside;
+  wb->cs->n_eq=nside;
   ASSERT_NOT_EQUAL(0,nmt_exception_status);
   ASSERT_NULL(cw);
 

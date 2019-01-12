@@ -472,7 +472,8 @@ void he_alm2map(nmt_curvedsky_info *cs,int lmax,int ntrans,int spin,flouble **ma
 	  \p nalm can be computed with he_nalm().
  * @param niter Number of iterations to use when computing the spherical harmonic transforms.
  */
-void he_map2alm(int nside,int lmax,int ntrans,int spin,flouble **maps,fcomplex **alms,int niter);
+void he_map2alm(nmt_curvedsky_info *cs,int lmax,int ntrans,int spin,flouble **maps,
+		fcomplex **alms,int niter);
 
 /**
  * @brief Computes Full-sky power spectrum from harmonic coefficients.

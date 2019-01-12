@@ -7,6 +7,7 @@
 CTEST(nmt,he_synalm) {
   int ii,l;
   long nside=128;
+  nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(1,nside,-1,-1,-1,-1,-1,-1);
   long lmax=3*nside-1;
   int nmaps=2;
   int ncls=nmaps*nmaps;
@@ -36,7 +37,7 @@ CTEST(nmt,he_synalm) {
   cells_pass[0]=cells_in[0];
   cells_pass[1]=cells_in[1];
   cells_pass[2]=cells_in[3];
-  fcomplex **alms=he_synalm(nside,nmaps,lmax,cells_pass,beam,1234);
+  fcomplex **alms=he_synalm(cs,nmaps,lmax,cells_pass,beam,1234);
   he_alm2cl(alms,alms,1,1,cells_out,lmax);
 
   for(l=0;l<=lmax;l++) {
@@ -71,6 +72,7 @@ CTEST(nmt,he_synalm) {
   free(cells_pass);
   free(cells_in);
   free(cells_out);
+  free(cs);
 }
 
 CTEST(nmt,he_beams) {
@@ -92,6 +94,7 @@ CTEST(nmt,he_alm2cl)
 {
   int ii;
   long nside=256;
+  nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(1,nside,-1,-1,-1,-1,-1,-1);
   int lmax=3*nside-1;
   long npix=he_nside2npix(nside);
   double **maps=my_malloc(3*sizeof(double *));
@@ -104,14 +107,14 @@ CTEST(nmt,he_alm2cl)
   //Read data
   for(ii=0;ii<3;ii++) {
     long ns;
-    maps[ii]=he_read_healpix_map("test/maps.fits",&ns,ii);
-    ASSERT_EQUAL(nside,ns);
+    maps[ii]=he_read_map("test/maps.fits",cs,ii);
+    ASSERT_EQUAL(nside,cs->n_eq);
     alms[ii]=my_malloc(he_nalms(lmax)*sizeof(fcomplex));
   }
 
   //SHT
-  he_map2alm(nside,lmax,1,0,maps,alms,3);
-  he_map2alm(nside,lmax,1,2,&(maps[1]),&(alms[1]),3);
+  he_map2alm(cs,lmax,1,0,maps,alms,3);
+  he_map2alm(cs,lmax,1,2,&(maps[1]),&(alms[1]),3);
 
   //Power spectra
   he_alm2cl(&(alms[0]),&(alms[0]),0,0,&(cls[0]),lmax);
@@ -121,9 +124,9 @@ CTEST(nmt,he_alm2cl)
     test_compare_arrays(lmax+1,cls[ii],7,ii,"test/benchmarks/cls_afst.txt",1E-5);
 
   //Anafast
-  he_anafast(&(maps[0]),&(maps[0]),0,0,&(cls[0]),nside,lmax,3);
-  he_anafast(&(maps[0]),&(maps[1]),0,1,&(cls[1]),nside,lmax,3);
-  he_anafast(&(maps[1]),&(maps[1]),1,1,&(cls[3]),nside,lmax,3);
+  he_anafast(&(maps[0]),&(maps[0]),0,0,&(cls[0]),cs,lmax,3);
+  he_anafast(&(maps[0]),&(maps[1]),0,1,&(cls[1]),cs,lmax,3);
+  he_anafast(&(maps[1]),&(maps[1]),1,1,&(cls[3]),cs,lmax,3);
   for(ii=0;ii<7;ii++)
     test_compare_arrays(lmax+1,cls[ii],7,ii,"test/benchmarks/cls_afst.txt",1E-5);
   
@@ -138,12 +141,14 @@ CTEST(nmt,he_alm2cl)
   free(cls);
   free(maps);
   free(alms);
+  free(cs);
 }  
 
 CTEST(nmt,he_sht) {
   int ii;
   int nmaps=34;
   long nside=16;
+  nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(1,nside,-1,-1,-1,-1,-1,-1);
   long lmax=3*nside-1;
   long npix=he_nside2npix(nside);
   double **maps=my_malloc(2*nmaps*sizeof(double *));
@@ -156,15 +161,15 @@ CTEST(nmt,he_sht) {
 
   //Direct SHT
   //Single SHT, spin-0
-  he_map2alm(nside,lmax,1,0,maps,alms,0);
+  he_map2alm(cs,lmax,1,0,maps,alms,0);
   //Several SHTs, spin-0
-  he_map2alm(nside,lmax,nmaps,0,maps,alms,0);
+  he_map2alm(cs,lmax,nmaps,0,maps,alms,0);
   //Single SHT, spin-2
-  he_map2alm(nside,lmax,1,2,maps,alms,0);
+  he_map2alm(cs,lmax,1,2,maps,alms,0);
   //Several SHTs, spin-2
-  he_map2alm(nside,lmax,nmaps,2,maps,alms,0);
+  he_map2alm(cs,lmax,nmaps,2,maps,alms,0);
   //Several SHTs, spin-2, iterate
-  he_map2alm(nside,lmax,nmaps,2,maps,alms,3);
+  he_map2alm(cs,lmax,nmaps,2,maps,alms,3);
 
   //Test alm zeroing
   he_zero_alm(lmax,alms[0]);
@@ -172,13 +177,13 @@ CTEST(nmt,he_sht) {
 
   //Inverse SHT
   //Single SHT, spin-0
-  he_alm2map(nside,lmax,1,0,maps,alms);
+  he_alm2map(cs,lmax,1,0,maps,alms);
   //Several SHTs, spin-0
-  he_alm2map(nside,lmax,nmaps,0,maps,alms);
+  he_alm2map(cs,lmax,nmaps,0,maps,alms);
   //Single SHT, spin-2
-  he_alm2map(nside,lmax,1,2,maps,alms);
+  he_alm2map(cs,lmax,1,2,maps,alms);
   //Several SHTs, spin-2
-  he_alm2map(nside,lmax,nmaps,2,maps,alms);
+  he_alm2map(cs,lmax,nmaps,2,maps,alms);
   for(ii=0;ii<2*nmaps;ii++) {
     free(maps[ii]);
     free(alms[ii]);
@@ -193,7 +198,7 @@ CTEST(nmt,he_sht) {
   //spin-0, map = Re(Y_22) ->
   //        a_lm = delta_l2 (delta_m2 + delta_m-2)/2
   maps=test_make_map_analytic(nside,0);
-  he_map2alm(nside,lmax,1,0,maps,alms,0);
+  he_map2alm(cs,lmax,1,0,maps,alms,0);
   ASSERT_DBL_NEAR_TOL(0.5,creal(alms[0][he_indexlm(2,2,lmax)]),1E-5);
   ASSERT_DBL_NEAR_TOL(0.0,cimag(alms[0][he_indexlm(2,2,lmax)]),1E-5);
   free(maps[0]); free(maps);
@@ -201,7 +206,7 @@ CTEST(nmt,he_sht) {
   //        E_lm =   delta_l2 delta_m0
   //        B_lm = 2 delta_l3 delta_m0
   maps=test_make_map_analytic(nside,1);
-  he_map2alm(nside,lmax,1,2,maps,alms,0);
+  he_map2alm(cs,lmax,1,2,maps,alms,0);
   ASSERT_DBL_NEAR_TOL(1.,creal(alms[0][he_indexlm(2,0,lmax)]),1E-5);
   ASSERT_DBL_NEAR_TOL(0.,cimag(alms[0][he_indexlm(2,0,lmax)]),1E-5);
   ASSERT_DBL_NEAR_TOL(0.,creal(alms[1][he_indexlm(2,0,lmax)]),1E-5);
@@ -219,6 +224,7 @@ CTEST(nmt,he_sht) {
   for(ii=0;ii<2;ii++)
     free(alms[ii]);
   free(alms);
+  free(cs);
 }
 
 CTEST(nmt,he_io) {
@@ -226,6 +232,7 @@ CTEST(nmt,he_io) {
 
   int ii;
   long nside=4;
+  nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(1,nside,-1,-1,-1,-1,-1,-1);
   long npix=he_nside2npix(nside);
   ASSERT_EQUAL(npix,12*nside*nside);
 
@@ -250,24 +257,25 @@ CTEST(nmt,he_io) {
     free(mps2[ii]);
   
   //Reading
-  long ns2;
+  nmt_curvedsky_info *cs2;
   int nfd,isnest;
   //Correct file params
-  he_get_file_params("test/mps.fits",&ns2,&nfd,&isnest);
-  ASSERT_EQUAL(nside,ns2);
+  cs2=he_get_file_params("test/mps.fits",1,&nfd,&isnest);
+  ASSERT_FALSE(nmt_diff_curvedsky_info(cs,cs2));
   ASSERT_EQUAL(2,nfd);
   ASSERT_EQUAL(0,isnest);
   //Read map
-  mps0[0]=he_read_healpix_map("test/mps.fits",&ns2,0);
-  ASSERT_EQUAL(nside,ns2);
-  mps2[0]=he_read_healpix_map("test/mps.fits",&ns2,0);
-  ASSERT_EQUAL(nside,ns2);
+  mps0[0]=he_read_map("test/mps.fits",cs2,0);
+  ASSERT_FALSE(nmt_diff_curvedsky_info(cs,cs2));
+  mps2[0]=he_read_map("test/mps.fits",cs2,0);
+  ASSERT_FALSE(nmt_diff_curvedsky_info(cs,cs2));
   //Go one column too far
-  try {mps2[1]=he_read_healpix_map("test/mps.fits",&ns2,2);}
+  try {mps2[1]=he_read_map("test/mps.fits",cs2,2);}
   ASSERT_NOT_EQUAL(0,nmt_exception_status);
-  mps2[1]=he_read_healpix_map("test/mps.fits",&ns2,1);
-  ASSERT_EQUAL(nside,ns2);
-  
+  mps2[1]=he_read_map("test/mps.fits",cs2,1);
+  ASSERT_FALSE(nmt_diff_curvedsky_info(cs,cs2));
+
+  free(cs2); free(cs);
   for(ii=0;ii<1;ii++)
     free(mps0[ii]);
   for(ii=0;ii<2;ii++)
@@ -335,6 +343,7 @@ CTEST(nmt,he_ringnum) {
 CTEST(nmt,he_algb) {
   int ii;
   long nside=128;
+  nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(1,nside,-1,-1,-1,-1,-1,-1);
   long npix=he_nside2npix(nside);
   double *mp1=my_malloc(npix*sizeof(double));
   double *mp2=my_malloc(npix*sizeof(double));
@@ -345,9 +354,9 @@ CTEST(nmt,he_algb) {
     mp2[ii]=0.5;
   }
   
-  double d=he_map_dot(nside,mp1,mp2);
-  he_map_product(nside,mp1,mp2,mpr);
-  he_map_product(nside,mp1,mp2,mp2);
+  double d=he_map_dot(cs,mp1,mp2);
+  he_map_product(cs,mp1,mp2,mpr);
+  he_map_product(cs,mp1,mp2,mp2);
 
   ASSERT_DBL_NEAR_TOL(4*M_PI,d,1E-5);
   for(ii=0;ii<npix;ii++) {
@@ -358,6 +367,7 @@ CTEST(nmt,he_algb) {
   free(mp1);
   free(mp2);
   free(mpr);
+  free(cs);
 }
 
 CTEST(nmt,he_r2n) {
