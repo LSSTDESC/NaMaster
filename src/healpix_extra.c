@@ -220,7 +220,7 @@ flouble *he_read_map(char *fname,nmt_curvedsky_info *sky_info,int nfield) //DONE
 {
   flouble *mp;
   
-  if(sky->info->is_healpix) {
+  if(sky_info->is_healpix) {
     mp=he_read_HPX_map(fname,&(sky_info->n_eq),nfield);
     sky_info->npix=12*sky_info->n_eq*sky_info->n_eq;
   }
@@ -275,6 +275,7 @@ static void he_get_CAR_file_params(char *fname,nmt_curvedsky_info *sky_info,int 
   int naxes;
   long nelements;
   long fpixel[] = {1,1,1};
+  long full_x; // number of pixels in a ring
 
   flouble *map, nulval;
 
@@ -300,9 +301,11 @@ static void he_get_CAR_file_params(char *fname,nmt_curvedsky_info *sky_info,int 
   fits_read_key(fptr, TDOUBLE, "CRVAL2", &theta0, comment, &status);
   free(comment);
 
-  sky_info->nx = axes[0];
+  full_x = (int) round(360.0 / Delta_phi); // have to fill in ring
+
+  sky_info->nx = full_x;
   sky_info->ny = axes[1];
-  sky_info->npix = nelements;
+  sky_info->npix = full_x * axes[1];
   sky_info->Delta_phi = Delta_phi * M_PI / 180.0;
   sky_info->Delta_theta = Delta_theta * M_PI / 180.0;
   sky_info->phi0 = phi0 * M_PI / 180.0;

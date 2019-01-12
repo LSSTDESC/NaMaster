@@ -446,6 +446,7 @@ void nmt_purify_flat(nmt_field_flat *fl,flouble *mask,fcomplex **walm0,
 * rectangular curved-sky patch.
 */
 typedef struct {
+  int is_healpix; //!< is this HEALPix pixelization?
   long n_eq; //!< equivalent of nside, number of pixels in the equatorial ring
   int nx; //!< Number of grid points in the x dimension
   int ny; //!< Number of grid points in the y dimension
@@ -455,6 +456,31 @@ typedef struct {
   flouble phi0; // longitude of first pixel
   flouble theta0; // latitude of first pixel
 } nmt_curvedsky_info;
+
+/**
+ * @brief nmt_curvedsky_info creator
+ *
+ * @param is_healpix is this HEALPix pixelization.
+ * @param nside if is_healpix, this should be the HEALPix Nside parameter.
+ * @param nx0 number of pixels in the x dimension.
+ * @param ny0 number of pixels in the y dimension.
+ * @param Dtheta pixel size in the y dimension (in deg.).
+ * @param Dphi pixel size in the x dimension (in deg.).
+ * @param theta0 latitude of reference pixel (in deg.).
+ * @param phi0 longitude of reference pixel (in deg.).
+ * @return nmt_curvedsky_info struct.
+ */
+nmt_curvedsky_info *nmt_curvedsky_info_alloc(int is_healpix,long nside,
+					     int nx0,int ny0,flouble Dtheta,flouble Dphi,
+					     flouble phi0,flouble theta0);
+
+
+/**
+ * @brief Compare two nmt_curvedsky_info structs.
+ *
+ * @return true (!=0) if both structs are different, and false (0) if they are the same.
+ */
+int nmt_diff_curvedsky_info(nmt_curvedsky_info *c1, nmt_curvedsky_info *c2);
 
 /**
  * @brief Full-sky field
@@ -490,7 +516,7 @@ void nmt_field_free(nmt_field *fl);
  * @brief nmt_field constructor
  *
  * Builds an nmt_field structure from input maps and resolution parameters.
- * @param nside HEALPix resolution parameter.
+ * @param cs curved sky geometry info.
  * @param mask Field's mask (an array of 12 * \p nside^2 values).
  * @param pol >0 if this is a spin-2 field (spin-0 otherwise).
  * @param maps Observed field values BEFORE multiplying by the mask
@@ -513,13 +539,15 @@ void nmt_field_free(nmt_field *fl);
 	  decomposition. All eigenvalues that are smaller than \p tol_pinv the largest
 	  eigenvalue will be discarded.
  */
-nmt_field *nmt_field_alloc_sph(long nside,flouble *mask,int pol,flouble **maps,
+nmt_field *nmt_field_alloc_sph(nmt_curvedsky_info *cs,flouble *mask,int pol,flouble **maps,
 			       int ntemp,flouble ***temp,flouble *beam,
 			       int pure_e,int pure_b,int n_iter_mask_purify,double tol_pinv);
+
 /**
  * @brief nmt_field constructor from file.
  *
  * Builds an nmt_field structure from data written in files.
+ * @param is_healpix is the map stored in healpix format?
  * @param fname_mask Path to FITS file containing the field's mask (single HEALPix map).
  * @param pol >0 if this is a spin-2 field (spin-0 otherwise).
  * @param fname_maps Path to FITS file containing the field's observed maps
@@ -545,14 +573,15 @@ nmt_field *nmt_field_alloc_sph(long nside,flouble *mask,int pol,flouble **maps,
 	  decomposition. All eigenvalues that are smaller than \p tol_pinv the largest
 	  eigenvalue will be discarded.
  */
-nmt_field *nmt_field_read(char *fname_mask,char *fname_maps,char *fname_temp,char *fname_beam,
-			  int pol,int pure_e,int pure_b,int n_iter_mask_purify,double tol_pinv);
+nmt_field *nmt_field_read(int is_healpix,char *fname_mask,char *fname_maps,char *fname_temp,
+			  char *fname_beam,int pol,int pure_e,int pure_b,
+			  int n_iter_mask_purify,double tol_pinv);
 
 /**
  * @brief Gaussian realizations of full-sky fields
  *
  * Generates a Gaussian realization of an arbitrary list of possibly-correlated fields with different spins.
- * @param nside HEALPix resolution parameter.
+ * @param cs curved sky geometry info.
  * @param lmax Maximum multipole used.
  * @param nfields Number of fields to generate.
  * @param spin_arr Array (size \p nfields) containing the spins of the fields to be generated.
@@ -567,7 +596,7 @@ nmt_field *nmt_field_read(char *fname_mask,char *fname_maps,char *fname_temp,cha
  * @param seed Seed for this particular realization.
  * @return Gaussian realization.
  */
-flouble **nmt_synfast_sph(int nside,int nfields,int *spin_arr,int lmax,
+flouble **nmt_synfast_sph(nmt_curvedsky_info *cs,int nfields,int *spin_arr,int lmax,
 			  flouble **cells,flouble **beam_fields,int seed);
 
 /**
@@ -1211,35 +1240,6 @@ void nmt_covar_workspace_write(nmt_covar_workspace *cw,char *fname);
  */
 nmt_covar_workspace *nmt_covar_workspace_read(char *fname);
 
-
-// --------------------------------CAR-------------------------------------------
-
-
-
-/**
- * @brief nmt_field destructor.
- */
-void nmt_field_CAR_free(nmt_field_CAR *fl);
-
-nmt_field_CAR *nmt_field_CAR_alloc_sph(nmt_curvedsky_info *cs,flouble *mask,int pol,
-             flouble **maps,
-			       int ntemp,flouble ***temp,flouble *beam,
-			       int pure_e,int pure_b,int n_iter_mask_purify,double tol_pinv);
-
-int diff_curvedsky_info(nmt_curvedsky_info *c1, nmt_curvedsky_info *c2);
-
-nmt_field_CAR *nmt_field_CAR_read(char *fname_mask,char *fname_maps,char *fname_temp,char *fname_beam,
-			  int pol,int pure_e,int pure_b,int n_iter_mask_purify,double tol_pinv);
-
-flouble **nmt_synfast_sph_CAR(nmt_curvedsky_info *cs,int nfields,int *spin_arr,int lmax,
-			  flouble **cells,flouble **beam_fields,int seed);
-
-void nmt_purify_CAR(nmt_field_CAR *fl,flouble *mask,fcomplex **walm0,
-	flouble **maps_in,flouble **maps_out,fcomplex **alms);
-
-// TODO
-// void nmt_apodize_mask_CAR(nmt_curvedsky_info *cs,flouble *mask_in,
-//   flouble *mask_out,flouble aposize,char *apotype);
 
 typedef struct {
   int lmax; //!< Maximum multipole used

@@ -31,6 +31,7 @@ extern char nmt_error_message[256];
 #define NMT_ERROR_APO 1011
 #define NMT_ERROR_HPX 1012
 #define NMT_ERROR_INCONSISTENT 1013
+#define NMT_ERROR_VALUE 1014
 #endif //NO_DOXY
 
 /**
