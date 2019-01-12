@@ -10,9 +10,11 @@ nmt_curvedsky_info *nmt_curvedsky_info_alloc(int is_healpix,long nside,
   if(cs->is_healpix) {
     long nside_test=1;
     int ispow2=0;
-    while(nside_test<=16384) {
+    while((nside_test<=16384) && (!ispow2)) {
       if(nside==nside_test)
 	ispow2=1;
+      else
+	nside_test*=2;
     }
     if(!ispow2)
       report_error(NMT_ERROR_VALUE,"Nside must be a power of 2\n");

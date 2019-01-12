@@ -191,6 +191,7 @@ CTEST(nmt,he_sht) {
 
   //Test for one particular example
   nside=256;
+  free(cs); cs=nmt_curvedsky_info_alloc(1,nside,-1,-1,-1,-1,-1,-1);
   npix=he_nside2npix(nside);
   free(maps);
   for(ii=0;ii<2;ii++)
