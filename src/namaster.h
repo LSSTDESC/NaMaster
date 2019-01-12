@@ -517,14 +517,14 @@ void nmt_field_free(nmt_field *fl);
  *
  * Builds an nmt_field structure from input maps and resolution parameters.
  * @param cs curved sky geometry info.
- * @param mask Field's mask (an array of 12 * \p nside^2 values).
+ * @param mask Field's mask.
  * @param pol >0 if this is a spin-2 field (spin-0 otherwise).
  * @param maps Observed field values BEFORE multiplying by the mask
           (this is irrelevant for binary masks).
  * @param ntemp Number of contaminant templates affecting this field.
  * @param temp Contaminant template maps (again, NOT multiplied by the mask).
  * @param beam Harmonic coefficients of the beam (defined for all multipoles up to
- *        3 * \p nside - 1). Pass a NULL pointer if you don't want any beam.
+ *        the maximum multipole sampled by the map). Pass a NULL pointer if you don't want any beam.
  * @param pure_e Set to >0 if you want purified E-modes.
  * @param pure_b Set to >0 if you want purified B-modes.
  * @param n_iter_mask_purify E/B purification requires a number of harmonic-space
@@ -927,7 +927,7 @@ nmt_workspace *nmt_compute_coupling_matrix(nmt_field *fl1,nmt_field *fl2,nmt_bin
  * The new matrix must be provided as a single 1D array of size n_rows\f$^2\f$.
  * Here n_rows=n_cls * n_ell is the size of the flattened power spectra, where n_cls is the number
  * of power spectra (1, 2 or 4 for spin0-0, spin0-2 and spin2-2 correlations) and n_ells=lmax+1
- * (by default lmax=3*nside-1). The ordering of the power spectra should be such that the
+ * (by default lmax=3*nside-1 for HEALPix, and pi/dx for CAR (where dx is the minimum angular pixel size)). The ordering of the power spectra should be such that the
  * l-th element of the i-th power spectrum is stored with index l * n_cls + i.
  * @param w nmt_workspace to be updated.
  * @param n_rows size of the flattened power spectra.
@@ -970,10 +970,10 @@ void nmt_workspace_free(nmt_workspace *w);
  * See notes about power spectrum ordering in the main page of this documentation.
  * @param fl1 nmt_field structure defining the first field to correlate.
  * @param fl2 nmt_field structure defining the second field to correlate.
- * @param cl_proposal Proposed power spectrum. Should have shape [ncls][3 \p nside], where
+ * @param cl_proposal Proposed power spectrum. Should have shape [ncls][lmax+1], where
           \p ncls is the appropriate number of power spectra given the spins of the input
 	  fields (e.g. \p ncls = 2*2 = 4 if both fields have spin=2).
- * @param cl_bias Ouptput deprojection bias. Should be allocated to shape [ncls][3 * \p nside],
+ * @param cl_bias Ouptput deprojection bias. Should be allocated to shape [ncls][lmax+1],
           where \p ncls is defined above.
  */
 void nmt_compute_deprojection_bias(nmt_field *fl1,nmt_field *fl2,
@@ -987,7 +987,7 @@ void nmt_compute_deprojection_bias(nmt_field *fl1,nmt_field *fl2,
  * @param fl1 nmt_field structure defining the properties of the field for which this noise bias
           applies.
  * @param map_var Noise variance map (should contain per-pixel noise variance).
- * @param cl_bias Ouptput noise bias. Should be allocated to shape [ncls][3 * \p nside],
+ * @param cl_bias Ouptput noise bias. Should be allocated to shape [ncls][lmax+1],
           where \p ncls is the appropriate number of power spectra given the spins of the input
 	  fields (e.g. \p ncls = 2*2 = 4 if both fields have spin=2).
  */
@@ -1001,10 +1001,10 @@ void nmt_compute_uncorr_noise_deprojection_bias(nmt_field *fl1,flouble *map_var,
  * to compute the theory prediction of the pseudo-CL estimator.
  * See notes about power spectrum ordering in the main page of this documentation.
  * @param w nmt_workspace structure containing the mode-coupling matrix
- * @param cl_in Array of input power spectra. Should have shape [ncls][3 * \p nside], where ncls
+ * @param cl_in Array of input power spectra. Should have shape [ncls][lmax+1], where ncls
           is the appropriate number of power spectra given the fields being correlated
 	  (e.g. ncls=4=2*2 for two spin-2 fields).
- * @param cl_out Array of output power spectra. Should have shape [ncls][3 * \p nside], where
+ * @param cl_out Array of output power spectra. Should have shape [ncls][lmax+1], where
           ncls is defined above.
  */
 void nmt_couple_cl_l(nmt_workspace *w,flouble **cl_in,flouble **cl_out);
@@ -1015,7 +1015,7 @@ void nmt_couple_cl_l(nmt_workspace *w,flouble **cl_in,flouble **cl_out);
  * Multiplies coupled power spectra by inverse mode-coupling matrix.
  * See notes about power spectrum ordering in the main page of this documentation.
  * @param w nmt_workspace containing the mode-coupling matrix.
- * @param cl_in Input coupled power spectra. Should have shape [ncls][3 * \p nside], where
+ * @param cl_in Input coupled power spectra. Should have shape [ncls][lmax+1], where
           \p ncls is the appropriate number of power spectra given the fields used
 	  to define \p w (e.g. 4=2*2 for two spin-2 fields).
  * @param cl_noise_in Noise bias (same shape as \p cl_in).
@@ -1035,7 +1035,7 @@ void nmt_decouple_cl_l(nmt_workspace *w,flouble **cl_in,flouble **cl_noise_in,
  * See notes about power spectrum ordering in the main page of this documentation.
  * @param fl1 nmt_field structure defining the first field to correlate.
  * @param fl2 nmt_field structure defining the second field to correlate.
- * @param cl_out Ouptput power spectrum. Should be allocated to shape [ncls][3 * \p nside], where
+ * @param cl_out Ouptput power spectrum. Should be allocated to shape [ncls][lmax+1], where
           \p ncls is the appropriate number of power spectra (e.g. 4=2*2 for two spin-2 fields).
  */
 void nmt_compute_coupled_cell(nmt_field *fl1,nmt_field *fl2,flouble **cl_out);
@@ -1053,7 +1053,7 @@ void nmt_compute_coupled_cell(nmt_field *fl1,nmt_field *fl2,flouble **cl_out);
  * @param w0 nmt_workspace structure containing the mode-coupling matrix. If NULL, a new
           computation of the MCM will be carried out and stored in the output nmt_workspace.
 	  Otherwise, \p w0 will be used and returned by this function.
- * @param cl_proposal Proposed power spectrum. Should have shape [ncls][3 * \p nside], where
+ * @param cl_proposal Proposed power spectrum. Should have shape [ncls][lmax+1], where
           \p ncls is the appropriate number of power spectra given the spins of the input
 	  fields (e.g. \p ncls = 2*2 = 4 if both fields have spin=2).
  * @param cl_noise Noise bias (same shape as \p cl_prop).
@@ -1168,7 +1168,7 @@ typedef struct {
   int ncls_b; //!< Number of elements for the second set of power spectra (1 for the time being)
   nmt_binning_scheme *bin_a; //!< Bandpowers defining the binning for the first set of spectra
   nmt_binning_scheme *bin_b; //!< Bandpowers defining the binning for the second set of spectra
-  int nside; //!< HEALPix resolution parameter
+  nmt_curvedsky_info *cs; //!< curved sky geometry information.
   flouble **xi_1122; //!< First (a1b1-a2b2) mode coupling matrix (see scientific documentation)
   flouble **xi_1221; //!< Second (a1b2-a2b1) mode coupling matrix (see scientific documentation)
   gsl_matrix *coupling_binned_a; //!< Coupling matrix associated to the first set of power spectra
@@ -1202,7 +1202,7 @@ nmt_covar_workspace *nmt_covar_workspace_init(nmt_workspace *wa,nmt_workspace *w
  * @param cw nmt_covar_workspace structure containing the information necessary to compute the
           covariance matrix.
  * @param cla1b1 Cross-power spectrum between field 1 in set a and field 1 in set b.
-          All power spectra should be defined for all ell < 3 * \p nside - 1.
+          All power spectra should be defined for all ell < lmax.
  * @param cla1b2 Cross-power spectrum between field 1 in set a and field 2 in set b.
  * @param cla2b1 Cross-power spectrum between field 2 in set a and field 1 in set b.
  * @param cla2b2 Cross-power spectrum between field 2 in set a and field 2 in set b.
