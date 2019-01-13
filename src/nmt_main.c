@@ -14,7 +14,7 @@ void run_master(nmt_field *fl1,nmt_field *fl2,
   int nspec=fl1->nmaps*fl2->nmaps;
   flouble **cl_noise,**cl_proposal,**cl_out,**cl_bias,**cl_data;
 
-  if(nmt_diff_curvedsky_info(fl1->cs,fl2->cs))
+  if(!(nmt_diff_curvedsky_info(fl1->cs,fl2->cs)))
     report_error(NMT_ERROR_CONSISTENT_RESO,"Can't correlate fields with different resolution\n");
 
   //Binning

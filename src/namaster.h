@@ -478,7 +478,7 @@ nmt_curvedsky_info *nmt_curvedsky_info_alloc(int is_healpix,long nside,
 /**
  * @brief Compare two nmt_curvedsky_info structs.
  *
- * @return true (!=0) if both structs are different, and false (0) if they are the same.
+ * @return true (!=0) if both structs are equivalent, and false (0) if they aren't.
  */
 int nmt_diff_curvedsky_info(nmt_curvedsky_info *c1, nmt_curvedsky_info *c2);
 

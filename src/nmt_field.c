@@ -42,10 +42,13 @@ nmt_curvedsky_info *nmt_curvedsky_info_alloc(int is_healpix,long nside,
 
 int nmt_diff_curvedsky_info(nmt_curvedsky_info *c1, nmt_curvedsky_info *c2)
 {
-  return (( c1->nx==c2->ny) && (c1->ny==c2->ny)
-	  && (fabs(c1->phi0-c2->phi0)<1e-6) && (fabs(c1->theta0-c2->theta0)<1e-6)
-	  && (fabs(c1->Delta_theta-c2->Delta_theta)<1e-6)
-	  && (fabs(c1->Delta_phi-c2->Delta_phi)<1e-6));
+  if(c1->is_healpix)
+    return (c2->is_healpix && (c1->n_eq==c2->n_eq));
+  else
+    return ((!(c2->is_healpix)) && ( c1->nx==c2->ny) && (c1->ny==c2->ny)
+	    && (fabs(c1->phi0-c2->phi0)<1e-6) && (fabs(c1->theta0-c2->theta0)<1e-6)
+	    && (fabs(c1->Delta_theta-c2->Delta_theta)<1e-6)
+	    && (fabs(c1->Delta_phi-c2->Delta_phi)<1e-6));
 }
   
 void nmt_field_free(nmt_field *fl)
@@ -454,7 +457,7 @@ nmt_field *nmt_field_read(int is_healpix,char *fname_mask,char *fname_maps,char 
   maps=my_malloc(nmaps*sizeof(flouble *));
   for(ii=0;ii<nmaps;ii++) {
     maps[ii]=he_read_map(fname_maps,cs_dum,ii);
-    if(nmt_diff_curvedsky_info(cs,cs_dum))
+    if(!(nmt_diff_curvedsky_info(cs,cs_dum)))
       report_error(NMT_ERROR_READ,"Wrong pixelization\n");
   }
 
@@ -463,7 +466,7 @@ nmt_field *nmt_field_read(int is_healpix,char *fname_mask,char *fname_maps,char 
     int ncols,isnest;
     free(cs_dum);
     cs_dum=he_get_file_params(fname_temp,is_healpix,&ncols,&isnest);
-    if(nmt_diff_curvedsky_info(cs,cs_dum))
+    if(!(nmt_diff_curvedsky_info(cs,cs_dum)))
       report_error(NMT_ERROR_READ,"Wrong pixelization\n");
     if((ncols==0) || (ncols%nmaps!=0))
       report_error(NMT_ERROR_READ,"Not enough templates in file %s\n",fname_temp);

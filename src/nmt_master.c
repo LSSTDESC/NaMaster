@@ -218,9 +218,9 @@ nmt_workspace *nmt_compute_coupling_matrix(nmt_field *fl1,nmt_field *fl2,
     n_cl=7;
   }
 
-  if(nmt_diff_curvedsky_info(fl1->cs,fl2->cs))
+  if(!(nmt_diff_curvedsky_info(fl1->cs,fl2->cs)))
     report_error(NMT_ERROR_CONSISTENT_RESO,"Can't correlate fields with different pixelizations\n");
-  if(bin->ell_max>=he_get_lmax(fl1->cs))
+  if(bin->ell_max>he_get_lmax(fl1->cs))
     report_error(NMT_ERROR_CONSISTENT_RESO,"Requesting bandpowers for too high a multipole given map resolution\n");
   w=nmt_workspace_new(fl1->cs,n_cl,bin,is_teb);
   beam_prod=my_malloc((w->lmax+1)*sizeof(flouble));
@@ -521,7 +521,7 @@ void nmt_compute_deprojection_bias(nmt_field *fl1,nmt_field *fl2,
   int nspec=fl1->nmaps*fl2->nmaps;
   int lmax=fl1->lmax;
 
-  if(nmt_diff_curvedsky_info(fl1->cs,fl2->cs))
+  if(!(nmt_diff_curvedsky_info(fl1->cs,fl2->cs)))
     report_error(NMT_ERROR_CONSISTENT_RESO,"Can't correlate fields with different pixelizations\n");
 
   cl_dum=my_malloc(nspec*sizeof(flouble *));
@@ -744,7 +744,7 @@ nmt_workspace *nmt_compute_power_spectra(nmt_field *fl1,nmt_field *fl2,
     w=nmt_compute_coupling_matrix(fl1,fl2,bin,0);
   else {
     w=w0;
-    if(w->lmax>=fl1->lmax)
+    if(w->lmax>fl1->lmax)
       report_error(NMT_ERROR_CONSISTENT_RESO,"Workspace does not match map resolution\n");
   }
 
