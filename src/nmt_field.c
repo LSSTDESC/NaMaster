@@ -1,5 +1,21 @@
 #include "utils.h"
 
+nmt_curvedsky_info *nmt_curvedsky_info_copy(nmt_curvedsky_info *cs_in)
+{
+  nmt_curvedsky_info *cs_out=my_malloc(sizeof(nmt_curvedsky_info));
+  cs_out->is_healpix=cs_in->is_healpix;
+  cs_out->n_eq=cs_in->n_eq;
+  cs_out->nx=cs_in->nx;
+  cs_out->ny=cs_in->ny;
+  cs_out->npix=cs_in->npix;
+  cs_out->Delta_theta=cs_in->Delta_theta;
+  cs_out->Delta_phi=cs_in->Delta_phi;
+  cs_out->phi0=cs_in->phi0;
+  cs_out->theta0=cs_in->theta0;
+
+  return cs_out;
+}
+
 nmt_curvedsky_info *nmt_curvedsky_info_alloc(int is_healpix,long nside,
 					     int nx0,int ny0,flouble Dtheta,flouble Dphi,
 					     flouble phi0,flouble theta0)
@@ -213,16 +229,7 @@ nmt_field *nmt_field_alloc_sph(nmt_curvedsky_info *cs,flouble *mask,int pol,flou
 {
   int ii,itemp,itemp2,imap;
   nmt_field *fl=my_malloc(sizeof(nmt_field));
-  fl->cs=my_malloc(sizeof(nmt_curvedsky_info));
-  fl->cs->is_healpix=cs->is_healpix;
-  fl->cs->n_eq=cs->n_eq;
-  fl->cs->nx=cs->nx;
-  fl->cs->ny=cs->ny;
-  fl->cs->npix=cs->npix;
-  fl->cs->Delta_theta=cs->Delta_theta;
-  fl->cs->Delta_phi=cs->Delta_phi;
-  fl->cs->phi0=cs->phi0;
-  fl->cs->theta0=cs->theta0;
+  fl->cs=nmt_curvedsky_info_copy(cs);
   fl->lmax=he_get_lmax(fl->cs);
   fl->npix=cs->npix;
   fl->pol=pol;

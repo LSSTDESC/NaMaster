@@ -458,6 +458,14 @@ typedef struct {
 } nmt_curvedsky_info;
 
 /**
+ * @brief Makes a copy of a nmt_curvedsky_info structure
+ *
+ * @param cs_in input structure to be copied.
+ * @return copy of input nmt_curvedsky_info structure.
+ */
+nmt_curvedsky_info *nmt_curvedsky_info_copy(nmt_curvedsky_info *cs_in);
+
+/**
  * @brief nmt_curvedsky_info creator
  *
  * @param is_healpix is this HEALPix pixelization.

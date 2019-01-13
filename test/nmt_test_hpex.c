@@ -262,19 +262,19 @@ CTEST(nmt,he_io) {
   int nfd,isnest;
   //Correct file params
   cs2=he_get_file_params("test/mps.fits",1,&nfd,&isnest);
-  ASSERT_FALSE(nmt_diff_curvedsky_info(cs,cs2));
+  ASSERT_TRUE(nmt_diff_curvedsky_info(cs,cs2));
   ASSERT_EQUAL(2,nfd);
   ASSERT_EQUAL(0,isnest);
   //Read map
   mps0[0]=he_read_map("test/mps.fits",cs2,0);
-  ASSERT_FALSE(nmt_diff_curvedsky_info(cs,cs2));
+  ASSERT_TRUE(nmt_diff_curvedsky_info(cs,cs2));
   mps2[0]=he_read_map("test/mps.fits",cs2,0);
-  ASSERT_FALSE(nmt_diff_curvedsky_info(cs,cs2));
+  ASSERT_TRUE(nmt_diff_curvedsky_info(cs,cs2));
   //Go one column too far
   try {mps2[1]=he_read_map("test/mps.fits",cs2,2);}
   ASSERT_NOT_EQUAL(0,nmt_exception_status);
   mps2[1]=he_read_map("test/mps.fits",cs2,1);
-  ASSERT_FALSE(nmt_diff_curvedsky_info(cs,cs2));
+  ASSERT_TRUE(nmt_diff_curvedsky_info(cs,cs2));
 
   free(cs2); free(cs);
   for(ii=0;ii<1;ii++)

@@ -13,7 +13,7 @@ CTEST(nmt,covar) {
   ASSERT_EQUAL(cwr->lmax_b,cw->lmax_b);
   ASSERT_EQUAL(cwr->ncls_a,cw->ncls_a);
   ASSERT_EQUAL(cwr->ncls_b,cw->ncls_b);
-  ASSERT_FALSE(nmt_diff_curvedsky_info(cwr->cs,cw->cs));
+  ASSERT_TRUE(nmt_diff_curvedsky_info(cwr->cs,cw->cs));
   for(ii=0;ii<cw->ncls_a*(cw->lmax_a+1);ii++) {
     int jj;
     for(jj=0;jj<cw->ncls_b*(cw->lmax_b+1);jj++) {
@@ -69,7 +69,6 @@ CTEST(nmt,covar_errors) {
   try { cw=nmt_covar_workspace_init(wa,wb); }
   ASSERT_EQUAL(0,nmt_exception_status);
   nmt_covar_workspace_free(cw); cw=NULL;
-
   //Wrong reading
   try { cw=nmt_covar_workspace_read("none"); }
   ASSERT_NOT_EQUAL(0,nmt_exception_status);

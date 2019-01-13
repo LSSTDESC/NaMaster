@@ -31,16 +31,7 @@ static nmt_workspace *nmt_workspace_new(nmt_curvedsky_info *cs,int ncls,
   w->is_teb=is_teb;
   w->ncls=ncls;
 
-  w->cs=my_malloc(sizeof(nmt_curvedsky_info));
-  w->cs->is_healpix=cs->is_healpix;
-  w->cs->n_eq=cs->n_eq;
-  w->cs->nx=cs->nx;
-  w->cs->ny=cs->ny;
-  w->cs->npix=cs->npix;
-  w->cs->Delta_theta=cs->Delta_theta;
-  w->cs->Delta_phi=cs->Delta_phi;
-  w->cs->phi0=cs->phi0;
-  w->cs->theta0=cs->theta0;
+  w->cs=nmt_curvedsky_info_copy(cs);
   w->mask1=my_malloc(w->cs->npix*sizeof(flouble));
   w->mask2=my_malloc(w->cs->npix*sizeof(flouble));
   w->pcl_masks=my_malloc((w->lmax+1)*sizeof(flouble));

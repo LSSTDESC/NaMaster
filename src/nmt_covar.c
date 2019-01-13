@@ -34,16 +34,7 @@ nmt_covar_workspace *nmt_covar_workspace_init(nmt_workspace *wa,nmt_workspace *w
   flouble *mask_a2b1=my_malloc(npix*sizeof(flouble));
   flouble *mask_a2b2=my_malloc(npix*sizeof(flouble));
 
-  cw->cs=my_malloc(sizeof(nmt_curvedsky_info));
-  cw->cs->is_healpix=wa->cs->is_healpix;
-  cw->cs->n_eq=wa->cs->n_eq;
-  cw->cs->nx=wa->cs->nx;
-  cw->cs->ny=wa->cs->ny;
-  cw->cs->npix=wa->cs->npix;
-  cw->cs->Delta_theta=wa->cs->Delta_theta;
-  cw->cs->Delta_phi=wa->cs->Delta_phi;
-  cw->cs->phi0=wa->cs->phi0;
-  cw->cs->theta0=wa->cs->theta0;
+  cw->cs=nmt_curvedsky_info_copy(wa->cs);
   cw->lmax_a=wa->lmax;
   cw->lmax_b=wb->lmax;
   cw->ncls_a=wa->ncls;
@@ -251,7 +242,7 @@ nmt_covar_workspace *nmt_covar_workspace_read(char *fname)
   nmt_covar_workspace *cw=my_malloc(sizeof(nmt_covar_workspace));
   FILE *fi=my_fopen(fname,"rb");
   cw->cs=my_malloc(sizeof(nmt_curvedsky_info));
-  
+
   my_fread(&(cw->lmax_a),sizeof(int),1,fi);
   my_fread(&(cw->lmax_b),sizeof(int),1,fi);
   my_fread(cw->cs,sizeof(nmt_curvedsky_info),1,fi);
