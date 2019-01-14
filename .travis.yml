@@ -32,13 +32,13 @@ matrix:
   - os: osx
     sudo: required
     language: generic
-    osx_image: xcode8
+    osx_image: xcode10.1
     env:
         - TOXENV=py27
   - os: osx
     sudo: required
     language: generic
-    osx_image: xcode8
+    osx_image: xcode10.1
     env:
         - TOXENV=py37
 
