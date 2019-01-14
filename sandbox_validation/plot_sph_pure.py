@@ -10,9 +10,9 @@ rc('text', usetex=True)
 
 nside=256
 nsims=1000
-prefix_pure="tests_sph/run_pure01_ns%d_cont1"%nside
-prefix_nopu="tests_sph/run_pure00_ns%d_cont1"%nside
-prefix_noco="tests_sph/run_pure01_ns%d_cont0"%nside
+prefix_pure="tests_sphb/run_pure01_ns%d_cont1"%nside
+prefix_nopu="tests_sphb/run_pure00_ns%d_cont1"%nside
+prefix_noco="tests_sphb/run_pure01_ns%d_cont0"%nside
 prefix_nodb="tests_sph/run_pure01_ns%d_cont1_no_debias"%nside
 
 def tickfs(ax,x=True,y=True) :
@@ -110,6 +110,7 @@ ax.set_xticks(ndof*(np.arange(3)+0.5))
 ax.set_yticks(ndof*(np.arange(3)+0.5))
 ax.set_xticklabels(['$EE$','$EB$','$BB$'])
 ax.set_yticklabels(['$EE$','$EB$','$BB$'])
+plt.colorbar(im)
 axins=zoomed_inset_axes(ax,2.5,loc=6)
 axins.imshow(cov_pure/np.sqrt(np.diag(cov_pure)[None,:]*np.diag(cov_pure)[:,None]),
              interpolation='nearest',cmap=plt.cm.Greys)
@@ -119,7 +120,6 @@ axins.set_xlim(0.,0.2*ndof)
 axins.set_ylim(0.2*ndof,0.)
 mark_inset(ax, axins, loc1=2, loc2=1, fc="none")#, ec="0.5")
 tickfs(ax)
-plt.colorbar(im)
 plt.savefig("plots_paper/val_covar_cmb_sph.pdf",bbox_inches='tight')
 
 plt.figure();
@@ -135,6 +135,7 @@ ax.set_xticks(ndof*(np.arange(3)+0.5))
 ax.set_yticks(ndof*(np.arange(3)+0.5))
 ax.set_xticklabels(['$EE$','$EB$','$BB$'])
 ax.set_yticklabels(['$EE$','$EB$','$BB$'])
+plt.colorbar(im)
 axins=zoomed_inset_axes(ax,2.5,loc=6)
 axins.imshow(cov_noco/np.sqrt(np.diag(cov_noco)[None,:]*np.diag(cov_noco)[:,None]),
              interpolation='nearest',cmap=plt.cm.Greys)
@@ -144,7 +145,6 @@ axins.set_xlim(-0.1,0.2*ndof)
 axins.set_ylim(0.2*ndof,-0.1)
 mark_inset(ax, axins, loc1=2, loc2=1, fc="none")#, ec="0.5")
 tickfs(ax)
-plt.colorbar(im)
 plt.savefig("plots_paper/val_covar_cmb_sph_nocont.pdf",bbox_inches='tight')
 
 #Plot residuals
@@ -154,12 +154,12 @@ ax=fig.add_axes((0.12,0.3,0.78,0.6))
 ax.plot([-1,-1],[-1,-1],'k-' ,label='${\\rm Sims}$')
 ax.plot([-1,-1],[-1,-1],'k--',label='${\\rm Input}$')
 ic=0
-ax.plot(l_th,clEE_pure_mean,label='$EE$',c=cols[ic])
-ax.plot(l_th,clEE_th,'--',c=cols[ic]);
+ax.plot(l_th[l_th>18],clEE_pure_mean[l_th>18],label='$EE$',c=cols[ic],alpha=0.5) #Plotting above ell=18 to avoid quirky lines due to negative values
+ax.plot(l_th[l_th>18],clEE_th[l_th>18],'--',c=cols[ic]);
 ic+=1
-ax.plot(l_th,clEB_pure_mean,label='$EB$',c=cols[ic]);
+ax.plot(l_th,clEB_pure_mean,label='$EB$',c=cols[ic],alpha=0.5);
 ic+=1
-ax.plot(l_th,clBB_pure_mean,label='$BB$',c=cols[ic]);
+ax.plot(l_th[l_th>10],clBB_pure_mean[l_th>10],label='$BB$',c=cols[ic],alpha=0.5);
 ax.plot(l_th,np.fabs(clBB_nodb_mean),'-.',
         label='$BB,\\,\\,{\\rm no\\,\\,debias}$',c=cols[ic]);
 ax.plot(l_th,clBB_th,'--',c=cols[ic]);

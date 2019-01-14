@@ -22,11 +22,12 @@ static flouble weigh_l(int l)
 #endif //_WEIGH_L2
 }
 
-static nmt_workspace *nmt_workspace_new(int nside,int ncls,nmt_binning_scheme *bin)
+static nmt_workspace *nmt_workspace_new(int nside,int ncls,nmt_binning_scheme *bin,int is_teb)
 {
   int ii;
   nmt_workspace *w=my_malloc(sizeof(nmt_workspace));
   w->lmax=bin->ell_max;
+  w->is_teb=is_teb;
   w->ncls=ncls;
 
   w->nside=nside;
@@ -78,6 +79,7 @@ nmt_workspace *nmt_workspace_read(char *fname)
   nmt_workspace *w=my_malloc(sizeof(nmt_workspace));
   FILE *fi=my_fopen(fname,"rb");
 
+  my_fread(&(w->is_teb),sizeof(int),1,fi);
   my_fread(&(w->lmax),sizeof(int),1,fi);
   my_fread(&(w->nside),sizeof(int),1,fi);
   my_fread(&(w->ncls),sizeof(int),1,fi);
@@ -125,6 +127,7 @@ void nmt_workspace_write(nmt_workspace *w,char *fname)
   int ii;
   FILE *fo=my_fopen(fname,"wb");
 
+  my_fwrite(&(w->is_teb),sizeof(int),1,fo);
   my_fwrite(&(w->lmax),sizeof(int),1,fo);
   my_fwrite(&(w->nside),sizeof(int),1,fo);
   my_fwrite(&(w->ncls),sizeof(int),1,fo);
@@ -173,21 +176,40 @@ static void bin_coupling_matrix(nmt_workspace *w)
   gsl_linalg_LU_decomp(w->coupling_matrix_binned,w->coupling_matrix_perm,&sig);
 }
 
+void nmt_update_coupling_matrix(nmt_workspace *w,int n_rows,double *new_matrix)
+{
+  int ii;
+  
+  if(n_rows!=w->ncls*(w->lmax+1)) {
+    report_error(NMT_ERROR_INCONSISTENT,"Input matrix has the wrong size. Expected %d, got %d\n",
+		 w->ncls*(w->lmax+1),n_rows);
+  }
+
+  for(ii=0;ii<n_rows;ii++)
+    memcpy(w->coupling_matrix_unbinned[ii],&(new_matrix[ii*n_rows]),n_rows*sizeof(flouble));
+  bin_coupling_matrix(w);
+}
+
 //Computes binned coupling matrix
 // fl1,fl2 (in) : fields we're correlating
 // coupling_matrix_out (out) : unbinned coupling matrix
-nmt_workspace *nmt_compute_coupling_matrix(nmt_field *fl1,nmt_field *fl2,nmt_binning_scheme *bin)
+nmt_workspace *nmt_compute_coupling_matrix(nmt_field *fl1,nmt_field *fl2,nmt_binning_scheme *bin,int is_teb)
 {
   int l2;
   nmt_workspace *w;
   flouble *beam_prod;
   int n_cl=fl1->nmaps*fl2->nmaps;
+  if(is_teb) {
+    if(!((fl1->pol==0) && (fl2->pol==1)))
+      report_error(NMT_ERROR_INCONSISTENT,"For T-E-B MCM the first input field must be spin-0 and the second spin-2\n");
+    n_cl=7;
+  }
 
   if(fl1->nside!=fl2->nside)
     report_error(NMT_ERROR_CONSISTENT_RESO,"Can't correlate fields with different resolutions\n");
   if(bin->ell_max>=3*fl1->nside)
     report_error(NMT_ERROR_CONSISTENT_RESO,"Requesting bandpowers for too high a multipole given map resolution\n");
-  w=nmt_workspace_new(fl1->nside,n_cl,bin);
+  w=nmt_workspace_new(fl1->nside,n_cl,bin,is_teb);
   beam_prod=my_malloc((w->lmax+1)*sizeof(flouble));
   memcpy(w->mask1,fl1->mask,he_nside2npix(w->nside)*sizeof(flouble));
   memcpy(w->mask2,fl2->mask,he_nside2npix(w->nside)*sizeof(flouble));
@@ -206,16 +228,16 @@ nmt_workspace *nmt_compute_coupling_matrix(nmt_field *fl1,nmt_field *fl2,nmt_bin
     int pe1=fl1->pure_e,pe2=fl2->pure_e,pb1=fl1->pure_b,pb2=fl2->pure_b;
     int pure_any=pe1 || pb1 || pe2 || pb2;
 
-    if((w->ncls==1) || (w->ncls==2))
+    if((w->ncls==1) || (w->ncls==2) || (w->ncls==7))
       wigner_00=my_malloc(2*(w->lmax+1)*sizeof(double));
-    if((w->ncls==2) || (w->ncls==4))
+    if((w->ncls==2) || (w->ncls==4) || (w->ncls==7))
       wigner_22=my_malloc(2*(w->lmax+1)*sizeof(double));
     if(pure_any) {
       wigner_12=my_malloc(2*(w->lmax+1)*sizeof(double));
       wigner_02=my_malloc(2*(w->lmax+1)*sizeof(double));
     }
 
-    if(w->ncls>1)
+    if((w->ncls!=1) && (w->ncls!=7))
       lstart=2;
 
 #pragma omp for schedule(dynamic)
@@ -227,17 +249,23 @@ nmt_workspace *nmt_compute_coupling_matrix(nmt_field *fl1,nmt_field *fl2,nmt_bin
 	int lmin_here_12=0,lmax_here_12=2*(w->lmax+1)+1;
 	int lmin_here_02=0,lmax_here_02=2*(w->lmax+1)+1;
 
-	if((w->ncls==1) || (w->ncls==2))
+	if((w->ncls==1) || (w->ncls==2) || (w->ncls==7))
 	  drc3jj(ll2,ll3,0,0,&lmin_here_00,&lmax_here_00,wigner_00,2*(w->lmax+1));
-	if((w->ncls==2) || (w->ncls==4))
+	if((w->ncls==2) || (w->ncls==4) || (w->ncls==7))
 	  drc3jj(ll2,ll3,2,-2,&lmin_here_22,&lmax_here_22,wigner_22,2*(w->lmax+1));
 	if(pure_any) {
 	  drc3jj(ll2,ll3,1,-2,&lmin_here_12,&lmax_here_12,wigner_12,2*(w->lmax+1));
 	  drc3jj(ll2,ll3,0,-2,&lmin_here_02,&lmax_here_02,wigner_02,2*(w->lmax+1));
 	}
-	
-	lmin_here=NMT_MAX(lmin_here_00,lmin_here_22);
-	lmax_here=NMT_MIN(lmax_here_00,lmax_here_22);
+
+	if(w->ncls!=7) {
+	  lmin_here=NMT_MAX(lmin_here_00,lmin_here_22);
+	  lmax_here=NMT_MIN(lmax_here_00,lmax_here_22);
+	}
+	else {
+	  lmin_here=NMT_MIN(lmin_here_00,lmin_here_22);
+	  lmax_here=NMT_MAX(lmax_here_00,lmax_here_22);
+	}
 	if(pure_any) {
 	  lmin_here=NMT_MIN(lmin_here,lmin_here_12);
 	  lmin_here=NMT_MIN(lmin_here,lmin_here_02);
@@ -324,6 +352,45 @@ nmt_workspace *nmt_compute_coupling_matrix(nmt_field *fl1,nmt_field *fl2,nmt_bin
 		w->coupling_matrix_unbinned[4*ll2+3][4*ll3+3]+=wfac_ispure[pb1+pb2]; //BB,BB
 	      }
 	    }
+	    if(w->ncls==7) {
+	      double wfac_ispure_02[2];
+	      double wfac_ispure_22[3];
+	      int suml=l1+ll2+ll3;
+	      wfac=w->pcl_masks[l1]*wigner_00[j00]*wigner_00[j00];
+	      if(pure_any) {
+		wfac_ispure_02[0]=wigner_22[j22];
+		wfac_ispure_02[1]=wigner_22[j22]+fac_12*wigner_12[j12]+fac_02*wigner_02[j02];
+		wfac_ispure_02[0]*=w->pcl_masks[l1]*wigner_00[j00];
+		wfac_ispure_02[1]*=w->pcl_masks[l1]*wigner_00[j00];
+		wfac_ispure_22[0]=wigner_22[j22];
+		wfac_ispure_22[1]=wigner_22[j22]+fac_12*wigner_12[j12]+fac_02*wigner_02[j02];
+		wfac_ispure_22[2]=wfac_ispure_22[1]*wfac_ispure_22[1]*w->pcl_masks[l1];
+		wfac_ispure_22[1]*=wigner_22[j22]*w->pcl_masks[l1];
+		wfac_ispure_22[0]*=wigner_22[j22]*w->pcl_masks[l1];
+	      }
+	      else {
+		wfac_ispure_02[0]=wigner_22[j22]*w->pcl_masks[l1]*wigner_00[j00];
+		wfac_ispure_02[1]=wfac_ispure_02[0];
+		wfac_ispure_22[0]=wigner_22[j22]*wigner_22[j22]*w->pcl_masks[l1];
+		wfac_ispure_22[1]=wfac_ispure_22[0];
+		wfac_ispure_22[2]=wfac_ispure_22[0];
+	      }
+	      w->coupling_matrix_unbinned[7*ll2+0][7*ll3+0]+=wfac; //TT,TT
+	      w->coupling_matrix_unbinned[7*ll2+1][7*ll3+1]+=wfac_ispure_02[pe2]; //TE,TE
+	      w->coupling_matrix_unbinned[7*ll2+2][7*ll3+2]+=wfac_ispure_02[pb2]; //TB,TB
+	      if(suml & 1) { //Odd sum
+		w->coupling_matrix_unbinned[7*ll2+3][7*ll3+6]+=wfac_ispure_22[pe2+pe2]; //EE,BB
+		w->coupling_matrix_unbinned[7*ll2+4][7*ll3+5]-=wfac_ispure_22[pe2+pb2]; //EB,BE
+		w->coupling_matrix_unbinned[7*ll2+5][7*ll3+4]-=wfac_ispure_22[pb2+pe2]; //BE,EB
+		w->coupling_matrix_unbinned[7*ll2+6][7*ll3+3]+=wfac_ispure_22[pb2+pb2]; //BB,EE
+	      }
+	      else {
+		w->coupling_matrix_unbinned[7*ll2+3][7*ll3+3]+=wfac_ispure_22[pe2+pe2]; //EE,EE
+		w->coupling_matrix_unbinned[7*ll2+4][7*ll3+4]+=wfac_ispure_22[pe2+pb2]; //EB,EB
+		w->coupling_matrix_unbinned[7*ll2+5][7*ll3+5]+=wfac_ispure_22[pb2+pe2]; //BE,BE
+		w->coupling_matrix_unbinned[7*ll2+6][7*ll3+6]+=wfac_ispure_22[pb2+pb2]; //BB,BB
+	      }
+	    }
 	  }
 	}
 	for(jj=0;jj<w->ncls;jj++) {
@@ -333,9 +400,9 @@ nmt_workspace *nmt_compute_coupling_matrix(nmt_field *fl1,nmt_field *fl2,nmt_bin
 	}
       }
     } //end omp for
-    if((w->ncls==1) || (w->ncls==2))
+    if((w->ncls==1) || (w->ncls==2) || (w->ncls==7))
       free(wigner_00);
-    if((w->ncls==2) || (w->ncls==4))
+    if((w->ncls==2) || (w->ncls==4) || (w->ncls==7))
       free(wigner_22);
     if(pure_any) {
       free(wigner_12);
@@ -661,7 +728,7 @@ nmt_workspace *nmt_compute_power_spectra(nmt_field *fl1,nmt_field *fl2,
   nmt_workspace *w;
 
   if(w0==NULL) 
-    w=nmt_compute_coupling_matrix(fl1,fl2,bin);
+    w=nmt_compute_coupling_matrix(fl1,fl2,bin,0);
   else {
     w=w0;
     if(w->lmax>=3*fl1->nside)

@@ -10,7 +10,6 @@
 #include <math.h>
 #include <time.h>
 #include <complex.h>
-#include <omp.h>
 #include <gsl/gsl_vector.h>
 #include <gsl/gsl_matrix.h>
 #include <gsl/gsl_linalg.h>
@@ -637,6 +636,7 @@ typedef struct {
   int pb1; //!< Is the B-mode component of the first field purified?
   int pb2; //!< Is the B-mode component of the second field purified?
   nmt_flatsky_info *fs; //!< Contains information about rectangular flat-sky patch.
+  int is_teb; //!< Does it hold all MCM elements to compute all of spin0-spin0, 0-2 and 2-2 correlations?
   flouble *mask1; //!< Mask of the first field being correlated
   flouble *mask2; //!< Mask of the second field being correlated
 #ifdef _ENABLE_FLAT_THEORY_ACCURATE
@@ -691,11 +691,12 @@ void nmt_workspace_flat_write(nmt_workspace_flat *w,char *fname);
  *        if \p lmx_x < \p lmn_x, no Fourier-space masked is performed.
  * @param lmn_y Same as \p lmn_x for the y direction.
  * @param lmx_y Same as \p lmx_x for the y direction.
+ * @param is_teb if !=0, all mode-coupling matrices (0-0,0-2,2-2) will be computed at the same time.
  */
 nmt_workspace_flat *nmt_compute_coupling_matrix_flat(nmt_field_flat *fl1,nmt_field_flat *fl2,
 						     nmt_binning_scheme_flat *bin,
 						     flouble lmn_x,flouble lmx_x,
-						     flouble lmn_y,flouble lmx_y);
+						     flouble lmn_y,flouble lmx_y,int is_teb);
 
 /**
  * @brief Computes deprojection bias.
@@ -850,6 +851,7 @@ nmt_workspace_flat *nmt_compute_power_spectra_flat(nmt_field_flat *fl1,nmt_field
  */
 typedef struct {
   int lmax; //!< Maximum multipole used
+  int is_teb; //!< Does it hold all MCM elements to compute all of spin0-spin0, 0-2 and 2-2 correlations?
   int ncls; //!< Number of power spectra (1, 2 or 4 depending of the spins of the fields being correlated.
   int nside; //!< HEALPix resolution parameter
   flouble *mask1; //!< Mask of the first field being correlated.
@@ -868,8 +870,23 @@ typedef struct {
  * @param fl1 nmt_field structure defining the first field to correlate.
  * @param fl2 nmt_field structure defining the second field to correlate.
  * @param bin nmt_binning_scheme defining the power spectrum bandpowers.
+ * @param is_teb if !=0, all mode-coupling matrices (0-0,0-2,2-2) will be computed at the same time.
  */
-nmt_workspace *nmt_compute_coupling_matrix(nmt_field *fl1,nmt_field *fl2,nmt_binning_scheme *bin);
+nmt_workspace *nmt_compute_coupling_matrix(nmt_field *fl1,nmt_field *fl2,nmt_binning_scheme *bin,int is_teb);
+
+/**
+ * @brief Updates the mode coupling matrix with a new one.Saves nmt_workspace structure to file
+ *
+ * The new matrix must be provided as a single 1D array of size n_rows\f$^2\f$.
+ * Here n_rows=n_cls * n_ell is the size of the flattened power spectra, where n_cls is the number
+ * of power spectra (1, 2 or 4 for spin0-0, spin0-2 and spin2-2 correlations) and n_ells=lmax+1
+ * (by default lmax=3*nside-1). The ordering of the power spectra should be such that the
+ * l-th element of the i-th power spectrum is stored with index l * n_cls + i.
+ * @param w nmt_workspace to be updated.
+ * @param n_rows size of the flattened power spectra.
+ * @param new_matrix new mode-coupling matrix (flattened).
+ */
+void nmt_update_coupling_matrix(nmt_workspace *w,int n_rows,double *new_matrix);
 
 /**
  * @brief Saves nmt_workspace structure to file

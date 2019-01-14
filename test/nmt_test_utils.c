@@ -103,7 +103,7 @@ void test_compare_arrays(int n,double *y,int narr,int iarr,char *fname,double rt
 CTEST(nmt,ut_drc3jj) {
   int sizew=1000;
   double *w3=my_malloc(sizew*sizeof(double));
-  int r,l1min,l1max;
+  int ii,r,l1min,l1max;
 
   r=drc3jj(2,3,0,0,&l1min,&l1max,w3,sizew);
   ASSERT_EQUAL(r,0);
@@ -128,9 +128,10 @@ CTEST(nmt,ut_drc3jj) {
 
   try { r=drc3jj(100,200,2,-2,&l1min,&l1max,w3,100); }
   ASSERT_NOT_EQUAL(0,nmt_exception_status);
-  try { r=drc3jj(2,3,3,0,&l1min,&l1max,w3,sizew); }
-  ASSERT_NOT_EQUAL(0,nmt_exception_status);
-  
+  r=drc3jj(2,3,3,0,&l1min,&l1max,w3,sizew);
+  for(ii=0;ii<=l1max-l1min;ii++)
+    ASSERT_DBL_NEAR_TOL(w3[ii],0.,1E-10);
+
   set_error_policy(EXIT_ON_ERROR);
   free(w3);
 }
