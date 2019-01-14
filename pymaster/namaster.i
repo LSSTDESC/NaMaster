@@ -235,8 +235,9 @@ nmt_field *field_alloc_new(int npix_1,double *mask,
     asserting(nside<=65536);
     nside*=2;
   }
-  
-  asserting(nell3==3*nside);
+
+  nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(1,nside,-1,-1,-1,-1,-1,-1);
+  asserting(nell3==he_get_lmax(cs)+1);
 
   if(nmap_2==2) pol=1;
 
@@ -254,7 +255,7 @@ nmt_field *field_alloc_new(int npix_1,double *mask,
   for(ii=0;ii<nmap_2;ii++)
     maps[ii]=mps+npix_2*ii;
 
-  fl=nmt_field_alloc_sph(nside,mask,pol,maps,ntemp,temp,weights,pure_e,pure_b,
+  fl=nmt_field_alloc_sph(cs,mask,pol,maps,ntemp,temp,weights,pure_e,pure_b,
 			 n_iter_mask_purify,tol_pinv);
 
   if(tmp!=NULL) {
@@ -263,6 +264,7 @@ nmt_field *field_alloc_new(int npix_1,double *mask,
     free(temp);
   }
   free(maps);
+  free(cs);
 
   return fl;
 }
@@ -285,7 +287,8 @@ nmt_field *field_alloc_new_notemp(int npix_1,double *mask,
     nside*=2;
   }
   
-  asserting(nell3==3*nside);
+  nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(1,nside,-1,-1,-1,-1,-1,-1);
+  asserting(nell3==he_get_lmax(cs)+1);
 
   if(nmap_2==2) pol=1;
 
@@ -293,9 +296,10 @@ nmt_field *field_alloc_new_notemp(int npix_1,double *mask,
   for(ii=0;ii<nmap_2;ii++)
     maps[ii]=mps+npix_2*ii;
 
-  fl=nmt_field_alloc_sph(nside,mask,pol,maps,ntemp,NULL,weights,pure_e,pure_b,n_iter_mask_purify,0.);
+  fl=nmt_field_alloc_sph(cs,mask,pol,maps,ntemp,NULL,weights,pure_e,pure_b,n_iter_mask_purify,0.);
 
   free(maps);
+  free(cs);
 
   return fl;
 }
@@ -445,6 +449,7 @@ void synfast_new(int nside,
       nmaps+=2;
   }
 
+  nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(1,nside,-1,-1,-1,-1,-1,-1);
   asserting(ncl2==nfields);
   asserting(ncl1==(nmaps*(nmaps+1))/2);
   asserting(nell1==nell2);
@@ -457,7 +462,7 @@ void synfast_new(int nside,
   for(icl=0;icl<nfields;icl++)
     beams[icl]=cls2+nell2*icl;
 
-  maps=nmt_synfast_sph(nside,nfields,spin_arr,nell1-1,cls,beams,seed);
+  maps=nmt_synfast_sph(cs,nfields,spin_arr,nell1-1,cls,beams,seed);
 
   for(icl=0;icl<nmaps;icl++) {
     memcpy(&(ldout[npix*icl]),maps[icl],npix*sizeof(double));
@@ -466,6 +471,7 @@ void synfast_new(int nside,
   free(maps);
   free(beams);
   free(cls);
+  free(cs);
 }
 
 void synfast_new_flat(int nx,int ny,double lx,double ly,
@@ -830,7 +836,7 @@ void comp_pspec(nmt_field *fl1,nmt_field *fl2,
   int i;
   double **cl_noise,**cl_guess,**cl_out;
   nmt_workspace *w;
-  asserting(fl1->nside==fl2->nside);
+  asserting(nmt_diff_curvedsky_info(fl1->cs,fl2->cs));
   asserting(ncl1==fl1->nmaps*fl2->nmaps);
   asserting(nell1==fl1->lmax+1);
   asserting(ndout==bin->n_bands*ncl1);

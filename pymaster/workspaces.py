@@ -314,7 +314,7 @@ def compute_coupled_cell(f1, f2):
     :param NmtField f1,f2: fields to correlate
     :return: array of coupled power spectra
     """
-    if f1.fl.nside != f2.fl.nside:
+    if f1.fl.cs.n_eq != f2.fl.cs.n_eq:
         raise ValueError("Fields must have same resolution")
 
     cl1d = lib.comp_pspec_coupled(
@@ -369,20 +369,20 @@ def compute_full_master(f1, f2, b, cl_noise=None, cl_guess=None, workspace=None)
     :param NmtWorkspace workspace: object containing the mode-coupling matrix associated with an incomplete sky coverage. If provided, the function will skip the computation of the mode-coupling matrix and use the information encoded in this object.
     :return: set of decoupled bandpowers
     """
-    if f1.fl.nside != f2.fl.nside:
+    if f1.fl.cs.n_eq != f2.fl.cs.n_eq:
         raise ValueError("Fields must have same resolution")
     if cl_noise is not None:
         if len(cl_noise) != f1.fl.nmaps * f2.fl.nmaps:
             raise ValueError("Wrong length for noise power spectrum")
         cln = cl_noise.copy()
     else:
-        cln = np.zeros([f1.fl.nmaps * f2.fl.nmaps, 3 * f1.fl.nside])
+        cln = np.zeros([f1.fl.nmaps * f2.fl.nmaps, 3 * f1.fl.cs.n_eq])
     if cl_guess is not None:
         if len(cl_guess) != f1.fl.nmaps * f2.fl.nmaps:
             raise ValueError("Wrong length for guess power spectrum")
         clg = cl_guess.copy()
     else:
-        clg = np.zeros([f1.fl.nmaps * f2.fl.nmaps, 3 * f1.fl.nside])
+        clg = np.zeros([f1.fl.nmaps * f2.fl.nmaps, 3 * f1.fl.cs.n_eq])
 
     if workspace is None:
         cl1d = lib.comp_pspec(

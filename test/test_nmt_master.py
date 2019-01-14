@@ -122,12 +122,12 @@ class TestWorkspaceSph(unittest.TestCase) :
         with self.assertRaises(RuntimeError) : #Invalid writing
             w.write_to("test/wspc.dat")
         w.read_from("test/benchmarks/bm_yc_yp_w02.dat") #OK read
-        self.assertEqual(w.wsp.nside,64)
+        self.assertEqual(w.wsp.cs.n_eq,64)
         mcm_old=w.get_coupling_matrix() #Read mode coupling matrix
-        mcm_new=np.identity(3*w.wsp.nside*2) #Updating mode-coupling matrix
+        mcm_new=np.identity(3*w.wsp.cs.n_eq*2) #Updating mode-coupling matrix
         w.update_coupling_matrix(mcm_new)
         mcm_back=w.get_coupling_matrix() #Retireve MCM and check it's correct
-        self.assertTrue(np.fabs(np.sum(np.diagonal(mcm_back))-3*w.wsp.nside*2)<=1E-16)
+        self.assertTrue(np.fabs(np.sum(np.diagonal(mcm_back))-3*w.wsp.cs.n_eq*2)<=1E-16)
         with self.assertRaises(RuntimeError) :  #Can't write on that file
             w.write_to("tests/wspc.dat")
         with self.assertRaises(RuntimeError) : #File doesn't exist
@@ -136,7 +136,7 @@ class TestWorkspaceSph(unittest.TestCase) :
     def test_workspace_methods(self) :
         w=nmt.NmtWorkspace()
         w.compute_coupling_matrix(self.f0,self.f0,self.b) #OK init
-        self.assertEqual(w.wsp.nside,64)
+        self.assertEqual(w.wsp.cs.n_eq,64)
         with self.assertRaises(RuntimeError) : #Incompatible bandpowers
             w.compute_coupling_matrix(self.f0,self.f0,self.b_doub)
         with self.assertRaises(RuntimeError) : #Incompatible resolutions

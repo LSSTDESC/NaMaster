@@ -35,8 +35,8 @@ class NmtCovarianceWorkspace(object):
         if self.wsp is not None:
             lib.covar_workspace_free(self.wsp)
             self.wsp = None
-        ns = wa.wsp.nside
-        if wa.wsp.nside != wb.wsp.nside:
+        ns = wa.wsp.cs.n_eq
+        if wa.wsp.cs.n_eq != wb.wsp.cs.n_eq:
             raise ValueError("Everything should have the same resolution!")
         if (wa.wsp.ncls != 1) or (wb.wsp.ncls != 1):
             raise ValueError("Gaussian covariances only supported for spin-0 fields")

@@ -2997,19 +2997,20 @@ SWIG_Python_NonDynamicSetAttr(PyObject *obj, PyObject *name, PyObject *value) {
 #define SWIGTYPE_p_nmt_binning_scheme_flat swig_types[9]
 #define SWIGTYPE_p_nmt_covar_workspace swig_types[10]
 #define SWIGTYPE_p_nmt_covar_workspace_flat swig_types[11]
-#define SWIGTYPE_p_nmt_field swig_types[12]
-#define SWIGTYPE_p_nmt_field_flat swig_types[13]
-#define SWIGTYPE_p_nmt_flatsky_info swig_types[14]
-#define SWIGTYPE_p_nmt_k_function swig_types[15]
-#define SWIGTYPE_p_nmt_workspace swig_types[16]
-#define SWIGTYPE_p_nmt_workspace_flat swig_types[17]
-#define SWIGTYPE_p_p_double swig_types[18]
-#define SWIGTYPE_p_p_double_complex swig_types[19]
-#define SWIGTYPE_p_p_int swig_types[20]
-#define SWIGTYPE_p_p_p_double swig_types[21]
-#define SWIGTYPE_p_p_p_double_complex swig_types[22]
-static swig_type_info *swig_types[24];
-static swig_module_info swig_module = {swig_types, 23, 0, 0, 0, 0};
+#define SWIGTYPE_p_nmt_curvedsky_info swig_types[12]
+#define SWIGTYPE_p_nmt_field swig_types[13]
+#define SWIGTYPE_p_nmt_field_flat swig_types[14]
+#define SWIGTYPE_p_nmt_flatsky_info swig_types[15]
+#define SWIGTYPE_p_nmt_k_function swig_types[16]
+#define SWIGTYPE_p_nmt_workspace swig_types[17]
+#define SWIGTYPE_p_nmt_workspace_flat swig_types[18]
+#define SWIGTYPE_p_p_double swig_types[19]
+#define SWIGTYPE_p_p_double_complex swig_types[20]
+#define SWIGTYPE_p_p_int swig_types[21]
+#define SWIGTYPE_p_p_p_double swig_types[22]
+#define SWIGTYPE_p_p_p_double_complex swig_types[23]
+static swig_type_info *swig_types[25];
+static swig_module_info swig_module = {swig_types, 24, 0, 0, 0, 0};
 #define SWIG_TypeQuery(name) SWIG_TypeQueryModule(&swig_module, &swig_module, name)
 #define SWIG_MangledTypeQuery(name) SWIG_MangledTypeQueryModule(&swig_module, &swig_module, name)
 
@@ -3396,7 +3397,7 @@ nmt_binning_scheme *bins_create_py(int nell1,int *bpws,
 void update_mcm(nmt_workspace *w,int n_rows,int nell3,double *weights)
 {
   asserting(nell3==n_rows*n_rows);
-  
+
   nmt_update_coupling_matrix(w,n_rows,weights);
 }
 
@@ -3412,7 +3413,7 @@ void get_mcm(nmt_workspace *w,double *dout,int ndout)
     }
   }
 }
- 
+
 nmt_binning_scheme_flat *bins_flat_create_py(int npix_1,double *mask,
 					     int nell3,double *weights)
 {
@@ -3521,8 +3522,9 @@ nmt_field *field_alloc_new(int npix_1,double *mask,
     asserting(nside<=65536);
     nside*=2;
   }
-  
-  asserting(nell3==3*nside);
+
+  nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(1,nside,-1,-1,-1,-1,-1,-1);
+  asserting(nell3==he_get_lmax(cs)+1);
 
   if(nmap_2==2) pol=1;
 
@@ -3540,7 +3542,7 @@ nmt_field *field_alloc_new(int npix_1,double *mask,
   for(ii=0;ii<nmap_2;ii++)
     maps[ii]=mps+npix_2*ii;
 
-  fl=nmt_field_alloc_sph(nside,mask,pol,maps,ntemp,temp,weights,pure_e,pure_b,
+  fl=nmt_field_alloc_sph(cs,mask,pol,maps,ntemp,temp,weights,pure_e,pure_b,
 			 n_iter_mask_purify,tol_pinv);
 
   if(tmp!=NULL) {
@@ -3549,6 +3551,7 @@ nmt_field *field_alloc_new(int npix_1,double *mask,
     free(temp);
   }
   free(maps);
+  free(cs);
 
   return fl;
 }
@@ -3571,7 +3574,8 @@ nmt_field *field_alloc_new_notemp(int npix_1,double *mask,
     nside*=2;
   }
   
-  asserting(nell3==3*nside);
+  nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(1,nside,-1,-1,-1,-1,-1,-1);
+  asserting(nell3==he_get_lmax(cs)+1);
 
   if(nmap_2==2) pol=1;
 
@@ -3579,9 +3583,10 @@ nmt_field *field_alloc_new_notemp(int npix_1,double *mask,
   for(ii=0;ii<nmap_2;ii++)
     maps[ii]=mps+npix_2*ii;
 
-  fl=nmt_field_alloc_sph(nside,mask,pol,maps,ntemp,NULL,weights,pure_e,pure_b,n_iter_mask_purify,0.);
+  fl=nmt_field_alloc_sph(cs,mask,pol,maps,ntemp,NULL,weights,pure_e,pure_b,n_iter_mask_purify,0.);
 
   free(maps);
+  free(cs);
 
   return fl;
 }
@@ -3731,6 +3736,7 @@ void synfast_new(int nside,
       nmaps+=2;
   }
 
+  nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(1,nside,-1,-1,-1,-1,-1,-1);
   asserting(ncl2==nfields);
   asserting(ncl1==(nmaps*(nmaps+1))/2);
   asserting(nell1==nell2);
@@ -3743,7 +3749,7 @@ void synfast_new(int nside,
   for(icl=0;icl<nfields;icl++)
     beams[icl]=cls2+nell2*icl;
 
-  maps=nmt_synfast_sph(nside,nfields,spin_arr,nell1-1,cls,beams,seed);
+  maps=nmt_synfast_sph(cs,nfields,spin_arr,nell1-1,cls,beams,seed);
 
   for(icl=0;icl<nmaps;icl++) {
     memcpy(&(ldout[npix*icl]),maps[icl],npix*sizeof(double));
@@ -3752,6 +3758,7 @@ void synfast_new(int nside,
   free(maps);
   free(beams);
   free(cls);
+  free(cs);
 }
 
 void synfast_new_flat(int nx,int ny,double lx,double ly,
@@ -4116,7 +4123,7 @@ void comp_pspec(nmt_field *fl1,nmt_field *fl2,
   int i;
   double **cl_noise,**cl_guess,**cl_out;
   nmt_workspace *w;
-  asserting(fl1->nside==fl2->nside);
+  asserting(nmt_diff_curvedsky_info(fl1->cs,fl2->cs));
   asserting(ncl1==fl1->nmaps*fl2->nmaps);
   asserting(nell1==fl1->lmax+1);
   asserting(ndout==bin->n_bands*ncl1);
@@ -8078,9 +8085,61 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_field_nside_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_curvedsky_info_is_healpix_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  nmt_field *arg1 = (nmt_field *) 0 ;
+  nmt_curvedsky_info *arg1 = (nmt_curvedsky_info *) 0 ;
+  int arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int val2 ;
+  int ecode2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:curvedsky_info_is_healpix_set",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_curvedsky_info, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "curvedsky_info_is_healpix_set" "', argument " "1"" of type '" "nmt_curvedsky_info *""'"); 
+  }
+  arg1 = (nmt_curvedsky_info *)(argp1);
+  ecode2 = SWIG_AsVal_int(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "curvedsky_info_is_healpix_set" "', argument " "2"" of type '" "int""'");
+  } 
+  arg2 = (int)(val2);
+  if (arg1) (arg1)->is_healpix = arg2;
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_curvedsky_info_is_healpix_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_curvedsky_info *arg1 = (nmt_curvedsky_info *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  int result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:curvedsky_info_is_healpix_get",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_curvedsky_info, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "curvedsky_info_is_healpix_get" "', argument " "1"" of type '" "nmt_curvedsky_info *""'"); 
+  }
+  arg1 = (nmt_curvedsky_info *)(argp1);
+  result = (int) ((arg1)->is_healpix);
+  resultobj = SWIG_From_int((int)(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_curvedsky_info_n_eq_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_curvedsky_info *arg1 = (nmt_curvedsky_info *) 0 ;
   long arg2 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
@@ -8089,18 +8148,18 @@ SWIGINTERN PyObject *_wrap_field_nside_set(PyObject *SWIGUNUSEDPARM(self), PyObj
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"OO:field_nside_set",&obj0,&obj1)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_field, 0 |  0 );
+  if (!PyArg_ParseTuple(args,(char *)"OO:curvedsky_info_n_eq_set",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_curvedsky_info, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "field_nside_set" "', argument " "1"" of type '" "nmt_field *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "curvedsky_info_n_eq_set" "', argument " "1"" of type '" "nmt_curvedsky_info *""'"); 
   }
-  arg1 = (nmt_field *)(argp1);
+  arg1 = (nmt_curvedsky_info *)(argp1);
   ecode2 = SWIG_AsVal_long(obj1, &val2);
   if (!SWIG_IsOK(ecode2)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "field_nside_set" "', argument " "2"" of type '" "long""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "curvedsky_info_n_eq_set" "', argument " "2"" of type '" "long""'");
   } 
   arg2 = (long)(val2);
-  if (arg1) (arg1)->nside = arg2;
+  if (arg1) (arg1)->n_eq = arg2;
   resultobj = SWIG_Py_Void();
   return resultobj;
 fail:
@@ -8108,22 +8167,631 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_field_nside_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_curvedsky_info_n_eq_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  nmt_field *arg1 = (nmt_field *) 0 ;
+  nmt_curvedsky_info *arg1 = (nmt_curvedsky_info *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   PyObject * obj0 = 0 ;
   long result;
   
-  if (!PyArg_ParseTuple(args,(char *)"O:field_nside_get",&obj0)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"O:curvedsky_info_n_eq_get",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_curvedsky_info, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "curvedsky_info_n_eq_get" "', argument " "1"" of type '" "nmt_curvedsky_info *""'"); 
+  }
+  arg1 = (nmt_curvedsky_info *)(argp1);
+  result = (long) ((arg1)->n_eq);
+  resultobj = SWIG_From_long((long)(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_curvedsky_info_nx_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_curvedsky_info *arg1 = (nmt_curvedsky_info *) 0 ;
+  int arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int val2 ;
+  int ecode2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:curvedsky_info_nx_set",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_curvedsky_info, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "curvedsky_info_nx_set" "', argument " "1"" of type '" "nmt_curvedsky_info *""'"); 
+  }
+  arg1 = (nmt_curvedsky_info *)(argp1);
+  ecode2 = SWIG_AsVal_int(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "curvedsky_info_nx_set" "', argument " "2"" of type '" "int""'");
+  } 
+  arg2 = (int)(val2);
+  if (arg1) (arg1)->nx = arg2;
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_curvedsky_info_nx_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_curvedsky_info *arg1 = (nmt_curvedsky_info *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  int result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:curvedsky_info_nx_get",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_curvedsky_info, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "curvedsky_info_nx_get" "', argument " "1"" of type '" "nmt_curvedsky_info *""'"); 
+  }
+  arg1 = (nmt_curvedsky_info *)(argp1);
+  result = (int) ((arg1)->nx);
+  resultobj = SWIG_From_int((int)(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_curvedsky_info_ny_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_curvedsky_info *arg1 = (nmt_curvedsky_info *) 0 ;
+  int arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int val2 ;
+  int ecode2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:curvedsky_info_ny_set",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_curvedsky_info, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "curvedsky_info_ny_set" "', argument " "1"" of type '" "nmt_curvedsky_info *""'"); 
+  }
+  arg1 = (nmt_curvedsky_info *)(argp1);
+  ecode2 = SWIG_AsVal_int(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "curvedsky_info_ny_set" "', argument " "2"" of type '" "int""'");
+  } 
+  arg2 = (int)(val2);
+  if (arg1) (arg1)->ny = arg2;
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_curvedsky_info_ny_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_curvedsky_info *arg1 = (nmt_curvedsky_info *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  int result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:curvedsky_info_ny_get",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_curvedsky_info, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "curvedsky_info_ny_get" "', argument " "1"" of type '" "nmt_curvedsky_info *""'"); 
+  }
+  arg1 = (nmt_curvedsky_info *)(argp1);
+  result = (int) ((arg1)->ny);
+  resultobj = SWIG_From_int((int)(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_curvedsky_info_npix_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_curvedsky_info *arg1 = (nmt_curvedsky_info *) 0 ;
+  long arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  long val2 ;
+  int ecode2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:curvedsky_info_npix_set",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_curvedsky_info, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "curvedsky_info_npix_set" "', argument " "1"" of type '" "nmt_curvedsky_info *""'"); 
+  }
+  arg1 = (nmt_curvedsky_info *)(argp1);
+  ecode2 = SWIG_AsVal_long(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "curvedsky_info_npix_set" "', argument " "2"" of type '" "long""'");
+  } 
+  arg2 = (long)(val2);
+  if (arg1) (arg1)->npix = arg2;
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_curvedsky_info_npix_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_curvedsky_info *arg1 = (nmt_curvedsky_info *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  long result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:curvedsky_info_npix_get",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_curvedsky_info, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "curvedsky_info_npix_get" "', argument " "1"" of type '" "nmt_curvedsky_info *""'"); 
+  }
+  arg1 = (nmt_curvedsky_info *)(argp1);
+  result = (long) ((arg1)->npix);
+  resultobj = SWIG_From_long((long)(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_curvedsky_info_Delta_theta_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_curvedsky_info *arg1 = (nmt_curvedsky_info *) 0 ;
+  flouble arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  double val2 ;
+  int ecode2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:curvedsky_info_Delta_theta_set",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_curvedsky_info, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "curvedsky_info_Delta_theta_set" "', argument " "1"" of type '" "nmt_curvedsky_info *""'"); 
+  }
+  arg1 = (nmt_curvedsky_info *)(argp1);
+  ecode2 = SWIG_AsVal_double(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "curvedsky_info_Delta_theta_set" "', argument " "2"" of type '" "flouble""'");
+  } 
+  arg2 = (flouble)(val2);
+  if (arg1) (arg1)->Delta_theta = arg2;
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_curvedsky_info_Delta_theta_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_curvedsky_info *arg1 = (nmt_curvedsky_info *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  flouble result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:curvedsky_info_Delta_theta_get",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_curvedsky_info, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "curvedsky_info_Delta_theta_get" "', argument " "1"" of type '" "nmt_curvedsky_info *""'"); 
+  }
+  arg1 = (nmt_curvedsky_info *)(argp1);
+  result = (flouble) ((arg1)->Delta_theta);
+  resultobj = SWIG_From_double((double)(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_curvedsky_info_Delta_phi_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_curvedsky_info *arg1 = (nmt_curvedsky_info *) 0 ;
+  flouble arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  double val2 ;
+  int ecode2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:curvedsky_info_Delta_phi_set",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_curvedsky_info, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "curvedsky_info_Delta_phi_set" "', argument " "1"" of type '" "nmt_curvedsky_info *""'"); 
+  }
+  arg1 = (nmt_curvedsky_info *)(argp1);
+  ecode2 = SWIG_AsVal_double(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "curvedsky_info_Delta_phi_set" "', argument " "2"" of type '" "flouble""'");
+  } 
+  arg2 = (flouble)(val2);
+  if (arg1) (arg1)->Delta_phi = arg2;
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_curvedsky_info_Delta_phi_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_curvedsky_info *arg1 = (nmt_curvedsky_info *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  flouble result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:curvedsky_info_Delta_phi_get",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_curvedsky_info, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "curvedsky_info_Delta_phi_get" "', argument " "1"" of type '" "nmt_curvedsky_info *""'"); 
+  }
+  arg1 = (nmt_curvedsky_info *)(argp1);
+  result = (flouble) ((arg1)->Delta_phi);
+  resultobj = SWIG_From_double((double)(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_curvedsky_info_phi0_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_curvedsky_info *arg1 = (nmt_curvedsky_info *) 0 ;
+  flouble arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  double val2 ;
+  int ecode2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:curvedsky_info_phi0_set",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_curvedsky_info, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "curvedsky_info_phi0_set" "', argument " "1"" of type '" "nmt_curvedsky_info *""'"); 
+  }
+  arg1 = (nmt_curvedsky_info *)(argp1);
+  ecode2 = SWIG_AsVal_double(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "curvedsky_info_phi0_set" "', argument " "2"" of type '" "flouble""'");
+  } 
+  arg2 = (flouble)(val2);
+  if (arg1) (arg1)->phi0 = arg2;
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_curvedsky_info_phi0_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_curvedsky_info *arg1 = (nmt_curvedsky_info *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  flouble result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:curvedsky_info_phi0_get",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_curvedsky_info, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "curvedsky_info_phi0_get" "', argument " "1"" of type '" "nmt_curvedsky_info *""'"); 
+  }
+  arg1 = (nmt_curvedsky_info *)(argp1);
+  result = (flouble) ((arg1)->phi0);
+  resultobj = SWIG_From_double((double)(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_curvedsky_info_theta0_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_curvedsky_info *arg1 = (nmt_curvedsky_info *) 0 ;
+  flouble arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  double val2 ;
+  int ecode2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:curvedsky_info_theta0_set",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_curvedsky_info, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "curvedsky_info_theta0_set" "', argument " "1"" of type '" "nmt_curvedsky_info *""'"); 
+  }
+  arg1 = (nmt_curvedsky_info *)(argp1);
+  ecode2 = SWIG_AsVal_double(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "curvedsky_info_theta0_set" "', argument " "2"" of type '" "flouble""'");
+  } 
+  arg2 = (flouble)(val2);
+  if (arg1) (arg1)->theta0 = arg2;
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_curvedsky_info_theta0_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_curvedsky_info *arg1 = (nmt_curvedsky_info *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  flouble result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:curvedsky_info_theta0_get",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_curvedsky_info, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "curvedsky_info_theta0_get" "', argument " "1"" of type '" "nmt_curvedsky_info *""'"); 
+  }
+  arg1 = (nmt_curvedsky_info *)(argp1);
+  result = (flouble) ((arg1)->theta0);
+  resultobj = SWIG_From_double((double)(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_new_curvedsky_info(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_curvedsky_info *result = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)":new_curvedsky_info")) SWIG_fail;
+  {
+    try {
+      result = (nmt_curvedsky_info *)calloc(1, sizeof(nmt_curvedsky_info));
+    }
+    finally {
+      SWIG_exception(SWIG_RuntimeError,nmt_error_message);
+    }
+  }
+  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_nmt_curvedsky_info, SWIG_POINTER_NEW |  0 );
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_delete_curvedsky_info(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_curvedsky_info *arg1 = (nmt_curvedsky_info *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:delete_curvedsky_info",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_curvedsky_info, SWIG_POINTER_DISOWN |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "delete_curvedsky_info" "', argument " "1"" of type '" "nmt_curvedsky_info *""'"); 
+  }
+  arg1 = (nmt_curvedsky_info *)(argp1);
+  {
+    try {
+      free((char *) arg1);
+    }
+    finally {
+      SWIG_exception(SWIG_RuntimeError,nmt_error_message);
+    }
+  }
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *curvedsky_info_swigregister(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *obj;
+  if (!PyArg_ParseTuple(args,(char*)"O:swigregister", &obj)) return NULL;
+  SWIG_TypeNewClientData(SWIGTYPE_p_nmt_curvedsky_info, SWIG_NewClientData(obj));
+  return SWIG_Py_Void();
+}
+
+SWIGINTERN PyObject *_wrap_curvedsky_info_copy(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_curvedsky_info *arg1 = (nmt_curvedsky_info *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  nmt_curvedsky_info *result = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:curvedsky_info_copy",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_curvedsky_info, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "curvedsky_info_copy" "', argument " "1"" of type '" "nmt_curvedsky_info *""'"); 
+  }
+  arg1 = (nmt_curvedsky_info *)(argp1);
+  result = (nmt_curvedsky_info *)nmt_curvedsky_info_copy(arg1);
+  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_nmt_curvedsky_info, 0 |  0 );
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_curvedsky_info_alloc(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  int arg1 ;
+  long arg2 ;
+  int arg3 ;
+  int arg4 ;
+  flouble arg5 ;
+  flouble arg6 ;
+  flouble arg7 ;
+  flouble arg8 ;
+  int val1 ;
+  int ecode1 = 0 ;
+  long val2 ;
+  int ecode2 = 0 ;
+  int val3 ;
+  int ecode3 = 0 ;
+  int val4 ;
+  int ecode4 = 0 ;
+  double val5 ;
+  int ecode5 = 0 ;
+  double val6 ;
+  int ecode6 = 0 ;
+  double val7 ;
+  int ecode7 = 0 ;
+  double val8 ;
+  int ecode8 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  PyObject * obj2 = 0 ;
+  PyObject * obj3 = 0 ;
+  PyObject * obj4 = 0 ;
+  PyObject * obj5 = 0 ;
+  PyObject * obj6 = 0 ;
+  PyObject * obj7 = 0 ;
+  nmt_curvedsky_info *result = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OOOOOOOO:curvedsky_info_alloc",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6,&obj7)) SWIG_fail;
+  ecode1 = SWIG_AsVal_int(obj0, &val1);
+  if (!SWIG_IsOK(ecode1)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "curvedsky_info_alloc" "', argument " "1"" of type '" "int""'");
+  } 
+  arg1 = (int)(val1);
+  ecode2 = SWIG_AsVal_long(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "curvedsky_info_alloc" "', argument " "2"" of type '" "long""'");
+  } 
+  arg2 = (long)(val2);
+  ecode3 = SWIG_AsVal_int(obj2, &val3);
+  if (!SWIG_IsOK(ecode3)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "curvedsky_info_alloc" "', argument " "3"" of type '" "int""'");
+  } 
+  arg3 = (int)(val3);
+  ecode4 = SWIG_AsVal_int(obj3, &val4);
+  if (!SWIG_IsOK(ecode4)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "curvedsky_info_alloc" "', argument " "4"" of type '" "int""'");
+  } 
+  arg4 = (int)(val4);
+  ecode5 = SWIG_AsVal_double(obj4, &val5);
+  if (!SWIG_IsOK(ecode5)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode5), "in method '" "curvedsky_info_alloc" "', argument " "5"" of type '" "flouble""'");
+  } 
+  arg5 = (flouble)(val5);
+  ecode6 = SWIG_AsVal_double(obj5, &val6);
+  if (!SWIG_IsOK(ecode6)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode6), "in method '" "curvedsky_info_alloc" "', argument " "6"" of type '" "flouble""'");
+  } 
+  arg6 = (flouble)(val6);
+  ecode7 = SWIG_AsVal_double(obj6, &val7);
+  if (!SWIG_IsOK(ecode7)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode7), "in method '" "curvedsky_info_alloc" "', argument " "7"" of type '" "flouble""'");
+  } 
+  arg7 = (flouble)(val7);
+  ecode8 = SWIG_AsVal_double(obj7, &val8);
+  if (!SWIG_IsOK(ecode8)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode8), "in method '" "curvedsky_info_alloc" "', argument " "8"" of type '" "flouble""'");
+  } 
+  arg8 = (flouble)(val8);
+  result = (nmt_curvedsky_info *)nmt_curvedsky_info_alloc(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8);
+  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_nmt_curvedsky_info, 0 |  0 );
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_diff_curvedsky_info(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_curvedsky_info *arg1 = (nmt_curvedsky_info *) 0 ;
+  nmt_curvedsky_info *arg2 = (nmt_curvedsky_info *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  void *argp2 = 0 ;
+  int res2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  int result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:diff_curvedsky_info",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_curvedsky_info, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "diff_curvedsky_info" "', argument " "1"" of type '" "nmt_curvedsky_info *""'"); 
+  }
+  arg1 = (nmt_curvedsky_info *)(argp1);
+  res2 = SWIG_ConvertPtr(obj1, &argp2,SWIGTYPE_p_nmt_curvedsky_info, 0 |  0 );
+  if (!SWIG_IsOK(res2)) {
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "diff_curvedsky_info" "', argument " "2"" of type '" "nmt_curvedsky_info *""'"); 
+  }
+  arg2 = (nmt_curvedsky_info *)(argp2);
+  result = (int)nmt_diff_curvedsky_info(arg1,arg2);
+  resultobj = SWIG_From_int((int)(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_field_cs_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_field *arg1 = (nmt_field *) 0 ;
+  nmt_curvedsky_info *arg2 = (nmt_curvedsky_info *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  void *argp2 = 0 ;
+  int res2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:field_cs_set",&obj0,&obj1)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_field, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "field_nside_get" "', argument " "1"" of type '" "nmt_field *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "field_cs_set" "', argument " "1"" of type '" "nmt_field *""'"); 
   }
   arg1 = (nmt_field *)(argp1);
-  result = (long) ((arg1)->nside);
-  resultobj = SWIG_From_long((long)(result));
+  res2 = SWIG_ConvertPtr(obj1, &argp2,SWIGTYPE_p_nmt_curvedsky_info, SWIG_POINTER_DISOWN |  0 );
+  if (!SWIG_IsOK(res2)) {
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "field_cs_set" "', argument " "2"" of type '" "nmt_curvedsky_info *""'"); 
+  }
+  arg2 = (nmt_curvedsky_info *)(argp2);
+  if (arg1) (arg1)->cs = arg2;
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_field_cs_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_field *arg1 = (nmt_field *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  nmt_curvedsky_info *result = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:field_cs_get",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_field, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "field_cs_get" "', argument " "1"" of type '" "nmt_field *""'"); 
+  }
+  arg1 = (nmt_field *)(argp1);
+  result = (nmt_curvedsky_info *) ((arg1)->cs);
+  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_nmt_curvedsky_info, 0 |  0 );
   return resultobj;
 fail:
   return NULL;
@@ -8988,7 +9656,7 @@ fail:
 
 SWIGINTERN PyObject *_wrap_field_alloc_sph(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  long arg1 ;
+  nmt_curvedsky_info *arg1 = (nmt_curvedsky_info *) 0 ;
   flouble *arg2 = (flouble *) 0 ;
   int arg3 ;
   flouble **arg4 = (flouble **) 0 ;
@@ -8999,8 +9667,8 @@ SWIGINTERN PyObject *_wrap_field_alloc_sph(PyObject *SWIGUNUSEDPARM(self), PyObj
   int arg9 ;
   int arg10 ;
   double arg11 ;
-  long val1 ;
-  int ecode1 = 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
   void *argp2 = 0 ;
   int res2 = 0 ;
   int val3 ;
@@ -9035,11 +9703,11 @@ SWIGINTERN PyObject *_wrap_field_alloc_sph(PyObject *SWIGUNUSEDPARM(self), PyObj
   nmt_field *result = 0 ;
   
   if (!PyArg_ParseTuple(args,(char *)"OOOOOOOOOOO:field_alloc_sph",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6,&obj7,&obj8,&obj9,&obj10)) SWIG_fail;
-  ecode1 = SWIG_AsVal_long(obj0, &val1);
-  if (!SWIG_IsOK(ecode1)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "field_alloc_sph" "', argument " "1"" of type '" "long""'");
-  } 
-  arg1 = (long)(val1);
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_curvedsky_info, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "field_alloc_sph" "', argument " "1"" of type '" "nmt_curvedsky_info *""'"); 
+  }
+  arg1 = (nmt_curvedsky_info *)(argp1);
   res2 = SWIG_ConvertPtr(obj1, &argp2,SWIGTYPE_p_double, 0 |  0 );
   if (!SWIG_IsOK(res2)) {
     SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "field_alloc_sph" "', argument " "2"" of type '" "flouble *""'"); 
@@ -9100,18 +9768,18 @@ fail:
 
 SWIGINTERN PyObject *_wrap_field_read(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  char *arg1 = (char *) 0 ;
+  int arg1 ;
   char *arg2 = (char *) 0 ;
   char *arg3 = (char *) 0 ;
   char *arg4 = (char *) 0 ;
-  int arg5 ;
+  char *arg5 = (char *) 0 ;
   int arg6 ;
   int arg7 ;
   int arg8 ;
-  double arg9 ;
-  int res1 ;
-  char *buf1 = 0 ;
-  int alloc1 = 0 ;
+  int arg9 ;
+  double arg10 ;
+  int val1 ;
+  int ecode1 = 0 ;
   int res2 ;
   char *buf2 = 0 ;
   int alloc2 = 0 ;
@@ -9121,16 +9789,19 @@ SWIGINTERN PyObject *_wrap_field_read(PyObject *SWIGUNUSEDPARM(self), PyObject *
   int res4 ;
   char *buf4 = 0 ;
   int alloc4 = 0 ;
-  int val5 ;
-  int ecode5 = 0 ;
+  int res5 ;
+  char *buf5 = 0 ;
+  int alloc5 = 0 ;
   int val6 ;
   int ecode6 = 0 ;
   int val7 ;
   int ecode7 = 0 ;
   int val8 ;
   int ecode8 = 0 ;
-  double val9 ;
+  int val9 ;
   int ecode9 = 0 ;
+  double val10 ;
+  int ecode10 = 0 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   PyObject * obj2 = 0 ;
@@ -9140,14 +9811,15 @@ SWIGINTERN PyObject *_wrap_field_read(PyObject *SWIGUNUSEDPARM(self), PyObject *
   PyObject * obj6 = 0 ;
   PyObject * obj7 = 0 ;
   PyObject * obj8 = 0 ;
+  PyObject * obj9 = 0 ;
   nmt_field *result = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"OOOOOOOOO:field_read",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6,&obj7,&obj8)) SWIG_fail;
-  res1 = SWIG_AsCharPtrAndSize(obj0, &buf1, NULL, &alloc1);
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "field_read" "', argument " "1"" of type '" "char *""'");
-  }
-  arg1 = (char *)(buf1);
+  if (!PyArg_ParseTuple(args,(char *)"OOOOOOOOOO:field_read",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6,&obj7,&obj8,&obj9)) SWIG_fail;
+  ecode1 = SWIG_AsVal_int(obj0, &val1);
+  if (!SWIG_IsOK(ecode1)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "field_read" "', argument " "1"" of type '" "int""'");
+  } 
+  arg1 = (int)(val1);
   res2 = SWIG_AsCharPtrAndSize(obj1, &buf2, NULL, &alloc2);
   if (!SWIG_IsOK(res2)) {
     SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "field_read" "', argument " "2"" of type '" "char *""'");
@@ -9163,11 +9835,11 @@ SWIGINTERN PyObject *_wrap_field_read(PyObject *SWIGUNUSEDPARM(self), PyObject *
     SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "field_read" "', argument " "4"" of type '" "char *""'");
   }
   arg4 = (char *)(buf4);
-  ecode5 = SWIG_AsVal_int(obj4, &val5);
-  if (!SWIG_IsOK(ecode5)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode5), "in method '" "field_read" "', argument " "5"" of type '" "int""'");
-  } 
-  arg5 = (int)(val5);
+  res5 = SWIG_AsCharPtrAndSize(obj4, &buf5, NULL, &alloc5);
+  if (!SWIG_IsOK(res5)) {
+    SWIG_exception_fail(SWIG_ArgError(res5), "in method '" "field_read" "', argument " "5"" of type '" "char *""'");
+  }
+  arg5 = (char *)(buf5);
   ecode6 = SWIG_AsVal_int(obj5, &val6);
   if (!SWIG_IsOK(ecode6)) {
     SWIG_exception_fail(SWIG_ArgError(ecode6), "in method '" "field_read" "', argument " "6"" of type '" "int""'");
@@ -9183,38 +9855,43 @@ SWIGINTERN PyObject *_wrap_field_read(PyObject *SWIGUNUSEDPARM(self), PyObject *
     SWIG_exception_fail(SWIG_ArgError(ecode8), "in method '" "field_read" "', argument " "8"" of type '" "int""'");
   } 
   arg8 = (int)(val8);
-  ecode9 = SWIG_AsVal_double(obj8, &val9);
+  ecode9 = SWIG_AsVal_int(obj8, &val9);
   if (!SWIG_IsOK(ecode9)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode9), "in method '" "field_read" "', argument " "9"" of type '" "double""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode9), "in method '" "field_read" "', argument " "9"" of type '" "int""'");
   } 
-  arg9 = (double)(val9);
-  result = (nmt_field *)nmt_field_read(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9);
+  arg9 = (int)(val9);
+  ecode10 = SWIG_AsVal_double(obj9, &val10);
+  if (!SWIG_IsOK(ecode10)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode10), "in method '" "field_read" "', argument " "10"" of type '" "double""'");
+  } 
+  arg10 = (double)(val10);
+  result = (nmt_field *)nmt_field_read(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10);
   resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_nmt_field, 0 |  0 );
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
   if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
   if (alloc3 == SWIG_NEWOBJ) free((char*)buf3);
   if (alloc4 == SWIG_NEWOBJ) free((char*)buf4);
+  if (alloc5 == SWIG_NEWOBJ) free((char*)buf5);
   return resultobj;
 fail:
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
   if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
   if (alloc3 == SWIG_NEWOBJ) free((char*)buf3);
   if (alloc4 == SWIG_NEWOBJ) free((char*)buf4);
+  if (alloc5 == SWIG_NEWOBJ) free((char*)buf5);
   return NULL;
 }
 
 
 SWIGINTERN PyObject *_wrap_synfast_sph(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  int arg1 ;
+  nmt_curvedsky_info *arg1 = (nmt_curvedsky_info *) 0 ;
   int arg2 ;
   int *arg3 = (int *) 0 ;
   int arg4 ;
   flouble **arg5 = (flouble **) 0 ;
   flouble **arg6 = (flouble **) 0 ;
   int arg7 ;
-  int val1 ;
-  int ecode1 = 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
   int val2 ;
   int ecode2 = 0 ;
   void *argp3 = 0 ;
@@ -9237,11 +9914,11 @@ SWIGINTERN PyObject *_wrap_synfast_sph(PyObject *SWIGUNUSEDPARM(self), PyObject 
   flouble **result = 0 ;
   
   if (!PyArg_ParseTuple(args,(char *)"OOOOOOO:synfast_sph",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6)) SWIG_fail;
-  ecode1 = SWIG_AsVal_int(obj0, &val1);
-  if (!SWIG_IsOK(ecode1)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "synfast_sph" "', argument " "1"" of type '" "int""'");
-  } 
-  arg1 = (int)(val1);
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_curvedsky_info, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "synfast_sph" "', argument " "1"" of type '" "nmt_curvedsky_info *""'"); 
+  }
+  arg1 = (nmt_curvedsky_info *)(argp1);
   ecode2 = SWIG_AsVal_int(obj1, &val2);
   if (!SWIG_IsOK(ecode2)) {
     SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "synfast_sph" "', argument " "2"" of type '" "int""'");
@@ -11314,29 +11991,29 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_workspace_nside_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_workspace_cs_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   nmt_workspace *arg1 = (nmt_workspace *) 0 ;
-  int arg2 ;
+  nmt_curvedsky_info *arg2 = (nmt_curvedsky_info *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
-  int val2 ;
-  int ecode2 = 0 ;
+  void *argp2 = 0 ;
+  int res2 = 0 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"OO:workspace_nside_set",&obj0,&obj1)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OO:workspace_cs_set",&obj0,&obj1)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_workspace, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "workspace_nside_set" "', argument " "1"" of type '" "nmt_workspace *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "workspace_cs_set" "', argument " "1"" of type '" "nmt_workspace *""'"); 
   }
   arg1 = (nmt_workspace *)(argp1);
-  ecode2 = SWIG_AsVal_int(obj1, &val2);
-  if (!SWIG_IsOK(ecode2)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "workspace_nside_set" "', argument " "2"" of type '" "int""'");
-  } 
-  arg2 = (int)(val2);
-  if (arg1) (arg1)->nside = arg2;
+  res2 = SWIG_ConvertPtr(obj1, &argp2,SWIGTYPE_p_nmt_curvedsky_info, SWIG_POINTER_DISOWN |  0 );
+  if (!SWIG_IsOK(res2)) {
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "workspace_cs_set" "', argument " "2"" of type '" "nmt_curvedsky_info *""'"); 
+  }
+  arg2 = (nmt_curvedsky_info *)(argp2);
+  if (arg1) (arg1)->cs = arg2;
   resultobj = SWIG_Py_Void();
   return resultobj;
 fail:
@@ -11344,22 +12021,22 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_workspace_nside_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_workspace_cs_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   nmt_workspace *arg1 = (nmt_workspace *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   PyObject * obj0 = 0 ;
-  int result;
+  nmt_curvedsky_info *result = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"O:workspace_nside_get",&obj0)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"O:workspace_cs_get",&obj0)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_workspace, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "workspace_nside_get" "', argument " "1"" of type '" "nmt_workspace *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "workspace_cs_get" "', argument " "1"" of type '" "nmt_workspace *""'"); 
   }
   arg1 = (nmt_workspace *)(argp1);
-  result = (int) ((arg1)->nside);
-  resultobj = SWIG_From_int((int)(result));
+  result = (nmt_curvedsky_info *) ((arg1)->cs);
+  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_nmt_curvedsky_info, 0 |  0 );
   return resultobj;
 fail:
   return NULL;
@@ -13279,29 +13956,29 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_covar_workspace_nside_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_covar_workspace_cs_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   nmt_covar_workspace *arg1 = (nmt_covar_workspace *) 0 ;
-  int arg2 ;
+  nmt_curvedsky_info *arg2 = (nmt_curvedsky_info *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
-  int val2 ;
-  int ecode2 = 0 ;
+  void *argp2 = 0 ;
+  int res2 = 0 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"OO:covar_workspace_nside_set",&obj0,&obj1)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OO:covar_workspace_cs_set",&obj0,&obj1)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_covar_workspace, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "covar_workspace_nside_set" "', argument " "1"" of type '" "nmt_covar_workspace *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "covar_workspace_cs_set" "', argument " "1"" of type '" "nmt_covar_workspace *""'"); 
   }
   arg1 = (nmt_covar_workspace *)(argp1);
-  ecode2 = SWIG_AsVal_int(obj1, &val2);
-  if (!SWIG_IsOK(ecode2)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "covar_workspace_nside_set" "', argument " "2"" of type '" "int""'");
-  } 
-  arg2 = (int)(val2);
-  if (arg1) (arg1)->nside = arg2;
+  res2 = SWIG_ConvertPtr(obj1, &argp2,SWIGTYPE_p_nmt_curvedsky_info, SWIG_POINTER_DISOWN |  0 );
+  if (!SWIG_IsOK(res2)) {
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "covar_workspace_cs_set" "', argument " "2"" of type '" "nmt_curvedsky_info *""'"); 
+  }
+  arg2 = (nmt_curvedsky_info *)(argp2);
+  if (arg1) (arg1)->cs = arg2;
   resultobj = SWIG_Py_Void();
   return resultobj;
 fail:
@@ -13309,22 +13986,22 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_covar_workspace_nside_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_covar_workspace_cs_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   nmt_covar_workspace *arg1 = (nmt_covar_workspace *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   PyObject * obj0 = 0 ;
-  int result;
+  nmt_curvedsky_info *result = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"O:covar_workspace_nside_get",&obj0)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"O:covar_workspace_cs_get",&obj0)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_covar_workspace, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "covar_workspace_nside_get" "', argument " "1"" of type '" "nmt_covar_workspace *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "covar_workspace_cs_get" "', argument " "1"" of type '" "nmt_covar_workspace *""'"); 
   }
   arg1 = (nmt_covar_workspace *)(argp1);
-  result = (int) ((arg1)->nside);
-  resultobj = SWIG_From_int((int)(result));
+  result = (nmt_curvedsky_info *) ((arg1)->cs);
+  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_nmt_curvedsky_info, 0 |  0 );
   return resultobj;
 fail:
   return NULL;
@@ -18693,8 +19370,32 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"field_flat_alloc", _wrap_field_flat_alloc, METH_VARARGS, NULL},
 	 { (char *)"synfast_flat", _wrap_synfast_flat, METH_VARARGS, NULL},
 	 { (char *)"purify_flat", _wrap_purify_flat, METH_VARARGS, NULL},
-	 { (char *)"field_nside_set", _wrap_field_nside_set, METH_VARARGS, NULL},
-	 { (char *)"field_nside_get", _wrap_field_nside_get, METH_VARARGS, NULL},
+	 { (char *)"curvedsky_info_is_healpix_set", _wrap_curvedsky_info_is_healpix_set, METH_VARARGS, NULL},
+	 { (char *)"curvedsky_info_is_healpix_get", _wrap_curvedsky_info_is_healpix_get, METH_VARARGS, NULL},
+	 { (char *)"curvedsky_info_n_eq_set", _wrap_curvedsky_info_n_eq_set, METH_VARARGS, NULL},
+	 { (char *)"curvedsky_info_n_eq_get", _wrap_curvedsky_info_n_eq_get, METH_VARARGS, NULL},
+	 { (char *)"curvedsky_info_nx_set", _wrap_curvedsky_info_nx_set, METH_VARARGS, NULL},
+	 { (char *)"curvedsky_info_nx_get", _wrap_curvedsky_info_nx_get, METH_VARARGS, NULL},
+	 { (char *)"curvedsky_info_ny_set", _wrap_curvedsky_info_ny_set, METH_VARARGS, NULL},
+	 { (char *)"curvedsky_info_ny_get", _wrap_curvedsky_info_ny_get, METH_VARARGS, NULL},
+	 { (char *)"curvedsky_info_npix_set", _wrap_curvedsky_info_npix_set, METH_VARARGS, NULL},
+	 { (char *)"curvedsky_info_npix_get", _wrap_curvedsky_info_npix_get, METH_VARARGS, NULL},
+	 { (char *)"curvedsky_info_Delta_theta_set", _wrap_curvedsky_info_Delta_theta_set, METH_VARARGS, NULL},
+	 { (char *)"curvedsky_info_Delta_theta_get", _wrap_curvedsky_info_Delta_theta_get, METH_VARARGS, NULL},
+	 { (char *)"curvedsky_info_Delta_phi_set", _wrap_curvedsky_info_Delta_phi_set, METH_VARARGS, NULL},
+	 { (char *)"curvedsky_info_Delta_phi_get", _wrap_curvedsky_info_Delta_phi_get, METH_VARARGS, NULL},
+	 { (char *)"curvedsky_info_phi0_set", _wrap_curvedsky_info_phi0_set, METH_VARARGS, NULL},
+	 { (char *)"curvedsky_info_phi0_get", _wrap_curvedsky_info_phi0_get, METH_VARARGS, NULL},
+	 { (char *)"curvedsky_info_theta0_set", _wrap_curvedsky_info_theta0_set, METH_VARARGS, NULL},
+	 { (char *)"curvedsky_info_theta0_get", _wrap_curvedsky_info_theta0_get, METH_VARARGS, NULL},
+	 { (char *)"new_curvedsky_info", _wrap_new_curvedsky_info, METH_VARARGS, NULL},
+	 { (char *)"delete_curvedsky_info", _wrap_delete_curvedsky_info, METH_VARARGS, NULL},
+	 { (char *)"curvedsky_info_swigregister", curvedsky_info_swigregister, METH_VARARGS, NULL},
+	 { (char *)"curvedsky_info_copy", _wrap_curvedsky_info_copy, METH_VARARGS, NULL},
+	 { (char *)"curvedsky_info_alloc", _wrap_curvedsky_info_alloc, METH_VARARGS, NULL},
+	 { (char *)"diff_curvedsky_info", _wrap_diff_curvedsky_info, METH_VARARGS, NULL},
+	 { (char *)"field_cs_set", _wrap_field_cs_set, METH_VARARGS, NULL},
+	 { (char *)"field_cs_get", _wrap_field_cs_get, METH_VARARGS, NULL},
 	 { (char *)"field_npix_set", _wrap_field_npix_set, METH_VARARGS, NULL},
 	 { (char *)"field_npix_get", _wrap_field_npix_get, METH_VARARGS, NULL},
 	 { (char *)"field_lmax_set", _wrap_field_lmax_set, METH_VARARGS, NULL},
@@ -18790,8 +19491,8 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"workspace_is_teb_get", _wrap_workspace_is_teb_get, METH_VARARGS, NULL},
 	 { (char *)"workspace_ncls_set", _wrap_workspace_ncls_set, METH_VARARGS, NULL},
 	 { (char *)"workspace_ncls_get", _wrap_workspace_ncls_get, METH_VARARGS, NULL},
-	 { (char *)"workspace_nside_set", _wrap_workspace_nside_set, METH_VARARGS, NULL},
-	 { (char *)"workspace_nside_get", _wrap_workspace_nside_get, METH_VARARGS, NULL},
+	 { (char *)"workspace_cs_set", _wrap_workspace_cs_set, METH_VARARGS, NULL},
+	 { (char *)"workspace_cs_get", _wrap_workspace_cs_get, METH_VARARGS, NULL},
 	 { (char *)"workspace_mask1_set", _wrap_workspace_mask1_set, METH_VARARGS, NULL},
 	 { (char *)"workspace_mask1_get", _wrap_workspace_mask1_get, METH_VARARGS, NULL},
 	 { (char *)"workspace_mask2_set", _wrap_workspace_mask2_set, METH_VARARGS, NULL},
@@ -18858,8 +19559,8 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"covar_workspace_bin_a_get", _wrap_covar_workspace_bin_a_get, METH_VARARGS, NULL},
 	 { (char *)"covar_workspace_bin_b_set", _wrap_covar_workspace_bin_b_set, METH_VARARGS, NULL},
 	 { (char *)"covar_workspace_bin_b_get", _wrap_covar_workspace_bin_b_get, METH_VARARGS, NULL},
-	 { (char *)"covar_workspace_nside_set", _wrap_covar_workspace_nside_set, METH_VARARGS, NULL},
-	 { (char *)"covar_workspace_nside_get", _wrap_covar_workspace_nside_get, METH_VARARGS, NULL},
+	 { (char *)"covar_workspace_cs_set", _wrap_covar_workspace_cs_set, METH_VARARGS, NULL},
+	 { (char *)"covar_workspace_cs_get", _wrap_covar_workspace_cs_get, METH_VARARGS, NULL},
 	 { (char *)"covar_workspace_xi_1122_set", _wrap_covar_workspace_xi_1122_set, METH_VARARGS, NULL},
 	 { (char *)"covar_workspace_xi_1122_get", _wrap_covar_workspace_xi_1122_get, METH_VARARGS, NULL},
 	 { (char *)"covar_workspace_xi_1221_set", _wrap_covar_workspace_xi_1221_set, METH_VARARGS, NULL},
@@ -18949,6 +19650,7 @@ static swig_type_info _swigt__p_nmt_binning_scheme = {"_p_nmt_binning_scheme", "
 static swig_type_info _swigt__p_nmt_binning_scheme_flat = {"_p_nmt_binning_scheme_flat", "nmt_binning_scheme_flat *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_nmt_covar_workspace = {"_p_nmt_covar_workspace", "nmt_covar_workspace *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_nmt_covar_workspace_flat = {"_p_nmt_covar_workspace_flat", "nmt_covar_workspace_flat *", 0, 0, (void*)0, 0};
+static swig_type_info _swigt__p_nmt_curvedsky_info = {"_p_nmt_curvedsky_info", "nmt_curvedsky_info *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_nmt_field = {"_p_nmt_field", "nmt_field *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_nmt_field_flat = {"_p_nmt_field_flat", "nmt_field_flat *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_nmt_flatsky_info = {"_p_nmt_flatsky_info", "nmt_flatsky_info *", 0, 0, (void*)0, 0};
@@ -18974,6 +19676,7 @@ static swig_type_info *swig_type_initial[] = {
   &_swigt__p_nmt_binning_scheme_flat,
   &_swigt__p_nmt_covar_workspace,
   &_swigt__p_nmt_covar_workspace_flat,
+  &_swigt__p_nmt_curvedsky_info,
   &_swigt__p_nmt_field,
   &_swigt__p_nmt_field_flat,
   &_swigt__p_nmt_flatsky_info,
@@ -18999,6 +19702,7 @@ static swig_cast_info _swigc__p_nmt_binning_scheme[] = {  {&_swigt__p_nmt_binnin
 static swig_cast_info _swigc__p_nmt_binning_scheme_flat[] = {  {&_swigt__p_nmt_binning_scheme_flat, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_nmt_covar_workspace[] = {  {&_swigt__p_nmt_covar_workspace, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_nmt_covar_workspace_flat[] = {  {&_swigt__p_nmt_covar_workspace_flat, 0, 0, 0},{0, 0, 0, 0}};
+static swig_cast_info _swigc__p_nmt_curvedsky_info[] = {  {&_swigt__p_nmt_curvedsky_info, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_nmt_field[] = {  {&_swigt__p_nmt_field, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_nmt_field_flat[] = {  {&_swigt__p_nmt_field_flat, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_nmt_flatsky_info[] = {  {&_swigt__p_nmt_flatsky_info, 0, 0, 0},{0, 0, 0, 0}};
@@ -19024,6 +19728,7 @@ static swig_cast_info *swig_cast_initial[] = {
   _swigc__p_nmt_binning_scheme_flat,
   _swigc__p_nmt_covar_workspace,
   _swigc__p_nmt_covar_workspace_flat,
+  _swigc__p_nmt_curvedsky_info,
   _swigc__p_nmt_field,
   _swigc__p_nmt_field_flat,
   _swigc__p_nmt_flatsky_info,
