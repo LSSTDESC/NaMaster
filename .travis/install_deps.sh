@@ -41,6 +41,13 @@ fi;
 
 wget https://sourceforge.net/projects/healpix/files/Healpix_3.11/autotools_packages/chealpix-3.11.4.tar.gz && tar xzf chealpix-3.11.4.tar.gz && cd chealpix-3.11.4 && ./configure --enable-shared && make && sudo make install && cd ..
 
+
+# Install numpy for py37
+
+if [[$TOXENV == "py37" ]]; then
+conda install numpy;
+fi
+
 # Install healpy and nose
 
 if ! [[$TRAVIS_OS_NAME == "linux" ]]; then
