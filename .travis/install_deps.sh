@@ -44,19 +44,19 @@ wget https://sourceforge.net/projects/healpix/files/Healpix_3.11/autotools_packa
 
 # Install numpy for py37
 
-if [[$TOXENV == "py37" ]]; then
+if [[ $TOXENV == "py37" ]]; then
 conda install numpy;
 fi
 
 # Install healpy and nose
 
-if ! [[$TRAVIS_OS_NAME == "linux" ]]; then
+if ! [[ $TRAVIS_OS_NAME == "linux" ]]; then
 export CXX=g++-8;
 fi
 
 pip install nose scipy healpy
 
-#if ! [[$TRAVIS_OS_NAME == "linux" ]]; then
+#if ! [[ $TRAVIS_OS_NAME == "linux" ]]; then
 #conda install -c conda-forge healpy --no-deps
 #fi
 
