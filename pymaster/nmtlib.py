@@ -1021,6 +1021,10 @@ def get_weight_list(bins, ibin, dout):
     return _nmtlib.get_weight_list(bins, ibin, dout)
 get_weight_list = _nmtlib.get_weight_list
 
+def get_lmax_py(is_healpix, nside, nx, ny, delta_phi, delta_theta, phi0, theta0):
+    return _nmtlib.get_lmax_py(is_healpix, nside, nx, ny, delta_phi, delta_theta, phi0, theta0)
+get_lmax_py = _nmtlib.get_lmax_py
+
 def get_ell_eff(bins, dout):
     return _nmtlib.get_ell_eff(bins, dout)
 get_ell_eff = _nmtlib.get_ell_eff
@@ -1061,12 +1065,12 @@ def unbin_cl_flat(bins, ncl1, nell3, dout):
     return _nmtlib.unbin_cl_flat(bins, ncl1, nell3, dout)
 unbin_cl_flat = _nmtlib.unbin_cl_flat
 
-def field_alloc_new(npix_1, nmap_2, ntmp_3, nell3, pure_e, pure_b, n_iter_mask_purify, tol_pinv):
-    return _nmtlib.field_alloc_new(npix_1, nmap_2, ntmp_3, nell3, pure_e, pure_b, n_iter_mask_purify, tol_pinv)
+def field_alloc_new(is_healpix, nside, nx, ny, delta_phi, delta_theta, phi0, theta0, npix_1, nmap_2, ntmp_3, nell3, pure_e, pure_b, n_iter_mask_purify, tol_pinv):
+    return _nmtlib.field_alloc_new(is_healpix, nside, nx, ny, delta_phi, delta_theta, phi0, theta0, npix_1, nmap_2, ntmp_3, nell3, pure_e, pure_b, n_iter_mask_purify, tol_pinv)
 field_alloc_new = _nmtlib.field_alloc_new
 
-def field_alloc_new_notemp(npix_1, nmap_2, nell3, pure_e, pure_b, n_iter_mask_purify):
-    return _nmtlib.field_alloc_new_notemp(npix_1, nmap_2, nell3, pure_e, pure_b, n_iter_mask_purify)
+def field_alloc_new_notemp(is_healpix, nside, nx, ny, delta_phi, delta_theta, phi0, theta0, npix_1, nmap_2, nell3, pure_e, pure_b, n_iter_mask_purify):
+    return _nmtlib.field_alloc_new_notemp(is_healpix, nside, nx, ny, delta_phi, delta_theta, phi0, theta0, npix_1, nmap_2, nell3, pure_e, pure_b, n_iter_mask_purify)
 field_alloc_new_notemp = _nmtlib.field_alloc_new_notemp
 
 def field_alloc_new_flat(nx, ny, lx, ly, npix_1, nmap_2, ntmp_3, ncl1, pure_e, pure_b, tol_pinv):
@@ -1101,8 +1105,8 @@ def apomask_flat(nx, ny, lx, ly, npix_1, dout, aposize, apotype):
     return _nmtlib.apomask_flat(nx, ny, lx, ly, npix_1, dout, aposize, apotype)
 apomask_flat = _nmtlib.apomask_flat
 
-def synfast_new(nside, nfields, seed, ncl1, ncl2, ldout):
-    return _nmtlib.synfast_new(nside, nfields, seed, ncl1, ncl2, ldout)
+def synfast_new(is_healpix, nside, nx, ny, delta_phi, delta_theta, phi0, theta0, nfields, seed, ncl1, ncl2, ldout):
+    return _nmtlib.synfast_new(is_healpix, nside, nx, ny, delta_phi, delta_theta, phi0, theta0, nfields, seed, ncl1, ncl2, ldout)
 synfast_new = _nmtlib.synfast_new
 
 def synfast_new_flat(nx, ny, lx, ly, nfields, seed, ncl1, ncl2, dout):

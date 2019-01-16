@@ -84,6 +84,16 @@ void get_weight_list(nmt_binning_scheme *bins,int ibin,double *dout,int ndout)
   memcpy(dout,bins->w_list[ibin],bins->nell_list[ibin]*sizeof(double));
 }
 
+int get_lmax_py(int is_healpix,int nside,int nx,int ny,
+		double delta_phi,double delta_theta,double phi0,double theta0)
+{
+  nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(is_healpix,(long)nside,nx,ny,
+						  delta_theta,delta_phi,phi0,theta0);
+  int lmax=he_get_lmax(cs);
+  free(cs);
+  return lmax;
+}
+ 
 void get_ell_eff(nmt_binning_scheme *bins,double *dout,int ndout)
 {
   asserting(ndout==bins->n_bands);
@@ -214,14 +224,16 @@ void unbin_cl_flat(nmt_binning_scheme_flat *bins,
   free(cls_out);
 }
 
-nmt_field *field_alloc_new(int npix_1,double *mask,
+nmt_field *field_alloc_new(int is_healpix,int nside,int nx,int ny,double delta_phi,
+			   double delta_theta,double phi0,double theta0,
+			   int npix_1,double *mask,
 			   int nmap_2,int npix_2,double *mps,
 			   int ntmp_3,int nmap_3,int npix_3,double *tmp,
 			   int nell3,double *weights,
 			   int pure_e,int pure_b,int n_iter_mask_purify,double tol_pinv)
 {
   int ii,jj;
-  long nside=1;
+  long nside_l=(long)nside;
   int pol=0,ntemp=0;
   double **maps;
   double ***temp=NULL;
@@ -231,13 +243,14 @@ nmt_field *field_alloc_new(int npix_1,double *mask,
   asserting(nmap_2==nmap_3);
   asserting((nmap_2==1) || (nmap_2==2));
 
-  while(npix_1!=12*nside*nside) {
-    asserting(nside<=65536);
-    nside*=2;
-  }
+  if(is_healpix)
+    asserting(npix_1==12*nside_l*nside_l);
+  else
+    asserting(npix_1==nx*ny);
 
-  nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(1,nside,-1,-1,-1,-1,-1,-1);
-  asserting(nell3==he_get_lmax(cs)+1);
+  nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(is_healpix,nside_l,nx,ny,
+						  delta_theta,delta_phi,phi0,theta0);
+  asserting(nell3>he_get_lmax(cs));
 
   if(nmap_2==2) pol=1;
 
@@ -269,26 +282,29 @@ nmt_field *field_alloc_new(int npix_1,double *mask,
   return fl;
 }
 
-nmt_field *field_alloc_new_notemp(int npix_1,double *mask,
+nmt_field *field_alloc_new_notemp(int is_healpix,int nside,int nx,int ny,double delta_phi,
+				  double delta_theta,double phi0,double theta0,
+				  int npix_1,double *mask,
 				  int nmap_2,int npix_2,double *mps,
 				  int nell3,double *weights,
 				  int pure_e,int pure_b,int n_iter_mask_purify)
 {
   int ii;
-  long nside=1;
+  long nside_l=(long)nside;
   int pol=0,ntemp=0;
   double **maps;
   nmt_field *fl;
   asserting(npix_1==npix_2);
   asserting((nmap_2==1) || (nmap_2==2));
 
-  while(npix_1!=12*nside*nside) {
-    asserting(nside<=65536);
-    nside*=2;
-  }
-  
-  nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(1,nside,-1,-1,-1,-1,-1,-1);
-  asserting(nell3==he_get_lmax(cs)+1);
+  if(is_healpix)
+    asserting(npix_1==12*nside_l*nside_l);
+  else
+    asserting(npix_1==nx*ny);
+
+  nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(is_healpix,nside_l,nx,ny,
+						  delta_theta,delta_phi,phi0,theta0);
+  asserting(nell3>he_get_lmax(cs));
 
   if(nmap_2==2) pol=1;
 
@@ -431,7 +447,8 @@ void apomask_flat(int nx,int ny,double lx,double ly,
   nmt_apodize_mask_flat(nx,ny,lx,ly,mask,dout,aposize,apotype);
 }
 
-void synfast_new(int nside,
+void synfast_new(int is_healpix,int nside,int nx,int ny,double delta_phi,
+		 double delta_theta,double phi0,double theta0,
 		 int nfields,int *spin_arr,
 		 int seed,
 		 int ncl1,int nell1,double *cls1,
@@ -439,9 +456,15 @@ void synfast_new(int nside,
 		 double* ldout,long nldout)
 {
   int ii,icl,nmaps=0;
-  long npix=12*nside*nside;
+  long nside_l=(long)nside;
+  long npix;
   double **cls,**beams,**maps;
 
+  if(is_healpix)
+    npix=12*nside_l*nside_l;
+  else
+    npix=nx*ny;
+  
   for(ii=0;ii<nfields;ii++) {
     if(spin_arr[ii]==0)
       nmaps+=1;
@@ -449,7 +472,8 @@ void synfast_new(int nside,
       nmaps+=2;
   }
 
-  nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(1,nside,-1,-1,-1,-1,-1,-1);
+  nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(is_healpix,nside_l,nx,ny,
+						  delta_theta,delta_phi,phi0,theta0);
   asserting(ncl2==nfields);
   asserting(ncl1==(nmaps*(nmaps+1))/2);
   asserting(nell1==nell2);

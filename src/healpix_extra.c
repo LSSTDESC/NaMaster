@@ -164,7 +164,7 @@ static flouble *he_read_CAR_map(char *fname, nmt_curvedsky_info *sky_info, int n
   flipx = Delta_phi < 0;
   flipy = Delta_theta > 0;
 
-  full_x = (int) round(360.0 / Delta_phi); // have to fill in ring
+  full_x = (int) round(360.0 / fabs(Delta_phi)); // have to fill in ring
 
   sky_info->nx = full_x;
   sky_info->ny = axes[1];
@@ -301,7 +301,7 @@ static void he_get_CAR_file_params(char *fname,nmt_curvedsky_info *sky_info,int 
   fits_read_key(fptr, TDOUBLE, "CRVAL2", &theta0, comment, &status);
   free(comment);
 
-  full_x = (int) round(360.0 / Delta_phi); // have to fill in ring
+  full_x = (int) round(360.0 / fabs(Delta_phi)); // have to fill in ring
 
   sky_info->nx = full_x;
   sky_info->ny = axes[1];

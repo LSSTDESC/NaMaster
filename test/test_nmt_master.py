@@ -7,6 +7,7 @@ import sys
 from .testutils import normdiff, read_flat_map
 
 #Unit tests associated with the NmtField and NmtFieldFlat classes
+
 class TestWorkspaceSph(unittest.TestCase) :
     def setUp(self) :
         #This is to avoid showing an ugly warning that has nothing to do with pymaster

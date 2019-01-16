@@ -35,19 +35,38 @@ def mask_apodization_flat(mask_in, lx, ly, aposize, apotype="C1"):
     return mask_apo_flat.reshape([ny, nx])
 
 
-def synfast_spherical(nside, cls, spin_arr, beam=None, seed=-1):
+def synfast_spherical(nside, cls, spin_arr, beam=None, seed=-1,wcs=None,map_shape=None):
     """
     Generates a full-sky Gaussian random field according to a given power spectrum. This function should produce outputs similar to healpy's synfast.
 
-    :param int nside: HEALpix resolution parameter
+    :param int nside: HEALpix resolution parameter. If you want rectangular pixel maps, ignore this parameter and pass a WCS object as `wcs` (see below).
     :param array-like cls: array containing power spectra. Shape should be [n_cls][n_ell], where n_cls is the number of power spectra needed to define all the fields. This should be n_cls = n_maps * (n_maps + 1) / 2, where n_maps is the total number of maps required (1 for each spin-0 field, 2 for each spin-2 field). Power spectra must be provided only for the upper-triangular part in row-major order (e.g. if n_maps is 3, there will be 6 power spectra ordered as [1-1,1-2,1-3,2-2,2-3,3-3]. 
     :param array-like spin_arr: array containing the spins of all the fields to generate.
     :param beam array-like: 2D array containing the instrumental beam of each field to simulate (the output map(s) will be convolved with it)
     :param int seed: RNG seed. If negative, will use a random seed.
+    :param wcs: a WCS object (see http://docs.astropy.org/en/stable/wcs/index.html).
+    :param map_shape: a tuple `(ny,nx)` with the size of the map in the longitude and latitude directions. Must be provided if `wcs` is not `None` (i.e. if using rectangular pixels).
     :return: a number of full-sky maps (1 for each spin-0 field, 2 for each spin-2 field).
     """
     if seed < 0:
         seed = np.random.randint(50000000)
+
+    if wcs is None :
+        is_healpix=1
+        npix=12*nside*nside
+        #Make all WCS variables dummy
+        nx=-1; ny=-1;
+        delta_phi=-1; delta_theta=-1;
+        phi0=-1; theta0=-1;
+    else :
+        is_healpix=0
+        try:
+            ny,nx=map_shape
+        except:
+            raise ValueError("Map dimensions must be provided if using rectangular pixels")
+        npix=nx*ny
+        delta_phi,delta_theta=wcs.wcs.cdelt
+        phi0,theta0=wcs.wcs.crval
 
     spin_arr = np.array(spin_arr).astype(np.int32)
     nfields = len(spin_arr)
@@ -73,9 +92,14 @@ def synfast_spherical(nside, cls, spin_arr, beam=None, seed=-1):
                 "The beam should have as many multipoles as the power spectrum"
             )
 
-    data = lib.synfast_new(nside, spin_arr, seed, cls, beam, nmaps * 12 * nside * nside)
+    data = lib.synfast_new(is_healpix, nside, nx, ny,
+                           delta_phi, delta_theta, theta0, phi0,
+                           spin_arr, seed, cls, beam, nmaps * npix)
 
-    maps = data.reshape([nmaps, 12 * nside * nside])
+    if is_healpix :
+        maps = data.reshape([nmaps, npix])
+    else :
+        maps = data.reshape([nmaps, ny, nx])
 
     return maps
 
