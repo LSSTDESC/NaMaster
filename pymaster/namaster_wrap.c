@@ -8213,6 +8213,58 @@ fail:
 }
 
 
+SWIGINTERN PyObject *_wrap_curvedsky_info_nx_short_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_curvedsky_info *arg1 = (nmt_curvedsky_info *) 0 ;
+  int arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int val2 ;
+  int ecode2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:curvedsky_info_nx_short_set",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_curvedsky_info, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "curvedsky_info_nx_short_set" "', argument " "1"" of type '" "nmt_curvedsky_info *""'"); 
+  }
+  arg1 = (nmt_curvedsky_info *)(argp1);
+  ecode2 = SWIG_AsVal_int(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "curvedsky_info_nx_short_set" "', argument " "2"" of type '" "int""'");
+  } 
+  arg2 = (int)(val2);
+  if (arg1) (arg1)->nx_short = arg2;
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_curvedsky_info_nx_short_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_curvedsky_info *arg1 = (nmt_curvedsky_info *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  int result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:curvedsky_info_nx_short_get",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_curvedsky_info, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "curvedsky_info_nx_short_get" "', argument " "1"" of type '" "nmt_curvedsky_info *""'"); 
+  }
+  arg1 = (nmt_curvedsky_info *)(argp1);
+  result = (int) ((arg1)->nx_short);
+  resultobj = SWIG_From_int((int)(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
 SWIGINTERN PyObject *_wrap_curvedsky_info_nx_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   nmt_curvedsky_info *arg1 = (nmt_curvedsky_info *) 0 ;
@@ -8764,6 +8816,37 @@ SWIGINTERN PyObject *_wrap_diff_curvedsky_info(PyObject *SWIGUNUSEDPARM(self), P
   arg2 = (nmt_curvedsky_info *)(argp2);
   result = (int)nmt_diff_curvedsky_info(arg1,arg2);
   resultobj = SWIG_From_int((int)(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_extend_CAR_map(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_curvedsky_info *arg1 = (nmt_curvedsky_info *) 0 ;
+  flouble *arg2 = (flouble *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  void *argp2 = 0 ;
+  int res2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  flouble *result = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:extend_CAR_map",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_curvedsky_info, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "extend_CAR_map" "', argument " "1"" of type '" "nmt_curvedsky_info *""'"); 
+  }
+  arg1 = (nmt_curvedsky_info *)(argp1);
+  res2 = SWIG_ConvertPtr(obj1, &argp2,SWIGTYPE_p_double, 0 |  0 );
+  if (!SWIG_IsOK(res2)) {
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "extend_CAR_map" "', argument " "2"" of type '" "flouble *""'"); 
+  }
+  arg2 = (flouble *)(argp2);
+  result = (flouble *)nmt_extend_CAR_map(arg1,arg2);
+  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_double, 0 |  0 );
   return resultobj;
 fail:
   return NULL;
@@ -19697,6 +19780,8 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"curvedsky_info_is_healpix_get", _wrap_curvedsky_info_is_healpix_get, METH_VARARGS, NULL},
 	 { (char *)"curvedsky_info_n_eq_set", _wrap_curvedsky_info_n_eq_set, METH_VARARGS, NULL},
 	 { (char *)"curvedsky_info_n_eq_get", _wrap_curvedsky_info_n_eq_get, METH_VARARGS, NULL},
+	 { (char *)"curvedsky_info_nx_short_set", _wrap_curvedsky_info_nx_short_set, METH_VARARGS, NULL},
+	 { (char *)"curvedsky_info_nx_short_get", _wrap_curvedsky_info_nx_short_get, METH_VARARGS, NULL},
 	 { (char *)"curvedsky_info_nx_set", _wrap_curvedsky_info_nx_set, METH_VARARGS, NULL},
 	 { (char *)"curvedsky_info_nx_get", _wrap_curvedsky_info_nx_get, METH_VARARGS, NULL},
 	 { (char *)"curvedsky_info_ny_set", _wrap_curvedsky_info_ny_set, METH_VARARGS, NULL},
@@ -19717,6 +19802,7 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"curvedsky_info_copy", _wrap_curvedsky_info_copy, METH_VARARGS, NULL},
 	 { (char *)"curvedsky_info_alloc", _wrap_curvedsky_info_alloc, METH_VARARGS, NULL},
 	 { (char *)"diff_curvedsky_info", _wrap_diff_curvedsky_info, METH_VARARGS, NULL},
+	 { (char *)"extend_CAR_map", _wrap_extend_CAR_map, METH_VARARGS, NULL},
 	 { (char *)"field_cs_set", _wrap_field_cs_set, METH_VARARGS, NULL},
 	 { (char *)"field_cs_get", _wrap_field_cs_get, METH_VARARGS, NULL},
 	 { (char *)"field_npix_set", _wrap_field_npix_set, METH_VARARGS, NULL},

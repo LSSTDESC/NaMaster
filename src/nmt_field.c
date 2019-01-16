@@ -5,6 +5,7 @@ nmt_curvedsky_info *nmt_curvedsky_info_copy(nmt_curvedsky_info *cs_in)
   nmt_curvedsky_info *cs_out=my_malloc(sizeof(nmt_curvedsky_info));
   cs_out->is_healpix=cs_in->is_healpix;
   cs_out->n_eq=cs_in->n_eq;
+  cs_out->nx_short=cs_in->nx_short;
   cs_out->nx=cs_in->nx;
   cs_out->ny=cs_in->ny;
   cs_out->npix=cs_in->npix;
@@ -43,12 +44,15 @@ nmt_curvedsky_info *nmt_curvedsky_info_alloc(int is_healpix,long nside,
       report_error(NMT_ERROR_VALUE,"Wrong pixel sizes or reference coordinates\n");
     if((nx0<=0) || (ny0<=0))
       report_error(NMT_ERROR_VALUE,"Wrong map dimensions\n");
+    if(nx0>nx)
+      report_error(NMT_ERROR_VALUE,"Seems like you're wrapping the sphere more than once\n");
     cs->n_eq=fmin(fabs(180.0/Dtheta), fabs(180.0/Dphi)) / 2;
+    cs->nx_short=nx0;
     cs->nx=nx;
     cs->ny=ny0;
     cs->npix=nx*ny0;
     cs->Delta_phi=Dphi*M_PI/180.0;
-    cs->Delta_theta=Dtheta*M_PI/180.0;
+    cs->Delta_theta=-Dtheta*M_PI/180.0;
     cs->phi0=phi0*M_PI/180;
     cs->theta0=(90-theta0)*M_PI/180.0;
   }
@@ -56,12 +60,43 @@ nmt_curvedsky_info *nmt_curvedsky_info_alloc(int is_healpix,long nside,
   return cs;
 }
 
+flouble *nmt_extend_CAR_map(nmt_curvedsky_info *cs,flouble *map_in)
+{
+  flouble *map_out=my_calloc(cs->npix,sizeof(flouble));
+
+  if(cs->is_healpix)
+    memcpy(map_out,map_in,cs->npix*sizeof(flouble));
+  else {
+    if(cs->nx!=cs->nx_short) {
+      int jj;
+      int flipx = cs->Delta_phi < 0;
+      int flipy = cs->Delta_theta < 0;
+      
+      for(jj=0;jj<cs->ny;jj++) {
+	int ii;
+	int final_jj=jj;
+	if (flipy) final_jj=cs->ny-1-jj;
+	for(ii=0;ii<cs->nx_short;ii++) {
+	  int final_ii=ii;
+	  if (flipx) final_ii=cs->nx-1-ii;
+	  
+	  map_out[final_jj*cs->nx+final_ii]=map_in[jj*cs->nx_short+ii];
+	}
+      }
+    }
+    else
+      memcpy(map_out,map_in,cs->npix*sizeof(flouble));
+  }
+  
+  return map_out;
+}
+
 int nmt_diff_curvedsky_info(nmt_curvedsky_info *c1, nmt_curvedsky_info *c2)
 {
   if(c1->is_healpix)
     return (c2->is_healpix && (c1->n_eq==c2->n_eq));
   else
-    return ((!(c2->is_healpix)) && ( c1->nx==c2->ny) && (c1->ny==c2->ny)
+    return ((!(c2->is_healpix)) && (c1->nx_short==c2->nx_short) && (c1->nx==c2->nx) && (c1->ny==c2->ny)
 	    && (fabs(c1->phi0-c2->phi0)<1e-6) && (fabs(c1->theta0-c2->theta0)<1e-6)
 	    && (fabs(c1->Delta_theta-c2->Delta_theta)<1e-6)
 	    && (fabs(c1->Delta_phi-c2->Delta_phi)<1e-6));
@@ -228,6 +263,7 @@ nmt_field *nmt_field_alloc_sph(nmt_curvedsky_info *cs,flouble *mask,int pol,flou
 			       int pure_e,int pure_b,int n_iter_mask_purify,double tol_pinv)
 {
   int ii,itemp,itemp2,imap;
+  long npix_short;
   nmt_field *fl=my_malloc(sizeof(nmt_field));
   fl->cs=nmt_curvedsky_info_copy(cs);
   fl->lmax=he_get_lmax(fl->cs);
@@ -237,6 +273,11 @@ nmt_field *nmt_field_alloc_sph(nmt_curvedsky_info *cs,flouble *mask,int pol,flou
   else fl->nmaps=1;
   fl->ntemp=ntemp;
 
+  if(fl->cs->is_healpix)
+    npix_short=fl->cs->npix;
+  else
+    npix_short=fl->cs->nx_short*fl->cs->ny;
+  
   fl->pure_e=0;
   fl->pure_b=0;
   if(pol) {
@@ -254,20 +295,21 @@ nmt_field *nmt_field_alloc_sph(nmt_curvedsky_info *cs,flouble *mask,int pol,flou
   else
     memcpy(fl->beam,beam,(fl->lmax+1)*sizeof(flouble));
 
-  fl->mask=my_malloc(fl->npix*sizeof(flouble));
-  memcpy(fl->mask,mask,fl->npix*sizeof(flouble));
+  fl->mask=nmt_extend_CAR_map(fl->cs,mask);
 
   fl->maps=my_malloc(fl->nmaps*sizeof(flouble *));
-  for(ii=0;ii<fl->nmaps;ii++)
-    fl->maps[ii]=my_malloc(fl->npix*sizeof(flouble));
+  for(imap=0;imap<fl->nmaps;imap++) {//Need to multiply observed map by mask first
+    fl->maps[imap]=nmt_extend_CAR_map(fl->cs,maps[imap]);
+    he_map_product(fl->cs,fl->maps[imap],fl->mask,fl->maps[imap]);
+  }
 
   if(fl->ntemp>0) {
     fl->temp=my_malloc(fl->ntemp*sizeof(flouble **));
     for(itemp=0;itemp<fl->ntemp;itemp++) {
       fl->temp[itemp]=my_malloc(fl->nmaps*sizeof(flouble *));
       for(imap=0;imap<fl->nmaps;imap++) {
-	fl->temp[itemp][imap]=my_malloc(fl->npix*sizeof(flouble));
-	he_map_product(fl->cs,temp[itemp][imap],fl->mask,fl->temp[itemp][imap]); //Multiply by mask
+	fl->temp[itemp][imap]=nmt_extend_CAR_map(fl->cs,temp[itemp][imap]);
+	he_map_product(fl->cs,fl->temp[itemp][imap],fl->mask,fl->temp[itemp][imap]); //Multiply by mask
       }
     }
 
@@ -286,8 +328,6 @@ nmt_field *nmt_field_alloc_sph(nmt_curvedsky_info *cs,flouble *mask,int pol,flou
     moore_penrose_pinv(fl->matrix_M,tol_pinv);
 
     //Deproject
-    for(ii=0;ii<fl->nmaps;ii++) //Need to multiply observed map by mask first
-      he_map_product(fl->cs,maps[ii],fl->mask,fl->maps[ii]);
     flouble *prods=my_calloc(fl->ntemp,sizeof(flouble));
     for(itemp=0;itemp<fl->ntemp;itemp++) {
       for(imap=0;imap<fl->nmaps;imap++)
@@ -305,7 +345,11 @@ nmt_field *nmt_field_alloc_sph(nmt_curvedsky_info *cs,flouble *mask,int pol,flou
       for(imap=0;imap<fl->nmaps;imap++) {
 	long ip;
 	for(ip=0;ip<fl->npix;ip++)
-	  maps[imap][ip]-=alpha*temp[itemp][imap][ip]; //Correct unmasked field (in case of purification)
+	  fl->maps[imap][ip]-=alpha*fl->temp[itemp][imap][ip]; //Correct masked field
+	if(fl->pol && (fl->pure_e || fl->pure_b)) { //Correct unmasked field too if purifying
+	  for(ip=0;ip<npix_short;ip++)
+	    maps[imap][ip]-=alpha*temp[itemp][imap][ip]; 
+	}
       }
     }
     free(prods);
@@ -337,28 +381,36 @@ nmt_field *nmt_field_alloc_sph(nmt_curvedsky_info *cs,flouble *mask,int pol,flou
     he_map2alm(fl->cs,fl->lmax,1,0,&(fl->mask),fl->a_mask,n_iter_mask_purify);
 
     //Purify map
-    nmt_purify(fl,fl->mask,fl->a_mask,maps,fl->maps,fl->alms);
-
+    flouble **mdum=my_malloc(fl->nmaps*sizeof(flouble *));
+    for(imap=0;imap<fl->nmaps;imap++)
+      mdum[imap]=nmt_extend_CAR_map(fl->cs,maps[imap]);
+    nmt_purify(fl,fl->mask,fl->a_mask,mdum,fl->maps,fl->alms);
+    for(imap=0;imap<fl->nmaps;imap++)
+      free(mdum[imap]);
+    
     //Compute purified contaminant SHTs
     if(fl->ntemp>0) {
       for(itemp=0;itemp<fl->ntemp;itemp++) {
-	nmt_purify(fl,fl->mask,fl->a_mask,temp[itemp],fl->temp[itemp],fl->a_temp[itemp]);
-	for(imap=0;imap<fl->nmaps;imap++) //Store non-pure map
-	  he_map_product(fl->cs,temp[itemp][imap],fl->mask,fl->temp[itemp][imap]);
+	for(imap=0;imap<fl->nmaps;imap++)
+	  mdum[imap]=nmt_extend_CAR_map(fl->cs,temp[itemp][imap]);
+	nmt_purify(fl,fl->mask,fl->a_mask,mdum,fl->temp[itemp],fl->a_temp[itemp]);
+	for(imap=0;imap<fl->nmaps;imap++) {//Store non-pure map
+	  he_map_product(fl->cs,mdum[imap],fl->mask,fl->temp[itemp][imap]);
+	  free(mdum[imap]);
+	}
       }
       //IMPORTANT: at this stage, fl->maps and fl->alms contain the purified map and SH coefficients
       //           However, although fl->a_temp contains the purified SH coefficients,
       //           fl->temp contains the ***non-purified*** maps. This is to speed up the calculation
       //           of the deprojection bias.
     }
+    free(mdum);
   }
   else {
     //If no purification, just multiply by mask and SHT
     fl->a_mask=NULL; //No need to store extra-pure mask harmonic coefficients
 
     //Masked map and harmonic coefficients
-    for(imap=0;imap<fl->nmaps;imap++)
-      he_map_product(fl->cs,maps[imap],fl->mask,fl->maps[imap]);
     he_map2alm(fl->cs,fl->lmax,1,2*fl->pol,fl->maps,fl->alms,HE_NITER_DEFAULT);
 
     //Compute template harmonic coefficients too

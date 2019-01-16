@@ -69,6 +69,42 @@ double **test_make_map_analytic(long nside,int pol)
   return maps;
 }
 
+double **test_make_map_analytic_car(nmt_curvedsky_info *cs,int pol)
+{
+  int ii;
+  double **maps;
+  int nmaps=1;
+  int npix_short=cs->nx_short*cs->ny;
+  if(pol)
+    nmaps=2;
+
+  maps=my_malloc(nmaps*sizeof(double *));
+  for(ii=0;ii<nmaps;ii++)
+    maps[ii]=my_malloc(npix_short*sizeof(double));
+
+  for(ii=0;ii<cs->ny;ii++) {
+    int jj;
+    double th=cs->theta0+ii*cs->Delta_theta;
+    double sth=sin(th);
+    double cth=cos(th);
+    for(jj=0;jj<cs->nx_short;jj++) {
+      double ph=cs->phi0+jj*cs->Delta_phi;
+      int ipix=jj+cs->nx_short*ii;
+      if(pol) {
+	//spin-2, map = _2Y^E_20+2* _2Y^B_30)
+	maps[0][ipix]=-sqrt(15./2./M_PI)*sth*sth/4.;
+	maps[1][ipix]=-sqrt(105./2./M_PI)*cth*sth*sth/2.;
+      }
+      else {
+	//spin-0, map = Re(Y_22)
+	maps[0][ipix]=sqrt(15./2./M_PI)*sth*sth*cos(2*ph)/4.;
+      }
+    }
+  }
+
+  return maps;
+}
+
 int *test_get_sequence(int n0,int nf)
 {
   int i;

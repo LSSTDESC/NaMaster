@@ -3,6 +3,57 @@
 #include "utils.h"
 #include "nmt_test_utils.h"
 
+/*
+CTEST(nmt,rewrite) {
+  nmt_workspace *w;
+  nmt_covar_workspace *cw;
+
+  w=nmt_workspace_read("test/benchmarks/bm_nc_np_w00.dat");
+  nmt_workspace_write(w,"test/benchmarks/b/bm_nc_np_w00.dat");
+  nmt_workspace_free(w);
+  w=nmt_workspace_read("test/benchmarks/bm_nc_np_w02.dat");
+  nmt_workspace_write(w,"test/benchmarks/b/bm_nc_np_w02.dat");
+  nmt_workspace_free(w);
+  w=nmt_workspace_read("test/benchmarks/bm_nc_np_w22.dat");
+  nmt_workspace_write(w,"test/benchmarks/b/bm_nc_np_w22.dat");
+  nmt_workspace_free(w);
+
+  w=nmt_workspace_read("test/benchmarks/bm_yc_np_w00.dat");
+  nmt_workspace_write(w,"test/benchmarks/b/bm_yc_np_w00.dat");
+  nmt_workspace_free(w);
+  w=nmt_workspace_read("test/benchmarks/bm_yc_np_w02.dat");
+  nmt_workspace_write(w,"test/benchmarks/b/bm_yc_np_w02.dat");
+  nmt_workspace_free(w);
+  w=nmt_workspace_read("test/benchmarks/bm_yc_np_w22.dat");
+  nmt_workspace_write(w,"test/benchmarks/b/bm_yc_np_w22.dat");
+  nmt_workspace_free(w);
+
+  w=nmt_workspace_read("test/benchmarks/bm_nc_yp_w00.dat");
+  nmt_workspace_write(w,"test/benchmarks/b/bm_nc_yp_w00.dat");
+  nmt_workspace_free(w);
+  w=nmt_workspace_read("test/benchmarks/bm_nc_yp_w02.dat");
+  nmt_workspace_write(w,"test/benchmarks/b/bm_nc_yp_w02.dat");
+  nmt_workspace_free(w);
+  w=nmt_workspace_read("test/benchmarks/bm_nc_yp_w22.dat");
+  nmt_workspace_write(w,"test/benchmarks/b/bm_nc_yp_w22.dat");
+  nmt_workspace_free(w);
+
+  w=nmt_workspace_read("test/benchmarks/bm_yc_yp_w00.dat");
+  nmt_workspace_write(w,"test/benchmarks/b/bm_yc_yp_w00.dat");
+  nmt_workspace_free(w);
+  w=nmt_workspace_read("test/benchmarks/bm_yc_yp_w02.dat");
+  nmt_workspace_write(w,"test/benchmarks/b/bm_yc_yp_w02.dat");
+  nmt_workspace_free(w);
+  w=nmt_workspace_read("test/benchmarks/bm_yc_yp_w22.dat");
+  nmt_workspace_write(w,"test/benchmarks/b/bm_yc_yp_w22.dat");
+  nmt_workspace_free(w);
+
+  cw=nmt_covar_workspace_read("test/benchmarks/bm_nc_np_cw00.dat");
+  nmt_covar_workspace_write(cw,"test/benchmarks/b/bm_nc_np_cw00.dat");
+  nmt_covar_workspace_free(cw);
+}
+*/
+
 CTEST(nmt,covar) {
   int ii;
   nmt_workspace *w=nmt_workspace_read("test/benchmarks/bm_nc_np_w00.dat");

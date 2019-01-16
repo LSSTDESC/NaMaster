@@ -448,6 +448,7 @@ void nmt_purify_flat(nmt_field_flat *fl,flouble *mask,fcomplex **walm0,
 typedef struct {
   int is_healpix; //!< is this HEALPix pixelization?
   long n_eq; //!< equivalent of nside, number of pixels in the equatorial ring
+  int nx_short; //!< Number of grid points in the x dimension before completing the circle
   int nx; //!< Number of grid points in the x dimension
   int ny; //!< Number of grid points in the y dimension
   long npix; //!< Total number of pixels (given by \p nx * \p ny
@@ -489,6 +490,20 @@ nmt_curvedsky_info *nmt_curvedsky_info_alloc(int is_healpix,long nside,
  * @return true (!=0) if both structs are equivalent, and false (0) if they aren't.
  */
 int nmt_diff_curvedsky_info(nmt_curvedsky_info *c1, nmt_curvedsky_info *c2);
+
+/**
+ * @brief Extend CAR map to cover the full circle.
+ *
+ * CAR maps only cover a particular part of the sky, but the SHT routines need as
+ * input maps that are complete in the azimuth direction. This routine takes in
+ * a raw CAR map with its corresponding nmt_curvedsky_info and returns the 
+ * phi-complete map (with zeros in all pixels outside the original map).
+ * If the input map is in HEALPix, this routine just returns a copy of it.
+ * @param cs curved sky geometry info.
+ * @param map_in input incomplete map.
+ * @return phi-complete map.
+ */
+flouble *nmt_extend_CAR_map(nmt_curvedsky_info *cs,flouble *map_in);
 
 /**
  * @brief Full-sky field

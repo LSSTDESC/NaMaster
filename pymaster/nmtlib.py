@@ -442,6 +442,10 @@ class curvedsky_info(_object):
     __swig_getmethods__["n_eq"] = _nmtlib.curvedsky_info_n_eq_get
     if _newclass:
         n_eq = _swig_property(_nmtlib.curvedsky_info_n_eq_get, _nmtlib.curvedsky_info_n_eq_set)
+    __swig_setmethods__["nx_short"] = _nmtlib.curvedsky_info_nx_short_set
+    __swig_getmethods__["nx_short"] = _nmtlib.curvedsky_info_nx_short_get
+    if _newclass:
+        nx_short = _swig_property(_nmtlib.curvedsky_info_nx_short_get, _nmtlib.curvedsky_info_nx_short_set)
     __swig_setmethods__["nx"] = _nmtlib.curvedsky_info_nx_set
     __swig_getmethods__["nx"] = _nmtlib.curvedsky_info_nx_get
     if _newclass:
@@ -494,6 +498,10 @@ curvedsky_info_alloc = _nmtlib.curvedsky_info_alloc
 def diff_curvedsky_info(c1, c2):
     return _nmtlib.diff_curvedsky_info(c1, c2)
 diff_curvedsky_info = _nmtlib.diff_curvedsky_info
+
+def extend_CAR_map(cs, map_in):
+    return _nmtlib.extend_CAR_map(cs, map_in)
+extend_CAR_map = _nmtlib.extend_CAR_map
 class field(_object):
     __swig_setmethods__ = {}
     __setattr__ = lambda self, name, value: _swig_setattr(self, field, name, value)

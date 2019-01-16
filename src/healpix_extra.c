@@ -126,7 +126,6 @@ static flouble *he_read_CAR_map(char *fname, nmt_curvedsky_info *sky_info, int n
   fitsfile *fptr;
 
   int nkeys, ii, jj, final_ii, final_jj;
-  int flipx, flipy;
   char card[FLEN_CARD], value[FLEN_VALUE];
   char *comment;
 
@@ -161,16 +160,14 @@ static flouble *he_read_CAR_map(char *fname, nmt_curvedsky_info *sky_info, int n
   fits_read_key(fptr, TDOUBLE, "CRVAL2", &theta0, comment, &status);
   free(comment);
   
-  flipx = Delta_phi < 0;
-  flipy = Delta_theta > 0;
-
   full_x = (int) round(360.0 / fabs(Delta_phi)); // have to fill in ring
 
+  sky_info->nx_short = axes[0];
   sky_info->nx = full_x;
   sky_info->ny = axes[1];
   sky_info->npix = full_x * axes[1];
   sky_info->Delta_phi = Delta_phi * M_PI / 180.0;
-  sky_info->Delta_theta = Delta_theta * M_PI / 180.0;
+  sky_info->Delta_theta = -Delta_theta * M_PI / 180.0;
   sky_info->phi0 = phi0 * M_PI / 180.0;
   sky_info->theta0 = (90 - theta0) * M_PI / 180.0;
   sky_info->n_eq = fmin(fabs(180.0/Delta_theta), fabs(180.0/Delta_phi)) / 2;
@@ -184,25 +181,7 @@ static flouble *he_read_CAR_map(char *fname, nmt_curvedsky_info *sky_info, int n
   fits_read_pix(fptr, TDOUBLE, fpixel, nelements, 0, map, &anynul, &status);
 
   if (full_x != axes[0]) {
-    ringed_map = my_malloc(sky_info->npix * sizeof(flouble));
-    // now populate the ringed map
-    for(ii=0; ii < sky_info->nx; ii++) {
-      for(jj=0; jj < sky_info->ny; jj++) {
-
-        // sharp wants theta, phi increasing
-        final_ii = ii;
-        final_jj = jj;
-        if (flipy) final_jj = (sky_info->ny-1) - jj;
-        if (flipx) final_ii = (sky_info->nx-1) - ii;
-
-        if(ii < axes[0]) {
-          ringed_map[final_jj*sky_info->nx +final_ii] = map[jj*axes[0] +ii];
-        }
-        else {
-          ringed_map[final_jj*sky_info->nx +final_ii] = 0.0;
-        }
-      }
-    }
+    ringed_map = nmt_extend_CAR_map(sky_info,map);
     free(map);
     map = ringed_map;
   }
@@ -307,7 +286,7 @@ static void he_get_CAR_file_params(char *fname,nmt_curvedsky_info *sky_info,int 
   sky_info->ny = axes[1];
   sky_info->npix = full_x * axes[1];
   sky_info->Delta_phi = Delta_phi * M_PI / 180.0;
-  sky_info->Delta_theta = Delta_theta * M_PI / 180.0;
+  sky_info->Delta_theta = -Delta_theta * M_PI / 180.0;
   sky_info->phi0 = phi0 * M_PI / 180.0;
   sky_info->theta0 = (90 - theta0) * M_PI / 180.0;
   sky_info->n_eq = fmin(fabs(180.0/Delta_theta), fabs(180.0/Delta_phi)) / 2;
@@ -1075,7 +1054,7 @@ int he_get_lmax(nmt_curvedsky_info *cs)
   if(cs->is_healpix)
     return 3*cs->n_eq-1;
   else {
-    double dxmin=NMT_MIN(cs->Delta_phi,cs->Delta_theta);
+    double dxmin=NMT_MIN(fabs(cs->Delta_phi),fabs(cs->Delta_theta));
     return (int)(M_PI/dxmin);
   }
 }
@@ -1174,8 +1153,8 @@ flouble he_get_pix_area(nmt_curvedsky_info *cs,long i)
     return M_PI/(3*cs->n_eq*cs->n_eq);
   }
   else {
-    flouble theta1 = i * cs->Delta_theta + cs->theta0;
-    return sin(theta1) * cs->Delta_phi * cs->Delta_theta;
+    flouble theta1 = i * fabs(cs->Delta_theta) + cs->theta0;
+    return sin(theta1) * fabs(cs->Delta_phi * cs->Delta_theta);
   }
 }
 
