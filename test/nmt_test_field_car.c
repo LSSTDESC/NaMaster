@@ -79,8 +79,8 @@ CTEST(nmt,field_car_alloc) {
   nmt_field *f;
   int ii,nmaps;
   double ntemp=5;
-  int ny=384,nx=2*ny;
-  double dtheta=M_PI/ny,dphi=2*M_PI/nx;
+  int ny=384,nx=2*(ny-1);
+  double dtheta=M_PI/(ny-1),dphi=dtheta;
   nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(0,-1,nx,ny,dtheta,dphi,0.,M_PI);
   long lmax=he_get_lmax(cs);
   long npix_short=nx*ny;
@@ -109,37 +109,19 @@ CTEST(nmt,field_car_alloc) {
   ASSERT_EQUAL(0,f->pure_e);
   ASSERT_EQUAL(0,f->pure_b);
   ASSERT_EQUAL(cs->nx*cs->ny,f->cs->npix);
-  ASSERT_EQUAL(ny/2,f->cs->n_eq);
+  ASSERT_EQUAL((ny-1)/2,f->cs->n_eq);
   ASSERT_EQUAL(0,f->pol);
   ASSERT_EQUAL(1,f->nmaps);
   //Harmonic transform
-  //TODO: I managed to achieve 1E-5 agreement with HEALPix using a similar resolution.
-  //It'd be good to know why this doesn't work as well with CAR.
-  ASSERT_DBL_NEAR_TOL(0.5,creal(f->alms[0][he_indexlm(2,2,lmax)]),1E-4);
-  ASSERT_DBL_NEAR_TOL(0.0,cimag(f->alms[0][he_indexlm(2,2,lmax)]),1E-4);
-
-  nmt_field_free(f);
-
-  
-  //Free inputs
-  for(ii=0;ii<ntemp;ii++) {
-    int jj;
-    for(jj=0;jj<nmaps;jj++)
-      free(temp[ii][jj]);
-  }
-  for(ii=0;ii<nmaps;ii++)
-    free(maps[ii]);
-  free(maps);
-
-  free(cs); free(mask); free(beam); free(temp);
-  /*
+  ASSERT_DBL_NEAR_TOL(0.5,creal(f->alms[0][he_indexlm(2,2,lmax)]),1E-5);
+  ASSERT_DBL_NEAR_TOL(0.0,cimag(f->alms[0][he_indexlm(2,2,lmax)]),1E-5);
 
   nmt_field_free(f);
   
   //With templates
   f=nmt_field_alloc_sph(cs,mask,0,maps,ntemp,temp,NULL,0,0,0,1E-5);
   //Since maps and templates are the same, template-deprojected map should be 0
-  for(ii=0;ii<npix;ii++)
+  for(ii=0;ii<cs->npix;ii++)
     ASSERT_DBL_NEAR_TOL(0.0,f->maps[0][ii],1E-10);
   for(ii=0;ii<ntemp;ii++) {
     ASSERT_DBL_NEAR_TOL(0.5,creal(f->a_temp[ii][0][he_indexlm(2,2,lmax)]),1E-5);
@@ -156,18 +138,39 @@ CTEST(nmt,field_car_alloc) {
   for(ii=0;ii<nmaps;ii++)
     free(maps[ii]);
   free(maps);
-  ////////
 
   ////////
   //Spin-2
   nmaps=2;
   //Create inputs
-  maps=test_make_map_analytic(nside,1);
+  maps=test_make_map_analytic_car(cs,1);
   for(ii=0;ii<ntemp;ii++)
-    temp[ii]=test_make_map_analytic(nside,1);
+    temp[ii]=test_make_map_analytic_car(cs,1);
 
   //No templates
   f=nmt_field_alloc_sph(cs,mask,1,maps,0,NULL,beam,0,0,0,1E-5);
+  //Sanity checks
+  ASSERT_EQUAL(1,f->pol);
+  ASSERT_EQUAL(2,f->nmaps);
+
+  //Harmonic transform
+  ASSERT_DBL_NEAR_TOL(1.,creal(f->alms[0][he_indexlm(2,0,lmax)]),1E-5);
+  ASSERT_DBL_NEAR_TOL(0.,cimag(f->alms[0][he_indexlm(2,0,lmax)]),1E-5);
+  ASSERT_DBL_NEAR_TOL(0.,creal(f->alms[1][he_indexlm(2,0,lmax)]),1E-5);
+  ASSERT_DBL_NEAR_TOL(0.,cimag(f->alms[1][he_indexlm(2,0,lmax)]),1E-5);
+  ASSERT_DBL_NEAR_TOL(0.,creal(f->alms[0][he_indexlm(1,0,lmax)]),1E-5);
+  ASSERT_DBL_NEAR_TOL(0.,cimag(f->alms[0][he_indexlm(1,0,lmax)]),1E-5);
+  ASSERT_DBL_NEAR_TOL(0.,creal(f->alms[1][he_indexlm(1,0,lmax)]),1E-5);
+  ASSERT_DBL_NEAR_TOL(0.,cimag(f->alms[1][he_indexlm(1,0,lmax)]),1E-5);
+  ASSERT_DBL_NEAR_TOL(0.,creal(f->alms[0][he_indexlm(3,0,lmax)]),1E-5);
+  ASSERT_DBL_NEAR_TOL(0.,cimag(f->alms[0][he_indexlm(3,0,lmax)]),1E-5);
+  ASSERT_DBL_NEAR_TOL(2.,creal(f->alms[1][he_indexlm(3,0,lmax)]),1E-5);
+  ASSERT_DBL_NEAR_TOL(0.,cimag(f->alms[1][he_indexlm(3,0,lmax)]),1E-5);
+
+  nmt_field_free(f);
+
+  //With purification (nothing should change)
+  f=nmt_field_alloc_sph(cs,mask,1,maps,0,NULL,beam,1,1,5,1E-5);
   //Sanity checks
   ASSERT_EQUAL(1,f->pol);
   ASSERT_EQUAL(2,f->nmaps);
@@ -185,33 +188,13 @@ CTEST(nmt,field_car_alloc) {
   ASSERT_DBL_NEAR_TOL(2.,creal(f->alms[1][he_indexlm(3,0,lmax)]),1E-5);
   ASSERT_DBL_NEAR_TOL(0.,cimag(f->alms[1][he_indexlm(3,0,lmax)]),1E-5);
   nmt_field_free(f);
-
-  //With purification (nothing should change)
-  f=nmt_field_alloc_sph(cs,mask,1,maps,0,NULL,beam,1,1,5,1E-5);
-  //Sanity checks
-  ASSERT_EQUAL(1,f->pol);
-  ASSERT_EQUAL(2,f->nmaps);
-  //Harmonic transform
-  ASSERT_DBL_NEAR_TOL(1.,creal(f->alms[0][he_indexlm(2,0,lmax)]),1E-4);
-  ASSERT_DBL_NEAR_TOL(0.,cimag(f->alms[0][he_indexlm(2,0,lmax)]),1E-4);
-  ASSERT_DBL_NEAR_TOL(0.,creal(f->alms[1][he_indexlm(2,0,lmax)]),1E-4);
-  ASSERT_DBL_NEAR_TOL(0.,cimag(f->alms[1][he_indexlm(2,0,lmax)]),1E-4);
-  ASSERT_DBL_NEAR_TOL(0.,creal(f->alms[0][he_indexlm(1,0,lmax)]),1E-4);
-  ASSERT_DBL_NEAR_TOL(0.,cimag(f->alms[0][he_indexlm(1,0,lmax)]),1E-4);
-  ASSERT_DBL_NEAR_TOL(0.,creal(f->alms[1][he_indexlm(1,0,lmax)]),1E-4);
-  ASSERT_DBL_NEAR_TOL(0.,cimag(f->alms[1][he_indexlm(1,0,lmax)]),1E-4);
-  ASSERT_DBL_NEAR_TOL(0.,creal(f->alms[0][he_indexlm(3,0,lmax)]),1E-4);
-  ASSERT_DBL_NEAR_TOL(0.,cimag(f->alms[0][he_indexlm(3,0,lmax)]),1E-4);
-  ASSERT_DBL_NEAR_TOL(2.,creal(f->alms[1][he_indexlm(3,0,lmax)]),1E-4);
-  ASSERT_DBL_NEAR_TOL(0.,cimag(f->alms[1][he_indexlm(3,0,lmax)]),1E-4);
-  nmt_field_free(f);
   
   //With templates
   f=nmt_field_alloc_sph(cs,mask,1,maps,ntemp,temp,beam,0,0,0,1E-5);
   //Since maps and templates are the same, template-deprojected map should be 0
   for(ii=0;ii<nmaps;ii++) {
     int jj;
-    for(jj=0;jj<npix;jj++)
+    for(jj=0;jj<cs->npix;jj++)
       ASSERT_DBL_NEAR_TOL(0.0,f->maps[ii][jj],1E-10);
   }
   for(ii=0;ii<ntemp;ii++) {
@@ -235,22 +218,22 @@ CTEST(nmt,field_car_alloc) {
   //Since maps and templates are the same, template-deprojected map should be 0
   for(ii=0;ii<nmaps;ii++) {
     int jj;
-    for(jj=0;jj<npix;jj++)
+    for(jj=0;jj<cs->npix;jj++)
       ASSERT_DBL_NEAR_TOL(0.0,f->maps[ii][jj],1E-10);
   }
   for(ii=0;ii<ntemp;ii++) {
-    ASSERT_DBL_NEAR_TOL(1.,creal(f->a_temp[ii][0][he_indexlm(2,0,lmax)]),1E-4);
-    ASSERT_DBL_NEAR_TOL(0.,cimag(f->a_temp[ii][0][he_indexlm(2,0,lmax)]),1E-4);
-    ASSERT_DBL_NEAR_TOL(0.,creal(f->a_temp[ii][1][he_indexlm(2,0,lmax)]),1E-4);
-    ASSERT_DBL_NEAR_TOL(0.,cimag(f->a_temp[ii][1][he_indexlm(2,0,lmax)]),1E-4);
-    ASSERT_DBL_NEAR_TOL(0.,creal(f->a_temp[ii][0][he_indexlm(1,0,lmax)]),1E-4);
-    ASSERT_DBL_NEAR_TOL(0.,cimag(f->a_temp[ii][0][he_indexlm(1,0,lmax)]),1E-4);
-    ASSERT_DBL_NEAR_TOL(0.,creal(f->a_temp[ii][1][he_indexlm(1,0,lmax)]),1E-4);
-    ASSERT_DBL_NEAR_TOL(0.,cimag(f->a_temp[ii][1][he_indexlm(1,0,lmax)]),1E-4);
-    ASSERT_DBL_NEAR_TOL(0.,creal(f->a_temp[ii][0][he_indexlm(3,0,lmax)]),1E-4);
-    ASSERT_DBL_NEAR_TOL(0.,cimag(f->a_temp[ii][0][he_indexlm(3,0,lmax)]),1E-4);
-    ASSERT_DBL_NEAR_TOL(2.,creal(f->a_temp[ii][1][he_indexlm(3,0,lmax)]),1E-4);
-    ASSERT_DBL_NEAR_TOL(0.,cimag(f->a_temp[ii][1][he_indexlm(3,0,lmax)]),1E-4);
+    ASSERT_DBL_NEAR_TOL(1.,creal(f->a_temp[ii][0][he_indexlm(2,0,lmax)]),1E-5);
+    ASSERT_DBL_NEAR_TOL(0.,cimag(f->a_temp[ii][0][he_indexlm(2,0,lmax)]),1E-5);
+    ASSERT_DBL_NEAR_TOL(0.,creal(f->a_temp[ii][1][he_indexlm(2,0,lmax)]),1E-5);
+    ASSERT_DBL_NEAR_TOL(0.,cimag(f->a_temp[ii][1][he_indexlm(2,0,lmax)]),1E-5);
+    ASSERT_DBL_NEAR_TOL(0.,creal(f->a_temp[ii][0][he_indexlm(1,0,lmax)]),1E-5);
+    ASSERT_DBL_NEAR_TOL(0.,cimag(f->a_temp[ii][0][he_indexlm(1,0,lmax)]),1E-5);
+    ASSERT_DBL_NEAR_TOL(0.,creal(f->a_temp[ii][1][he_indexlm(1,0,lmax)]),1E-5);
+    ASSERT_DBL_NEAR_TOL(0.,cimag(f->a_temp[ii][1][he_indexlm(1,0,lmax)]),1E-5);
+    ASSERT_DBL_NEAR_TOL(0.,creal(f->a_temp[ii][0][he_indexlm(3,0,lmax)]),1E-5);
+    ASSERT_DBL_NEAR_TOL(0.,cimag(f->a_temp[ii][0][he_indexlm(3,0,lmax)]),1E-5);
+    ASSERT_DBL_NEAR_TOL(2.,creal(f->a_temp[ii][1][he_indexlm(3,0,lmax)]),1E-5);
+    ASSERT_DBL_NEAR_TOL(0.,cimag(f->a_temp[ii][1][he_indexlm(3,0,lmax)]),1E-5);
   }
   nmt_field_free(f);
   
@@ -271,7 +254,6 @@ CTEST(nmt,field_car_alloc) {
   free(beam);
   free(mask);
   free(cs);
-  */
 }
 
 /*

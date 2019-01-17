@@ -877,8 +877,6 @@ static void sharp_make_cc_geom_info_stripe (int nrings, int ppring, double phi0,
   ptrdiff_t *subofs=RALLOC(ptrdiff_t,nsubrings);
   int *substride_=RALLOC(int,nsubrings);
   for (int m=0; m<nsubrings; ++m) {
-    // subtheta[m]=theta[nrings-(m+i0)];
-    // subweight[m]=weight[nrings-(m+i0)];
     subtheta[m]=theta[(m+i0)];
     subweight[m]=weight[(m+i0)];
     subnph[m]=ppring;
@@ -886,7 +884,6 @@ static void sharp_make_cc_geom_info_stripe (int nrings, int ppring, double phi0,
     subofs[m]=(ptrdiff_t)m*stride_lat;
     substride_[m]=stride_lon;
   }
-  // printf("%f %f\n", subtheta[0], subtheta[nsubrings-1]);
   sharp_make_geom_info (nsubrings, subnph, subofs, substride_,
 			subphi0_, subtheta, subweight, geom_info);
 
@@ -922,9 +919,22 @@ static void sht_wrapper(int spin,int lmax,nmt_curvedsky_info *cs,
     sharp_make_weighted_healpix_geom_info(cs->n_eq,1,NULL,&geom_info);
   else {
     // first nrings is total
+    /*
+      In CC grid: theta_i = i * pi/(Ng-1), with 0 <= i < Ng
+      Therefore Delta_theta = pi/(Ng-1) -> Ng = pi/Delta_theta + 1
+      If theta0 is the largest colatitude in the map, then theta0 = imax * pi/(Ng-1)
+      If theta1 is the smallest colatitude in the map, then theta1 = imin * pi/(Ng-1)
+      The number of rings stored should be Ny = imax-imin+1 = (theta0-theta1)/Delta_theta + 1
+      so theta1 = theta0 - (Ny-1)*Delta_theta = 
+      We currently have theta1' = theta0-Ny*Delta_theta = theta1+Delta_theta
+      The first ring number should be i0 = theta1/Delta_theta = theta1'/Delta-1
+     */
     int tot_sphere_rings = round(M_PI / cs->Delta_theta) + 1;
-    flouble theta1 = cs->theta0 - cs->ny * cs->Delta_theta;
-    int first_ring = round(theta1 / cs->Delta_theta) + 1; //TODO: should there be a +1 here?
+    //TODO: this was the previous code. Reason explained above.
+    //flouble theta1 = cs->theta0 - cs->ny * cs->Delta_theta;
+    //int first_ring = round(theta1 / cs->Delta_theta) + 1;
+    flouble theta1 = cs->theta0 - (cs->ny - 1) * cs->Delta_theta;
+    int first_ring = round(theta1 / cs->Delta_theta);
     sharp_make_cc_geom_info_stripe(tot_sphere_rings,
 				   cs->nx, cs->phi0,
 				   1,cs->nx, //stride_lon ,stride_lat
