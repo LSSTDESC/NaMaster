@@ -9,31 +9,31 @@ CTEST(nmt,curvedsky_errors)
   nmt_curvedsky_info *cs;
   long nside=128;
   int nx=128,ny=128;
-  double dth=-60./nside,dph=120./nside;
+  double dth=M_PI/(3*nside),dph=2*M_PI/(3*nside);
   nmt_curvedsky_info *cs_hpx_ref=nmt_curvedsky_info_alloc(1,nside,-1,-1,-1,-1,-1,-1);
-  nmt_curvedsky_info *cs_car_ref=nmt_curvedsky_info_alloc(0,-1,nx,ny,dth,dph,0,0);
+  nmt_curvedsky_info *cs_car_ref=nmt_curvedsky_info_alloc(0,-1,nx,ny,dth,dph,0,M_PI/2);
   
   set_error_policy(THROW_ON_ERROR);
   cs=NULL;
   try { cs=nmt_curvedsky_info_alloc(1,nside-1,-1,-1,-1,-1,-1,-1); } //Passing incorrect nside
   ASSERT_NOT_EQUAL(0,nmt_exception_status);
   ASSERT_NULL(cs);
-  try { cs=nmt_curvedsky_info_alloc(0,-1,-nx,ny,dth,dph,0,0); } //Passing incorrect CAR dimensions
+  try { cs=nmt_curvedsky_info_alloc(0,-1,-nx,ny,dth,dph,0,M_PI/2); } //Passing incorrect CAR dimensions
   ASSERT_NOT_EQUAL(0,nmt_exception_status);
   ASSERT_NULL(cs);
-  try { cs=nmt_curvedsky_info_alloc(0,-1,nx,-ny,dth,dph,0,0); }
+  try { cs=nmt_curvedsky_info_alloc(0,-1,nx,-ny,dth,dph,0,M_PI/2); }
   ASSERT_NOT_EQUAL(0,nmt_exception_status);
   ASSERT_NULL(cs);
-  try { cs=nmt_curvedsky_info_alloc(0,-1,nx,ny,dth,dph,720,0); } //Passing incorrect CAR dimensions
+  try { cs=nmt_curvedsky_info_alloc(0,-1,nx,ny,-dth,dph,0,M_PI/2); } //Wrong pixel sizes
   ASSERT_NOT_EQUAL(0,nmt_exception_status);
   ASSERT_NULL(cs);
-  try { cs=nmt_curvedsky_info_alloc(0,-1,nx,ny,dth,dph,0,-190); }
+  try { cs=nmt_curvedsky_info_alloc(0,-1,nx,ny,dth,-dph,0,M_PI/2); } //Wrong pixel sizes
   ASSERT_NOT_EQUAL(0,nmt_exception_status);
   ASSERT_NULL(cs);
-  try { cs=nmt_curvedsky_info_alloc(0,-1,nx,ny,181.,dph,0,0); } //Passing incorrect pixel sizes
+  try { cs=nmt_curvedsky_info_alloc(0,-1,nx,ny,dth,dph,4*M_PI,M_PI/2); } //Wrong dimensions
   ASSERT_NOT_EQUAL(0,nmt_exception_status);
   ASSERT_NULL(cs);
-  try { cs=nmt_curvedsky_info_alloc(0,-1,nx,ny,dth,-720.,0,0); }
+  try { cs=nmt_curvedsky_info_alloc(0,-1,nx,ny,dth,dph,0,-0.1); }
   ASSERT_NOT_EQUAL(0,nmt_exception_status);
   ASSERT_NULL(cs);
   set_error_policy(EXIT_ON_ERROR);
@@ -43,10 +43,10 @@ CTEST(nmt,curvedsky_errors)
 
   //Compare infos
   ASSERT_FALSE(nmt_diff_curvedsky_info(cs_hpx_ref,cs_car_ref)); //HPX vs CAR
-  cs=nmt_curvedsky_info_alloc(0,-1,nx,ny,dth,dph*(1+1E-4),0,0);
+  cs=nmt_curvedsky_info_alloc(0,-1,nx,ny,dth,dph*(1+1E-4),0,M_PI/2);
   ASSERT_FALSE(nmt_diff_curvedsky_info(cs,cs_car_ref)); //Different pixel sizes
   free(cs);
-  cs=nmt_curvedsky_info_alloc(0,-1,nx,ny,dth,dph*(1+5E-7),0,0); //Very similar pixel sizes
+  cs=nmt_curvedsky_info_alloc(0,-1,nx,ny,dth,dph*(1+5E-7),0,M_PI/2); //Very similar pixel sizes
   ASSERT_TRUE(nmt_diff_curvedsky_info(cs,cs_car_ref));
   free(cs);
 
@@ -57,7 +57,7 @@ CTEST(nmt,curvedsky_errors)
   //Extend a map and check it stays the same
   flouble *map_in=my_malloc(nx*ny*sizeof(flouble));
   for(ii=0;ii<nx*ny;ii++)
-    map_in[ii]=1.;
+    map_in[ii]=ii+0.123;
   flouble *map_out=nmt_extend_CAR_map(cs_car_ref,map_in);
   
   for(ii=0;ii<cs_car_ref->nx;ii++) {

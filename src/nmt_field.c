@@ -39,22 +39,23 @@ nmt_curvedsky_info *nmt_curvedsky_info_alloc(int is_healpix,long nside,
     cs->npix=12*nside*nside;
   }
   else {
-    long nx=(int)round(360.0 / Dphi);
-    if((fabs(Dtheta)>=180) || (fabs(Dphi)>=360) || (fabs(phi0)>360) || (fabs(theta0)>90))
+    long nx=(int)round(2*M_PI / Dphi);
+    if((Dtheta>=M_PI) || (Dphi>=2*M_PI) || (Dtheta<=0) || (Dphi<=0)
+       || (fabs(phi0)>2*M_PI) || (theta0<0) || (theta0>M_PI))
       report_error(NMT_ERROR_VALUE,"Wrong pixel sizes or reference coordinates\n");
     if((nx0<=0) || (ny0<=0))
       report_error(NMT_ERROR_VALUE,"Wrong map dimensions\n");
     if(nx0>nx)
       report_error(NMT_ERROR_VALUE,"Seems like you're wrapping the sphere more than once\n");
-    cs->n_eq=fmin(fabs(180.0/Dtheta), fabs(180.0/Dphi)) / 2;
+    cs->n_eq=fmin(fabs(M_PI/Dtheta), fabs(M_PI/Dphi)) / 2;
     cs->nx_short=nx0;
     cs->nx=nx;
     cs->ny=ny0;
     cs->npix=nx*ny0;
-    cs->Delta_phi=Dphi*M_PI/180.0;
-    cs->Delta_theta=-Dtheta*M_PI/180.0;
-    cs->phi0=phi0*M_PI/180;
-    cs->theta0=(90-theta0)*M_PI/180.0;
+    cs->Delta_phi=Dphi;
+    cs->Delta_theta=Dtheta;
+    cs->phi0=phi0;
+    cs->theta0=theta0;
   }
   
   return cs;
@@ -69,20 +70,8 @@ flouble *nmt_extend_CAR_map(nmt_curvedsky_info *cs,flouble *map_in)
   else {
     if(cs->nx!=cs->nx_short) {
       int jj;
-      int flipx = cs->Delta_phi < 0;
-      int flipy = cs->Delta_theta < 0;
-      
-      for(jj=0;jj<cs->ny;jj++) {
-	int ii;
-	int final_jj=jj;
-	if (flipy) final_jj=cs->ny-1-jj;
-	for(ii=0;ii<cs->nx_short;ii++) {
-	  int final_ii=ii;
-	  if (flipx) final_ii=cs->nx-1-ii;
-	  
-	  map_out[final_jj*cs->nx+final_ii]=map_in[jj*cs->nx_short+ii];
-	}
-      }
+      for(jj=0;jj<cs->ny;jj++)
+	memcpy(map_out+jj*cs->nx,map_in+jj*cs->nx_short,cs->nx_short*sizeof(flouble));
     }
     else
       memcpy(map_out,map_in,cs->npix*sizeof(flouble));

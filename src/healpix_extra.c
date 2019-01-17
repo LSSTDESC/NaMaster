@@ -153,24 +153,30 @@ static flouble *he_read_CAR_map(char *fname, nmt_curvedsky_info *sky_info, int n
   axes = my_malloc(naxes * sizeof(long));
   fits_get_img_size(fptr, 3, axes, &status);
 
-  double Delta_phi, Delta_theta, phi0, theta0;
+  double Delta_phi, Delta_theta, phi0, theta0, ix0, iy0;
   fits_read_key(fptr, TDOUBLE, "CDELT1", &Delta_phi, comment, &status);
   fits_read_key(fptr, TDOUBLE, "CDELT2", &Delta_theta, comment, &status);
   fits_read_key(fptr, TDOUBLE, "CRVAL1", &phi0, comment, &status);
   fits_read_key(fptr, TDOUBLE, "CRVAL2", &theta0, comment, &status);
-  free(comment);
+  fits_read_key(fptr, TDOUBLE, "CRPIX1", &ix0, comment, &status);
+  fits_read_key(fptr, TDOUBLE, "CRPIX2", &iy0, comment, &status);
   
-  full_x = (int) round(360.0 / fabs(Delta_phi)); // have to fill in ring
+  free(comment);
 
-  sky_info->nx_short = axes[0];
-  sky_info->nx = full_x;
-  sky_info->ny = axes[1];
-  sky_info->npix = full_x * axes[1];
-  sky_info->Delta_phi = Delta_phi * M_PI / 180.0;
-  sky_info->Delta_theta = -Delta_theta * M_PI / 180.0;
-  sky_info->phi0 = phi0 * M_PI / 180.0;
-  sky_info->theta0 = (90 - theta0) * M_PI / 180.0;
-  sky_info->n_eq = fmin(fabs(180.0/Delta_theta), fabs(180.0/Delta_phi)) / 2;
+  if(Delta_theta>=0)
+    report_error(1,"Pixel increment in latitude must be negative\n");
+  if(Delta_phi<=0)
+    report_error(1,"Pixel increment in longitude must be positive\n");
+  if((ix0!=0) || (iy0!=0))
+    report_error(1,"Reference pixel must be at [0,0]\n");
+
+  nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(0,-1,axes[0],axes[1],
+						  -Delta_theta*M_PI/180,
+						  Delta_phi*M_PI/180,
+						  phi0*M_PI/180,
+						  (90-theta0)*M_PI/180);
+  memcpy(sky_info,cs,sizeof(nmt_curvedsky_info));
+  free(cs);
 
   fpixel[0] = 1;
   fpixel[1] = 1;
@@ -180,7 +186,7 @@ static flouble *he_read_CAR_map(char *fname, nmt_curvedsky_info *sky_info, int n
   map = my_malloc(nelements* sizeof(flouble));
   fits_read_pix(fptr, TDOUBLE, fpixel, nelements, 0, map, &anynul, &status);
 
-  if (full_x != axes[0]) {
+  if (sky_info->nx != axes[0]) {
     ringed_map = nmt_extend_CAR_map(sky_info,map);
     free(map);
     map = ringed_map;
@@ -273,23 +279,31 @@ static void he_get_CAR_file_params(char *fname,nmt_curvedsky_info *sky_info,int 
 
   nelements = axes[0] * axes[1];
 
-  double Delta_phi, Delta_theta, phi0, theta0;
+
+  double Delta_phi, Delta_theta, phi0, theta0, ix0, iy0;
   fits_read_key(fptr, TDOUBLE, "CDELT1", &Delta_phi, comment, &status);
   fits_read_key(fptr, TDOUBLE, "CDELT2", &Delta_theta, comment, &status);
   fits_read_key(fptr, TDOUBLE, "CRVAL1", &phi0, comment, &status);
   fits_read_key(fptr, TDOUBLE, "CRVAL2", &theta0, comment, &status);
+  fits_read_key(fptr, TDOUBLE, "CRPIX1", &ix0, comment, &status);
+  fits_read_key(fptr, TDOUBLE, "CRPIX2", &iy0, comment, &status);
+  
   free(comment);
 
-  full_x = (int) round(360.0 / fabs(Delta_phi)); // have to fill in ring
+  if(Delta_theta>=0)
+    report_error(1,"Pixel increment in latitude must be negative\n");
+  if(Delta_phi<=0)
+    report_error(1,"Pixel increment in longitude must be positive\n");
+  if((ix0!=0) || (iy0!=0))
+    report_error(1,"Reference pixel must be at [0,0]\n");
 
-  sky_info->nx = full_x;
-  sky_info->ny = axes[1];
-  sky_info->npix = full_x * axes[1];
-  sky_info->Delta_phi = Delta_phi * M_PI / 180.0;
-  sky_info->Delta_theta = -Delta_theta * M_PI / 180.0;
-  sky_info->phi0 = phi0 * M_PI / 180.0;
-  sky_info->theta0 = (90 - theta0) * M_PI / 180.0;
-  sky_info->n_eq = fmin(fabs(180.0/Delta_theta), fabs(180.0/Delta_phi)) / 2;
+  nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(0,-1,axes[0],axes[1],
+						  -Delta_theta*M_PI/180,
+						  Delta_phi*M_PI/180,
+						  phi0*M_PI/180,
+						  (90-theta0)*M_PI/180);
+  memcpy(sky_info,cs,sizeof(nmt_curvedsky_info));
+  free(cs);
 
   fits_close_file(fptr,&status);
   free(axes);
@@ -534,6 +548,7 @@ static int imodulo (int v1, int v2)
 static const double twopi=6.283185307179586476925286766559005768394;
 static const double twothird=2.0/3.0;
 static const double inv_halfpi=0.6366197723675813430755350534900574;
+//TODO: generalize to CAR;
 long he_ang2pix(long nside,double cth,double phi)
 {
   double ctha=fabs(cth);
@@ -700,6 +715,7 @@ static double wrap_phi(double phi)
     return phi;
 }
 
+//TODO: generalize to CAR
 void he_query_disc(int nside,double cth0,double phi,flouble radius,
 		   int *listtot,int *nlist,int inclusive)
 {
@@ -906,12 +922,11 @@ static void sht_wrapper(int spin,int lmax,nmt_curvedsky_info *cs,
     sharp_make_weighted_healpix_geom_info(cs->n_eq,1,NULL,&geom_info);
   else {
     // first nrings is total
-    flouble Delta_theta = fabs(cs->Delta_theta);
-    int tot_sphere_rings = round(M_PI / Delta_theta) + 1;
-    flouble theta1 = cs->theta0 - cs->ny * Delta_theta;
-    int first_ring = round(theta1 / Delta_theta) + 1;
+    int tot_sphere_rings = round(M_PI / cs->Delta_theta) + 1;
+    flouble theta1 = cs->theta0 - cs->ny * cs->Delta_theta;
+    int first_ring = round(theta1 / cs->Delta_theta) + 1; //TODO: should there be a +1 here?
     sharp_make_cc_geom_info_stripe(tot_sphere_rings,
-				   cs->nx, cs->phi0, // DEGREES OR RADIANS??
+				   cs->nx, cs->phi0,
 				   1,cs->nx, //stride_lon ,stride_lat
 				   &geom_info,
 				   cs->ny,first_ring); //nsubrings, start_index of ring
@@ -1054,7 +1069,7 @@ int he_get_lmax(nmt_curvedsky_info *cs)
   if(cs->is_healpix)
     return 3*cs->n_eq-1;
   else {
-    double dxmin=NMT_MIN(fabs(cs->Delta_phi),fabs(cs->Delta_theta));
+    double dxmin=NMT_MIN(cs->Delta_phi,cs->Delta_theta);
     return (int)(M_PI/dxmin);
   }
 }
@@ -1153,8 +1168,8 @@ flouble he_get_pix_area(nmt_curvedsky_info *cs,long i)
     return M_PI/(3*cs->n_eq*cs->n_eq);
   }
   else {
-    flouble theta1 = i * fabs(cs->Delta_theta) + cs->theta0;
-    return sin(theta1) * fabs(cs->Delta_phi * cs->Delta_theta);
+    flouble theta1 = (i+0.5-cs->ny) * fabs(cs->Delta_theta) + cs->theta0;
+    return sin(theta1) * cs->Delta_phi * cs->Delta_theta;
   }
 }
 
@@ -1210,7 +1225,7 @@ flouble he_map_dot(nmt_curvedsky_info *cs,flouble *mp1,flouble *mp2)
 	long ip=cs->nx*ii;
 	double  pixsize=he_get_pix_area(cs,ii);
 	for(jj=0;jj<cs->nx;jj++) {
-	  sum_this+=mp1[ip]*mp2[ip];
+	  sum_this+=mp1[ip+jj]*mp2[ip+jj];
 	  ip++;
 	}
 	sum_thr+=sum_this*pixsize;

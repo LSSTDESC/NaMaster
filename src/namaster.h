@@ -471,12 +471,12 @@ nmt_curvedsky_info *nmt_curvedsky_info_copy(nmt_curvedsky_info *cs_in);
  *
  * @param is_healpix is this HEALPix pixelization.
  * @param nside if is_healpix, this should be the HEALPix Nside parameter.
- * @param nx0 number of pixels in the x dimension.
- * @param ny0 number of pixels in the y dimension.
- * @param Dtheta pixel size in the y dimension (in deg.).
- * @param Dphi pixel size in the x dimension (in deg.).
- * @param theta0 latitude of reference pixel (in deg.).
- * @param phi0 longitude of reference pixel (in deg.).
+ * @param nx0 number of pixels in the phi direction.
+ * @param ny0 number of pixels in the theta direction.
+ * @param Dtheta pixel size in the theta direction. In radians. Must be positive.
+ * @param Dphi pixel size in the phi direction. In radians, must be positive.
+ * @param theta0 maximum spherical coordinate covered by the map. In radians.
+ * @param phi0 minimum azimuth covered by the map. In Radians.
  * @return nmt_curvedsky_info struct.
  */
 nmt_curvedsky_info *nmt_curvedsky_info_alloc(int is_healpix,long nside,
