@@ -1168,7 +1168,7 @@ flouble he_get_pix_area(nmt_curvedsky_info *cs,long i)
     return M_PI/(3*cs->n_eq*cs->n_eq);
   }
   else {
-    flouble theta1 = (i+0.5-cs->ny) * fabs(cs->Delta_theta) + cs->theta0;
+    flouble theta1 = (i-cs->ny) * cs->Delta_theta + cs->theta0;
     return sin(theta1) * cs->Delta_phi * cs->Delta_theta;
   }
 }

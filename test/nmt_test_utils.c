@@ -84,7 +84,7 @@ double **test_make_map_analytic_car(nmt_curvedsky_info *cs,int pol)
 
   for(ii=0;ii<cs->ny;ii++) {
     int jj;
-    double th=cs->theta0+ii*cs->Delta_theta;
+    double th=cs->theta0+(ii-cs->ny)*cs->Delta_theta;
     double sth=sin(th);
     double cth=cos(th);
     for(jj=0;jj<cs->nx_short;jj++) {
