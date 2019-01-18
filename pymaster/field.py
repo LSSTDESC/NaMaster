@@ -1,7 +1,91 @@
 from pymaster import nmtlib as lib
 import numpy as np
 
+class WCSTranslator(object) :
+    """
+    This class takes care of interpreting a WCS object in terms of a Clenshaw-Curtis grid.
+    
+    :param wcs: a WCS object (see http://docs.astropy.org/en/stable/wcs/index.html).                                                                                                  
+    """
 
+    def __init__(self,wcs,map_sample) :
+        if wcs is None :
+            is_healpix=1
+            nside = 2
+            while 12 * nside * nside != len(map_sample):
+                nside *= 2
+                if nside > 65536:
+                    raise ValueError("Something is wrong with your input arrays")
+            npix=12*nside*nside
+            flip_th=False; theta_min=-1; theta_max=-1
+            dth=-1; dph=-1; phi0=-1; nx=-1; ny=-1
+        else :
+            is_healpix=0
+            nside=-1
+
+            d_ra,d_dec=wcs.wcs.cdelt
+            ra0,dec0=wcs.wcs.crval
+            ix0,iy0=wcs.wcs.crpix
+            typra,typdec=wcs.wcs.ctype
+            try :
+                ny,nx=map_sample.shape
+            except:
+                raise ValueError("Input maps must be 2D if not HEALPix")
+            npix=ny*nx
+            
+            dth=np.fabs(np.radians(d_dec))
+            dph=np.fabs(np.radians(d_ra))
+        
+            #Check if projection type is CAR
+            if not ((typra[:-3]=='CAR') and (typdec[:-3]=='CAR')) :
+                raise ValueError("Maps must have CAR pixelization")
+
+            #Check if reference pixel is consistent with CC
+            if np.fabs(dec0)>1E-3 :
+                raise ValueError("Reference pixel must be at the equator")
+
+            #Check d_ra, d_dec are CC
+            if ((np.fabs(round(2*np.pi/dph)-2*np.pi/dph)>0.01) or
+                (np.fabs(round(np.pi/dth)-np.pi/dth)>0.01)) :
+                raise ValueError("The pixels should divide the sphere exactly")
+
+            #Is colatitude decreasing? (i.e. is declination increasing?)
+            flip_th=d_dec>0
+
+            edges=[dec0-iy0*d_dec,dec0+(ny-1-iy0)*d_dec]
+            #TODO: test this with proper WCS functions
+            if flip_th :
+                dec_min=edges[0];
+                dec_max=edges[1];
+            else :
+                dec_min=edges[1];
+                dec_max=edges[0];
+
+            theta_min=np.radians(90-dec_max)
+            theta_max=np.radians(90-dec_min)
+
+            #Check if ix0,iy0 + ra0, dec0 mean this is CC
+            if (theta_min<0) or (theta_max>np.pi) :
+                raise ValueError("The colatitude map edges are outside the sphere")
+            
+            if np.fabs(nx*d_ra)>360 :
+                raise ValueError("Seems like you're wrapping the sphere more than once")
+
+            phi0=np.radians(ra0)
+
+        #Store values
+        self.is_healpix=is_healpix
+        self.nside=nside
+        self.npix=npix
+        self.nx=nx
+        self.ny=ny
+        self.flip_th=flip_th
+        self.theta_min=theta_min
+        self.theta_max=theta_max
+        self.d_theta=dth
+        self.d_phi=dph
+        self.phi0=phi0
+        
 class NmtField(object):
     """
     An NmtField object contains all the information describing the fields to correlate, including their observed maps, masks and contaminant templates.
@@ -29,60 +113,50 @@ class NmtField(object):
         if purify_b:
             pure_b = 1
 
-        #Set up geometry
-        if wcs is None :
-            is_healpix=1
-            nside = 2
-            while 12 * nside * nside != len(mask):
-                nside *= 2
-                if nside > 65536:
-                    raise ValueError("Something is wrong with your input arrays")
-            npix=12*nside*nside
-            #Make all WCS variables dummy
-            nx=-1; ny=-1;
-            delta_phi=-1; delta_theta=-1;
-            phi0=-1; theta0=-1;
-        else :
-            is_healpix=0
-            try:
-                ny,nx=mask.shape
-            except:
-                raise ValueError("Input maps must be 2D if not HEALPix")
-            npix=nx*ny
-            mask=mask.reshape(npix)
-            delta_phi,delta_theta=wcs.wcs.cdelt
-            phi0,theta0=wcs.wcs.crval
-            #Make HEALPix variables dummy
-            nside=-1
+        wt=WCSTranslator(wcs,mask)
+        if wt.is_healpix==0 :
+            if wt.flip_th :
+                mask=mask[::-1,:]
+            mask=mask.reshape(wt.npix)
             
         if (len(maps) != 1) and (len(maps) != 2):
             raise ValueError("Must supply 1 or 2 maps per field")
 
-        if not is_healpix : #Flatten if 2D maps
-            try:
-                maps=np.array(maps).reshape([len(maps),npix])
-            except:
-                raise ValueError("Input maps have the wrong shape")
         if len(maps[0]) != len(mask):
             raise ValueError("All maps must have the same resolution")
 
+        if wt.is_healpix==0 : #Flatten if 2D maps
+            try:
+                maps=np.array(maps)
+                if wt.flip_th :
+                    maps=np.array(maps)[:,::-1,:]
+                maps=maps.reshape([len(maps),npix])
+            except:
+                raise ValueError("Input maps have the wrong shape")
+
         if isinstance(templates, (list, tuple, np.ndarray)):
             ntemp=len(templates)
-            if not is_healpix : #Flatten if 2D maps
+            if (len(templates[0]) != 1) and (len(templates[0]) != 2):
+                raise ValueError("Must supply 1 or 2 maps per field")
+            
+            if len(templates[0][0]) != len(mask):
+                raise ValueError("All maps must have the same resolution")
+
+            if wt.is_healpix==0 : #Flatten if 2D maps
                 try:
-                    templates=np.array(templates).reshape([ntemp,len(maps),npix])
+                    templates=np.array(templates)
+                    if wt.flip_th :
+                        templates=templates[:,:,::-1,:]
+                    templates=templates.reshape([ntemp,len(maps),npix])
                 except:
                     raise ValueError("Input templates have the wrong shape")
                 
-            if (len(templates[0]) != 1) and (len(templates[0]) != 2):
-                raise ValueError("Must supply 1 or 2 maps per field")
-            if len(templates[0][0]) != len(mask):
-                raise ValueError("All maps must have the same resolution")
         else:
             if templates is not None:
                 raise ValueError("Input templates can only be an array or None\n")
 
-        lmax=lib.get_lmax_py(is_healpix,nside,nx,ny,delta_phi,delta_theta,phi0,theta0)
+        lmax=lib.get_lmax_py(wt.is_healpix,wt.nside,wt.nx,wt.ny,
+                             wt.d_phi,wt.d_theta,wt.phi0,wt.theta_max)
 
         if isinstance(beam, (list, tuple, np.ndarray)):
             if len(beam) <= lmax :
@@ -95,19 +169,13 @@ class NmtField(object):
                 raise ValueError("Input beam can only be an array or None\n")
 
         if isinstance(templates, (list, tuple, np.ndarray)):
-            self.fl = lib.field_alloc_new(is_healpix,nside,nx,ny,delta_phi,delta_theta,phi0,theta0,
-                mask,
-                maps,
-                templates,
-                beam_use,
-                pure_e,
-                pure_b,
-                n_iter_mask_purify,
-                tol_pinv,
-            )
+            self.fl = lib.field_alloc_new(wt.is_healpix,wt.nside,wt.nx,wt.ny,
+                                          wt.d_phi,wt.d_theta,wt.phi0,wt.theta_max,
+                                          mask,maps,templates,beam_use,
+                                          pure_e,pure_b,n_iter_mask_purify,tol_pinv)
         else:
             self.fl = lib.field_alloc_new_notemp(
-                is_healpix,nside,nx,ny,delta_phi,delta_theta,phi0,theta0,
+                wt.is_healpix,wt.nside,wt.nx,wt.ny,wt.d_phi,wt.d_theta,wt.phi0,wt.theta_max,
                 mask, maps, beam_use, pure_e, pure_b, n_iter_mask_purify
             )
 
