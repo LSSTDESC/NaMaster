@@ -160,15 +160,18 @@ static flouble *he_read_CAR_map(char *fname, nmt_curvedsky_info *sky_info, int n
   fits_read_key(fptr, TDOUBLE, "CRVAL2", &theta0, comment, &status);
   fits_read_key(fptr, TDOUBLE, "CRPIX1", &ix0, comment, &status);
   fits_read_key(fptr, TDOUBLE, "CRPIX2", &iy0, comment, &status);
-  
+
   free(comment);
 
   if(Delta_theta>=0)
     report_error(1,"Pixel increment in latitude must be negative\n");
   if(Delta_phi<=0)
     report_error(1,"Pixel increment in longitude must be positive\n");
-  if((ix0!=0) || (iy0!=0))
-    report_error(1,"Reference pixel must be at [0,0]\n");
+  if((ix0!=1) || (iy0!=1))
+    report_error(1,"Reference pixel must be at [1,1]\n");
+
+  // adjust theta0 to be the bottom ring rather than the top ring
+  theta0 += Delta_theta * (axes[1] - 1);
 
   nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(0,-1,axes[0],axes[1],
 						  -Delta_theta*M_PI/180,
@@ -204,7 +207,7 @@ static flouble *he_read_CAR_map(char *fname, nmt_curvedsky_info *sky_info, int n
 flouble *he_read_map(char *fname,nmt_curvedsky_info *sky_info,int nfield) //DONE
 {
   flouble *mp;
-  
+
   if(sky_info->is_healpix) {
     mp=he_read_HPX_map(fname,&(sky_info->n_eq),nfield);
     sky_info->npix=12*sky_info->n_eq*sky_info->n_eq;
@@ -287,7 +290,7 @@ static void he_get_CAR_file_params(char *fname,nmt_curvedsky_info *sky_info,int 
   fits_read_key(fptr, TDOUBLE, "CRVAL2", &theta0, comment, &status);
   fits_read_key(fptr, TDOUBLE, "CRPIX1", &ix0, comment, &status);
   fits_read_key(fptr, TDOUBLE, "CRPIX2", &iy0, comment, &status);
-  
+
   free(comment);
 
   if(Delta_theta>=0)
@@ -941,7 +944,7 @@ static void sht_wrapper(int spin,int lmax,nmt_curvedsky_info *cs,
 				   &geom_info,
 				   cs->ny,first_ring); //nsubrings, start_index of ring
   }
-    
+
 #ifdef _NEW_SHARP
   sharp_execute(alm2map,spin,0,alm,map,geom_info,alm_info,ntrans,flags,0,&time,NULL);
 #else //_NEW_SHARP
@@ -1247,7 +1250,7 @@ flouble he_map_dot(nmt_curvedsky_info *cs,flouble *mp1,flouble *mp2)
       } //end omp critical
     } //end omp parallel
   }
-  
+
   return (flouble)(sum);
 }
 
