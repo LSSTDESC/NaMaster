@@ -925,16 +925,16 @@ static void sht_wrapper(int spin,int lmax,nmt_curvedsky_info *cs,
       If theta0 is the largest colatitude in the map, then theta0 = imax * pi/(Ng-1)
       If theta1 is the smallest colatitude in the map, then theta1 = imin * pi/(Ng-1)
       The number of rings stored should be Ny = imax-imin+1 = (theta0-theta1)/Delta_theta + 1
-      so theta1 = theta0 - (Ny-1)*Delta_theta = 
+      so theta1 = theta0 - (Ny-1)*Delta_theta.
       We currently have theta1' = theta0-Ny*Delta_theta = theta1+Delta_theta
       The first ring number should be i0 = theta1/Delta_theta = theta1'/Delta-1
      */
-    int tot_sphere_rings = round(M_PI / cs->Delta_theta) + 1;
+    int tot_sphere_rings = round(M_PI / cs->Delta_theta) + 1; //Number of rings covering the sphere
     //TODO: this was the previous code. Reason explained above.
     //flouble theta1 = cs->theta0 - cs->ny * cs->Delta_theta;
     //int first_ring = round(theta1 / cs->Delta_theta) + 1;
-    flouble theta1 = cs->theta0 - (cs->ny - 1) * cs->Delta_theta;
-    int first_ring = round(theta1 / cs->Delta_theta);
+    flouble theta1 = cs->theta0 - (cs->ny - 1) * cs->Delta_theta; //Colatitude of the lowest ring
+    int first_ring = round(theta1 / cs->Delta_theta); //Index of the lowest ring
     sharp_make_cc_geom_info_stripe(tot_sphere_rings,
 				   cs->nx, cs->phi0,
 				   1,cs->nx, //stride_lon ,stride_lat
@@ -1172,13 +1172,13 @@ void he_alter_alm(int lmax,double fwhm_amin,fcomplex *alm_in,fcomplex *alm_out,
     free(beam);
 }
 
-flouble he_get_pix_area(nmt_curvedsky_info *cs,long i)
+flouble he_get_pix_area(nmt_curvedsky_info *cs,long iy)
 {
   if(cs->is_healpix) {
     return M_PI/(3*cs->n_eq*cs->n_eq);
   }
   else {
-    flouble theta1 = (i-cs->ny) * cs->Delta_theta + cs->theta0;
+    flouble theta1 = (iy+1-cs->ny) * cs->Delta_theta + cs->theta0;
     return sin(theta1) * cs->Delta_phi * cs->Delta_theta;
   }
 }

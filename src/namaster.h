@@ -440,22 +440,29 @@ void nmt_purify_flat(nmt_field_flat *fl,flouble *mask,fcomplex **walm0,
 		     flouble **maps_in,flouble **maps_out,fcomplex **alms);
 
 /**
-* @brief Curved-sky information.
-*
-* This structure contains all the information defining a given
-* rectangular curved-sky patch.
-*/
+ * @brief Curved-sky information.
+ *
+ * This structure contains all the information defining a given full-sky patch.
+ * It describes either a HEALPix grid (in which case is_healpix!=0) or a CAR
+ * patch (for is_healpix==0). If the latter, then the CAR pixelization must
+ * conform to the Clenshaw-Curtis sampling. In this case the colatitude theta
+ * must be sampled at N points going from 0 to pi (including both), separated
+ * by an interval Dtheta = pi/(N-1). Not all iso-latitude rings must be stored
+ * in the patch (i.e. ny!=N necessarily). See the documentation for 
+ * nmt_curvedsky_info_alloc for further information on the constraints that
+ * some of the members of this structure must fulfill.
+ */
 typedef struct {
   int is_healpix; //!< is this HEALPix pixelization?
   long n_eq; //!< equivalent of nside, number of pixels in the equatorial ring
   int nx_short; //!< Number of grid points in the x dimension before completing the circle
-  int nx; //!< Number of grid points in the x dimension
-  int ny; //!< Number of grid points in the y dimension
+  int nx; //!< Number of grid points in the phi dimension
+  int ny; //!< Number of grid points in the theta dimension
   long npix; //!< Total number of pixels (given by \p nx * \p ny
-  flouble Delta_theta; //!< pixel size in y direction
-  flouble Delta_phi; //!< pixel size in x direction
+  flouble Delta_theta; //!< pixel size in theta direction
+  flouble Delta_phi; //!< pixel size in phi direction
   flouble phi0; // longitude of first pixel
-  flouble theta0; // latitude of first pixel
+  flouble theta0; // colatitude of last ring
 } nmt_curvedsky_info;
 
 /**
@@ -469,14 +476,18 @@ nmt_curvedsky_info *nmt_curvedsky_info_copy(nmt_curvedsky_info *cs_in);
 /**
  * @brief nmt_curvedsky_info creator
  *
+ * If generating a Clenshaw-Curtis grid, then Dtheta and Dphi must be (close to)
+ * exact divisor of pi and 2pi respectively. Likewise, theta0 must be an integer
+ * multiple of Dtheta, and the number of pixels in the theta direction must be
+ * such that the map actually fits on the sphere (i.e. theta0-(ny-1)*Dtheta >=0).
  * @param is_healpix is this HEALPix pixelization.
  * @param nside if is_healpix, this should be the HEALPix Nside parameter.
  * @param nx0 number of pixels in the phi direction.
  * @param ny0 number of pixels in the theta direction.
  * @param Dtheta pixel size in the theta direction. In radians. Must be positive.
  * @param Dphi pixel size in the phi direction. In radians, must be positive.
- * @param theta0 maximum spherical coordinate covered by the map. In radians.
- * @param phi0 minimum azimuth covered by the map. In Radians.
+ * @param theta0 colatitude of the last ring in the map. In radians.
+ * @param phi0 minimum azimuth covered by the map. In radians.
  * @return nmt_curvedsky_info struct.
  */
 nmt_curvedsky_info *nmt_curvedsky_info_alloc(int is_healpix,long nside,

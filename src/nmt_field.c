@@ -39,15 +39,25 @@ nmt_curvedsky_info *nmt_curvedsky_info_alloc(int is_healpix,long nside,
     cs->npix=12*nside*nside;
   }
   else {
-    long nx=(int)round(2*M_PI / Dphi);
+    //Basic sanity checks
     if((Dtheta>=M_PI) || (Dphi>=2*M_PI) || (Dtheta<=0) || (Dphi<=0)
        || (fabs(phi0)>2*M_PI) || (theta0<0) || (theta0>M_PI))
       report_error(NMT_ERROR_VALUE,"Wrong pixel sizes or reference coordinates\n");
     if((nx0<=0) || (ny0<=0))
       report_error(NMT_ERROR_VALUE,"Wrong map dimensions\n");
+
+    //Check map fits on the sphere
+    if(theta0-(ny0-1)*Dtheta<-0.01*Dtheta)
+      report_error(NMT_ERROR_VALUE,"Input map doesn't really fit on the sphere\n");
+    long nx=(int)round(2*M_PI / Dphi);
     if(nx0>nx)
       report_error(NMT_ERROR_VALUE,"Seems like you're wrapping the sphere more than once\n");
-    cs->n_eq=fmin(fabs(M_PI/Dtheta), fabs(M_PI/Dphi)) / 2;
+
+    //Check pixel size values
+    if((fabs(M_PI/Dtheta-round(M_PI/Dtheta))>0.01) || (fabs(2*M_PI/Dphi-round(2*M_PI/Dphi))>0.01))
+      report_error(NMT_ERROR_VALUE,"The pixel size must fit in a Clenshaw-Curtis grid\n");
+    
+    cs->n_eq=fmin(M_PI/Dtheta, M_PI/Dphi) / 2;
     cs->nx_short=nx0;
     cs->nx=nx;
     cs->ny=ny0;

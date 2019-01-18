@@ -9,10 +9,10 @@ CTEST(nmt,curvedsky_errors)
   nmt_curvedsky_info *cs;
   long nside=128;
   int nx=128,ny=128;
-  double dth=M_PI/(3*nside),dph=2*M_PI/(3*nside);
+  double dth=M_PI/(3*nside),dph=M_PI/(3*nside);
   nmt_curvedsky_info *cs_hpx_ref=nmt_curvedsky_info_alloc(1,nside,-1,-1,-1,-1,-1,-1);
-  nmt_curvedsky_info *cs_car_ref=nmt_curvedsky_info_alloc(0,-1,nx,ny,dth,dph,0,M_PI/2);
-  
+  nmt_curvedsky_info *cs_car_ref=nmt_curvedsky_info_alloc(0,-1,nx,ny,dth,dph,0,M_PI);
+
   set_error_policy(THROW_ON_ERROR);
   cs=NULL;
   try { cs=nmt_curvedsky_info_alloc(1,nside-1,-1,-1,-1,-1,-1,-1); } //Passing incorrect nside
@@ -36,23 +36,30 @@ CTEST(nmt,curvedsky_errors)
   try { cs=nmt_curvedsky_info_alloc(0,-1,nx,ny,dth,dph,0,-0.1); }
   ASSERT_NOT_EQUAL(0,nmt_exception_status);
   ASSERT_NULL(cs);
+  try { nmt_curvedsky_info_alloc(0,-1,nx,ny,dth,2*M_PI/(6*nside+0.5),0,M_PI); } //Pixel size is not CC-compliant
+  ASSERT_NOT_EQUAL(0,nmt_exception_status);
+  ASSERT_NULL(cs);
+  try { nmt_curvedsky_info_alloc(0,-1,nx,ny,M_PI/(3*nside+0.5),dph,0,M_PI); }
+  ASSERT_NOT_EQUAL(0,nmt_exception_status);
+  ASSERT_NULL(cs);
   set_error_policy(EXIT_ON_ERROR);
 
+  
   //Check lmax calculation
   ASSERT_TRUE(he_get_lmax(cs_hpx_ref)==he_get_lmax(cs_car_ref)-1);
 
   //Compare infos
   ASSERT_FALSE(nmt_diff_curvedsky_info(cs_hpx_ref,cs_car_ref)); //HPX vs CAR
-  cs=nmt_curvedsky_info_alloc(0,-1,nx,ny,dth,dph*(1+1E-4),0,M_PI/2);
+  cs=nmt_curvedsky_info_alloc(0,-1,nx,ny,dth,dph*2,0,M_PI/2);
   ASSERT_FALSE(nmt_diff_curvedsky_info(cs,cs_car_ref)); //Different pixel sizes
   free(cs);
-  cs=nmt_curvedsky_info_alloc(0,-1,nx,ny,dth,dph*(1+5E-7),0,M_PI/2); //Very similar pixel sizes
+  cs=nmt_curvedsky_info_alloc(0,-1,nx,ny,dth,dph*(1+5E-10),0,M_PI); //Very similar pixel sizes
   ASSERT_TRUE(nmt_diff_curvedsky_info(cs,cs_car_ref));
   free(cs);
 
   //Check filling out of azimuth direction (nx = 360/dphi = nside * 360/120 = 3*nside)
   ASSERT_TRUE(cs_car_ref->nx_short==nx);
-  ASSERT_TRUE(cs_car_ref->nx==3*nside);
+  ASSERT_TRUE(cs_car_ref->nx==6*nside);
   
   //Extend a map and check it stays the same
   flouble *map_in=my_malloc(nx*ny*sizeof(flouble));
@@ -256,43 +263,11 @@ CTEST(nmt,field_car_alloc) {
   free(cs);
 }
 
-/*
-CTEST(nmt,field_read) {
-  int ii;
-  nmt_field *f;
-
-  //Spin-0, no templates
-  f=nmt_field_read(1,"test/mask.fits","test/maps.fits","none","none",0,0,0,3,1E-10);
-  ASSERT_EQUAL(f->cs->n_eq,256);
-  nmt_field_free(f);
-
-  //Spin-0, with templates
-  f=nmt_field_read(1,"test/mask.fits","test/maps.fits","test/maps.fits","none",0,0,0,3,1E-10);
-  ASSERT_EQUAL(f->cs->n_eq,256);
-  //Template=map -> map=0
-  for(ii=0;ii<f->cs->npix;ii++)
-    ASSERT_DBL_NEAR_TOL(0.0,f->maps[0][ii],1E-10);
-  nmt_field_free(f);
-
-  //Spin-2, no templates
-  f=nmt_field_read(1,"test/mask.fits","test/maps.fits","none","none",1,0,0,3,1E-10);
-  ASSERT_EQUAL(f->cs->n_eq,256);
-  nmt_field_free(f);
-
-  //Spin-2, with templates
-  f=NULL;
-  //Check that an error is thrown if file is wrong
-  set_error_policy(THROW_ON_ERROR);
-  try { f=nmt_field_read(1,"test/mask.fits","test/maps.fits","test/maps.fits","none",1,0,0,3,1E-10); }
-  ASSERT_NOT_EQUAL(0,nmt_exception_status);
-  ASSERT_NULL(f);
-  set_error_policy(EXIT_ON_ERROR);
-}
-
-CTEST(nmt,field_synfast) {
+CTEST(nmt,field_car_synfast) {
   int ii,im1,im2,l,if1,if2;
-  long nside=128;
-  nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(1,nside,-1,-1,-1,-1,-1,-1);
+  int ny=384,nx=2*(ny-1);
+  double dtheta=M_PI/(ny-1),dphi=dtheta;
+  nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(0,-1,nx,ny,dtheta,dphi,0.,M_PI);
   long lmax=he_get_lmax(cs);
   int nfields=3;
   int field_spins[3]={0,2,0};
@@ -300,7 +275,7 @@ CTEST(nmt,field_synfast) {
   int nmaps=4;
   int ncls_pass=(nmaps*(nmaps+1))/2;
   int ncls=nmaps*nmaps;
-  double lpivot=nside/2.;
+  double lpivot=ny/6.;
   double alpha_pivot=1.;
   double **cells_in=my_malloc(ncls*sizeof(double *));
   double **cells_pass=my_malloc(ncls_pass*sizeof(double *));
@@ -384,7 +359,7 @@ CTEST(nmt,field_synfast) {
       }
     }
   }
-  
+
   for(im1=0;im1<nmaps;im1++)
     free(maps[im1]);
   free(maps);
@@ -400,5 +375,38 @@ CTEST(nmt,field_synfast) {
   free(cells_out);
   free(cells_pass);
   free(cs);
+}
+
+/*
+CTEST(nmt,field_read) {
+  int ii;
+  nmt_field *f;
+
+  //Spin-0, no templates
+  f=nmt_field_read(1,"test/mask.fits","test/maps.fits","none","none",0,0,0,3,1E-10);
+  ASSERT_EQUAL(f->cs->n_eq,256);
+  nmt_field_free(f);
+
+  //Spin-0, with templates
+  f=nmt_field_read(1,"test/mask.fits","test/maps.fits","test/maps.fits","none",0,0,0,3,1E-10);
+  ASSERT_EQUAL(f->cs->n_eq,256);
+  //Template=map -> map=0
+  for(ii=0;ii<f->cs->npix;ii++)
+    ASSERT_DBL_NEAR_TOL(0.0,f->maps[0][ii],1E-10);
+  nmt_field_free(f);
+
+  //Spin-2, no templates
+  f=nmt_field_read(1,"test/mask.fits","test/maps.fits","none","none",1,0,0,3,1E-10);
+  ASSERT_EQUAL(f->cs->n_eq,256);
+  nmt_field_free(f);
+
+  //Spin-2, with templates
+  f=NULL;
+  //Check that an error is thrown if file is wrong
+  set_error_policy(THROW_ON_ERROR);
+  try { f=nmt_field_read(1,"test/mask.fits","test/maps.fits","test/maps.fits","none",1,0,0,3,1E-10); }
+  ASSERT_NOT_EQUAL(0,nmt_exception_status);
+  ASSERT_NULL(f);
+  set_error_policy(EXIT_ON_ERROR);
 }
 */
