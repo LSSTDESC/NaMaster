@@ -1235,7 +1235,7 @@ flouble he_map_dot(nmt_curvedsky_info *cs,flouble *mp1,flouble *mp2)
 	long ip=cs->nx*ii;
 	double  pixsize=he_get_pix_area(cs,ii);
 	for(jj=0;jj<cs->nx;jj++) {
-	  sum_this+=mp1[ip+jj]*mp2[ip+jj];
+	  sum_this+=mp1[ip]*mp2[ip];
 	  ip++;
 	}
 	sum_thr+=sum_this*pixsize;
