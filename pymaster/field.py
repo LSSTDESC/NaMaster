@@ -22,22 +22,23 @@ class WCSTranslator(object) :
         else :
             is_healpix=0
             nside=-1
-
-            d_ra,d_dec=wcs.wcs.cdelt
-            ra0,dec0=wcs.wcs.crval
-            ix0,iy0=wcs.wcs.crpix
-            typra,typdec=wcs.wcs.ctype
+            
+            d_ra,d_dec=wcs.wcs.cdelt[:2]
+            ra0,dec0=wcs.wcs.crval[:2]
+            ix0,iy0=wcs.wcs.crpix[:2]
+            typra=wcs.wcs.ctype[0]
+            typdec=wcs.wcs.ctype[1]
             try :
                 ny,nx=map_sample.shape
             except:
                 raise ValueError("Input maps must be 2D if not HEALPix")
             npix=ny*nx
-            
+
             dth=np.fabs(np.radians(d_dec))
             dph=np.fabs(np.radians(d_ra))
         
             #Check if projection type is CAR
-            if not ((typra[:-3]=='CAR') and (typdec[:-3]=='CAR')) :
+            if not ((typra[-3:]=='CAR') and (typdec[-3:]=='CAR')) :
                 raise ValueError("Maps must have CAR pixelization")
 
             #Check if reference pixel is consistent with CC
@@ -52,17 +53,10 @@ class WCSTranslator(object) :
             #Is colatitude decreasing? (i.e. is declination increasing?)
             flip_th=d_dec>0
 
-            edges=[dec0-iy0*d_dec,dec0+(ny-1-iy0)*d_dec]
-            #TODO: test this with proper WCS functions
-            if flip_th :
-                dec_min=edges[0];
-                dec_max=edges[1];
-            else :
-                dec_min=edges[1];
-                dec_max=edges[0];
-
-            theta_min=np.radians(90-dec_max)
-            theta_max=np.radians(90-dec_min)
+            edges=[wcs.wcs_pix2world(np.transpose(np.array([[0],[0],[0]])),0)[0,1],
+                   wcs.wcs_pix2world(np.transpose(np.array([[0],[ny-1],[0]])),0)[0,1]]
+            theta_min=np.radians(90-max(edges))
+            theta_max=np.radians(90-min(edges))
 
             #Check if ix0,iy0 + ra0, dec0 mean this is CC
             if (theta_min<0) or (theta_max>np.pi) :
@@ -99,7 +93,6 @@ class NmtField(object):
     :param n_iter_mask_purify: number of iterations used to compute an accurate SHT of the mask when using E/B purification
     :param tol_pinv: when computing the pseudo-inverse of the contaminant covariance matrix, all eigenvalues below tol_pinv * max_eval will be treated as singular values, where max_eval is the largest eigenvalue. Only relevant if passing contaminant templates that are likely to be highly correlated.
     :param wcs: a WCS object if using rectangular pixels (see http://docs.astropy.org/en/stable/wcs/index.html).
-
     """
 
     def __init__(self,mask,maps,templates=None,beam=None,purify_e=False,purify_b=False,
@@ -122,35 +115,34 @@ class NmtField(object):
         if (len(maps) != 1) and (len(maps) != 2):
             raise ValueError("Must supply 1 or 2 maps per field")
 
-        if len(maps[0]) != len(mask):
-            raise ValueError("All maps must have the same resolution")
-
         if wt.is_healpix==0 : #Flatten if 2D maps
             try:
                 maps=np.array(maps)
                 if wt.flip_th :
                     maps=np.array(maps)[:,::-1,:]
-                maps=maps.reshape([len(maps),npix])
+                maps=maps.reshape([len(maps),wt.npix])
             except:
                 raise ValueError("Input maps have the wrong shape")
+
+        if len(maps[0]) != len(mask):
+            raise ValueError("All maps must have the same resolution")
 
         if isinstance(templates, (list, tuple, np.ndarray)):
             ntemp=len(templates)
             if (len(templates[0]) != 1) and (len(templates[0]) != 2):
                 raise ValueError("Must supply 1 or 2 maps per field")
             
-            if len(templates[0][0]) != len(mask):
-                raise ValueError("All maps must have the same resolution")
-
             if wt.is_healpix==0 : #Flatten if 2D maps
                 try:
                     templates=np.array(templates)
                     if wt.flip_th :
                         templates=templates[:,:,::-1,:]
-                    templates=templates.reshape([ntemp,len(maps),npix])
+                    templates=templates.reshape([ntemp,len(maps),wt.npix])
                 except:
                     raise ValueError("Input templates have the wrong shape")
                 
+            if len(templates[0][0]) != len(mask):
+                raise ValueError("All maps must have the same resolution")
         else:
             if templates is not None:
                 raise ValueError("Input templates can only be an array or None\n")
@@ -188,7 +180,7 @@ class NmtField(object):
         """
         Returns a 2D array ([nmap][npix]) corresponding to the observed maps for this field. If the field was initialized with contaminant templates, the maps returned by this function have their best-fit contribution from these contaminants removed.
         
-        :return: 2D array of HEALPix maps
+        :return: 2D array of maps
         """
         maps = np.zeros([self.fl.nmaps, self.fl.npix])
         for imap in range(self.fl.nmaps):
@@ -201,7 +193,7 @@ class NmtField(object):
         """
         Returns a 3D array ([ntemp][nmap][npix]) corresponding to the contaminant templates passed when initializing this field.
 
-        :return: 3D array of HEALPix maps
+        :return: 3D array of maps
         """
         temp = np.zeros([self.fl.ntemp, self.fl.nmaps, self.fl.npix])
         for itemp in range(self.fl.ntemp):
