@@ -1,85 +1,7 @@
 from pymaster import nmtlib as lib
 import numpy as np
+from pymaster.utils import NmtWCSTranslator
 
-class WCSTranslator(object) :
-    """
-    This class takes care of interpreting a WCS object in terms of a Clenshaw-Curtis grid.
-    
-    :param wcs: a WCS object (see http://docs.astropy.org/en/stable/wcs/index.html).                                                                                                  
-    """
-
-    def __init__(self,wcs,map_sample) :
-        if wcs is None :
-            is_healpix=1
-            nside = 2
-            while 12 * nside * nside != len(map_sample):
-                nside *= 2
-                if nside > 65536:
-                    raise ValueError("Something is wrong with your input arrays")
-            npix=12*nside*nside
-            flip_th=False; theta_min=-1; theta_max=-1
-            dth=-1; dph=-1; phi0=-1; nx=-1; ny=-1
-        else :
-            is_healpix=0
-            nside=-1
-            
-            d_ra,d_dec=wcs.wcs.cdelt[:2]
-            ra0,dec0=wcs.wcs.crval[:2]
-            ix0,iy0=wcs.wcs.crpix[:2]
-            typra=wcs.wcs.ctype[0]
-            typdec=wcs.wcs.ctype[1]
-            try :
-                ny,nx=map_sample.shape
-            except:
-                raise ValueError("Input maps must be 2D if not HEALPix")
-            npix=ny*nx
-
-            dth=np.fabs(np.radians(d_dec))
-            dph=np.fabs(np.radians(d_ra))
-        
-            #Check if projection type is CAR
-            if not ((typra[-3:]=='CAR') and (typdec[-3:]=='CAR')) :
-                raise ValueError("Maps must have CAR pixelization")
-
-            #Check if reference pixel is consistent with CC
-            if np.fabs(dec0)>1E-3 :
-                raise ValueError("Reference pixel must be at the equator")
-
-            #Check d_ra, d_dec are CC
-            if ((np.fabs(round(2*np.pi/dph)-2*np.pi/dph)>0.01) or
-                (np.fabs(round(np.pi/dth)-np.pi/dth)>0.01)) :
-                raise ValueError("The pixels should divide the sphere exactly")
-
-            #Is colatitude decreasing? (i.e. is declination increasing?)
-            flip_th=d_dec>0
-
-            edges=[wcs.wcs_pix2world(np.transpose(np.array([[0],[0],[0]])),0)[0,1],
-                   wcs.wcs_pix2world(np.transpose(np.array([[0],[ny-1],[0]])),0)[0,1]]
-            theta_min=np.radians(90-max(edges))
-            theta_max=np.radians(90-min(edges))
-
-            #Check if ix0,iy0 + ra0, dec0 mean this is CC
-            if (theta_min<0) or (theta_max>np.pi) :
-                raise ValueError("The colatitude map edges are outside the sphere")
-            
-            if np.fabs(nx*d_ra)>360 :
-                raise ValueError("Seems like you're wrapping the sphere more than once")
-
-            phi0=np.radians(ra0)
-
-        #Store values
-        self.is_healpix=is_healpix
-        self.nside=nside
-        self.npix=npix
-        self.nx=nx
-        self.ny=ny
-        self.flip_th=flip_th
-        self.theta_min=theta_min
-        self.theta_max=theta_max
-        self.d_theta=dth
-        self.d_phi=dph
-        self.phi0=phi0
-        
 class NmtField(object):
     """
     An NmtField object contains all the information describing the fields to correlate, including their observed maps, masks and contaminant templates.
@@ -106,7 +28,7 @@ class NmtField(object):
         if purify_b:
             pure_b = 1
 
-        wt=WCSTranslator(wcs,mask)
+        wt=NmtWCSTranslator(wcs,mask.shape)
         if wt.is_healpix==0 :
             if wt.flip_th :
                 mask=mask[::-1,:]

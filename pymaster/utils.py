@@ -1,6 +1,87 @@
 from pymaster import nmtlib as lib
 import numpy as np
 
+class NmtWCSTranslator(object) :
+    """
+    This class takes care of interpreting a WCS object in terms of a Clenshaw-Curtis grid.
+    
+    :param wcs: a WCS object (see http://docs.astropy.org/en/stable/wcs/index.html).
+    :param axes: shape of the maps you want to analyze.
+    """
+
+    def __init__(self,wcs,axes) :
+        if wcs is None :
+            is_healpix=1
+            nside = 2
+            while 12 * nside * nside != axes[0]:
+                nside *= 2
+                if nside > 65536:
+                    raise ValueError("Something is wrong with your input arrays")
+            npix=12*nside*nside
+            flip_th=False; theta_min=-1; theta_max=-1
+            dth=-1; dph=-1; phi0=-1; nx=-1; ny=-1
+        else :
+            is_healpix=0
+            nside=-1
+            
+            d_ra,d_dec=wcs.wcs.cdelt[:2]
+            ra0,dec0=wcs.wcs.crval[:2]
+            ix0,iy0=wcs.wcs.crpix[:2]
+            typra=wcs.wcs.ctype[0]
+            typdec=wcs.wcs.ctype[1]
+            try :
+                ny,nx=axes
+            except:
+                raise ValueError("Input maps must be 2D if not HEALPix")
+            npix=ny*nx
+
+            dth=np.fabs(np.radians(d_dec))
+            dph=np.fabs(np.radians(d_ra))
+        
+            #Check if projection type is CAR
+            if not ((typra[-3:]=='CAR') and (typdec[-3:]=='CAR')) :
+                raise ValueError("Maps must have CAR pixelization")
+
+            #Check if reference pixel is consistent with CC
+            if np.fabs(dec0)>1E-3 :
+                raise ValueError("Reference pixel must be at the equator")
+
+            #Check d_ra, d_dec are CC
+            if ((np.fabs(round(2*np.pi/dph)-2*np.pi/dph)>0.01) or
+                (np.fabs(round(np.pi/dth)-np.pi/dth)>0.01)) :
+                raise ValueError("The pixels should divide the sphere exactly")
+
+            #Is colatitude decreasing? (i.e. is declination increasing?)
+            flip_th=d_dec>0
+
+            coord0=np.zeros([1,len(wcs.wcs.crpix)])
+            coord1=coord0.copy(); coord1[0,1]=ny-1
+            edges=[wcs.wcs_pix2world(coord0,0)[0,1],
+                   wcs.wcs_pix2world(coord1,0)[0,1]]
+            theta_min=np.radians(90-max(edges))
+            theta_max=np.radians(90-min(edges))
+
+            #Check if ix0,iy0 + ra0, dec0 mean this is CC
+            if (theta_min<0) or (theta_max>np.pi) :
+                raise ValueError("The colatitude map edges are outside the sphere")
+            
+            if np.fabs(nx*d_ra)>360 :
+                raise ValueError("Seems like you're wrapping the sphere more than once")
+
+            phi0=np.radians(ra0)
+
+        #Store values
+        self.is_healpix=is_healpix
+        self.nside=nside
+        self.npix=npix
+        self.nx=nx
+        self.ny=ny
+        self.flip_th=flip_th
+        self.theta_min=theta_min
+        self.theta_max=theta_max
+        self.d_theta=dth
+        self.d_phi=dph
+        self.phi0=phi0
 
 def mask_apodization(mask_in, aposize, apotype="C1"):
     """
@@ -35,7 +116,7 @@ def mask_apodization_flat(mask_in, lx, ly, aposize, apotype="C1"):
     return mask_apo_flat.reshape([ny, nx])
 
 
-def synfast_spherical(nside, cls, spin_arr, beam=None, seed=-1,wcs=None,map_shape=None):
+def synfast_spherical(nside, cls, spin_arr, beam=None, seed=-1,wcs=None):
     """
     Generates a full-sky Gaussian random field according to a given power spectrum. This function should produce outputs similar to healpy's synfast.
 
@@ -45,29 +126,23 @@ def synfast_spherical(nside, cls, spin_arr, beam=None, seed=-1,wcs=None,map_shap
     :param beam array-like: 2D array containing the instrumental beam of each field to simulate (the output map(s) will be convolved with it)
     :param int seed: RNG seed. If negative, will use a random seed.
     :param wcs: a WCS object (see http://docs.astropy.org/en/stable/wcs/index.html).
-    :param map_shape: a tuple `(ny,nx)` with the size of the map in the longitude and latitude directions. Must be provided if `wcs` is not `None` (i.e. if using rectangular pixels).
     :return: a number of full-sky maps (1 for each spin-0 field, 2 for each spin-2 field).
     """
     if seed < 0:
         seed = np.random.randint(50000000)
 
     if wcs is None :
-        is_healpix=1
-        npix=12*nside*nside
-        #Make all WCS variables dummy
-        nx=-1; ny=-1;
-        delta_phi=-1; delta_theta=-1;
-        phi0=-1; theta0=-1;
+        wtshape=[12*nside*nside]
     else :
-        is_healpix=0
-        try:
-            ny,nx=map_shape
-        except:
-            raise ValueError("Map dimensions must be provided if using rectangular pixels")
-        npix=nx*ny
-        delta_phi,delta_theta=wcs.wcs.cdelt
-        phi0,theta0=wcs.wcs.crval
+        n_ra=int(round(360./np.fabs(wcs.wcs.cdelt[0])))
+        n_dec=int(round(180./np.fabs(wcs.wcs.cdelt[1])))+1
+        wtshape=[n_dec,n_ra]
+    wt=NmtWCSTranslator(wcs,wtshape)
 
+    if wcs is not None : #Check that theta_min and theta_max are 0 and pi
+        if (np.fabs(wt.theta_min)>1E-4) or (np.fabs(wt.theta_max-np.pi)>1E-4) :
+            raise ValueError("Given your WCS, the map wouldn't cover the whole sphere exactly")
+    
     spin_arr = np.array(spin_arr).astype(np.int32)
     nfields = len(spin_arr)
 
@@ -92,14 +167,14 @@ def synfast_spherical(nside, cls, spin_arr, beam=None, seed=-1,wcs=None,map_shap
                 "The beam should have as many multipoles as the power spectrum"
             )
 
-    data = lib.synfast_new(is_healpix, nside, nx, ny,
-                           delta_phi, delta_theta, theta0, phi0,
-                           spin_arr, seed, cls, beam, nmaps * npix)
+    data = lib.synfast_new(wt.is_healpix, wt.nside, wt.nx, wt.ny,
+                           wt.d_phi, wt.d_theta, wt.phi0, wt.theta_max,
+                           spin_arr, seed, cls, beam, nmaps * wt.npix)
 
-    if is_healpix :
-        maps = data.reshape([nmaps, npix])
+    if wt.is_healpix :
+        maps = data.reshape([nmaps, wt.npix])
     else :
-        maps = data.reshape([nmaps, ny, nx])
+        maps = data.reshape([nmaps, wt.ny, wt.nx])
 
     return maps
 

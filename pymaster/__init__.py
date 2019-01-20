@@ -40,6 +40,7 @@ All sky maps accepted and returned by these functions are in the form of HEALPix
 from pymaster import nmtlib as lib
 import numpy as np
 from pymaster.utils import (
+    NmtWCSTranslator,
     mask_apodization,
     mask_apodization_flat,
     synfast_spherical,
