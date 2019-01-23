@@ -18,8 +18,9 @@ class NmtWCSTranslator(object) :
                 if nside > 65536:
                     raise ValueError("Something is wrong with your input arrays")
             npix=12*nside*nside
-            flip_th=False; theta_min=-1; theta_max=-1
-            dth=-1; dph=-1; phi0=-1; nx=-1; ny=-1
+            flip_th=False; flip_ph=False;
+            theta_min=-1; theta_max=-1; phi0=-1;
+            dth=-1; dph=-1; nx=-1; ny=-1
         else :
             is_healpix=0
             nside=-1
@@ -53,22 +54,31 @@ class NmtWCSTranslator(object) :
 
             #Is colatitude decreasing? (i.e. is declination increasing?)
             flip_th=d_dec>0
+            flip_ph=d_ra<0
 
+            #Get map edges
+            #Theta
             coord0=np.zeros([1,len(wcs.wcs.crpix)])
             coord1=coord0.copy(); coord1[0,1]=ny-1
             edges=[wcs.wcs_pix2world(coord0,0)[0,1],
                    wcs.wcs_pix2world(coord1,0)[0,1]]
             theta_min=np.radians(90-max(edges))
             theta_max=np.radians(90-min(edges))
+            #Phi
+            coord0=np.zeros([1,len(wcs.wcs.crpix)])
+            if flip_ph :
+                coord0[0,0]=nx-1
+            phi0=wcs.wcs_pix2world(coord0,0)[0,0]
+            if np.isnan(phi0) :
+                raise ValueError("There is something wrong with the azimuths")
+            phi0=np.radians(phi0)
 
             #Check if ix0,iy0 + ra0, dec0 mean this is CC
-            if (theta_min<0) or (theta_max>np.pi) :
+            if (theta_min<0) or (theta_max>np.pi) or np.isnan(edges).any() :
                 raise ValueError("The colatitude map edges are outside the sphere")
             
             if np.fabs(nx*d_ra)>360 :
                 raise ValueError("Seems like you're wrapping the sphere more than once")
-
-            phi0=np.radians(ra0)
 
         #Store values
         self.is_healpix=is_healpix
@@ -77,6 +87,7 @@ class NmtWCSTranslator(object) :
         self.nx=nx
         self.ny=ny
         self.flip_th=flip_th
+        self.flip_ph=flip_ph
         self.theta_min=theta_min
         self.theta_max=theta_max
         self.d_theta=dth
@@ -175,6 +186,10 @@ def synfast_spherical(nside, cls, spin_arr, beam=None, seed=-1,wcs=None):
         maps = data.reshape([nmaps, wt.npix])
     else :
         maps = data.reshape([nmaps, wt.ny, wt.nx])
+        if wt.flip_th :
+            maps=maps[:,::-1,:]
+        if wt.flip_ph :
+            maps=maps[:,:,::-1]
 
     return maps
 

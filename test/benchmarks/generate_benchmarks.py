@@ -53,12 +53,12 @@ def read_flat_map(filename,i_map=0) :
 ##########################
 # CAR stuff
 
-dra=1.; ddec=1.; nx=360; ny=181;
+dra=1.; ddec=-1.; nx=360; ny=181;
 wcs=WCS(naxis=2)
 wcs.wcs.cdelt=[dra,ddec]
 wcs.wcs.crval=[0,0]
 wcs.wcs.ctype=['RA---CAR','DEC--CAR']
-wcs.wcs.crpix=[1,1+90/ddec]
+wcs.wcs.crpix=[1+180/dra,1+90/np.fabs(ddec)]
 dl,dw_q,dw_u=nmt.synfast_spherical(-1,[cltt+nltt,clte+nlte,0*cltt,clee+nlee,0*clee,clbb+nlbb],[0,2],wcs=wcs)
 wcs._naxis2,wcs._naxis1=dl.shape
 

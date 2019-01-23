@@ -32,6 +32,8 @@ class NmtField(object):
         if wt.is_healpix==0 :
             if wt.flip_th :
                 mask=mask[::-1,:]
+            if wt.flip_ph :
+                mask=mask[:,::-1]
             mask=mask.reshape(wt.npix)
             
         if (len(maps) != 1) and (len(maps) != 2):
@@ -41,7 +43,9 @@ class NmtField(object):
             try:
                 maps=np.array(maps)
                 if wt.flip_th :
-                    maps=np.array(maps)[:,::-1,:]
+                    maps=maps[:,::-1,:]
+                if wt.flip_ph :
+                    maps=maps[:,:,::-1]
                 maps=maps.reshape([len(maps),wt.npix])
             except:
                 raise ValueError("Input maps have the wrong shape")
@@ -59,6 +63,8 @@ class NmtField(object):
                     templates=np.array(templates)
                     if wt.flip_th :
                         templates=templates[:,:,::-1,:]
+                    if wt.flip_ph :
+                        templates=templates[:,:,:,::-1]
                     templates=templates.reshape([ntemp,len(maps),wt.npix])
                 except:
                     raise ValueError("Input templates have the wrong shape")
