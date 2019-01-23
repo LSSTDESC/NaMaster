@@ -492,7 +492,7 @@ void he_alm2cl(fcomplex **alms_1,fcomplex **alms_2,int pol_1,int pol_2,flouble *
 
 /**
  * @brief Get maximum multipole
- * 
+ *
  * Computes the maximum multipole probed by a map.
  * @param cs curved sky geometry info.
  * @return maximum multipole.
@@ -526,6 +526,16 @@ void he_anafast(flouble **maps_1,flouble **maps_2,int pol_1,int pol_2,flouble **
  * @param fname Path to output FITS file.
  */
 void he_write_healpix_map(flouble **tmap,int nfields,long nside,char *fname);
+
+/**
+ * @brief Writes CAR maps to FITS file.
+ *
+ * @param tmap Array of maps to write.
+ * @param nfields Number of maps to write.
+ * @param sky_info curved sky geometry information
+ * @param fname Path to output FITS file.
+ */
+void he_write_CAR_map(flouble **tmap,int nfields,nmt_curvedsky_info *sky_info,char *fname);
 
 /**
  * @brief Read map parameters from FITS file.
@@ -676,7 +686,7 @@ void he_alter_alm(int lmax,double fwhm_amin,fcomplex *alm_in,fcomplex *alm_out,
  * @return pixel area in sterad.
  */
 flouble he_get_pix_area(nmt_curvedsky_info *cs,long i);
-  
+
 /**
  * @brief Multiplies two full-sky maps.
  *

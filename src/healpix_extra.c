@@ -120,6 +120,94 @@ static flouble *he_read_HPX_map(char *fname,long *nside,int nfield)
   return map_ring;
 }
 
+void he_write_CAR_map(flouble **tmap,int nfields,nmt_curvedsky_info *sky_info,char *fname)
+{
+  fitsfile *fptr;
+  int ii,status=0;
+  char **ttype,**tform,**tunit;
+
+  long *axes = my_malloc(3 * sizeof(long));
+  axes[0] = sky_info->nx;
+  axes[1] = sky_info->ny;
+  axes[2] = nfields;
+
+  ttype=my_malloc(nfields*sizeof(char *));
+  tform=my_malloc(nfields*sizeof(char *));
+  tunit=my_malloc(nfields*sizeof(char *));
+  for(ii=0;ii<nfields;ii++) {
+    ttype[ii]=my_malloc(256);
+    tform[ii]=my_malloc(256);
+    tunit[ii]=my_malloc(256);
+    sprintf(ttype[ii],"map %d",ii+1);
+    sprintf(tform[ii],"1E");
+    sprintf(tunit[ii],"  ");
+  }
+  //delete old file
+  remove(fname);
+  if (fits_create_file(&fptr, fname, &status)) /* create new FITS file */
+       printf("%i\n", status );           /* call printerror if error occurs */
+
+  if ( fits_create_img(fptr,  DOUBLE_IMG, 3, axes, &status) )
+      printf("%i\n", status );           /* call printerror if error occurs */
+
+  /* write the array of floats to the FITS file */
+  for(ii=0;ii<nfields;ii++) {
+    if ( fits_write_img(fptr, TDOUBLE, ii*axes[0]*axes[1]+1, axes[0]*axes[1], tmap[ii], &status) )
+        printf("%i\n", status );
+  }
+
+  long WCSAXES = 3;
+  float CRPIX1 = 1.0;
+  float CRPIX2 = 1.0;
+  float CDELT1 = sky_info->Delta_phi*180.0/M_PI;
+  float CDELT2 = -sky_info->Delta_theta*180.0/M_PI;
+  float CRVAL1 = sky_info->phi0*180.0/M_PI;
+  float CRVAL2 = 90-(sky_info->theta0-(sky_info->ny-1)*sky_info->Delta_theta)*180.0/M_PI;
+  float LONPOLE = 0.0;
+  float LATPOLE = 90.0;
+
+  fits_write_key(fptr,TLONG,"WCSAXES",&WCSAXES,
+		 "Number of coordinate axes",&status);
+  fits_write_key(fptr,TFLOAT,"CRPIX1",&CRPIX1,
+  	 "Pixel coordinate of reference point",&status);
+  fits_write_key(fptr,TFLOAT,"CRPIX2",&CRPIX2,
+  	 "Pixel coordinate of reference point",&status);
+  fits_write_key(fptr,TFLOAT,"CDELT1",&CDELT1,
+     "[deg] Coordinate increment at reference point",&status);
+  fits_write_key(fptr,TFLOAT,"CDELT2",&CDELT2,
+     "[deg] Coordinate increment at reference point",&status);
+  fits_write_key(fptr,TSTRING,"CUNIT1","deg",
+  	 "Units of coordinate increment and value",&status);
+  fits_write_key(fptr,TSTRING,"CUNIT2","deg",
+  	 "Units of coordinate increment and value",&status);
+  fits_write_key(fptr,TSTRING,"CTYPE1","RA---CAR",
+  	 "Right ascension, plate caree projection",&status);
+  fits_write_key(fptr,TSTRING,"CTYPE2","DEC--CAR",
+  	 "Declination, plate caree projection",&status);
+  fits_write_key(fptr,TFLOAT,"CRVAL1", &CRVAL1,
+    "[deg] Coordinate value at reference point",&status);
+  fits_write_key(fptr,TFLOAT,"CRVAL2", &CRVAL2,
+    "[deg] Coordinate value at reference point",&status);
+  fits_write_key(fptr,TFLOAT,"LONPOLE", &LONPOLE,
+  	 "[deg] Native longitude of celestial pole",&status);
+   fits_write_key(fptr,TFLOAT,"LATPOLE", &LATPOLE,
+   	 "[deg] Native latitude of celestial pole",&status);
+  fits_write_key(fptr,TSTRING,"RADESYS","ICRS",
+  	 "Equatorial coordinate system",&status);
+
+  fits_close_file(fptr, &status);
+
+  for(ii=0;ii<nfields;ii++) {
+    free(ttype[ii]);
+    free(tform[ii]);
+    free(tunit[ii]);
+  }
+  free(ttype);
+  free(tform);
+  free(tunit);
+  free(axes);
+}
+
 static flouble *he_read_CAR_map(char *fname, nmt_curvedsky_info *sky_info, int nfield)
 {
   int status=0, hdutype;
