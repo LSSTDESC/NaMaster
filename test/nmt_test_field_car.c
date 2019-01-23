@@ -43,7 +43,6 @@ CTEST(nmt,curvedsky_errors)
   ASSERT_NOT_EQUAL(0,nmt_exception_status);
   ASSERT_NULL(cs);
   set_error_policy(EXIT_ON_ERROR);
-
   
   //Check lmax calculation
   ASSERT_TRUE(he_get_lmax(cs_hpx_ref)==he_get_lmax(cs_car_ref)-1);
@@ -77,7 +76,7 @@ CTEST(nmt,curvedsky_errors)
     }
   }
   free(map_in); free(map_out);
-  
+
   free(cs_car_ref);
   free(cs_hpx_ref);
 }

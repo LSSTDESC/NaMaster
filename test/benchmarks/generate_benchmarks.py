@@ -8,8 +8,6 @@ import pymaster as nmt
 
 l,cltt,clee,clbb,clte,nltt,nlee,nlbb,nlte=np.loadtxt("cls_lss.txt",unpack=True)
 
-##########################
-# Flat-sky stuff
 
 def write_flat_map(filename,maps,wcs,descript=None) :
     if maps.ndim<2 :
@@ -52,6 +50,29 @@ def read_flat_map(filename,i_map=0) :
 
     return w,maps
 
+##########################
+# CAR stuff
+
+dra=1.; ddec=1.; nx=360; ny=181;
+wcs=WCS(naxis=2)
+wcs.wcs.cdelt=[dra,ddec]
+wcs.wcs.crval=[0,0]
+wcs.wcs.ctype=['RA---CAR','DEC--CAR']
+wcs.wcs.crpix=[1,1+90/ddec]
+dl,dw_q,dw_u=nmt.synfast_spherical(-1,[cltt+nltt,clte+nlte,0*cltt,clee+nlee,0*clee,clbb+nlbb],[0,2],wcs=wcs)
+wcs._naxis2,wcs._naxis1=dl.shape
+
+write_flat_map("mps_car.fits",np.array([dl,dw_q,dw_u]),wcs,["T","Q","U"])
+
+print(dl.shape,dw_q.shape,dw_u.shape);
+plt.figure(); plt.imshow(dl,interpolation='nearest',origin='lower')
+plt.figure(); plt.imshow(dw_q,interpolation='nearest',origin='lower')
+plt.figure(); plt.imshow(dw_u,interpolation='nearest',origin='lower')
+plt.show()
+exit(1)
+
+##########################
+# Flat-sky stuff
 wcs,msk=read_flat_map("msk_flat.fits")
 (ny,nx)=msk.shape
 lx=np.fabs(nx*wcs.wcs.cdelt[0])*np.pi/180
