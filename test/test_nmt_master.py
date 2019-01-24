@@ -8,7 +8,63 @@ from .testutils import normdiff, read_flat_map
 
 #Unit tests associated with the NmtField and NmtFieldFlat classes
 
-class TestWorkspaceSph(unittest.TestCase) :
+class TestWorkspaceCAR(unittest.TestCase) :
+    def setUp(self) :
+        from astropy.io import fits
+        from astropy.wcs import WCS
+
+        #Read mask
+        hdul=fits.open("test/benchmarks/msk_car.fits")
+        self.msk=hdul[0].data
+        #Set up coordinates
+        self.wcs=WCS(hdul[0].header)
+        self.ny,self.nx=self.wcs._naxis2,self.wcs._naxis1
+        hdul.close()
+        #Read maps
+        hdul=fits.open("test/benchmarks/mps_car.fits")
+        self.mps=np.array([hdul[i].data for i in range(3)])
+        hdul.close()
+        hdul=fits.open("test/benchmarks/tmp_car.fits")
+        self.tmp=np.array([hdul[i].data for i in range(3)])
+        hdul.close()
+
+        self.wt=nmt.NmtWCSTranslator(self.wcs,(self.ny,self.nx))
+        self.lmax=self.wt.get_lmax()
+        self.nlb=16
+        self.npix=self.wt.npix
+        self.b=nmt.NmtBin(100000,nlb=self.nlb,lmax=self.lmax)
+        self.f0=nmt.NmtField(self.msk,[self.mps[0]],wcs=self.wcs)
+        self.f0_half=nmt.NmtField(self.msk[:self.ny//2,:self.nx//2],
+                                  [self.mps[0][:self.ny//2,:self.nx//2]],
+                                  wcs=self.wcs)
+        self.b_half=nmt.NmtBin(100000,nlb=self.nlb,lmax=self.lmax//2)
+        self.b_doub=nmt.NmtBin(100000,nlb=self.nlb,lmax=self.lmax*2)
+        self.n_good=np.zeros([1,(self.lmax+1)])
+        self.n_bad=np.zeros([2,(self.lmax+1)])
+        self.n_half=np.zeros([1,(self.lmax//2+1)])
+
+        l,cltt,clee,clbb,clte,nltt,nlee,nlbb,nlte=np.loadtxt("test/benchmarks/cls_lss.txt",unpack=True)
+        self.l=l[:(self.lmax+1)]
+        self.cltt=cltt[:(self.lmax+1)]
+        self.clee=clee[:(self.lmax+1)]
+        self.clbb=clbb[:(self.lmax+1)]
+        self.clte=clte[:(self.lmax+1)]
+        self.nltt=nltt[:(self.lmax+1)]
+        self.nlee=nlee[:(self.lmax+1)]
+        self.nlbb=nlbb[:(self.lmax+1)]
+        self.nlte=nlte[:(self.lmax+1)]
+        
+        
+    def test_workspace_methods(self) :
+        w=nmt.NmtWorkspace()
+        w.compute_coupling_matrix(self.f0,self.f0,self.b) #OK init
+        self.assertEqual(w.wsp.cs.nx,360)
+        self.assertEqual(w.wsp.cs.nx_short,360)
+        w.compute_coupling_matrix(self.f0,self.f0,self.b_doub)
+        #print("blah")
+
+@unittest.skip("slow")
+class TestWorkspaceHPX(unittest.TestCase) :
     def setUp(self) :
         #This is to avoid showing an ugly warning that has nothing to do with pymaster
         if (sys.version_info > (3, 1)):
@@ -227,6 +283,7 @@ class TestWorkspaceSph(unittest.TestCase) :
         with self.assertRaises(ValueError) : #Different resolutions
             c=nmt.compute_coupled_cell(self.f0,self.f0_half)
 
+@unittest.skip("slow")
 class TestWorkspaceFsk(unittest.TestCase) :
     def setUp(self) :
         #This is to avoid showing an ugly warning that has nothing to do with pymaster

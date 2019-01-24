@@ -6,6 +6,8 @@ from astropy.wcs import WCS
 from astropy.io import fits
 import pymaster as nmt
 
+DTOR=np.pi/180
+
 l,cltt,clee,clbb,clte,nltt,nlee,nlbb,nlte=np.loadtxt("cls_lss.txt",unpack=True)
 
 
@@ -53,6 +55,27 @@ def read_flat_map(filename,i_map=0) :
 ##########################
 # CAR stuff
 
+def getmaskapoana_car(w,aps,fsk=0.1,dec0=-50,ra0=0.) :
+    v0=np.array([np.sin(DTOR*(90-dec0))*np.cos(DTOR*ra0),
+                 np.sin(DTOR*(90-dec0))*np.sin(DTOR*ra0),
+                 np.cos(DTOR*(90-dec0))])
+    ph,th=w.wcs_pix2world(np.array(np.meshgrid(np.arange(w._naxis1),np.arange(w._naxis2))).reshape([2,w._naxis2*w._naxis1]).T,0).T.reshape([2,w._naxis2,w._naxis1])
+    ph=np.radians(ph)
+    th=np.radians(90-th)
+    vv=np.array([np.sin(th)*np.cos(ph),np.sin(th)*np.sin(ph),np.cos(th)])
+    cth=np.sum(v0[:,None,None]*vv,axis=0); th=np.arccos(cth).flatten();
+    th0=np.arccos(1-2*fsk); th_apo=aps*DTOR
+    id0=np.where(th.flatten()>=th0)[0]
+    id1=np.where(th<=th0-th_apo)[0]
+    idb=np.where((th>th0-th_apo) & (th<th0))[0]
+    x=np.sqrt((1-np.cos(th[idb]-th0))/(1-np.cos(th_apo)))
+    mask_apo=np.zeros(w._naxis2*w._naxis1)
+    mask_apo[id0]=0.
+    mask_apo[id1]=1.
+    mask_apo[idb]=x-np.sin(2*np.pi*x)/(2*np.pi)
+    mask_apo=mask_apo.reshape([w._naxis2,w._naxis1])
+    return mask_apo
+
 dra=1.; ddec=-1.; nx=360; ny=181;
 wcs=WCS(naxis=2)
 wcs.wcs.cdelt=[dra,ddec]
@@ -60,14 +83,20 @@ wcs.wcs.crval=[0,0]
 wcs.wcs.ctype=['RA---CAR','DEC--CAR']
 wcs.wcs.crpix=[1+180/dra,1+90/np.fabs(ddec)]
 dl,dw_q,dw_u=nmt.synfast_spherical(-1,[cltt+nltt,clte+nlte,0*cltt,clee+nlee,0*clee,clbb+nlbb],[0,2],wcs=wcs)
+sl,sw_q,sw_u=nmt.synfast_spherical(-1,[cltt/(l+1.)**1.5,0*clte,0*cltt,clee/(l+1.)**1.5,0*clee,0.5*clee/(l+1.)**1.5],[0,2],wcs=wcs)
 wcs._naxis2,wcs._naxis1=dl.shape
 
+mask=getmaskapoana_car(wcs,20.,0.4,dec0=90.)
 write_flat_map("mps_car.fits",np.array([dl,dw_q,dw_u]),wcs,["T","Q","U"])
+write_flat_map("tmp_car.fits",np.array([sl,sw_q,sw_u]),wcs,["T","Q","U"])
+write_flat_map("msk_car.fits",mask,wcs,"mask")
 
-print(dl.shape,dw_q.shape,dw_u.shape);
-plt.figure(); plt.imshow(dl,interpolation='nearest',origin='lower')
-plt.figure(); plt.imshow(dw_q,interpolation='nearest',origin='lower')
-plt.figure(); plt.imshow(dw_u,interpolation='nearest',origin='lower')
+plt.figure(); plt.imshow(dl*mask,interpolation='nearest',origin='lower')
+plt.figure(); plt.imshow(dw_q*mask,interpolation='nearest',origin='lower')
+plt.figure(); plt.imshow(dw_u*mask,interpolation='nearest',origin='lower')
+plt.figure(); plt.imshow(sl*mask,interpolation='nearest',origin='lower')
+plt.figure(); plt.imshow(sw_q*mask,interpolation='nearest',origin='lower')
+plt.figure(); plt.imshow(sw_u*mask,interpolation='nearest',origin='lower')
 plt.show()
 exit(1)
 
@@ -205,7 +234,6 @@ def getmaskapoana(ns,aps,fsk=0.1,dec0=-50,ra0=0.) :
 
 
 nside_out=64
-DTOR=np.pi/180
 mask=getmaskapoana(nside_out,20.,0.4,dec0=90.)
 dl,dw_q,dw_u=hp.synfast([(cltt+nltt)[:3*nside_out],
                          (clee+nlee)[:3*nside_out],

@@ -75,8 +75,7 @@ class NmtField(object):
             if templates is not None:
                 raise ValueError("Input templates can only be an array or None\n")
 
-        lmax=lib.get_lmax_py(wt.is_healpix,wt.nside,wt.nx,wt.ny,
-                             wt.d_phi,wt.d_theta,wt.phi0,wt.theta_max)
+        lmax=wt.get_lmax()
 
         if isinstance(beam, (list, tuple, np.ndarray)):
             if len(beam) <= lmax :

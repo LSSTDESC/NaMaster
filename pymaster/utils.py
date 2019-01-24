@@ -93,7 +93,11 @@ class NmtWCSTranslator(object) :
         self.d_theta=dth
         self.d_phi=dph
         self.phi0=phi0
-
+        
+    def get_lmax(self) :
+        return lib.get_lmax_py(self.is_healpix,self.nside,self.nx,self.ny,
+                               self.d_phi,self.d_theta,self.phi0,self.theta_max)
+    
 def mask_apodization(mask_in, aposize, apotype="C1"):
     """
     Apodizes a mask with an given apodization scale using different methods.
