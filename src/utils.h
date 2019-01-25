@@ -386,7 +386,8 @@ fcomplex **fs_synalm(int nx,int ny,flouble lx,flouble ly,int nmaps,
 flouble *fs_read_flat_map(char *fname,int *nx,int *ny,flouble *lx,flouble *ly,int nfield);
 
 
-#define HE_NITER_DEFAULT 3 //!< Default number of iterations used for full-sky spherical harmonic transforms
+//TODO: remember to make this fully tuneable
+#define HE_NITER_DEFAULT 0 //!< Default number of iterations used for full-sky spherical harmonic transforms
 
 /**
  * @brief HEALPix number of pixels.
