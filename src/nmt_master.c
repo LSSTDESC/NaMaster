@@ -34,7 +34,7 @@ static nmt_workspace *nmt_workspace_new(nmt_curvedsky_info *cs,int ncls,
   w->cs=nmt_curvedsky_info_copy(cs);
   w->mask1=my_malloc(w->cs->npix*sizeof(flouble));
   w->mask2=my_malloc(w->cs->npix*sizeof(flouble));
-  w->pcl_masks=my_malloc((w->lmax+1)*sizeof(flouble));
+  w->pcl_masks=my_malloc((he_get_lmax(w->cs)+1)*sizeof(flouble));
 
   w->coupling_matrix_unbinned=my_malloc(w->ncls*(w->lmax+1)*sizeof(flouble *));
   for(ii=0;ii<w->ncls*(w->lmax+1);ii++)
@@ -199,7 +199,7 @@ void nmt_update_coupling_matrix(nmt_workspace *w,int n_rows,double *new_matrix)
 nmt_workspace *nmt_compute_coupling_matrix(nmt_field *fl1,nmt_field *fl2,
 					   nmt_binning_scheme *bin,int is_teb)
 {
-  int l2;
+  int l2,lmax_large;
   nmt_workspace *w;
   flouble *beam_prod;
   int n_cl=fl1->nmaps*fl2->nmaps;
@@ -214,17 +214,18 @@ nmt_workspace *nmt_compute_coupling_matrix(nmt_field *fl1,nmt_field *fl2,
   if(bin->ell_max>he_get_lmax(fl1->cs))
     report_error(NMT_ERROR_CONSISTENT_RESO,"Requesting bandpowers for too high a multipole given map resolution\n");
   w=nmt_workspace_new(fl1->cs,n_cl,bin,is_teb);
-  beam_prod=my_malloc((w->lmax+1)*sizeof(flouble));
+  lmax_large=he_get_lmax(w->cs);
+  beam_prod=my_malloc((lmax_large+1)*sizeof(flouble));
   memcpy(w->mask1,fl1->mask,w->cs->npix*sizeof(flouble));
   memcpy(w->mask2,fl2->mask,w->cs->npix*sizeof(flouble));
-  he_anafast(&(fl1->mask),&(fl2->mask),0,0,&(w->pcl_masks),fl1->cs,w->lmax,HE_NITER_DEFAULT);
-  for(l2=0;l2<=w->lmax;l2++) {
+  he_anafast(&(fl1->mask),&(fl2->mask),0,0,&(w->pcl_masks),fl1->cs,lmax_large,HE_NITER_DEFAULT);
+  for(l2=0;l2<=lmax_large;l2++) {
     w->pcl_masks[l2]*=(2*l2+1.);
     beam_prod[l2]=fl1->beam[l2]*fl2->beam[l2];
   }
 
 #pragma omp parallel default(none)		\
-  shared(w,beam_prod,fl1,fl2)
+  shared(w,beam_prod,fl1,fl2,lmax_large)
   {
     int ll2,ll3;
     double *wigner_00=NULL,*wigner_22=NULL,*wigner_12=NULL,*wigner_02=NULL;
@@ -233,12 +234,12 @@ nmt_workspace *nmt_compute_coupling_matrix(nmt_field *fl1,nmt_field *fl2,
     int pure_any=pe1 || pb1 || pe2 || pb2;
 
     if((w->ncls==1) || (w->ncls==2) || (w->ncls==7))
-      wigner_00=my_malloc(2*(w->lmax+1)*sizeof(double));
+      wigner_00=my_malloc(2*(lmax_large+1)*sizeof(double));
     if((w->ncls==2) || (w->ncls==4) || (w->ncls==7))
-      wigner_22=my_malloc(2*(w->lmax+1)*sizeof(double));
+      wigner_22=my_malloc(2*(lmax_large+1)*sizeof(double));
     if(pure_any) {
-      wigner_12=my_malloc(2*(w->lmax+1)*sizeof(double));
-      wigner_02=my_malloc(2*(w->lmax+1)*sizeof(double));
+      wigner_12=my_malloc(2*(lmax_large+1)*sizeof(double));
+      wigner_02=my_malloc(2*(lmax_large+1)*sizeof(double));
     }
 
     if((w->ncls!=1) && (w->ncls!=7))
@@ -248,18 +249,18 @@ nmt_workspace *nmt_compute_coupling_matrix(nmt_field *fl1,nmt_field *fl2,
     for(ll2=lstart;ll2<=w->lmax;ll2++) {
       for(ll3=lstart;ll3<=w->lmax;ll3++) {
 	int jj,l1,lmin_here,lmax_here;
-	int lmin_here_00=0,lmax_here_00=2*(w->lmax+1)+1;
-	int lmin_here_22=0,lmax_here_22=2*(w->lmax+1)+1;
-	int lmin_here_12=0,lmax_here_12=2*(w->lmax+1)+1;
-	int lmin_here_02=0,lmax_here_02=2*(w->lmax+1)+1;
+	int lmin_here_00=0,lmax_here_00=2*(lmax_large+1)+1;
+	int lmin_here_22=0,lmax_here_22=2*(lmax_large+1)+1;
+	int lmin_here_12=0,lmax_here_12=2*(lmax_large+1)+1;
+	int lmin_here_02=0,lmax_here_02=2*(lmax_large+1)+1;
 
 	if((w->ncls==1) || (w->ncls==2) || (w->ncls==7))
-	  drc3jj(ll2,ll3,0,0,&lmin_here_00,&lmax_here_00,wigner_00,2*(w->lmax+1));
+	  drc3jj(ll2,ll3,0,0,&lmin_here_00,&lmax_here_00,wigner_00,2*(lmax_large+1));
 	if((w->ncls==2) || (w->ncls==4) || (w->ncls==7))
-	  drc3jj(ll2,ll3,2,-2,&lmin_here_22,&lmax_here_22,wigner_22,2*(w->lmax+1));
+	  drc3jj(ll2,ll3,2,-2,&lmin_here_22,&lmax_here_22,wigner_22,2*(lmax_large+1));
 	if(pure_any) {
-	  drc3jj(ll2,ll3,1,-2,&lmin_here_12,&lmax_here_12,wigner_12,2*(w->lmax+1));
-	  drc3jj(ll2,ll3,0,-2,&lmin_here_02,&lmax_here_02,wigner_02,2*(w->lmax+1));
+	  drc3jj(ll2,ll3,1,-2,&lmin_here_12,&lmax_here_12,wigner_12,2*(lmax_large+1));
+	  drc3jj(ll2,ll3,0,-2,&lmin_here_02,&lmax_here_02,wigner_02,2*(lmax_large+1));
 	}
 
 	if(w->ncls!=7) {
@@ -279,7 +280,7 @@ nmt_workspace *nmt_compute_coupling_matrix(nmt_field *fl1,nmt_field *fl2,
 	//All lines regarding lmax are in principle unnecessary, since lmax is just l3+l2
 
 	for(l1=lmin_here;l1<=lmax_here;l1++) {
-	  if(l1<=w->lmax) {
+	  if(l1<=lmax_large) {
 	    flouble wfac,fac_12=0,fac_02=0;
 	    int j02,j12;
 	    int j00=l1-lmin_here_00;
