@@ -755,7 +755,7 @@ void decouple_cell_py(nmt_workspace *w,
   asserting(ncl1==w->ncls);
   asserting(nell1==nell2);
   asserting(nell2==nell3);
-  asserting(nell1==w->lmax+1);
+  asserting(nell1>=(w->lmax+1));
   asserting(ndout==w->bin->n_bands*ncl1);
   cl_in=   malloc(ncl1*sizeof(double *));
   cl_noise=malloc(ncl2*sizeof(double *));
@@ -817,7 +817,7 @@ void couple_cell_py(nmt_workspace *w,
   int i;
   double **cl_in,**cl_out;
   asserting(ncl1==w->ncls);
-  asserting(nell1==w->lmax+1);
+  asserting(nell1>=(w->lmax+1));
   asserting(ncl1*nell1==ndout);
   cl_in=malloc(ncl1*sizeof(double *));
   cl_out=malloc(ncl1*sizeof(double *));
