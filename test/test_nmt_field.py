@@ -6,7 +6,6 @@ from .testutils import normdiff
 
 #Unit tests associated with the NmtField and NmtFieldFlat classes
 
-@unittest.skip("slow")
 class TestFieldCAR(unittest.TestCase) :
     def setUp(self) :
         from astropy.io import fits
@@ -121,7 +120,6 @@ class TestFieldCAR(unittest.TestCase) :
             f=nmt.NmtField(self.msk,[self.mps[0]],templates=[[t[0]] for t in self.tmp],
                            beam=1,wcs=self.wcs)
         
-@unittest.skip("slow")
 class TestFieldHPX(unittest.TestCase) :
     def setUp(self) :
         self.nside=64
@@ -192,7 +190,6 @@ class TestFieldHPX(unittest.TestCase) :
         with self.assertRaises(ValueError) : #Passing crap as beam
             f=nmt.NmtField(self.msk,[self.mps[0]],beam=1)
 
-@unittest.skip("slow")
 class TestFieldFsk(unittest.TestCase) :
     def setUp(self) :
         self.ntemp=5

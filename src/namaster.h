@@ -572,10 +572,12 @@ void nmt_field_free(nmt_field *fl);
 	  possibility in a consistent way. Effectively this is a singular-value
 	  decomposition. All eigenvalues that are smaller than \p tol_pinv the largest
 	  eigenvalue will be discarded.
+ * @param niter number of iterations when computing alms (for all transforms other than the mask's).
  */
 nmt_field *nmt_field_alloc_sph(nmt_curvedsky_info *cs,flouble *mask,int pol,flouble **maps,
 			       int ntemp,flouble ***temp,flouble *beam,
-			       int pure_e,int pure_b,int n_iter_mask_purify,double tol_pinv);
+			       int pure_e,int pure_b,int n_iter_mask_purify,double tol_pinv,
+			       int niter);
 
 /**
  * @brief nmt_field constructor from file.
@@ -606,10 +608,11 @@ nmt_field *nmt_field_alloc_sph(nmt_curvedsky_info *cs,flouble *mask,int pol,flou
 	  possibility in a consistent way. Effectively this is a singular-value
 	  decomposition. All eigenvalues that are smaller than \p tol_pinv the largest
 	  eigenvalue will be discarded.
+ * @param niter number of iterations when computing alms (other than the mask's).
  */
 nmt_field *nmt_field_read(int is_healpix,char *fname_mask,char *fname_maps,char *fname_temp,
 			  char *fname_beam,int pol,int pure_e,int pure_b,
-			  int n_iter_mask_purify,double tol_pinv);
+			  int n_iter_mask_purify,double tol_pinv,int niter);
 
 /**
  * @brief Gaussian realizations of full-sky fields
@@ -643,9 +646,10 @@ flouble **nmt_synfast_sph(nmt_curvedsky_info *cs,int nfields,int *spin_arr,int l
  * @param maps_in Maps to be purified (should NOT be mask-multiplied).
  * @param maps_out Output purified maps.
  * @param alms Spherical harmonic transform of the output purified maps.
+ * @param niter number of iterations when computing alms.
  */
 void nmt_purify(nmt_field *fl,flouble *mask,fcomplex **walm0,
-		flouble **maps_in,flouble **maps_out,fcomplex **alms);
+		flouble **maps_in,flouble **maps_out,fcomplex **alms,int niter);
 
 /**
  * @brief Apodize full-sky mask.
@@ -952,8 +956,10 @@ typedef struct {
  * @param fl2 nmt_field structure defining the second field to correlate.
  * @param bin nmt_binning_scheme defining the power spectrum bandpowers.
  * @param is_teb if !=0, all mode-coupling matrices (0-0,0-2,2-2) will be computed at the same time.
+ * @param niter number of iterations when computing alms.
  */
-nmt_workspace *nmt_compute_coupling_matrix(nmt_field *fl1,nmt_field *fl2,nmt_binning_scheme *bin,int is_teb);
+nmt_workspace *nmt_compute_coupling_matrix(nmt_field *fl1,nmt_field *fl2,nmt_binning_scheme *bin,
+					   int is_teb,int niter);
 
 /**
  * @brief Updates the mode coupling matrix with a new one.Saves nmt_workspace structure to file
@@ -1009,9 +1015,10 @@ void nmt_workspace_free(nmt_workspace *w);
 	  fields (e.g. \p ncls = 2*2 = 4 if both fields have spin=2).
  * @param cl_bias Ouptput deprojection bias. Should be allocated to shape [ncls][lmax+1],
           where \p ncls is defined above.
+ * @param niter number of iterations when computing alms.
  */
 void nmt_compute_deprojection_bias(nmt_field *fl1,nmt_field *fl2,
-				   flouble **cl_proposal,flouble **cl_bias);
+				   flouble **cl_proposal,flouble **cl_bias,int niter);
 
 /**
  * @brief Noise bias from uncorrelated noise map
@@ -1024,8 +1031,10 @@ void nmt_compute_deprojection_bias(nmt_field *fl1,nmt_field *fl2,
  * @param cl_bias Ouptput noise bias. Should be allocated to shape [ncls][lmax+1],
           where \p ncls is the appropriate number of power spectra given the spins of the input
 	  fields (e.g. \p ncls = 2*2 = 4 if both fields have spin=2).
+ * @param niter number of iterations when computing alms.
  */
-void nmt_compute_uncorr_noise_deprojection_bias(nmt_field *fl1,flouble *map_var,flouble **cl_bias);
+void nmt_compute_uncorr_noise_deprojection_bias(nmt_field *fl1,flouble *map_var,flouble **cl_bias,
+						int niter);
 
 /**
  * @brief Mode-couples an input power spectrum
@@ -1094,12 +1103,14 @@ void nmt_compute_coupled_cell(nmt_field *fl1,nmt_field *fl2,flouble **cl_out);
  * @param cl_out Ouptput power spectrum. Should be allocated to shape [ncls][nbpw],
           where \p ncls is defined above and \p nbpw is the number of bandpowers defined
 	  by \p bin.
+ * @param niter number of iterations when computing alms.
  * @return Newly allocated nmt_workspace structure containing the mode-coupling matrix
            if \p w0 is NULL (will return \p w0 otherwise).
  */
 nmt_workspace *nmt_compute_power_spectra(nmt_field *fl1,nmt_field *fl2,
 					 nmt_binning_scheme *bin,nmt_workspace *w0,
-					 flouble **cl_noise,flouble **cl_proposal,flouble **cl_out);
+					 flouble **cl_noise,flouble **cl_proposal,flouble **cl_out,
+					 int niter);
 
 /**
  * @brief Flat-sky Gaussian covariance matrix
@@ -1224,9 +1235,10 @@ void nmt_covar_workspace_free(nmt_covar_workspace *cw);
  * to the two sets of power spectra for which the covariance is required.
  * @param wa nmt_workspace for the first set of power spectra.
  * @param wb nmt_workspace for the second set of power spectra.
+ * @param niter number of iterations when computing alms.
  * @warning All covariance-related functionality is still under development, and in the future will hopefully support.
  */
-nmt_covar_workspace *nmt_covar_workspace_init(nmt_workspace *wa,nmt_workspace *wb);
+nmt_covar_workspace *nmt_covar_workspace_init(nmt_workspace *wa,nmt_workspace *wb,int niter);
 
 /**
  * @brief Compute full-sky Gaussian covariance matrix

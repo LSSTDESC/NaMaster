@@ -89,7 +89,7 @@ void run_master(nmt_field *fl1,nmt_field *fl2,
   }
   else {
     printf("Computing coupling matrix \n");
-    w=nmt_compute_coupling_matrix(fl1,fl2,bin,0);
+    w=nmt_compute_coupling_matrix(fl1,fl2,bin,0,HE_NITER_DEFAULT);
     if(strcmp(fname_coupling,"none"))
       nmt_workspace_write(w,fname_coupling);
   }
@@ -98,7 +98,7 @@ void run_master(nmt_field *fl1,nmt_field *fl2,
   he_alm2cl(fl1->alms,fl2->alms,fl1->pol,fl2->pol,cl_data,fl1->lmax);
 
   printf("Computing deprojection bias\n");
-  nmt_compute_deprojection_bias(fl1,fl2,cl_proposal,cl_bias);
+  nmt_compute_deprojection_bias(fl1,fl2,cl_proposal,cl_bias,HE_NITER_DEFAULT);
 
   printf("Computing decoupled bandpowers\n");
   nmt_decouple_cl_l(w,cl_data,cl_noise,cl_bias,cl_out);
@@ -251,7 +251,7 @@ int main(int argc,char **argv)
   if(n_lbin<=0)
     report_error(NMT_ERROR_BADNO,"#ell per bin must be positive\n");
 
-  fl1=nmt_field_read(1,fname_mask_1,fname_map_1,fname_temp_1,fname_beam_1,pol_1,pure_e_1,pure_b_1,10,1E-10);
+  fl1=nmt_field_read(1,fname_mask_1,fname_map_1,fname_temp_1,fname_beam_1,pol_1,pure_e_1,pure_b_1,10,1E-10,HE_NITER_DEFAULT);
 
   if(!strcmp(fname_map_2,"none")) {
     fl2=fl1;
@@ -260,7 +260,7 @@ int main(int argc,char **argv)
   else {
     if(!strcmp(fname_mask_2,"none"))
       sprintf(fname_mask_2,"%s",fname_mask_1);
-    fl2=nmt_field_read(1,fname_mask_2,fname_map_2,fname_temp_2,fname_beam_2,pol_2,pure_e_2,pure_b_2,10,1E-10);
+    fl2=nmt_field_read(1,fname_mask_2,fname_map_2,fname_temp_2,fname_beam_2,pol_2,pure_e_2,pure_b_2,10,1E-10,HE_NITER_DEFAULT);
   }
 
   run_master(fl1,fl2,

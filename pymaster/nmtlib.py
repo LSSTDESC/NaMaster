@@ -589,20 +589,20 @@ def field_free(fl):
     return _nmtlib.field_free(fl)
 field_free = _nmtlib.field_free
 
-def field_alloc_sph(cs, mask, pol, maps, ntemp, temp, beam, pure_e, pure_b, n_iter_mask_purify, tol_pinv):
-    return _nmtlib.field_alloc_sph(cs, mask, pol, maps, ntemp, temp, beam, pure_e, pure_b, n_iter_mask_purify, tol_pinv)
+def field_alloc_sph(cs, mask, pol, maps, ntemp, temp, beam, pure_e, pure_b, n_iter_mask_purify, tol_pinv, niter):
+    return _nmtlib.field_alloc_sph(cs, mask, pol, maps, ntemp, temp, beam, pure_e, pure_b, n_iter_mask_purify, tol_pinv, niter)
 field_alloc_sph = _nmtlib.field_alloc_sph
 
-def field_read(is_healpix, fname_mask, fname_maps, fname_temp, fname_beam, pol, pure_e, pure_b, n_iter_mask_purify, tol_pinv):
-    return _nmtlib.field_read(is_healpix, fname_mask, fname_maps, fname_temp, fname_beam, pol, pure_e, pure_b, n_iter_mask_purify, tol_pinv)
+def field_read(is_healpix, fname_mask, fname_maps, fname_temp, fname_beam, pol, pure_e, pure_b, n_iter_mask_purify, tol_pinv, niter):
+    return _nmtlib.field_read(is_healpix, fname_mask, fname_maps, fname_temp, fname_beam, pol, pure_e, pure_b, n_iter_mask_purify, tol_pinv, niter)
 field_read = _nmtlib.field_read
 
 def synfast_sph(cs, nfields, spin_arr, lmax, cells, beam_fields, seed):
     return _nmtlib.synfast_sph(cs, nfields, spin_arr, lmax, cells, beam_fields, seed)
 synfast_sph = _nmtlib.synfast_sph
 
-def purify(fl, mask, walm0, maps_in, maps_out, alms):
-    return _nmtlib.purify(fl, mask, walm0, maps_in, maps_out, alms)
+def purify(fl, mask, walm0, maps_in, maps_out, alms, niter):
+    return _nmtlib.purify(fl, mask, walm0, maps_in, maps_out, alms, niter)
 purify = _nmtlib.purify
 
 def apodize_mask(nside, mask_in, mask_out, aposize, apotype):
@@ -805,8 +805,8 @@ workspace_swigregister = _nmtlib.workspace_swigregister
 workspace_swigregister(workspace)
 
 
-def compute_coupling_matrix(fl1, fl2, bin, is_teb):
-    return _nmtlib.compute_coupling_matrix(fl1, fl2, bin, is_teb)
+def compute_coupling_matrix(fl1, fl2, bin, is_teb, niter):
+    return _nmtlib.compute_coupling_matrix(fl1, fl2, bin, is_teb, niter)
 compute_coupling_matrix = _nmtlib.compute_coupling_matrix
 
 def update_coupling_matrix(w, n_rows, new_matrix):
@@ -825,12 +825,12 @@ def workspace_free(w):
     return _nmtlib.workspace_free(w)
 workspace_free = _nmtlib.workspace_free
 
-def compute_deprojection_bias(fl1, fl2, cl_proposal, cl_bias):
-    return _nmtlib.compute_deprojection_bias(fl1, fl2, cl_proposal, cl_bias)
+def compute_deprojection_bias(fl1, fl2, cl_proposal, cl_bias, niter):
+    return _nmtlib.compute_deprojection_bias(fl1, fl2, cl_proposal, cl_bias, niter)
 compute_deprojection_bias = _nmtlib.compute_deprojection_bias
 
-def compute_uncorr_noise_deprojection_bias(fl1, map_var, cl_bias):
-    return _nmtlib.compute_uncorr_noise_deprojection_bias(fl1, map_var, cl_bias)
+def compute_uncorr_noise_deprojection_bias(fl1, map_var, cl_bias, niter):
+    return _nmtlib.compute_uncorr_noise_deprojection_bias(fl1, map_var, cl_bias, niter)
 compute_uncorr_noise_deprojection_bias = _nmtlib.compute_uncorr_noise_deprojection_bias
 
 def couple_cl_l(w, cl_in, cl_out):
@@ -845,8 +845,8 @@ def compute_coupled_cell(fl1, fl2, cl_out):
     return _nmtlib.compute_coupled_cell(fl1, fl2, cl_out)
 compute_coupled_cell = _nmtlib.compute_coupled_cell
 
-def compute_power_spectra(fl1, fl2, bin, w0, cl_noise, cl_proposal, cl_out):
-    return _nmtlib.compute_power_spectra(fl1, fl2, bin, w0, cl_noise, cl_proposal, cl_out)
+def compute_power_spectra(fl1, fl2, bin, w0, cl_noise, cl_proposal, cl_out, niter):
+    return _nmtlib.compute_power_spectra(fl1, fl2, bin, w0, cl_noise, cl_proposal, cl_out, niter)
 compute_power_spectra = _nmtlib.compute_power_spectra
 class covar_workspace_flat(_object):
     __swig_setmethods__ = {}
@@ -997,8 +997,8 @@ def covar_workspace_free(cw):
     return _nmtlib.covar_workspace_free(cw)
 covar_workspace_free = _nmtlib.covar_workspace_free
 
-def covar_workspace_init(wa, wb):
-    return _nmtlib.covar_workspace_init(wa, wb)
+def covar_workspace_init(wa, wb, niter):
+    return _nmtlib.covar_workspace_init(wa, wb, niter)
 covar_workspace_init = _nmtlib.covar_workspace_init
 
 def compute_gaussian_covariance(cw, cla1b1, cla1b2, cla2b1, cla2b2, covar_out):
@@ -1073,12 +1073,12 @@ def unbin_cl_flat(bins, ncl1, nell3, dout):
     return _nmtlib.unbin_cl_flat(bins, ncl1, nell3, dout)
 unbin_cl_flat = _nmtlib.unbin_cl_flat
 
-def field_alloc_new(is_healpix, nside, nx, ny, delta_phi, delta_theta, phi0, theta0, npix_1, nmap_2, ntmp_3, nell3, pure_e, pure_b, n_iter_mask_purify, tol_pinv):
-    return _nmtlib.field_alloc_new(is_healpix, nside, nx, ny, delta_phi, delta_theta, phi0, theta0, npix_1, nmap_2, ntmp_3, nell3, pure_e, pure_b, n_iter_mask_purify, tol_pinv)
+def field_alloc_new(is_healpix, nside, nx, ny, delta_phi, delta_theta, phi0, theta0, npix_1, nmap_2, ntmp_3, nell3, pure_e, pure_b, n_iter_mask_purify, tol_pinv, n_iter):
+    return _nmtlib.field_alloc_new(is_healpix, nside, nx, ny, delta_phi, delta_theta, phi0, theta0, npix_1, nmap_2, ntmp_3, nell3, pure_e, pure_b, n_iter_mask_purify, tol_pinv, n_iter)
 field_alloc_new = _nmtlib.field_alloc_new
 
-def field_alloc_new_notemp(is_healpix, nside, nx, ny, delta_phi, delta_theta, phi0, theta0, npix_1, nmap_2, nell3, pure_e, pure_b, n_iter_mask_purify):
-    return _nmtlib.field_alloc_new_notemp(is_healpix, nside, nx, ny, delta_phi, delta_theta, phi0, theta0, npix_1, nmap_2, nell3, pure_e, pure_b, n_iter_mask_purify)
+def field_alloc_new_notemp(is_healpix, nside, nx, ny, delta_phi, delta_theta, phi0, theta0, npix_1, nmap_2, nell3, pure_e, pure_b, n_iter_mask_purify, n_iter):
+    return _nmtlib.field_alloc_new_notemp(is_healpix, nside, nx, ny, delta_phi, delta_theta, phi0, theta0, npix_1, nmap_2, nell3, pure_e, pure_b, n_iter_mask_purify, n_iter)
 field_alloc_new_notemp = _nmtlib.field_alloc_new_notemp
 
 def field_alloc_new_flat(nx, ny, lx, ly, npix_1, nmap_2, ntmp_3, ncl1, pure_e, pure_b, tol_pinv):
@@ -1121,8 +1121,8 @@ def synfast_new_flat(nx, ny, lx, ly, nfields, seed, ncl1, ncl2, dout):
     return _nmtlib.synfast_new_flat(nx, ny, lx, ly, nfields, seed, ncl1, ncl2, dout)
 synfast_new_flat = _nmtlib.synfast_new_flat
 
-def comp_coupling_matrix(fl1, fl2, bin, is_teb):
-    return _nmtlib.comp_coupling_matrix(fl1, fl2, bin, is_teb)
+def comp_coupling_matrix(fl1, fl2, bin, is_teb, n_iter):
+    return _nmtlib.comp_coupling_matrix(fl1, fl2, bin, is_teb, n_iter)
 comp_coupling_matrix = _nmtlib.comp_coupling_matrix
 
 def comp_coupling_matrix_flat(fl1, fl2, bin, lmn_x, lmx_x, lmn_y, lmx_y, is_teb):
@@ -1145,12 +1145,12 @@ def write_workspace_flat(w, fname):
     return _nmtlib.write_workspace_flat(w, fname)
 write_workspace_flat = _nmtlib.write_workspace_flat
 
-def comp_uncorr_noise_deproj_bias(fl1, npix_1, dout):
-    return _nmtlib.comp_uncorr_noise_deproj_bias(fl1, npix_1, dout)
+def comp_uncorr_noise_deproj_bias(fl1, npix_1, dout, n_iter):
+    return _nmtlib.comp_uncorr_noise_deproj_bias(fl1, npix_1, dout, n_iter)
 comp_uncorr_noise_deproj_bias = _nmtlib.comp_uncorr_noise_deproj_bias
 
-def comp_deproj_bias(fl1, fl2, ncl1, dout):
-    return _nmtlib.comp_deproj_bias(fl1, fl2, ncl1, dout)
+def comp_deproj_bias(fl1, fl2, ncl1, dout, n_iter):
+    return _nmtlib.comp_deproj_bias(fl1, fl2, ncl1, dout, n_iter)
 comp_deproj_bias = _nmtlib.comp_deproj_bias
 
 def comp_deproj_bias_flat(fl1, fl2, bin, lmn_x, lmx_x, lmn_y, lmx_y, nell3, ncl1, dout):
@@ -1165,8 +1165,8 @@ def read_covar_workspace(fname):
     return _nmtlib.read_covar_workspace(fname)
 read_covar_workspace = _nmtlib.read_covar_workspace
 
-def covar_workspace_init_py(wa, wb):
-    return _nmtlib.covar_workspace_init_py(wa, wb)
+def covar_workspace_init_py(wa, wb, n_iter):
+    return _nmtlib.covar_workspace_init_py(wa, wb, n_iter)
 covar_workspace_init_py = _nmtlib.covar_workspace_init_py
 
 def write_covar_workspace_flat(cw, fname):
@@ -1213,8 +1213,8 @@ def couple_cell_py_flat(w, nell3, ncl1, dout):
     return _nmtlib.couple_cell_py_flat(w, nell3, ncl1, dout)
 couple_cell_py_flat = _nmtlib.couple_cell_py_flat
 
-def comp_pspec(fl1, fl2, bin, w0, ncl1, ncl2, dout):
-    return _nmtlib.comp_pspec(fl1, fl2, bin, w0, ncl1, ncl2, dout)
+def comp_pspec(fl1, fl2, bin, w0, ncl1, ncl2, dout, n_iter):
+    return _nmtlib.comp_pspec(fl1, fl2, bin, w0, ncl1, ncl2, dout, n_iter)
 comp_pspec = _nmtlib.comp_pspec
 
 def comp_pspec_flat(fl1, fl2, bin, w0, ncl1, nell3, ncl2, dout, lmn_x, lmx_x, lmn_y, lmx_y):

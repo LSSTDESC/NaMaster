@@ -19,7 +19,7 @@ static nmt_binning_scheme *nmt_bins_copy(nmt_binning_scheme *b_or)
   return b;
 }
 
-nmt_covar_workspace *nmt_covar_workspace_init(nmt_workspace *wa,nmt_workspace *wb)
+nmt_covar_workspace *nmt_covar_workspace_init(nmt_workspace *wa,nmt_workspace *wb,int niter)
 {
   if(!(nmt_diff_curvedsky_info(wa->cs,wb->cs)) || (wa->lmax!=wb->lmax))
     report_error(NMT_ERROR_COVAR,"Can't compute covariance for fields with different resolutions\n");
@@ -64,8 +64,8 @@ nmt_covar_workspace *nmt_covar_workspace_init(nmt_workspace *wa,nmt_workspace *w
   he_map_product(cw->cs,wa->mask1,wb->mask2,mask_a1b2);
   he_map_product(cw->cs,wa->mask2,wb->mask1,mask_a2b1);
   he_map_product(cw->cs,wa->mask2,wb->mask2,mask_a2b2);
-  he_anafast(&mask_a1b1,&mask_a2b2,0,0,&cl_mask_1122,cw->cs,cw->lmax_a,HE_NITER_DEFAULT);
-  he_anafast(&mask_a1b2,&mask_a2b1,0,0,&cl_mask_1221,cw->cs,cw->lmax_a,HE_NITER_DEFAULT);
+  he_anafast(&mask_a1b1,&mask_a2b2,0,0,&cl_mask_1122,cw->cs,cw->lmax_a,niter);
+  he_anafast(&mask_a1b2,&mask_a2b1,0,0,&cl_mask_1221,cw->cs,cw->lmax_a,niter);
   free(mask_a1b1); free(mask_a1b2); free(mask_a2b1); free(mask_a2b2);
   for(ii=0;ii<=cw->lmax_a;ii++) {
     cl_mask_1122[ii]*=(ii+0.5)/(2*M_PI);

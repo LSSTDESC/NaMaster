@@ -26,18 +26,19 @@ class NmtWorkspace(object):
             self.wsp = None
         self.wsp = lib.read_workspace(fname)
 
-    def compute_coupling_matrix(self, fl1, fl2, bins, is_teb=False):
+    def compute_coupling_matrix(self, fl1, fl2, bins, is_teb=False, n_iter=3):
         """
         Computes coupling matrix associated with the cross-power spectrum of two NmtFields and an NmtBin binning scheme. Note that the mode coupling matrix will only contain ells up to the maximum multipole included in the NmtBin bandpowers.
 
         :param NmtField fl1,fl2: fields to correlate
         :param NmtBin bin: binning scheme
         :param boolean is_teb: if true, all mode-coupling matrices (0-0,0-2,2-2) will be computed at the same time. In this case, fl1 must be a spin-0 field and fl1 must be spin-2.
+        :param n_iter: number of iterations when computing a_lms.
         """
         if self.wsp is not None:
             lib.workspace_free(self.wsp)
             self.wsp = None
-        self.wsp = lib.comp_coupling_matrix(fl1.fl, fl2.fl, bins.bin, int(is_teb))
+        self.wsp = lib.comp_coupling_matrix(fl1.fl, fl2.fl, bins.bin, int(is_teb), int(n_iter))
 
     def write_to(self, fname):
         """
@@ -234,12 +235,13 @@ class NmtWorkspaceFlat(object):
         return clout
 
 
-def deprojection_bias(f1, f2, cls_guess):
+def deprojection_bias(f1, f2, cls_guess, n_iter=3):
     """
     Computes the bias associated to contaminant removal to the cross-pseudo-Cl of two fields.
 
     :param NmtField f1,f2: fields to correlate
     :param cls_guess: set of power spectra corresponding to a best-guess of the true power spectra of f1 and f2.
+    :param n_iter: number of iterations when computing a_lms.
     :return: deprojection bias power spectra.
     """
     if len(cls_guess) != f1.fl.nmaps * f2.fl.nmaps:
@@ -247,26 +249,27 @@ def deprojection_bias(f1, f2, cls_guess):
     if len(cls_guess[0]) != f1.fl.lmax + 1:
         raise ValueError("Proposal Cell doesn't match map resolution")
     cl1d = lib.comp_deproj_bias(
-        f1.fl, f2.fl, cls_guess, len(cls_guess) * len(cls_guess[0])
+        f1.fl, f2.fl, cls_guess, len(cls_guess) * len(cls_guess[0]), n_iter
     )
     cl2d = np.reshape(cl1d, [len(cls_guess), len(cls_guess[0])])
 
     return cl2d
 
 
-def uncorr_noise_deprojection_bias(f1, map_var):
+def uncorr_noise_deprojection_bias(f1, map_var, n_iter=3):
     """
     Computes the bias associated to contaminant removal in the presence of uncorrelated inhomogeneous noise to the auto-pseudo-Cl of a given field f1.
 
     :param NmtField f1: fields to correlate
     :param map_cls_guess: array containing a HEALPix map corresponding to the local noise variance (in one sterad).
+    :param n_iter: number of iterations when computing a_lms.
     :return: deprojection bias power spectra.
     """
     ncls = f1.fl.nmaps * f1.fl.nmaps
     nells = f1.fl.lmax + 1
     if len(map_var) != f1.fl.npix:
         raise ValueError("Variance map doesn't match map resolution")
-    cl1d = lib.comp_uncorr_noise_deproj_bias(f1.fl, map_var, ncls * nells)
+    cl1d = lib.comp_uncorr_noise_deproj_bias(f1.fl, map_var, ncls * nells, n_iter)
     cl2d = np.reshape(cl1d, [ncls, nells])
 
     return cl2d
@@ -353,7 +356,7 @@ def compute_coupled_cell_flat(f1, f2, b, ell_cut_x=[1., -1.], ell_cut_y=[1., -1.
     return clout
 
 
-def compute_full_master(f1, f2, b, cl_noise=None, cl_guess=None, workspace=None):
+def compute_full_master(f1, f2, b, cl_noise=None, cl_guess=None, workspace=None, n_iter=3):
     """
     Computes the full MASTER estimate of the power spectrum of two fields (f1 and f2). This is equivalent to successively calling:
 
@@ -367,6 +370,7 @@ def compute_full_master(f1, f2, b, cl_noise=None, cl_guess=None, workspace=None)
     :param cl_noise: noise bias (i.e. angular power spectrum of masked noise realizations) (optional).
     :param cl_guess: set of power spectra corresponding to a best-guess of the true power spectra of f1 and f2. Needed only to compute the contaminant cleaning bias (optional).
     :param NmtWorkspace workspace: object containing the mode-coupling matrix associated with an incomplete sky coverage. If provided, the function will skip the computation of the mode-coupling matrix and use the information encoded in this object.
+    :param n_iter: number of iterations when computing a_lms.
     :return: set of decoupled bandpowers
     """
     if f1.fl.cs.n_eq != f2.fl.cs.n_eq:
@@ -386,11 +390,11 @@ def compute_full_master(f1, f2, b, cl_noise=None, cl_guess=None, workspace=None)
 
     if workspace is None:
         cl1d = lib.comp_pspec(
-            f1.fl, f2.fl, b.bin, None, cln, clg, len(cln) * b.bin.n_bands
+            f1.fl, f2.fl, b.bin, None, cln, clg, len(cln) * b.bin.n_bands, n_iter
         )
     else:
         cl1d = lib.comp_pspec(
-            f1.fl, f2.fl, b.bin, workspace.wsp, cln, clg, len(cln) * b.bin.n_bands
+            f1.fl, f2.fl, b.bin, workspace.wsp, cln, clg, len(cln) * b.bin.n_bands, n_iter
         )
 
     clout = np.reshape(cl1d, [len(cln), b.bin.n_bands])

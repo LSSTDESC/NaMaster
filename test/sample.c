@@ -29,7 +29,7 @@ int main(int argc,char **argv)
   double *cl_dum=calloc((fl1->lmax+1),sizeof(double));
 
   //Compute pseudo-Cl estimator
-  nmt_workspace *w=nmt_compute_power_spectra(fl1,fl1,bin,NULL,&cl_dum,&cl_dum,&cl_out);
+  nmt_workspace *w=nmt_compute_power_spectra(fl1,fl1,bin,NULL,&cl_dum,&cl_dum,&cl_out,3);
 
   //Write output
   FILE *fo=fopen(argv[3],"w");

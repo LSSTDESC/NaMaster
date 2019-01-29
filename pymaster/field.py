@@ -15,10 +15,11 @@ class NmtField(object):
     :param n_iter_mask_purify: number of iterations used to compute an accurate SHT of the mask when using E/B purification
     :param tol_pinv: when computing the pseudo-inverse of the contaminant covariance matrix, all eigenvalues below tol_pinv * max_eval will be treated as singular values, where max_eval is the largest eigenvalue. Only relevant if passing contaminant templates that are likely to be highly correlated.
     :param wcs: a WCS object if using rectangular pixels (see http://docs.astropy.org/en/stable/wcs/index.html).
+    :param n_iter: number of iterations when computing a_lms.
     """
 
     def __init__(self,mask,maps,templates=None,beam=None,purify_e=False,purify_b=False,
-                 n_iter_mask_purify=3,tol_pinv=1E-10,wcs=None):
+                 n_iter_mask_purify=3,tol_pinv=1E-10,wcs=None,n_iter=3):
         self.fl = None
 
         pure_e = 0
@@ -91,12 +92,11 @@ class NmtField(object):
             self.fl = lib.field_alloc_new(wt.is_healpix,wt.nside,wt.nx,wt.ny,
                                           wt.d_phi,wt.d_theta,wt.phi0,wt.theta_max,
                                           mask,maps,templates,beam_use,
-                                          pure_e,pure_b,n_iter_mask_purify,tol_pinv)
+                                          pure_e,pure_b,n_iter_mask_purify,tol_pinv,n_iter)
         else:
             self.fl = lib.field_alloc_new_notemp(
                 wt.is_healpix,wt.nside,wt.nx,wt.ny,wt.d_phi,wt.d_theta,wt.phi0,wt.theta_max,
-                mask, maps, beam_use, pure_e, pure_b, n_iter_mask_purify
-            )
+                mask, maps, beam_use, pure_e, pure_b, n_iter_mask_purify, n_iter)
 
     def __del__(self):
         if self.fl is not None:

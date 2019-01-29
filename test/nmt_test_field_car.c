@@ -109,7 +109,7 @@ CTEST(nmt,field_car_alloc) {
   for(ii=0;ii<ntemp;ii++)
     temp[ii]=test_make_map_analytic_car(cs,0);
   //No templates
-  f=nmt_field_alloc_sph(cs,mask,0,maps,0,NULL,beam,0,0,0,1E-5);
+  f=nmt_field_alloc_sph(cs,mask,0,maps,0,NULL,beam,0,0,0,1E-5,HE_NITER_DEFAULT);
   //Sanity checks
   ASSERT_EQUAL(lmax,f->lmax);
   ASSERT_EQUAL(0,f->pure_e);
@@ -125,7 +125,7 @@ CTEST(nmt,field_car_alloc) {
   nmt_field_free(f);
   
   //With templates
-  f=nmt_field_alloc_sph(cs,mask,0,maps,ntemp,temp,NULL,0,0,0,1E-5);
+  f=nmt_field_alloc_sph(cs,mask,0,maps,ntemp,temp,NULL,0,0,0,1E-5,HE_NITER_DEFAULT);
   //Since maps and templates are the same, template-deprojected map should be 0
   for(ii=0;ii<cs->npix;ii++)
     ASSERT_DBL_NEAR_TOL(0.0,f->maps[0][ii],1E-10);
@@ -154,7 +154,7 @@ CTEST(nmt,field_car_alloc) {
     temp[ii]=test_make_map_analytic_car(cs,1);
 
   //No templates
-  f=nmt_field_alloc_sph(cs,mask,1,maps,0,NULL,beam,0,0,0,1E-5);
+  f=nmt_field_alloc_sph(cs,mask,1,maps,0,NULL,beam,0,0,0,1E-5,HE_NITER_DEFAULT);
   //Sanity checks
   ASSERT_EQUAL(1,f->pol);
   ASSERT_EQUAL(2,f->nmaps);
@@ -176,7 +176,7 @@ CTEST(nmt,field_car_alloc) {
   nmt_field_free(f);
 
   //With purification (nothing should change)
-  f=nmt_field_alloc_sph(cs,mask,1,maps,0,NULL,beam,1,1,5,1E-5);
+  f=nmt_field_alloc_sph(cs,mask,1,maps,0,NULL,beam,1,1,5,1E-5,HE_NITER_DEFAULT);
   //Sanity checks
   ASSERT_EQUAL(1,f->pol);
   ASSERT_EQUAL(2,f->nmaps);
@@ -196,7 +196,7 @@ CTEST(nmt,field_car_alloc) {
   nmt_field_free(f);
   
   //With templates
-  f=nmt_field_alloc_sph(cs,mask,1,maps,ntemp,temp,beam,0,0,0,1E-5);
+  f=nmt_field_alloc_sph(cs,mask,1,maps,ntemp,temp,beam,0,0,0,1E-5,HE_NITER_DEFAULT);
   //Since maps and templates are the same, template-deprojected map should be 0
   for(ii=0;ii<nmaps;ii++) {
     int jj;
@@ -220,7 +220,7 @@ CTEST(nmt,field_car_alloc) {
   nmt_field_free(f);
   
   //With templates and purification (nothing should change)
-  f=nmt_field_alloc_sph(cs,mask,1,maps,ntemp,temp,beam,1,1,5,1E-5);
+  f=nmt_field_alloc_sph(cs,mask,1,maps,ntemp,temp,beam,1,1,5,1E-5,HE_NITER_DEFAULT);
   //Since maps and templates are the same, template-deprojected map should be 0
   for(ii=0;ii<nmaps;ii++) {
     int jj;

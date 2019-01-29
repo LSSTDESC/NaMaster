@@ -145,7 +145,8 @@ void nmt_field_free(nmt_field *fl)
 //SHT of purified map in alms
 //Information about what to purify, pixelization etc. in fl
 void nmt_purify(nmt_field *fl,flouble *mask,fcomplex **walm0,
-		flouble **maps_in,flouble **maps_out,fcomplex **alms)
+		flouble **maps_in,flouble **maps_out,fcomplex **alms,
+		int niter)
 {
   long ip;
   int imap,mm,ll;
@@ -174,7 +175,7 @@ void nmt_purify(nmt_field *fl,flouble *mask,fcomplex **walm0,
   for(imap=0;imap<fl->nmaps;imap++)
     he_map_product(fl->cs,maps_in[imap],mask,pmap[imap]);
   //Compute SHT and store in alm_out
-  he_map2alm(fl->cs,fl->lmax,1,2,pmap      ,alm_out,HE_NITER_DEFAULT);
+  he_map2alm(fl->cs,fl->lmax,1,2,pmap      ,alm_out,niter);
 
   //Compute spin-1 mask
   for(ll=0;ll<=fl->lmax;ll++) //The minus sign is because of the definition of E-modes
@@ -187,7 +188,7 @@ void nmt_purify(nmt_field *fl,flouble *mask,fcomplex **walm0,
     pmap[1][ip]=wmap[0][ip]*maps_in[1][ip]-wmap[1][ip]*maps_in[0][ip];
   }
   //Compute SHT, multiply by 2*sqrt((l+1)!(l-2)!/((l-1)!(l+2)!)) and add to alm_out
-  he_map2alm(fl->cs,fl->lmax,1,1,pmap       ,palm  ,HE_NITER_DEFAULT);
+  he_map2alm(fl->cs,fl->lmax,1,1,pmap       ,palm  ,niter);
   for(ll=0;ll<=fl->lmax;ll++) {
     if(ll>1)
       f_l[ll]=2./sqrt((ll+2.)*(ll-1.));
@@ -220,7 +221,7 @@ void nmt_purify(nmt_field *fl,flouble *mask,fcomplex **walm0,
     pmap[1][ip]=wmap[0][ip]*maps_in[1][ip]-wmap[1][ip]*maps_in[0][ip];
   }
   //Compute SHT, multiply by sqrt((l-2)!/(l+2)!) and add to alm_out
-  he_map2alm(fl->cs,fl->lmax,2,0,pmap,palm,HE_NITER_DEFAULT);
+  he_map2alm(fl->cs,fl->lmax,2,0,pmap,palm,niter);
   for(ll=0;ll<=fl->lmax;ll++) {
     if(ll>1)
       f_l[ll]=1./sqrt((ll+2.)*(ll+1.)*ll*(ll-1.));
@@ -259,7 +260,8 @@ void nmt_purify(nmt_field *fl,flouble *mask,fcomplex **walm0,
 
 nmt_field *nmt_field_alloc_sph(nmt_curvedsky_info *cs,flouble *mask,int pol,flouble **maps,
 			       int ntemp,flouble ***temp,flouble *beam,
-			       int pure_e,int pure_b,int n_iter_mask_purify,double tol_pinv)
+			       int pure_e,int pure_b,int n_iter_mask_purify,double tol_pinv,
+			       int niter)
 {
   int ii,itemp,itemp2,imap;
   long npix_short;
@@ -383,7 +385,7 @@ nmt_field *nmt_field_alloc_sph(nmt_curvedsky_info *cs,flouble *mask,int pol,flou
     flouble **mdum=my_malloc(fl->nmaps*sizeof(flouble *));
     for(imap=0;imap<fl->nmaps;imap++)
       mdum[imap]=nmt_extend_CAR_map(fl->cs,maps[imap]);
-    nmt_purify(fl,fl->mask,fl->a_mask,mdum,fl->maps,fl->alms);
+    nmt_purify(fl,fl->mask,fl->a_mask,mdum,fl->maps,fl->alms,niter);
     for(imap=0;imap<fl->nmaps;imap++)
       free(mdum[imap]);
     
@@ -392,7 +394,7 @@ nmt_field *nmt_field_alloc_sph(nmt_curvedsky_info *cs,flouble *mask,int pol,flou
       for(itemp=0;itemp<fl->ntemp;itemp++) {
 	for(imap=0;imap<fl->nmaps;imap++)
 	  mdum[imap]=nmt_extend_CAR_map(fl->cs,temp[itemp][imap]);
-	nmt_purify(fl,fl->mask,fl->a_mask,mdum,fl->temp[itemp],fl->a_temp[itemp]);
+	nmt_purify(fl,fl->mask,fl->a_mask,mdum,fl->temp[itemp],fl->a_temp[itemp],niter);
 	for(imap=0;imap<fl->nmaps;imap++) {//Store non-pure map
 	  he_map_product(fl->cs,mdum[imap],fl->mask,fl->temp[itemp][imap]);
 	  free(mdum[imap]);
@@ -410,12 +412,12 @@ nmt_field *nmt_field_alloc_sph(nmt_curvedsky_info *cs,flouble *mask,int pol,flou
     fl->a_mask=NULL; //No need to store extra-pure mask harmonic coefficients
 
     //Masked map and harmonic coefficients
-    he_map2alm(fl->cs,fl->lmax,1,2*fl->pol,fl->maps,fl->alms,HE_NITER_DEFAULT);
+    he_map2alm(fl->cs,fl->lmax,1,2*fl->pol,fl->maps,fl->alms,niter);
 
     //Compute template harmonic coefficients too
     if(fl->ntemp>0) {
       for(itemp=0;itemp<fl->ntemp;itemp++)
-	he_map2alm(fl->cs,fl->lmax,1,2*fl->pol,fl->temp[itemp],fl->a_temp[itemp],HE_NITER_DEFAULT);
+	he_map2alm(fl->cs,fl->lmax,1,2*fl->pol,fl->temp[itemp],fl->a_temp[itemp],niter);
     }
   }
 
@@ -470,7 +472,7 @@ flouble **nmt_synfast_sph(nmt_curvedsky_info *cs,int nfields,int *spin_arr,int l
 
 nmt_field *nmt_field_read(int is_healpix,char *fname_mask,char *fname_maps,char *fname_temp,
 			  char *fname_beam,int pol,int pure_e,int pure_b,
-			  int n_iter_mask_purify,double tol_pinv)
+			  int n_iter_mask_purify,double tol_pinv,int niter)
 {
   nmt_curvedsky_info *cs,*cs_dum;
   nmt_field *fl;
@@ -541,7 +543,8 @@ nmt_field *nmt_field_read(int is_healpix,char *fname_mask,char *fname_maps,char 
     temp=NULL;
   }
 
-  fl=nmt_field_alloc_sph(cs,mask,pol,maps,ntemp,temp,beam,pure_e,pure_b,n_iter_mask_purify,tol_pinv);
+  fl=nmt_field_alloc_sph(cs,mask,pol,maps,ntemp,temp,beam,pure_e,pure_b,
+			 n_iter_mask_purify,tol_pinv,niter);
 
   if(beam!=NULL)
     free(beam);

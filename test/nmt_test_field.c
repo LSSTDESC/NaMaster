@@ -31,7 +31,7 @@ CTEST(nmt,field_alloc) {
     temp[ii]=test_make_map_analytic(nside,0);
 
   //No templates
-  f=nmt_field_alloc_sph(cs,mask,0,maps,0,NULL,beam,0,0,0,1E-5);
+  f=nmt_field_alloc_sph(cs,mask,0,maps,0,NULL,beam,0,0,0,1E-5,HE_NITER_DEFAULT);
   //Sanity checks
   ASSERT_EQUAL(lmax,f->lmax);
   ASSERT_EQUAL(0,f->pure_e);
@@ -46,7 +46,7 @@ CTEST(nmt,field_alloc) {
   nmt_field_free(f);
   
   //With templates
-  f=nmt_field_alloc_sph(cs,mask,0,maps,ntemp,temp,NULL,0,0,0,1E-5);
+  f=nmt_field_alloc_sph(cs,mask,0,maps,ntemp,temp,NULL,0,0,0,1E-5,HE_NITER_DEFAULT);
   //Since maps and templates are the same, template-deprojected map should be 0
   for(ii=0;ii<npix;ii++)
     ASSERT_DBL_NEAR_TOL(0.0,f->maps[0][ii],1E-10);
@@ -76,7 +76,7 @@ CTEST(nmt,field_alloc) {
     temp[ii]=test_make_map_analytic(nside,1);
 
   //No templates
-  f=nmt_field_alloc_sph(cs,mask,1,maps,0,NULL,beam,0,0,0,1E-5);
+  f=nmt_field_alloc_sph(cs,mask,1,maps,0,NULL,beam,0,0,0,1E-5,HE_NITER_DEFAULT);
   //Sanity checks
   ASSERT_EQUAL(1,f->pol);
   ASSERT_EQUAL(2,f->nmaps);
@@ -96,7 +96,7 @@ CTEST(nmt,field_alloc) {
   nmt_field_free(f);
 
   //With purification (nothing should change)
-  f=nmt_field_alloc_sph(cs,mask,1,maps,0,NULL,beam,1,1,5,1E-5);
+  f=nmt_field_alloc_sph(cs,mask,1,maps,0,NULL,beam,1,1,5,1E-5,HE_NITER_DEFAULT);
   //Sanity checks
   ASSERT_EQUAL(1,f->pol);
   ASSERT_EQUAL(2,f->nmaps);
@@ -116,7 +116,7 @@ CTEST(nmt,field_alloc) {
   nmt_field_free(f);
   
   //With templates
-  f=nmt_field_alloc_sph(cs,mask,1,maps,ntemp,temp,beam,0,0,0,1E-5);
+  f=nmt_field_alloc_sph(cs,mask,1,maps,ntemp,temp,beam,0,0,0,1E-5,HE_NITER_DEFAULT);
   //Since maps and templates are the same, template-deprojected map should be 0
   for(ii=0;ii<nmaps;ii++) {
     int jj;
@@ -140,7 +140,7 @@ CTEST(nmt,field_alloc) {
   nmt_field_free(f);
   
   //With templates and purification (nothing should change)
-  f=nmt_field_alloc_sph(cs,mask,1,maps,ntemp,temp,beam,1,1,5,1E-5);
+  f=nmt_field_alloc_sph(cs,mask,1,maps,ntemp,temp,beam,1,1,5,1E-5,HE_NITER_DEFAULT);
   //Since maps and templates are the same, template-deprojected map should be 0
   for(ii=0;ii<nmaps;ii++) {
     int jj;
@@ -187,12 +187,12 @@ CTEST(nmt,field_read) {
   nmt_field *f;
 
   //Spin-0, no templates
-  f=nmt_field_read(1,"test/mask.fits","test/maps.fits","none","none",0,0,0,3,1E-10);
+  f=nmt_field_read(1,"test/mask.fits","test/maps.fits","none","none",0,0,0,3,1E-10,HE_NITER_DEFAULT);
   ASSERT_EQUAL(f->cs->n_eq,256);
   nmt_field_free(f);
 
   //Spin-0, with templates
-  f=nmt_field_read(1,"test/mask.fits","test/maps.fits","test/maps.fits","none",0,0,0,3,1E-10);
+  f=nmt_field_read(1,"test/mask.fits","test/maps.fits","test/maps.fits","none",0,0,0,3,1E-10,HE_NITER_DEFAULT);
   ASSERT_EQUAL(f->cs->n_eq,256);
   //Template=map -> map=0
   for(ii=0;ii<f->cs->npix;ii++)
@@ -200,7 +200,7 @@ CTEST(nmt,field_read) {
   nmt_field_free(f);
 
   //Spin-2, no templates
-  f=nmt_field_read(1,"test/mask.fits","test/maps.fits","none","none",1,0,0,3,1E-10);
+  f=nmt_field_read(1,"test/mask.fits","test/maps.fits","none","none",1,0,0,3,1E-10,HE_NITER_DEFAULT);
   ASSERT_EQUAL(f->cs->n_eq,256);
   nmt_field_free(f);
 
@@ -208,7 +208,7 @@ CTEST(nmt,field_read) {
   f=NULL;
   //Check that an error is thrown if file is wrong
   set_error_policy(THROW_ON_ERROR);
-  try { f=nmt_field_read(1,"test/mask.fits","test/maps.fits","test/maps.fits","none",1,0,0,3,1E-10); }
+  try { f=nmt_field_read(1,"test/mask.fits","test/maps.fits","test/maps.fits","none",1,0,0,3,1E-10,HE_NITER_DEFAULT); }
   ASSERT_NOT_EQUAL(0,nmt_exception_status);
   ASSERT_NULL(f);
   set_error_policy(EXIT_ON_ERROR);

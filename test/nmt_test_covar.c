@@ -57,7 +57,7 @@ CTEST(nmt,rewrite) {
 CTEST(nmt,covar) {
   int ii;
   nmt_workspace *w=nmt_workspace_read("test/benchmarks/bm_nc_np_w00.dat");
-  nmt_covar_workspace *cw=nmt_covar_workspace_init(w,w);
+  nmt_covar_workspace *cw=nmt_covar_workspace_init(w,w,HE_NITER_DEFAULT);
   nmt_covar_workspace *cwr=nmt_covar_workspace_read("test/benchmarks/bm_nc_np_cw00.dat");
 
   ASSERT_EQUAL(cwr->lmax_a,cw->lmax_a);
@@ -117,7 +117,7 @@ CTEST(nmt,covar_errors) {
 
   //All good
   wb=nmt_workspace_read("test/benchmarks/bm_nc_np_w00.dat");
-  try { cw=nmt_covar_workspace_init(wa,wb); }
+  try { cw=nmt_covar_workspace_init(wa,wb,HE_NITER_DEFAULT); }
   ASSERT_EQUAL(0,nmt_exception_status);
   nmt_covar_workspace_free(cw); cw=NULL;
   //Wrong reading
@@ -132,14 +132,14 @@ CTEST(nmt,covar_errors) {
 
   //Incompatible resolutions
   wb->cs->n_eq=128;
-  try { cw=nmt_covar_workspace_init(wa,wb); }
+  try { cw=nmt_covar_workspace_init(wa,wb,HE_NITER_DEFAULT); }
   wb->cs->n_eq=nside;
   ASSERT_NOT_EQUAL(0,nmt_exception_status);
   ASSERT_NULL(cw);
 
   //Incompatible lmax
   wb->lmax=3*128-1;
-  try { cw=nmt_covar_workspace_init(wa,wb); }
+  try { cw=nmt_covar_workspace_init(wa,wb,HE_NITER_DEFAULT); }
   wb->lmax=lmax;
   ASSERT_NOT_EQUAL(0,nmt_exception_status);
   ASSERT_NULL(cw);
@@ -147,7 +147,7 @@ CTEST(nmt,covar_errors) {
 
   //Spin-2
   wb=nmt_workspace_read("test/benchmarks/bm_nc_np_w02.dat");
-  try { cw=nmt_covar_workspace_init(wa,wb); }
+  try { cw=nmt_covar_workspace_init(wa,wb,HE_NITER_DEFAULT); }
   ASSERT_NOT_EQUAL(0,nmt_exception_status);
   ASSERT_NULL(cw);
   nmt_workspace_free(wb);

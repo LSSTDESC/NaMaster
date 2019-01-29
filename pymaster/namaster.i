@@ -230,7 +230,8 @@ nmt_field *field_alloc_new(int is_healpix,int nside,int nx,int ny,double delta_p
 			   int nmap_2,int npix_2,double *mps,
 			   int ntmp_3,int nmap_3,int npix_3,double *tmp,
 			   int nell3,double *weights,
-			   int pure_e,int pure_b,int n_iter_mask_purify,double tol_pinv)
+			   int pure_e,int pure_b,
+			   int n_iter_mask_purify,double tol_pinv,int n_iter)
 {
   int ii,jj;
   long nside_l=(long)nside;
@@ -269,7 +270,7 @@ nmt_field *field_alloc_new(int is_healpix,int nside,int nx,int ny,double delta_p
     maps[ii]=mps+npix_2*ii;
 
   fl=nmt_field_alloc_sph(cs,mask,pol,maps,ntemp,temp,weights,pure_e,pure_b,
-			 n_iter_mask_purify,tol_pinv);
+			 n_iter_mask_purify,tol_pinv,n_iter);
 
   if(tmp!=NULL) {
     for(ii=0;ii<ntmp_3;ii++)
@@ -287,7 +288,7 @@ nmt_field *field_alloc_new_notemp(int is_healpix,int nside,int nx,int ny,double 
 				  int npix_1,double *mask,
 				  int nmap_2,int npix_2,double *mps,
 				  int nell3,double *weights,
-				  int pure_e,int pure_b,int n_iter_mask_purify)
+				  int pure_e,int pure_b,int n_iter_mask_purify,int n_iter)
 {
   int ii;
   long nside_l=(long)nside;
@@ -312,7 +313,8 @@ nmt_field *field_alloc_new_notemp(int is_healpix,int nside,int nx,int ny,double 
   for(ii=0;ii<nmap_2;ii++)
     maps[ii]=mps+npix_2*ii;
 
-  fl=nmt_field_alloc_sph(cs,mask,pol,maps,ntemp,NULL,weights,pure_e,pure_b,n_iter_mask_purify,0.);
+  fl=nmt_field_alloc_sph(cs,mask,pol,maps,ntemp,NULL,weights,pure_e,pure_b,n_iter_mask_purify,
+			 0.,n_iter);
 
   free(maps);
   free(cs);
@@ -549,9 +551,10 @@ void synfast_new_flat(int nx,int ny,double lx,double ly,
   free(larr);
 }
 
- nmt_workspace *comp_coupling_matrix(nmt_field *fl1,nmt_field *fl2,nmt_binning_scheme *bin,int is_teb)
+ nmt_workspace *comp_coupling_matrix(nmt_field *fl1,nmt_field *fl2,nmt_binning_scheme *bin,
+				     int is_teb,int n_iter)
 {
-  return nmt_compute_coupling_matrix(fl1,fl2,bin,is_teb);
+  return nmt_compute_coupling_matrix(fl1,fl2,bin,is_teb,n_iter);
 }
 
 nmt_workspace_flat *comp_coupling_matrix_flat(nmt_field_flat *fl1,nmt_field_flat *fl2,
@@ -584,7 +587,7 @@ void write_workspace_flat(nmt_workspace_flat *w,char *fname)
    
 void comp_uncorr_noise_deproj_bias(nmt_field *fl1,
 				   int npix_1,double *mask,
-				   double *dout,int ndout)
+				   double *dout,int ndout,int n_iter)
 {
   int i;
   double **cl_bias;
@@ -596,14 +599,14 @@ void comp_uncorr_noise_deproj_bias(nmt_field *fl1,
   for(i=0;i<n_cl1;i++)
     cl_bias[i]=&(dout[n_ell1*i]);
 
-  nmt_compute_uncorr_noise_deprojection_bias(fl1,mask,cl_bias);
+  nmt_compute_uncorr_noise_deprojection_bias(fl1,mask,cl_bias,n_iter);
 
   free(cl_bias);
 }
 
 void comp_deproj_bias(nmt_field *fl1,nmt_field *fl2,
 		      int ncl1,int nell1,double *cls1,
-		      double *dout,int ndout)
+		      double *dout,int ndout,int n_iter)
 {
   int i;
   double **cl_bias,**cl_guess;
@@ -617,7 +620,7 @@ void comp_deproj_bias(nmt_field *fl1,nmt_field *fl2,
     cl_bias[i]=&(dout[nell1*i]);
   }
 
-  nmt_compute_deprojection_bias(fl1,fl2,cl_guess,cl_bias);
+  nmt_compute_deprojection_bias(fl1,fl2,cl_guess,cl_bias,n_iter);
 
   free(cl_bias);
   free(cl_guess);
@@ -658,9 +661,9 @@ nmt_covar_workspace *read_covar_workspace(char *fname)
   return nmt_covar_workspace_read(fname);
 }
 
-nmt_covar_workspace *covar_workspace_init_py(nmt_workspace *wa,nmt_workspace *wb)
+nmt_covar_workspace *covar_workspace_init_py(nmt_workspace *wa,nmt_workspace *wb,int n_iter)
 {
-  return nmt_covar_workspace_init(wa,wb);
+  return nmt_covar_workspace_init(wa,wb,n_iter);
 }
 
 void write_covar_workspace_flat(nmt_covar_workspace_flat *cw,char *fname)
@@ -855,7 +858,7 @@ void comp_pspec(nmt_field *fl1,nmt_field *fl2,
 		nmt_binning_scheme *bin,nmt_workspace *w0,
 		int ncl1,int nell1,double *cls1,
 		int ncl2,int nell2,double *cls2,
-		double *dout,int ndout)
+		double *dout,int ndout,int n_iter)
 {
   int i;
   double **cl_noise,**cl_guess,**cl_out;
@@ -875,7 +878,7 @@ void comp_pspec(nmt_field *fl1,nmt_field *fl2,
     cl_out[i]=&(dout[i*bin->n_bands]);
   }
 
-  w=nmt_compute_power_spectra(fl1,fl2,bin,w0,cl_noise,cl_guess,cl_out);
+  w=nmt_compute_power_spectra(fl1,fl2,bin,w0,cl_noise,cl_guess,cl_out,n_iter);
 
   free(cl_out);
   free(cl_guess);

@@ -1,15 +1,16 @@
 #include "utils.h"
 
-static void purify_generic(nmt_field *fl,flouble *mask,fcomplex **walm0,flouble **maps_in,fcomplex **alms_out)
+static void purify_generic(nmt_field *fl,flouble *mask,fcomplex **walm0,
+			   flouble **maps_in,fcomplex **alms_out,int niter)
 {
   if(fl->pure_b || fl->pure_e) {
-    nmt_purify(fl,mask,walm0,maps_in,maps_in,alms_out);
+    nmt_purify(fl,mask,walm0,maps_in,maps_in,alms_out,niter);
   }
   else {
     int im1;
     for(im1=0;im1<fl->nmaps;im1++)
       he_map_product(fl->cs,maps_in[im1],mask,maps_in[im1]);
-    he_map2alm(fl->cs,fl->lmax,1,2*fl->pol,maps_in,alms_out,HE_NITER_DEFAULT);
+    he_map2alm(fl->cs,fl->lmax,1,2*fl->pol,maps_in,alms_out,niter);
   }
 }
 
@@ -197,7 +198,7 @@ void nmt_update_coupling_matrix(nmt_workspace *w,int n_rows,double *new_matrix)
 // fl1,fl2 (in) : fields we're correlating
 // coupling_matrix_out (out) : unbinned coupling matrix
 nmt_workspace *nmt_compute_coupling_matrix(nmt_field *fl1,nmt_field *fl2,
-					   nmt_binning_scheme *bin,int is_teb)
+					   nmt_binning_scheme *bin,int is_teb,int niter)
 {
   int l2,lmax_large;
   nmt_workspace *w;
@@ -218,7 +219,7 @@ nmt_workspace *nmt_compute_coupling_matrix(nmt_field *fl1,nmt_field *fl2,
   beam_prod=my_malloc((lmax_large+1)*sizeof(flouble));
   memcpy(w->mask1,fl1->mask,w->cs->npix*sizeof(flouble));
   memcpy(w->mask2,fl2->mask,w->cs->npix*sizeof(flouble));
-  he_anafast(&(fl1->mask),&(fl2->mask),0,0,&(w->pcl_masks),fl1->cs,lmax_large,HE_NITER_DEFAULT);
+  he_anafast(&(fl1->mask),&(fl2->mask),0,0,&(w->pcl_masks),fl1->cs,lmax_large,niter);
   for(l2=0;l2<=lmax_large;l2++) {
     w->pcl_masks[l2]*=(2*l2+1.);
     beam_prod[l2]=fl1->beam[l2]*fl2->beam[l2];
@@ -421,7 +422,8 @@ nmt_workspace *nmt_compute_coupling_matrix(nmt_field *fl1,nmt_field *fl2,
   return w;
 }
 
-void nmt_compute_uncorr_noise_deprojection_bias(nmt_field *fl1,flouble *map_var,flouble **cl_bias)
+void nmt_compute_uncorr_noise_deprojection_bias(nmt_field *fl1,flouble *map_var,flouble **cl_bias,
+						int  niter)
 {
   int ii;
   long ip;
@@ -463,7 +465,7 @@ void nmt_compute_uncorr_noise_deprojection_bias(nmt_field *fl1,flouble *map_var,
 	  mat_prod[iti*fl1->ntemp+itj]+=he_map_dot(fl1->cs,map_dum[im1],fl1->temp[iti][im1]);
 
 	//SHT[v^2*sigma^2*f^j]
-	he_map2alm(fl1->cs,fl1->lmax,1,2*fl1->pol,map_dum,alm_dum,HE_NITER_DEFAULT);
+	he_map2alm(fl1->cs,fl1->lmax,1,2*fl1->pol,map_dum,alm_dum,niter);
 	//Sum_m(SHT[v^2*sigma^2*f^j]*f^i)/(2l+1)
 	he_alm2cl(alm_dum,fl1->a_temp[iti],fl1->pol,fl1->pol,cl_dum,lmax);
 	for(im1=0;im1<nspec;im1++) {
@@ -505,7 +507,7 @@ void nmt_compute_uncorr_noise_deprojection_bias(nmt_field *fl1,flouble *map_var,
 }
 
 void nmt_compute_deprojection_bias(nmt_field *fl1,nmt_field *fl2,
-				   flouble **cl_proposal,flouble **cl_bias)
+				   flouble **cl_proposal,flouble **cl_bias,int niter)
 {
   int ii;
   flouble **cl_dum;
@@ -550,7 +552,7 @@ void nmt_compute_deprojection_bias(nmt_field *fl1,nmt_field *fl2,
 	for(im2=0;im2<fl2->nmaps;im2++)
 	  he_map_product(fl2->cs,fl2->temp[itj][im2],fl2->mask,map_2_dum[im2]);
 	//SHT[w*g^j]
-	he_map2alm(fl2->cs,fl2->lmax,1,2*fl2->pol,map_2_dum,alm_2_dum,HE_NITER_DEFAULT);
+	he_map2alm(fl2->cs,fl2->lmax,1,2*fl2->pol,map_2_dum,alm_2_dum,niter);
 	//C^ab*SHT[w*g^j]
 	for(im1=0;im1<fl1->nmaps;im1++) {
 	  he_zero_alm(fl1->lmax,alm_1_dum[im1]);
@@ -560,7 +562,7 @@ void nmt_compute_deprojection_bias(nmt_field *fl1,nmt_field *fl2,
 	//SHT^-1[C^ab*SHT[w*g^j]]
 	he_alm2map(fl1->cs,fl1->lmax,1,2*fl1->pol,map_1_dum,alm_1_dum);
 	//SHT[v*SHT^-1[C^ab*SHT[w*g^j]]]
-	purify_generic(fl1,fl1->mask,fl1->a_mask,map_1_dum,alm_1_dum);
+	purify_generic(fl1,fl1->mask,fl1->a_mask,map_1_dum,alm_1_dum,niter);
 	//Sum_m(SHT[v*SHT^-1[C^ab*SHT[w*g^j]]]*g^i*)/(2l+1)
 	he_alm2cl(alm_1_dum,fl2->a_temp[iti],fl1->pol,fl2->pol,cl_dum,lmax);
 	for(im1=0;im1<nspec;im1++) {
@@ -582,7 +584,7 @@ void nmt_compute_deprojection_bias(nmt_field *fl1,nmt_field *fl2,
 	for(im1=0;im1<fl1->nmaps;im1++)
 	  he_map_product(fl1->cs,fl1->temp[itj][im1],fl1->mask,map_1_dum[im1]);
 	//SHT[v*f^j]
-	he_map2alm(fl1->cs,fl1->lmax,1,2*fl1->pol,map_1_dum,alm_1_dum,HE_NITER_DEFAULT);
+	he_map2alm(fl1->cs,fl1->lmax,1,2*fl1->pol,map_1_dum,alm_1_dum,niter);
 	//C^abT*SHT[v*f^j]
 	for(im2=0;im2<fl2->nmaps;im2++) {
 	  he_zero_alm(fl2->lmax,alm_2_dum[im2]);
@@ -592,7 +594,7 @@ void nmt_compute_deprojection_bias(nmt_field *fl1,nmt_field *fl2,
 	//SHT^-1[C^abT*SHT[v*f^j]]
 	he_alm2map(fl2->cs,fl2->lmax,1,2*fl2->pol,map_2_dum,alm_2_dum);
 	//SHT[w*SHT^-1[C^abT*SHT[v*f^j]]]
-	purify_generic(fl2,fl2->mask,fl2->a_mask,map_2_dum,alm_2_dum);
+	purify_generic(fl2,fl2->mask,fl2->a_mask,map_2_dum,alm_2_dum,niter);
 	//Sum_m(f^i*SHT[w*SHT^-1[C^abT*SHT[v*f^j]]]^*)/(2l+1)
 	he_alm2cl(fl1->a_temp[iti],alm_2_dum,fl1->pol,fl2->pol,cl_dum,lmax);
 	for(im1=0;im1<nspec;im1++) {
@@ -612,7 +614,7 @@ void nmt_compute_deprojection_bias(nmt_field *fl1,nmt_field *fl2,
 	for(im2=0;im2<fl2->nmaps;im2++)
 	  he_map_product(fl2->cs,fl2->temp[itq][im2],fl2->mask,map_2_dum[im2]);
 	//SHT[w*g^q]
-	he_map2alm(fl2->cs,fl2->lmax,1,2*fl2->pol,map_2_dum,alm_2_dum,HE_NITER_DEFAULT);
+	he_map2alm(fl2->cs,fl2->lmax,1,2*fl2->pol,map_2_dum,alm_2_dum,niter);
 	//C^ab*SHT[w*g^q]
 	for(im1=0;im1<fl1->nmaps;im1++) {
 	  he_zero_alm(fl1->lmax,alm_1_dum[im1]);
@@ -726,14 +728,15 @@ void nmt_compute_coupled_cell(nmt_field *fl1,nmt_field *fl2,flouble **cl_out)
 
 nmt_workspace *nmt_compute_power_spectra(nmt_field *fl1,nmt_field *fl2,
 					 nmt_binning_scheme *bin,nmt_workspace *w0,
-					 flouble **cl_noise,flouble **cl_proposal,flouble **cl_out)
+					 flouble **cl_noise,flouble **cl_proposal,flouble **cl_out,
+					 int niter)
 {
   int ii;
   flouble **cl_bias,**cl_data;
   nmt_workspace *w;
 
   if(w0==NULL)
-    w=nmt_compute_coupling_matrix(fl1,fl2,bin,0);
+    w=nmt_compute_coupling_matrix(fl1,fl2,bin,0,niter);
   else {
     w=w0;
     if(w->lmax>fl1->lmax)
@@ -747,7 +750,7 @@ nmt_workspace *nmt_compute_power_spectra(nmt_field *fl1,nmt_field *fl2,
     cl_data[ii]=my_calloc((fl1->lmax+1),sizeof(flouble));
   }
   nmt_compute_coupled_cell(fl1,fl2,cl_data);
-  nmt_compute_deprojection_bias(fl1,fl2,cl_proposal,cl_bias);
+  nmt_compute_deprojection_bias(fl1,fl2,cl_proposal,cl_bias,niter);
   nmt_decouple_cl_l(w,cl_data,cl_noise,cl_bias,cl_out);
   for(ii=0;ii<w->ncls;ii++) {
     free(cl_bias[ii]);

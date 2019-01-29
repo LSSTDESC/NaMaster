@@ -26,11 +26,12 @@ class NmtCovarianceWorkspace(object):
             self.wsp = None
         self.wsp = lib.read_covar_workspace(fname)
 
-    def compute_coupling_coefficients(self, wa, wb):
+    def compute_coupling_coefficients(self, wa, wb, n_iter=3):
         """
         Computes coupling coefficients of the Gaussian covariance between the power spectra computed using wa and wb (two NmtWorkspace objects).
 
         :param NmtWorkspace wa,wb: workspaces used to compute the two power spectra whose covariance matrix you want to compute.
+        :param n_iter: number of iterations when computing a_lms.
         """
         if self.wsp is not None:
             lib.covar_workspace_free(self.wsp)
@@ -40,7 +41,7 @@ class NmtCovarianceWorkspace(object):
             raise ValueError("Everything should have the same resolution!")
         if (wa.wsp.ncls != 1) or (wb.wsp.ncls != 1):
             raise ValueError("Gaussian covariances only supported for spin-0 fields")
-        self.wsp = lib.covar_workspace_init_py(wa.wsp, wb.wsp)
+        self.wsp = lib.covar_workspace_init_py(wa.wsp, wb.wsp, n_iter)
 
     def write_to(self, fname):
         """

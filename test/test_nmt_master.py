@@ -60,10 +60,10 @@ class TestWorkspaceCAR(unittest.TestCase) :
         w.compute_coupling_matrix(self.f0,self.f0,self.b) #OK init
         self.assertEqual(w.wsp.cs.nx,360)
         self.assertEqual(w.wsp.cs.nx_short,360)
-        w.compute_coupling_matrix(self.f0,self.f0,self.b_doub)
+        #TODO
+        #w.compute_coupling_matrix(self.f0,self.f0,self.b_doub)
         #print("blah")
 
-@unittest.skip("slow")
 class TestWorkspaceHPX(unittest.TestCase) :
     def setUp(self) :
         #This is to avoid showing an ugly warning that has nothing to do with pymaster
@@ -283,7 +283,6 @@ class TestWorkspaceHPX(unittest.TestCase) :
         with self.assertRaises(ValueError) : #Different resolutions
             c=nmt.compute_coupled_cell(self.f0,self.f0_half)
 
-@unittest.skip("slow")
 class TestWorkspaceFsk(unittest.TestCase) :
     def setUp(self) :
         #This is to avoid showing an ugly warning that has nothing to do with pymaster
