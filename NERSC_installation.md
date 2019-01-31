@@ -2,6 +2,21 @@
 
 The following steps should be followed to install NaMaster at NERSC:
 
+## 0 Python settings
+First, pick your favourite python module at NERSC. NaMaster has been tested on both 2.7 and 3.6, so do either
+```
+module load python/2.7-anaconda-4.4
+```
+or
+```
+module load python/3.6-anaconda-5.2
+```
+
+You probably also want to have `healpy` installed:
+```
+pip install --user healpy
+```
+
 ## 1 Install libsharp
 libsharp is a C library for spherical harmonic transforms. Follow these steps to install it before moving on to NaMaster:
 1. Download libsharp from [its github repository](https://github.com/dagss/libsharp) and unzip the file.
