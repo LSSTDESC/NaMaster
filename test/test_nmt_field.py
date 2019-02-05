@@ -11,7 +11,7 @@ class TestFieldCAR(unittest.TestCase) :
         from astropy.io import fits
         from astropy.wcs import WCS
 
-        hdul=fits.open("test/benchmarks/mps_car.fits")
+        hdul=fits.open("test/benchmarks/mps_car_small.fits")
         self.wcs=WCS(hdul[0].header)
         self.ny,self.nx=hdul[0].data.shape
         hdul.close()

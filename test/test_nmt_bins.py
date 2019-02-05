@@ -34,6 +34,8 @@ class TestBinsSph(unittest.TestCase) :
         #Tests constant bandpower initialization
         self.assertEqual(self.bc.get_n_bands(),(self.lmax-2)//self.nlb)
         self.assertEqual(self.bc.get_ell_list(5)[2],2+self.nlb*5+2)
+        b=nmt.NmtBin(1024,nlb=4,lmax=2000)
+        self.assertEqual(b.bin.ell_max,2000)
 
     def test_bins_variable(self) :
         #Tests variable bandpower initialization

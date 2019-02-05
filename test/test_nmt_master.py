@@ -6,7 +6,7 @@ import warnings
 import sys
 from .testutils import normdiff, read_flat_map
 
-#Unit tests associated with the NmtField and NmtFieldFlat classes
+#Unit tests associated with the NmtWorkspace and NmtWorkspaceFlat classes
 
 class TestWorkspaceCAR(unittest.TestCase) :
     def setUp(self) :
@@ -22,47 +22,98 @@ class TestWorkspaceCAR(unittest.TestCase) :
         hdul.close()
         #Read maps
         hdul=fits.open("test/benchmarks/mps_car.fits")
-        self.mps=np.array([hdul[i].data for i in range(3)])
+        self.mps=hdul[0].data
         hdul.close()
-        hdul=fits.open("test/benchmarks/tmp_car.fits")
-        self.tmp=np.array([hdul[i].data for i in range(3)])
-        hdul.close()
+        #hdul=fits.open("test/benchmarks/tmp_car.fits")
+        #self.tmp=np.array([hdul[i].data for i in range(3)])
+        #hdul.close()
 
         self.wt=nmt.NmtWCSTranslator(self.wcs,(self.ny,self.nx))
         self.lmax=self.wt.get_lmax()
-        self.nlb=16
+        self.nlb=50
         self.npix=self.wt.npix
         self.b=nmt.NmtBin(100000,nlb=self.nlb,lmax=self.lmax)
-        self.f0=nmt.NmtField(self.msk,[self.mps[0]],wcs=self.wcs)
+        self.l,self.cltt,self.clte,self.clee,self.clbb,self.cltb,self.cleb=np.loadtxt("test/benchmarks/pspy_cls.txt",unpack=True)
+        self.f0=nmt.NmtField(self.msk,[self.mps[0]],wcs=self.wcs,n_iter=0)
         self.f0_half=nmt.NmtField(self.msk[:self.ny//2,:self.nx//2],
                                   [self.mps[0][:self.ny//2,:self.nx//2]],
-                                  wcs=self.wcs)
+                                  wcs=self.wcs,n_iter=0) 
         self.b_half=nmt.NmtBin(100000,nlb=self.nlb,lmax=self.lmax//2)
         self.b_doub=nmt.NmtBin(100000,nlb=self.nlb,lmax=self.lmax*2)
         self.n_good=np.zeros([1,(self.lmax+1)])
         self.n_bad=np.zeros([2,(self.lmax+1)])
         self.n_half=np.zeros([1,(self.lmax//2+1)])
 
-        l,cltt,clee,clbb,clte,nltt,nlee,nlbb,nlte=np.loadtxt("test/benchmarks/cls_lss.txt",unpack=True)
-        self.l=l[:(self.lmax+1)]
-        self.cltt=cltt[:(self.lmax+1)]
-        self.clee=clee[:(self.lmax+1)]
-        self.clbb=clbb[:(self.lmax+1)]
-        self.clte=clte[:(self.lmax+1)]
-        self.nltt=nltt[:(self.lmax+1)]
-        self.nlee=nlee[:(self.lmax+1)]
-        self.nlbb=nlbb[:(self.lmax+1)]
-        self.nlte=nlte[:(self.lmax+1)]
+    def mastest(self) :
+        f0=nmt.NmtField(self.msk,[self.mps[0]],wcs=self.wcs,n_iter=0)
+        f2=nmt.NmtField(self.msk,[self.mps[1],self.mps[2]],wcs=self.wcs,n_iter=0)
+        f=[f0,f2]
+
+        for ip1 in range(2) :
+            for ip2 in range(ip1,2) :
+                if ip1==ip2==0 :
+                    cl_bm=np.array([self.cltt])
+                elif ip1==ip2==1 :
+                    cl_bm=np.array([self.clee,self.cleb,self.cleb,self.clbb])
+                else :
+                    cl_bm=np.array([self.clte,self.cltb])
+                w=nmt.NmtWorkspace()
+                w.compute_coupling_matrix(f[ip1],f[ip2],self.b)
+                cl=w.decouple_cell(nmt.compute_coupled_cell(f[ip1],f[ip2]))
+                self.assertTrue(np.amax(np.fabs(cl-cl_bm))<=1E-10)
         
-        
-    def test_workspace_methods(self) :
+        #TEB
+        w=nmt.NmtWorkspace()
+        w.compute_coupling_matrix(f[0],f[1],self.b,is_teb=True)
+        c00=nmt.compute_coupled_cell(f[0],f[0])
+        c02=nmt.compute_coupled_cell(f[0],f[1])
+        c22=nmt.compute_coupled_cell(f[1],f[1])
+        cl=w.decouple_cell(np.array([c00[0],c02[0],c02[1],c22[0],c22[1],c22[2],c22[3]]))
+        cl_bm=np.array([self.cltt,self.clte,self.cltb,self.clee,self.cleb,self.cleb,self.clbb])
+        self.assertTrue(np.amax(np.fabs(cl-cl_bm))<=1E-10)
+
+    def test_workspace_car_master(self) :
+        self.mastest()
+
+    def test_workspace_car_methods(self) :
         w=nmt.NmtWorkspace()
         w.compute_coupling_matrix(self.f0,self.f0,self.b) #OK init
-        self.assertEqual(w.wsp.cs.nx,360)
-        self.assertEqual(w.wsp.cs.nx_short,360)
-        #TODO
-        #w.compute_coupling_matrix(self.f0,self.f0,self.b_doub)
-        #print("blah")
+        self.assertEqual(w.wsp.cs.nx_short,1080)
+        self.assertEqual(w.wsp.cs.nx,4320)
+        with self.assertRaises(RuntimeError) : #Incompatible bandpowers
+            w.compute_coupling_matrix(self.f0,self.f0,self.b_doub)
+        with self.assertRaises(RuntimeError) : #Incompatible resolutions
+            w.compute_coupling_matrix(self.f0,self.f0_half,self.b)
+        with self.assertRaises(RuntimeError) : #Wrong fields for TEB
+            w.compute_coupling_matrix(self.f0,self.f0,self.b,is_teb=True)
+
+        w.compute_coupling_matrix(self.f0,self.f0,self.b)
+
+        #Test couple_cell
+        c=w.couple_cell(self.n_good)
+        self.assertEqual(c.shape,(1,w.wsp.lmax+1))
+        with self.assertRaises(ValueError) :
+            c=w.couple_cell(self.n_bad)
+        with self.assertRaises(ValueError) :
+            c=w.couple_cell(self.n_half)
+        
+        #Test decouple_cell
+        c=w.decouple_cell(self.n_good)
+        self.assertEqual(c.shape,(1,self.b.bin.n_bands))
+        with self.assertRaises(ValueError) :
+            c=w.decouple_cell(self.n_bad)
+        with self.assertRaises(ValueError) :
+            c=w.decouple_cell(self.n_half)
+        c=w.decouple_cell(self.n_good,cl_bias=self.n_good,cl_noise=self.n_good)
+        self.assertEqual(c.shape,(1,self.b.bin.n_bands))
+        with self.assertRaises(ValueError) :
+            c=w.decouple_cell(self.n_good,cl_bias=self.n_good,cl_noise=self.n_bad)
+        with self.assertRaises(ValueError) :
+            c=w.decouple_cell(self.n_good,cl_bias=self.n_good,cl_noise=self.n_half)
+        with self.assertRaises(ValueError) :
+            c=w.decouple_cell(self.n_good,cl_bias=self.n_bad,cl_noise=self.n_good)
+        with self.assertRaises(ValueError) :
+            c=w.decouple_cell(self.n_good,cl_bias=self.n_half,cl_noise=self.n_good)
 
 class TestWorkspaceHPX(unittest.TestCase) :
     def setUp(self) :

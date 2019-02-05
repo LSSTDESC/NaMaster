@@ -87,9 +87,9 @@ sl,sw_q,sw_u=nmt.synfast_spherical(-1,[cltt/(l+1.)**1.5,0*clte,0*cltt,clee/(l+1.
 wcs._naxis2,wcs._naxis1=dl.shape
 
 mask=getmaskapoana_car(wcs,20.,0.4,dec0=90.)
-write_flat_map("mps_car.fits",np.array([dl,dw_q,dw_u]),wcs,["T","Q","U"])
-write_flat_map("tmp_car.fits",np.array([sl,sw_q,sw_u]),wcs,["T","Q","U"])
-write_flat_map("msk_car.fits",mask,wcs,"mask")
+write_flat_map("mps_car_small.fits",np.array([dl,dw_q,dw_u]),wcs,["T","Q","U"])
+write_flat_map("tmp_car_small.fits",np.array([sl,sw_q,sw_u]),wcs,["T","Q","U"])
+write_flat_map("msk_car_small.fits",mask,wcs,"mask")
 
 plt.figure(); plt.imshow(dl*mask,interpolation='nearest',origin='lower')
 plt.figure(); plt.imshow(dw_q*mask,interpolation='nearest',origin='lower')
