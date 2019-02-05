@@ -228,6 +228,101 @@ CTEST(nmt,he_sht) {
   free(cs);
 }
 
+CTEST(nmt,he_get_lmax) {
+  long nside=256;
+  int ny=384,nx=2*(ny-1);
+  double dtheta=M_PI/(ny-1),dphi=dtheta;
+  nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(1,nside,-1,-1,-1,-1,-1,-1); 
+  ASSERT_TRUE(he_get_lmax(cs)==3*nside-1);
+  free(cs);
+  cs=nmt_curvedsky_info_alloc(0,-1,nx,ny,dtheta,dphi,0.,M_PI);
+  ASSERT_TRUE(he_get_lmax(cs)==(int)(M_PI/dtheta));
+  free(cs);
+}
+  
+CTEST(nmt,he_get_pix_area) {
+  long nside=256;
+  int ny=383,nx=2*(ny-1);
+  double dtheta=M_PI/(ny-1),dphi=dtheta;
+  nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(1,nside,-1,-1,-1,-1,-1,-1); 
+  ASSERT_DBL_NEAR_TOL(he_get_pix_area(cs,-1),M_PI/(3*nside*nside),1E-10);
+  free(cs);
+  cs=nmt_curvedsky_info_alloc(0,-1,nx,ny,dtheta,dphi,0.,M_PI);
+  ASSERT_DBL_NEAR_TOL(he_get_pix_area(cs,(ny-1)/2),dphi*dtheta,1E-10);
+  free(cs);
+}
+    
+CTEST(nmt,he_sht_car) {
+  int ii;
+  int nmaps=34;
+  int ny=384,nx=2*(ny-1);
+  double dtheta=M_PI/(ny-1),dphi=dtheta;
+  nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(0,-1,nx,ny,dtheta,dphi,0.,M_PI);
+  long lmax=he_get_lmax(cs);
+  long npix_short=nx*ny;
+  double **maps=my_malloc(2*nmaps*sizeof(double *));
+  fcomplex **alms=my_malloc(2*nmaps*sizeof(fcomplex *));
+
+  for(ii=0;ii<2*nmaps;ii++) {
+    maps[ii]=my_calloc(npix_short,sizeof(double));
+    alms[ii]=my_malloc(he_nalms(lmax)*sizeof(fcomplex));
+  }
+
+  //Direct SHT
+  //Single SHT, spin-0
+  he_map2alm(cs,lmax,1,0,maps,alms,0);
+  //Several SHTs, spin-0
+  he_map2alm(cs,lmax,nmaps,0,maps,alms,0);
+  //Single SHT, spin-2
+  he_map2alm(cs,lmax,1,2,maps,alms,0);
+  //Several SHTs, spin-2
+  he_map2alm(cs,lmax,nmaps,2,maps,alms,0);
+  //Several SHTs, spin-2, iterate
+  he_map2alm(cs,lmax,nmaps,2,maps,alms,3);
+
+  he_alm2map(cs,lmax,nmaps,2,maps,alms);
+  for(ii=0;ii<2*nmaps;ii++) {
+    free(maps[ii]);
+    free(alms[ii]);
+  }
+  free(maps);
+
+  //Test for one particular example
+  for(ii=0;ii<2;ii++)
+    alms[ii]=my_malloc(he_nalms(lmax)*sizeof(fcomplex));
+  //spin-0, map = Re(Y_22) ->
+  //        a_lm = delta_l2 (delta_m2 + delta_m-2)/2
+  maps=test_make_map_analytic_car(cs,0);
+  he_map2alm(cs,lmax,1,0,maps,alms,0);
+  ASSERT_DBL_NEAR_TOL(0.5,creal(alms[0][he_indexlm(2,2,lmax)]),1E-5);
+  ASSERT_DBL_NEAR_TOL(0.0,cimag(alms[0][he_indexlm(2,2,lmax)]),1E-5);
+  free(maps[0]); free(maps);
+
+  //spin-2, map = _2Y^E_20+2* _2Y^B_30) ->
+  //        E_lm =   delta_l2 delta_m0
+  //        B_lm = 2 delta_l3 delta_m0
+  maps=test_make_map_analytic_car(cs,1);
+  he_map2alm(cs,lmax,1,2,maps,alms,0);
+  ASSERT_DBL_NEAR_TOL(1.,creal(alms[0][he_indexlm(2,0,lmax)]),1E-5);
+  ASSERT_DBL_NEAR_TOL(0.,cimag(alms[0][he_indexlm(2,0,lmax)]),1E-5);
+  ASSERT_DBL_NEAR_TOL(0.,creal(alms[1][he_indexlm(2,0,lmax)]),1E-5);
+  ASSERT_DBL_NEAR_TOL(0.,cimag(alms[1][he_indexlm(2,0,lmax)]),1E-5);
+  ASSERT_DBL_NEAR_TOL(0.,creal(alms[0][he_indexlm(1,0,lmax)]),1E-5);
+  ASSERT_DBL_NEAR_TOL(0.,cimag(alms[0][he_indexlm(1,0,lmax)]),1E-5);
+  ASSERT_DBL_NEAR_TOL(0.,creal(alms[1][he_indexlm(1,0,lmax)]),1E-5);
+  ASSERT_DBL_NEAR_TOL(0.,cimag(alms[1][he_indexlm(1,0,lmax)]),1E-5);
+  ASSERT_DBL_NEAR_TOL(0.,creal(alms[0][he_indexlm(3,0,lmax)]),1E-5);
+  ASSERT_DBL_NEAR_TOL(0.,cimag(alms[0][he_indexlm(3,0,lmax)]),1E-5);
+  ASSERT_DBL_NEAR_TOL(2.,creal(alms[1][he_indexlm(3,0,lmax)]),1E-5);
+  ASSERT_DBL_NEAR_TOL(0.,cimag(alms[1][he_indexlm(3,0,lmax)]),1E-5);
+  free(maps[0]); free(maps[1]); free(maps);
+
+  for(ii=0;ii<2;ii++)
+    free(alms[ii]);
+  free(alms);
+  free(cs);
+}
+
 CTEST(nmt,he_io) {
   set_error_policy(THROW_ON_ERROR);
 
@@ -356,6 +451,33 @@ CTEST(nmt,he_algb) {
   }
   
   double d=he_map_dot(cs,mp1,mp2);
+  he_map_product(cs,mp1,mp2,mpr);
+  he_map_product(cs,mp1,mp2,mp2);
+
+  ASSERT_DBL_NEAR_TOL(4*M_PI,d,1E-5);
+  for(ii=0;ii<npix;ii++) {
+    ASSERT_DBL_NEAR_TOL(1.,mpr[ii],1E-10);
+    ASSERT_DBL_NEAR_TOL(1.,mp2[ii],1E-10);
+  }
+  free(mp1);
+  free(mp2);
+  free(mpr);
+  free(cs);
+
+  //Now CAR
+  int ny=1383,nx=2*(ny-1);
+  double dtheta=M_PI/(ny-1),dphi=dtheta;
+  npix=ny*nx;
+  cs=nmt_curvedsky_info_alloc(0,-1,nx,ny,dtheta,dphi,0.,M_PI);
+  mp1=my_malloc(npix*sizeof(double));
+  mp2=my_malloc(npix*sizeof(double));
+  mpr=my_malloc(npix*sizeof(double));
+  for(ii=0;ii<npix;ii++) {
+    mp1[ii]=2.;
+    mp2[ii]=0.5;
+  }
+  
+  d=he_map_dot(cs,mp1,mp2);
   he_map_product(cs,mp1,mp2,mpr);
   he_map_product(cs,mp1,mp2,mp2);
 

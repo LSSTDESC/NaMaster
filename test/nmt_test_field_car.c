@@ -375,37 +375,3 @@ CTEST(nmt,field_car_synfast) {
   free(cells_pass);
   free(cs);
 }
-
-/*
-CTEST(nmt,field_read) {
-  int ii;
-  nmt_field *f;
-
-  //Spin-0, no templates
-  f=nmt_field_read(1,"test/mask.fits","test/maps.fits","none","none",0,0,0,3,1E-10);
-  ASSERT_EQUAL(f->cs->n_eq,256);
-  nmt_field_free(f);
-
-  //Spin-0, with templates
-  f=nmt_field_read(1,"test/mask.fits","test/maps.fits","test/maps.fits","none",0,0,0,3,1E-10);
-  ASSERT_EQUAL(f->cs->n_eq,256);
-  //Template=map -> map=0
-  for(ii=0;ii<f->cs->npix;ii++)
-    ASSERT_DBL_NEAR_TOL(0.0,f->maps[0][ii],1E-10);
-  nmt_field_free(f);
-
-  //Spin-2, no templates
-  f=nmt_field_read(1,"test/mask.fits","test/maps.fits","none","none",1,0,0,3,1E-10);
-  ASSERT_EQUAL(f->cs->n_eq,256);
-  nmt_field_free(f);
-
-  //Spin-2, with templates
-  f=NULL;
-  //Check that an error is thrown if file is wrong
-  set_error_policy(THROW_ON_ERROR);
-  try { f=nmt_field_read(1,"test/mask.fits","test/maps.fits","test/maps.fits","none",1,0,0,3,1E-10); }
-  ASSERT_NOT_EQUAL(0,nmt_exception_status);
-  ASSERT_NULL(f);
-  set_error_policy(EXIT_ON_ERROR);
-}
-*/

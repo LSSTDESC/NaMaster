@@ -7,7 +7,6 @@
 #include <sharp_geomhelpers.h>
 #include <sharp.h>
 
-
 #define MAX_SHT 32
 
 void he_write_healpix_map(flouble **tmap,int nfields,long nside,char *fname)
@@ -120,178 +119,6 @@ static flouble *he_read_HPX_map(char *fname,long *nside,int nfield)
   return map_ring;
 }
 
-void he_write_CAR_map(flouble **tmap,int nfields,nmt_curvedsky_info *sky_info,char *fname)
-{
-  fitsfile *fptr;
-  int ii,status=0;
-  char **ttype,**tform,**tunit;
-
-  long *axes = my_malloc(3 * sizeof(long));
-  axes[0] = sky_info->nx;
-  axes[1] = sky_info->ny;
-  axes[2] = nfields;
-
-  ttype=my_malloc(nfields*sizeof(char *));
-  tform=my_malloc(nfields*sizeof(char *));
-  tunit=my_malloc(nfields*sizeof(char *));
-  for(ii=0;ii<nfields;ii++) {
-    ttype[ii]=my_malloc(256);
-    tform[ii]=my_malloc(256);
-    tunit[ii]=my_malloc(256);
-    sprintf(ttype[ii],"map %d",ii+1);
-    sprintf(tform[ii],"1E");
-    sprintf(tunit[ii],"  ");
-  }
-  //delete old file
-  remove(fname);
-  if (fits_create_file(&fptr, fname, &status)) /* create new FITS file */
-       printf("%i\n", status );           /* call printerror if error occurs */
-
-  if ( fits_create_img(fptr,  DOUBLE_IMG, 3, axes, &status) )
-      printf("%i\n", status );           /* call printerror if error occurs */
-
-  /* write the array of floats to the FITS file */
-  for(ii=0;ii<nfields;ii++) {
-    if ( fits_write_img(fptr, TDOUBLE, ii*axes[0]*axes[1]+1, axes[0]*axes[1], tmap[ii], &status) )
-        printf("%i\n", status );
-  }
-
-  long WCSAXES = 3;
-  float CRPIX1 = 1.0;
-  float CRPIX2 = 1.0;
-  float CDELT1 = sky_info->Delta_phi*180.0/M_PI;
-  float CDELT2 = -sky_info->Delta_theta*180.0/M_PI;
-  float CRVAL1 = sky_info->phi0*180.0/M_PI;
-  float CRVAL2 = 90-(sky_info->theta0-(sky_info->ny-1)*sky_info->Delta_theta)*180.0/M_PI;
-  float LONPOLE = 0.0;
-  float LATPOLE = 90.0;
-
-  fits_write_key(fptr,TLONG,"WCSAXES",&WCSAXES,
-		 "Number of coordinate axes",&status);
-  fits_write_key(fptr,TFLOAT,"CRPIX1",&CRPIX1,
-  	 "Pixel coordinate of reference point",&status);
-  fits_write_key(fptr,TFLOAT,"CRPIX2",&CRPIX2,
-  	 "Pixel coordinate of reference point",&status);
-  fits_write_key(fptr,TFLOAT,"CDELT1",&CDELT1,
-     "[deg] Coordinate increment at reference point",&status);
-  fits_write_key(fptr,TFLOAT,"CDELT2",&CDELT2,
-     "[deg] Coordinate increment at reference point",&status);
-  fits_write_key(fptr,TSTRING,"CUNIT1","deg",
-  	 "Units of coordinate increment and value",&status);
-  fits_write_key(fptr,TSTRING,"CUNIT2","deg",
-  	 "Units of coordinate increment and value",&status);
-  fits_write_key(fptr,TSTRING,"CTYPE1","RA---CAR",
-  	 "Right ascension, plate caree projection",&status);
-  fits_write_key(fptr,TSTRING,"CTYPE2","DEC--CAR",
-  	 "Declination, plate caree projection",&status);
-  fits_write_key(fptr,TFLOAT,"CRVAL1", &CRVAL1,
-    "[deg] Coordinate value at reference point",&status);
-  fits_write_key(fptr,TFLOAT,"CRVAL2", &CRVAL2,
-    "[deg] Coordinate value at reference point",&status);
-  fits_write_key(fptr,TFLOAT,"LONPOLE", &LONPOLE,
-  	 "[deg] Native longitude of celestial pole",&status);
-   fits_write_key(fptr,TFLOAT,"LATPOLE", &LATPOLE,
-   	 "[deg] Native latitude of celestial pole",&status);
-  fits_write_key(fptr,TSTRING,"RADESYS","ICRS",
-  	 "Equatorial coordinate system",&status);
-
-  fits_close_file(fptr, &status);
-
-  for(ii=0;ii<nfields;ii++) {
-    free(ttype[ii]);
-    free(tform[ii]);
-    free(tunit[ii]);
-  }
-  free(ttype);
-  free(tform);
-  free(tunit);
-  free(axes);
-}
-
-static flouble *he_read_CAR_map(char *fname, nmt_curvedsky_info *sky_info, int nfield)
-{
-  int status=0, hdutype;
-  fitsfile *fptr;
-
-  int nkeys, ii, jj, final_ii, final_jj;
-  char card[FLEN_CARD], value[FLEN_VALUE];
-  char *comment;
-
-  int anynul;
-  long *axes;
-  int naxes;
-  long nelements;
-  long fpixel[3];
-  long full_x; // number of pixels in a ring
-
-
-  flouble *map, nulval;
-  flouble *ringed_map; // full rings
-
-  comment =  my_malloc(FLEN_COMMENT * sizeof(char));
-
-  fits_open_file(&fptr, fname, READONLY, &status);
-  fits_get_hdrspace(fptr, &nkeys, NULL, &status);
-
-  for (ii = 1; ii <= nkeys; ii++) {
-    fits_read_record(fptr, ii, card, &status);
-  }
-
-  fits_get_img_dim(fptr, &naxes, &status);
-  axes = my_malloc(naxes * sizeof(long));
-  fits_get_img_size(fptr, 3, axes, &status);
-
-  double Delta_phi, Delta_theta, phi0, theta0, ix0, iy0;
-  fits_read_key(fptr, TDOUBLE, "CDELT1", &Delta_phi, comment, &status);
-  fits_read_key(fptr, TDOUBLE, "CDELT2", &Delta_theta, comment, &status);
-  fits_read_key(fptr, TDOUBLE, "CRVAL1", &phi0, comment, &status);
-  fits_read_key(fptr, TDOUBLE, "CRVAL2", &theta0, comment, &status);
-  fits_read_key(fptr, TDOUBLE, "CRPIX1", &ix0, comment, &status);
-  fits_read_key(fptr, TDOUBLE, "CRPIX2", &iy0, comment, &status);
-
-  free(comment);
-
-  if(Delta_theta>=0)
-    report_error(1,"Pixel increment in latitude must be negative\n");
-  if(Delta_phi<=0)
-    report_error(1,"Pixel increment in longitude must be positive\n");
-  if((ix0!=1) || (iy0!=1))
-    report_error(1,"Reference pixel must be at [1,1]\n");
-
-  // adjust theta0 to be the bottom ring rather than the top ring
-  theta0 += Delta_theta * (axes[1] - 1);
-
-  nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(0,-1,axes[0],axes[1],
-						  -Delta_theta*M_PI/180,
-						  Delta_phi*M_PI/180,
-						  phi0*M_PI/180,
-						  (90-theta0)*M_PI/180);
-  memcpy(sky_info,cs,sizeof(nmt_curvedsky_info));
-  free(cs);
-
-  fpixel[0] = 1;
-  fpixel[1] = 1;
-  fpixel[2] = nfield + 1;
-
-  nelements = axes[0] * axes[1];
-  map = my_malloc(nelements* sizeof(flouble));
-  fits_read_pix(fptr, TDOUBLE, fpixel, nelements, 0, map, &anynul, &status);
-
-  if (sky_info->nx != axes[0]) {
-    ringed_map = nmt_extend_CAR_map(sky_info,map);
-    free(map);
-    map = ringed_map;
-  }
-
-  if (status)
-    fits_report_error(stderr, status);
-
-  fits_close_file(fptr,&status);
-  free(axes);
-
-  return map;
-}
-
 flouble *he_read_map(char *fname,nmt_curvedsky_info *sky_info,int nfield) //DONE
 {
   flouble *mp;
@@ -301,7 +128,7 @@ flouble *he_read_map(char *fname,nmt_curvedsky_info *sky_info,int nfield) //DONE
     sky_info->npix=12*sky_info->n_eq*sky_info->n_eq;
   }
   else
-    mp=he_read_CAR_map(fname,sky_info,nfield);
+    report_error(NMT_ERROR_NOT_IMPLEMENTED,"No IO functions for non-HEALPix pixelizations\n");
   return mp;
 }
 
@@ -336,70 +163,6 @@ static void he_get_HPX_file_params(char *fname,long *nside,int *nfields,int *isn
   fits_close_file(fptr,&status);
 }
 
-static void he_get_CAR_file_params(char *fname,nmt_curvedsky_info *sky_info,int *nfields)
-{
-  int status=0, hdutype;
-  int nfield = 0;
-  fitsfile *fptr;
-
-  int nkeys, ii;
-  char card[FLEN_CARD], value[FLEN_VALUE];
-  char *comment;
-
-  int anynul;
-  long *axes;
-  int naxes;
-  long nelements;
-  long fpixel[] = {1,1,1};
-  long full_x; // number of pixels in a ring
-
-  flouble *map, nulval;
-
-  comment =  my_malloc(FLEN_COMMENT * sizeof(char));
-
-  fits_open_file(&fptr, fname, READONLY, &status);
-  fits_get_hdrspace(fptr, &nkeys, NULL, &status);
-
-  for (ii = 1; ii <= nkeys; ii++) {
-    fits_read_record(fptr, ii, card, &status);
-  }
-
-  fits_get_img_dim(fptr, &naxes, &status);
-  axes = my_malloc(naxes * sizeof(long));
-  fits_get_img_size(fptr, 3, axes, &status);
-
-  nelements = axes[0] * axes[1];
-
-
-  double Delta_phi, Delta_theta, phi0, theta0, ix0, iy0;
-  fits_read_key(fptr, TDOUBLE, "CDELT1", &Delta_phi, comment, &status);
-  fits_read_key(fptr, TDOUBLE, "CDELT2", &Delta_theta, comment, &status);
-  fits_read_key(fptr, TDOUBLE, "CRVAL1", &phi0, comment, &status);
-  fits_read_key(fptr, TDOUBLE, "CRVAL2", &theta0, comment, &status);
-  fits_read_key(fptr, TDOUBLE, "CRPIX1", &ix0, comment, &status);
-  fits_read_key(fptr, TDOUBLE, "CRPIX2", &iy0, comment, &status);
-
-  free(comment);
-
-  if(Delta_theta>=0)
-    report_error(1,"Pixel increment in latitude must be negative\n");
-  if(Delta_phi<=0)
-    report_error(1,"Pixel increment in longitude must be positive\n");
-  if((ix0!=0) || (iy0!=0))
-    report_error(1,"Reference pixel must be at [0,0]\n");
-
-  nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(0,-1,axes[0],axes[1],
-						  -Delta_theta*M_PI/180,
-						  Delta_phi*M_PI/180,
-						  phi0*M_PI/180,
-						  (90-theta0)*M_PI/180);
-  memcpy(sky_info,cs,sizeof(nmt_curvedsky_info));
-  free(cs);
-
-  fits_close_file(fptr,&status);
-  free(axes);
-}
-
 nmt_curvedsky_info *he_get_file_params(char *fname,int is_healpix,int *nfields,int *isnest)
 {
   nmt_curvedsky_info *cs=my_malloc(sizeof(nmt_curvedsky_info));
@@ -410,7 +173,7 @@ nmt_curvedsky_info *he_get_file_params(char *fname,int is_healpix,int *nfields,i
     cs->npix=12*cs->n_eq*cs->n_eq;
   }
   else
-    he_get_CAR_file_params(fname,cs,nfields);
+    report_error(NMT_ERROR_NOT_IMPLEMENTED,"No IO functions for non-HEALPix pixelizations\n");
 
   return cs;
 }
@@ -806,7 +569,6 @@ static double wrap_phi(double phi)
     return phi;
 }
 
-//TODO: generalize to CAR
 void he_query_disc(int nside,double cth0,double phi,flouble radius,
 		   int *listtot,int *nlist,int inclusive)
 {
