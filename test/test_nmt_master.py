@@ -5,9 +5,11 @@ import healpy as hp
 import warnings
 import sys
 from .testutils import normdiff, read_flat_map
+import os
 
 #Unit tests associated with the NmtWorkspace and NmtWorkspaceFlat classes
 
+@unittest.skipIf(os.environ.get('TRAVIS')=='true',"Skipped in Travis")
 class TestWorkspaceCAR(unittest.TestCase) :
     def setUp(self) :
         from astropy.io import fits
