@@ -84,6 +84,16 @@ void get_weight_list(nmt_binning_scheme *bins,int ibin,double *dout,int ndout)
   memcpy(dout,bins->w_list[ibin],bins->nell_list[ibin]*sizeof(double));
 }
 
+int get_lmax_py(int is_healpix,int nside,int nx,int ny,
+		double delta_phi,double delta_theta,double phi0,double theta0)
+{
+  nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(is_healpix,(long)nside,nx,ny,
+						  delta_theta,delta_phi,phi0,theta0);
+  int lmax=he_get_lmax(cs);
+  free(cs);
+  return lmax;
+}
+ 
 void get_ell_eff(nmt_binning_scheme *bins,double *dout,int ndout)
 {
   asserting(ndout==bins->n_bands);
@@ -214,14 +224,17 @@ void unbin_cl_flat(nmt_binning_scheme_flat *bins,
   free(cls_out);
 }
 
-nmt_field *field_alloc_new(int npix_1,double *mask,
+nmt_field *field_alloc_new(int is_healpix,int nside,int nx,int ny,double delta_phi,
+			   double delta_theta,double phi0,double theta0,
+			   int npix_1,double *mask,
 			   int nmap_2,int npix_2,double *mps,
 			   int ntmp_3,int nmap_3,int npix_3,double *tmp,
 			   int nell3,double *weights,
-			   int pure_e,int pure_b,int n_iter_mask_purify,double tol_pinv)
+			   int pure_e,int pure_b,
+			   int n_iter_mask_purify,double tol_pinv,int n_iter)
 {
   int ii,jj;
-  long nside=1;
+  long nside_l=(long)nside;
   int pol=0,ntemp=0;
   double **maps;
   double ***temp=NULL;
@@ -231,12 +244,14 @@ nmt_field *field_alloc_new(int npix_1,double *mask,
   asserting(nmap_2==nmap_3);
   asserting((nmap_2==1) || (nmap_2==2));
 
-  while(npix_1!=12*nside*nside) {
-    asserting(nside<=65536);
-    nside*=2;
-  }
-  
-  asserting(nell3==3*nside);
+  if(is_healpix)
+    asserting(npix_1==12*nside_l*nside_l);
+  else
+    asserting(npix_1==nx*ny);
+
+  nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(is_healpix,nside_l,nx,ny,
+						  delta_theta,delta_phi,phi0,theta0);
+  asserting(nell3>he_get_lmax(cs));
 
   if(nmap_2==2) pol=1;
 
@@ -254,8 +269,8 @@ nmt_field *field_alloc_new(int npix_1,double *mask,
   for(ii=0;ii<nmap_2;ii++)
     maps[ii]=mps+npix_2*ii;
 
-  fl=nmt_field_alloc_sph(nside,mask,pol,maps,ntemp,temp,weights,pure_e,pure_b,
-			 n_iter_mask_purify,tol_pinv);
+  fl=nmt_field_alloc_sph(cs,mask,pol,maps,ntemp,temp,weights,pure_e,pure_b,
+			 n_iter_mask_purify,tol_pinv,n_iter);
 
   if(tmp!=NULL) {
     for(ii=0;ii<ntmp_3;ii++)
@@ -263,29 +278,34 @@ nmt_field *field_alloc_new(int npix_1,double *mask,
     free(temp);
   }
   free(maps);
+  free(cs);
 
   return fl;
 }
 
-nmt_field *field_alloc_new_notemp(int npix_1,double *mask,
+nmt_field *field_alloc_new_notemp(int is_healpix,int nside,int nx,int ny,double delta_phi,
+				  double delta_theta,double phi0,double theta0,
+				  int npix_1,double *mask,
 				  int nmap_2,int npix_2,double *mps,
 				  int nell3,double *weights,
-				  int pure_e,int pure_b,int n_iter_mask_purify)
+				  int pure_e,int pure_b,int n_iter_mask_purify,int n_iter)
 {
   int ii;
-  long nside=1;
+  long nside_l=(long)nside;
   int pol=0,ntemp=0;
   double **maps;
   nmt_field *fl;
   asserting(npix_1==npix_2);
   asserting((nmap_2==1) || (nmap_2==2));
 
-  while(npix_1!=12*nside*nside) {
-    asserting(nside<=65536);
-    nside*=2;
-  }
-  
-  asserting(nell3==3*nside);
+  if(is_healpix)
+    asserting(npix_1==12*nside_l*nside_l);
+  else
+    asserting(npix_1==nx*ny);
+
+  nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(is_healpix,nside_l,nx,ny,
+						  delta_theta,delta_phi,phi0,theta0);
+  asserting(nell3>he_get_lmax(cs));
 
   if(nmap_2==2) pol=1;
 
@@ -293,9 +313,11 @@ nmt_field *field_alloc_new_notemp(int npix_1,double *mask,
   for(ii=0;ii<nmap_2;ii++)
     maps[ii]=mps+npix_2*ii;
 
-  fl=nmt_field_alloc_sph(nside,mask,pol,maps,ntemp,NULL,weights,pure_e,pure_b,n_iter_mask_purify,0.);
+  fl=nmt_field_alloc_sph(cs,mask,pol,maps,ntemp,NULL,weights,pure_e,pure_b,n_iter_mask_purify,
+			 0.,n_iter);
 
   free(maps);
+  free(cs);
 
   return fl;
 }
@@ -427,7 +449,8 @@ void apomask_flat(int nx,int ny,double lx,double ly,
   nmt_apodize_mask_flat(nx,ny,lx,ly,mask,dout,aposize,apotype);
 }
 
-void synfast_new(int nside,
+void synfast_new(int is_healpix,int nside,int nx,int ny,double delta_phi,
+		 double delta_theta,double phi0,double theta0,
 		 int nfields,int *spin_arr,
 		 int seed,
 		 int ncl1,int nell1,double *cls1,
@@ -435,9 +458,15 @@ void synfast_new(int nside,
 		 double* ldout,long nldout)
 {
   int ii,icl,nmaps=0;
-  long npix=12*nside*nside;
+  long nside_l=(long)nside;
+  long npix;
   double **cls,**beams,**maps;
 
+  if(is_healpix)
+    npix=12*nside_l*nside_l;
+  else
+    npix=nx*ny;
+  
   for(ii=0;ii<nfields;ii++) {
     if(spin_arr[ii]==0)
       nmaps+=1;
@@ -445,6 +474,8 @@ void synfast_new(int nside,
       nmaps+=2;
   }
 
+  nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(is_healpix,nside_l,nx,ny,
+						  delta_theta,delta_phi,phi0,theta0);
   asserting(ncl2==nfields);
   asserting(ncl1==(nmaps*(nmaps+1))/2);
   asserting(nell1==nell2);
@@ -457,7 +488,7 @@ void synfast_new(int nside,
   for(icl=0;icl<nfields;icl++)
     beams[icl]=cls2+nell2*icl;
 
-  maps=nmt_synfast_sph(nside,nfields,spin_arr,nell1-1,cls,beams,seed);
+  maps=nmt_synfast_sph(cs,nfields,spin_arr,nell1-1,cls,beams,seed);
 
   for(icl=0;icl<nmaps;icl++) {
     memcpy(&(ldout[npix*icl]),maps[icl],npix*sizeof(double));
@@ -466,6 +497,7 @@ void synfast_new(int nside,
   free(maps);
   free(beams);
   free(cls);
+  free(cs);
 }
 
 void synfast_new_flat(int nx,int ny,double lx,double ly,
@@ -519,9 +551,10 @@ void synfast_new_flat(int nx,int ny,double lx,double ly,
   free(larr);
 }
 
- nmt_workspace *comp_coupling_matrix(nmt_field *fl1,nmt_field *fl2,nmt_binning_scheme *bin,int is_teb)
+ nmt_workspace *comp_coupling_matrix(nmt_field *fl1,nmt_field *fl2,nmt_binning_scheme *bin,
+				     int is_teb,int n_iter)
 {
-  return nmt_compute_coupling_matrix(fl1,fl2,bin,is_teb);
+  return nmt_compute_coupling_matrix(fl1,fl2,bin,is_teb,n_iter);
 }
 
 nmt_workspace_flat *comp_coupling_matrix_flat(nmt_field_flat *fl1,nmt_field_flat *fl2,
@@ -554,7 +587,7 @@ void write_workspace_flat(nmt_workspace_flat *w,char *fname)
    
 void comp_uncorr_noise_deproj_bias(nmt_field *fl1,
 				   int npix_1,double *mask,
-				   double *dout,int ndout)
+				   double *dout,int ndout,int n_iter)
 {
   int i;
   double **cl_bias;
@@ -566,14 +599,14 @@ void comp_uncorr_noise_deproj_bias(nmt_field *fl1,
   for(i=0;i<n_cl1;i++)
     cl_bias[i]=&(dout[n_ell1*i]);
 
-  nmt_compute_uncorr_noise_deprojection_bias(fl1,mask,cl_bias);
+  nmt_compute_uncorr_noise_deprojection_bias(fl1,mask,cl_bias,n_iter);
 
   free(cl_bias);
 }
 
 void comp_deproj_bias(nmt_field *fl1,nmt_field *fl2,
 		      int ncl1,int nell1,double *cls1,
-		      double *dout,int ndout)
+		      double *dout,int ndout,int n_iter)
 {
   int i;
   double **cl_bias,**cl_guess;
@@ -587,7 +620,7 @@ void comp_deproj_bias(nmt_field *fl1,nmt_field *fl2,
     cl_bias[i]=&(dout[nell1*i]);
   }
 
-  nmt_compute_deprojection_bias(fl1,fl2,cl_guess,cl_bias);
+  nmt_compute_deprojection_bias(fl1,fl2,cl_guess,cl_bias,n_iter);
 
   free(cl_bias);
   free(cl_guess);
@@ -628,9 +661,9 @@ nmt_covar_workspace *read_covar_workspace(char *fname)
   return nmt_covar_workspace_read(fname);
 }
 
-nmt_covar_workspace *covar_workspace_init_py(nmt_workspace *wa,nmt_workspace *wb)
+nmt_covar_workspace *covar_workspace_init_py(nmt_workspace *wa,nmt_workspace *wb,int n_iter)
 {
-  return nmt_covar_workspace_init(wa,wb);
+  return nmt_covar_workspace_init(wa,wb,n_iter);
 }
 
 void write_covar_workspace_flat(nmt_covar_workspace_flat *cw,char *fname)
@@ -725,7 +758,7 @@ void decouple_cell_py(nmt_workspace *w,
   asserting(ncl1==w->ncls);
   asserting(nell1==nell2);
   asserting(nell2==nell3);
-  asserting(nell1==w->lmax+1);
+  asserting(nell1>=(w->lmax+1));
   asserting(ndout==w->bin->n_bands*ncl1);
   cl_in=   malloc(ncl1*sizeof(double *));
   cl_noise=malloc(ncl2*sizeof(double *));
@@ -787,7 +820,7 @@ void couple_cell_py(nmt_workspace *w,
   int i;
   double **cl_in,**cl_out;
   asserting(ncl1==w->ncls);
-  asserting(nell1==w->lmax+1);
+  asserting(nell1>=(w->lmax+1));
   asserting(ncl1*nell1==ndout);
   cl_in=malloc(ncl1*sizeof(double *));
   cl_out=malloc(ncl1*sizeof(double *));
@@ -825,12 +858,12 @@ void comp_pspec(nmt_field *fl1,nmt_field *fl2,
 		nmt_binning_scheme *bin,nmt_workspace *w0,
 		int ncl1,int nell1,double *cls1,
 		int ncl2,int nell2,double *cls2,
-		double *dout,int ndout)
+		double *dout,int ndout,int n_iter)
 {
   int i;
   double **cl_noise,**cl_guess,**cl_out;
   nmt_workspace *w;
-  asserting(fl1->nside==fl2->nside);
+  asserting(nmt_diff_curvedsky_info(fl1->cs,fl2->cs));
   asserting(ncl1==fl1->nmaps*fl2->nmaps);
   asserting(nell1==fl1->lmax+1);
   asserting(ndout==bin->n_bands*ncl1);
@@ -845,7 +878,7 @@ void comp_pspec(nmt_field *fl1,nmt_field *fl2,
     cl_out[i]=&(dout[i*bin->n_bands]);
   }
 
-  w=nmt_compute_power_spectra(fl1,fl2,bin,w0,cl_noise,cl_guess,cl_out);
+  w=nmt_compute_power_spectra(fl1,fl2,bin,w0,cl_noise,cl_guess,cl_out,n_iter);
 
   free(cl_out);
   free(cl_guess);

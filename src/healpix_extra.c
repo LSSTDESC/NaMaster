@@ -1,9 +1,13 @@
 #include "utils.h"
 #include <fitsio.h>
 #include <chealpix.h>
+#include <c_utils.h>
+#include <ls_fft.h>
 #include <sharp_almhelpers.h>
 #include <sharp_geomhelpers.h>
 #include <sharp.h>
+
+#define MAX_SHT 32
 
 void he_write_healpix_map(flouble **tmap,int nfields,long nside,char *fname)
 {
@@ -57,7 +61,7 @@ void he_write_healpix_map(flouble **tmap,int nfields,long nside,char *fname)
   free(tunit);
 }
 
-flouble *he_read_healpix_map(char *fname,long *nside,int nfield)
+static flouble *he_read_HPX_map(char *fname,long *nside,int nfield)
 {
   //////
   // Reads a healpix map from file fname. The map will be
@@ -115,7 +119,20 @@ flouble *he_read_healpix_map(char *fname,long *nside,int nfield)
   return map_ring;
 }
 
-void he_get_file_params(char *fname,long *nside,int *nfields,int *isnest)
+flouble *he_read_map(char *fname,nmt_curvedsky_info *sky_info,int nfield) //DONE
+{
+  flouble *mp;
+
+  if(sky_info->is_healpix) {
+    mp=he_read_HPX_map(fname,&(sky_info->n_eq),nfield);
+    sky_info->npix=12*sky_info->n_eq*sky_info->n_eq;
+  }
+  else
+    report_error(NMT_ERROR_NOT_IMPLEMENTED,"No IO functions for non-HEALPix pixelizations\n");
+  return mp;
+}
+
+static void he_get_HPX_file_params(char *fname,long *nside,int *nfields,int *isnest)
 {
   //////
   // Reads a healpix map from file fname. The map will be
@@ -146,6 +163,20 @@ void he_get_file_params(char *fname,long *nside,int *nfields,int *isnest)
   fits_close_file(fptr,&status);
 }
 
+nmt_curvedsky_info *he_get_file_params(char *fname,int is_healpix,int *nfields,int *isnest)
+{
+  nmt_curvedsky_info *cs=my_malloc(sizeof(nmt_curvedsky_info));
+  cs->is_healpix=is_healpix;
+
+  if(cs->is_healpix) {
+    he_get_HPX_file_params(fname,&(cs->n_eq),nfields,isnest);
+    cs->npix=12*cs->n_eq*cs->n_eq;
+  }
+  else
+    report_error(NMT_ERROR_NOT_IMPLEMENTED,"No IO functions for non-HEALPix pixelizations\n");
+
+  return cs;
+}
 
 int he_ring_num(long nside,double z)
 {
@@ -233,7 +264,7 @@ void he_query_strip(long nside,double theta1,double theta2,
     for(ip=ipix1;ip<=ipix2;ip++) {
       pixlist[i_list]=ip;
       i_list++;
-    }    
+    }
   }
 }
 
@@ -251,12 +282,12 @@ void he_ring2nest_inplace(flouble *map_in,long nside)
     for(ip=0;ip<npix;ip++) {
       long inest;
       ring2nest(nside,ip,&inest);
-      
+
       map_out[inest]=map_in[ip];
     } //end omp for
   } //end omp parallel
   memcpy(map_in,map_out,npix*sizeof(flouble));
-  
+
   free(map_out);
 }
 
@@ -294,7 +325,7 @@ void he_udgrade(flouble *map_in,long nside_in,
     long ii;
     long np_ratio=npix_in/npix_out;
     double i_np_ratio=1./((double)np_ratio);
-    
+
     for(ii=0;ii<npix_out;ii++) {
       int jj;
       double tot=0;
@@ -310,7 +341,7 @@ void he_udgrade(flouble *map_in,long nside_in,
 	ring2nest(nside_out,ii,&inest_out);
 	for(jj=0;jj<np_ratio;jj++) {
 	  long iring_in;
-	  
+
 	  nest2ring(nside_in,jj+np_ratio*inest_out,&iring_in);
 	  tot+=map_in[iring_in];
 	}
@@ -321,10 +352,10 @@ void he_udgrade(flouble *map_in,long nside_in,
   else {
     long ii;
     long np_ratio=npix_out/npix_in;
-    
+
     for(ii=0;ii<npix_in;ii++) {
       int jj;
-      
+
       if(nest) {
 	flouble value=map_in[ii];
 
@@ -335,10 +366,10 @@ void he_udgrade(flouble *map_in,long nside_in,
 	long inest_in;
 	flouble value=map_in[ii];
 	ring2nest(nside_in,ii,&inest_in);
-	
+
 	for(jj=0;jj<np_ratio;jj++) {
 	  long iring_out;
-	  
+
 	  nest2ring(nside_out,jj+inest_in*np_ratio,&iring_out);
 	  map_out[iring_out]=value;
 	}
@@ -371,6 +402,7 @@ static int imodulo (int v1, int v2)
 static const double twopi=6.283185307179586476925286766559005768394;
 static const double twothird=2.0/3.0;
 static const double inv_halfpi=0.6366197723675813430755350534900574;
+//TODO: generalize to CAR;
 long he_ang2pix(long nside,double cth,double phi)
 {
   double ctha=fabs(cth);
@@ -561,11 +593,11 @@ void he_query_disc(int nside,double cth0,double phi,flouble radius,
   else
     radius_eff=radius;
   cosang=cos(radius_eff);
-  
+
   //Circle center
   cosphi0=cos(phi0);
   a=1-cth0*cth0;
-  
+
   //Coord z of highest and lowest points in the disc
   rlat0=asin(cth0); //TODO:check
   rlat1=rlat0+radius_eff;
@@ -602,7 +634,7 @@ void he_query_disc(int nside,double cth0,double phi,flouble radius,
       z=(2*nside-iz)*dth2;
     else
       z=-1+dth1*(4*nside-iz)*(4*nside-iz);
-    
+
     //phi range in the disc for each z
     b=cosang-z*cth0;
     c=1-z*z;
@@ -616,7 +648,7 @@ void he_query_disc(int nside,double cth0,double phi,flouble radius,
 	dphi=acos(cosdphi);
       else {
 	if(cosphi0<cosdphi) continue; //Out of the disc
-	dphi=M_PI; 
+	dphi=M_PI;
       }
     }
 
@@ -637,7 +669,6 @@ void he_query_disc(int nside,double cth0,double phi,flouble radius,
   *nlist=ilist;
 }
 
-
 #define MAX_SHT 32
 long he_nalms(int lmax)
 {
@@ -652,7 +683,80 @@ long he_indexlm(int l,int m,int lmax)
     return l;
 }
 
-static void sht_wrapper(int spin,int lmax,int nside,int ntrans,flouble **maps,fcomplex **alms,int alm2map)
+/* Weights from Waldvogel 2006: BIT Numerical Mathematics 46, p. 195 */
+static void sharp_make_cc_geom_info_stripe (int nrings, int ppring, double phi0,
+					    int stride_lon, int stride_lat,
+					    sharp_geom_info **geom_info,
+					    int nsubrings, int i0)
+{
+  const double pi=3.141592653589793238462643383279502884197;
+
+  double *theta=RALLOC(double,nrings);
+  double *weight=RALLOC(double,nrings);
+  int *nph=RALLOC(int,nrings);
+  double *phi0_=RALLOC(double,nrings);
+  ptrdiff_t *ofs=RALLOC(ptrdiff_t,nrings);
+  int *stride_=RALLOC(int,nrings);
+
+  int n=nrings-1;
+  SET_ARRAY(weight,0,nrings,0.);
+  double dw=-1./(n*n-1.+(n&1));
+  weight[0]=2.+dw;
+  for (int k=1; k<=(n/2-1); ++k)
+    weight[2*k-1]=2./(1.-4.*k*k) + dw;
+  weight[2*(n/2)-1]=(n-3.)/(2*(n/2)-1) -1. -dw*((2-(n&1))*n-1);
+  real_plan plan = make_real_plan(n);
+  real_plan_backward_fftpack(plan,weight);
+  kill_real_plan(plan);
+  weight[n]=weight[0];
+
+  for (int m=0; m<(nrings+1)/2; ++m) {
+    theta[m]=pi*m/(nrings-1.);
+    if (theta[m]<1e-15) theta[m]=1e-15;
+    theta[nrings-1-m]=pi-theta[m];
+    nph[m]=nph[nrings-1-m]=ppring;
+    phi0_[m]=phi0_[nrings-1-m]=phi0;
+    ofs[m]=(ptrdiff_t)m*stride_lat;
+    ofs[nrings-1-m]=(ptrdiff_t)((nrings-1-m)*stride_lat);
+    stride_[m]=stride_[nrings-1-m]=stride_lon;
+    weight[m]=weight[nrings-1-m]=weight[m]*2*pi/(n*nph[m]);
+  }
+
+  // remove subrings which are not in the map
+  double *subtheta=RALLOC(double,nsubrings);
+  double *subweight=RALLOC(double,nsubrings);
+  int *subnph=RALLOC(int,nsubrings);
+  double *subphi0_=RALLOC(double,nsubrings);
+  ptrdiff_t *subofs=RALLOC(ptrdiff_t,nsubrings);
+  int *substride_=RALLOC(int,nsubrings);
+  for (int m=0; m<nsubrings; ++m) {
+    subtheta[m]=theta[(m+i0)];
+    subweight[m]=weight[(m+i0)];
+    subnph[m]=ppring;
+    subphi0_[m]=phi0;
+    subofs[m]=(ptrdiff_t)m*stride_lat;
+    substride_[m]=stride_lon;
+  }
+  sharp_make_geom_info (nsubrings, subnph, subofs, substride_,
+			subphi0_, subtheta, subweight, geom_info);
+
+  DEALLOC(theta);
+  DEALLOC(weight);
+  DEALLOC(nph);
+  DEALLOC(phi0_);
+  DEALLOC(ofs);
+  DEALLOC(stride_);
+
+  DEALLOC(subtheta);
+  DEALLOC(subweight);
+  DEALLOC(subnph);
+  DEALLOC(subphi0_);
+  DEALLOC(subofs);
+  DEALLOC(substride_);
+}
+
+static void sht_wrapper(int spin,int lmax,nmt_curvedsky_info *cs,
+			int ntrans,flouble **maps,fcomplex **alms,int alm2map)
 {
   double time=0;
   sharp_alm_info *alm_info;
@@ -664,7 +768,33 @@ static void sht_wrapper(int spin,int lmax,int nside,int ntrans,flouble **maps,fc
 #endif //_SPREC
 
   sharp_make_triangular_alm_info(lmax,lmax,1,&alm_info);
-  sharp_make_weighted_healpix_geom_info(nside,1,NULL,&geom_info);
+  if(cs->is_healpix)
+    sharp_make_weighted_healpix_geom_info(cs->n_eq,1,NULL,&geom_info);
+  else {
+    // first nrings is total
+    /*
+      In CC grid: theta_i = i * pi/(Ng-1), with 0 <= i < Ng
+      Therefore Delta_theta = pi/(Ng-1) -> Ng = pi/Delta_theta + 1
+      If theta0 is the largest colatitude in the map, then theta0 = imax * pi/(Ng-1)
+      If theta1 is the smallest colatitude in the map, then theta1 = imin * pi/(Ng-1)
+      The number of rings stored should be Ny = imax-imin+1 = (theta0-theta1)/Delta_theta + 1
+      so theta1 = theta0 - (Ny-1)*Delta_theta.
+      We currently have theta1' = theta0-Ny*Delta_theta = theta1+Delta_theta
+      The first ring number should be i0 = theta1/Delta_theta = theta1'/Delta-1
+     */
+    int tot_sphere_rings = round(M_PI / cs->Delta_theta) + 1; //Number of rings covering the sphere
+    //TODO: this was the previous code. Reason explained above.
+    //flouble theta1 = cs->theta0 - cs->ny * cs->Delta_theta;
+    //int first_ring = round(theta1 / cs->Delta_theta) + 1;
+    flouble theta1 = cs->theta0 - (cs->ny - 1) * cs->Delta_theta; //Colatitude of the lowest ring
+    int first_ring = round(theta1 / cs->Delta_theta); //Index of the lowest ring
+    sharp_make_cc_geom_info_stripe(tot_sphere_rings,
+				   cs->nx, cs->phi0,
+				   1,cs->nx, //stride_lon ,stride_lat
+				   &geom_info,
+				   cs->ny,first_ring); //nsubrings, start_index of ring
+  }
+
 #ifdef _NEW_SHARP
   sharp_execute(alm2map,spin,0,alm,map,geom_info,alm_info,ntrans,flags,0,&time,NULL);
 #else //_NEW_SHARP
@@ -674,7 +804,7 @@ static void sht_wrapper(int spin,int lmax,int nside,int ntrans,flouble **maps,fc
   sharp_destroy_alm_info(alm_info);
 }
 
-void he_alm2map(int nside,int lmax,int ntrans,int spin,flouble **maps,fcomplex **alms)
+void he_alm2map(nmt_curvedsky_info *cs,int lmax,int ntrans,int spin,flouble **maps,fcomplex **alms)
 {
   int nbatches,nodd,itrans,nmaps=1;
   if(spin)
@@ -683,16 +813,17 @@ void he_alm2map(int nside,int lmax,int ntrans,int spin,flouble **maps,fcomplex *
   nodd=ntrans%MAX_SHT;
 
   for(itrans=0;itrans<nbatches;itrans++) {
-    sht_wrapper(spin,lmax,nside,MAX_SHT,&(maps[itrans*nmaps*MAX_SHT]),
+    sht_wrapper(spin,lmax,cs,MAX_SHT,&(maps[itrans*nmaps*MAX_SHT]),
 		&(alms[itrans*nmaps*MAX_SHT]),SHARP_ALM2MAP);
   }
   if(nodd>0) {
-    sht_wrapper(spin,lmax,nside,nodd,&(maps[nbatches*nmaps*MAX_SHT]),
+    sht_wrapper(spin,lmax,cs,nodd,&(maps[nbatches*nmaps*MAX_SHT]),
 		&(alms[nbatches*nmaps*MAX_SHT]),SHARP_ALM2MAP);
   }
 }
 
-void he_map2alm(int nside,int lmax,int ntrans,int spin,flouble **maps,fcomplex **alms,int niter)
+void he_map2alm(nmt_curvedsky_info *cs,int lmax,int ntrans,int spin,flouble **maps,
+		fcomplex **alms,int niter)
 {
   int nbatches,nodd,itrans,nmaps=1;
   if(spin)
@@ -701,17 +832,17 @@ void he_map2alm(int nside,int lmax,int ntrans,int spin,flouble **maps,fcomplex *
   nodd=ntrans%MAX_SHT;
 
   for(itrans=0;itrans<nbatches;itrans++) {
-    sht_wrapper(spin,lmax,nside,MAX_SHT,&(maps[itrans*nmaps*MAX_SHT]),
+    sht_wrapper(spin,lmax,cs,MAX_SHT,&(maps[itrans*nmaps*MAX_SHT]),
 		&(alms[itrans*nmaps*MAX_SHT]),SHARP_MAP2ALM);
   }
   if(nodd>0) {
-    sht_wrapper(spin,lmax,nside,nodd,&(maps[nbatches*nmaps*MAX_SHT]),
+    sht_wrapper(spin,lmax,cs,nodd,&(maps[nbatches*nmaps*MAX_SHT]),
 		&(alms[nbatches*nmaps*MAX_SHT]),SHARP_MAP2ALM);
   }
 
   if(niter) {
     int ii,iter;
-    int npix=12*nside*nside;
+    int npix=cs->npix;
     int nalm=he_nalms(lmax);
     flouble **maps_2=my_malloc(ntrans*nmaps*sizeof(flouble *));
     fcomplex **alms_2=my_malloc(ntrans*nmaps*sizeof(complex *));
@@ -724,11 +855,11 @@ void he_map2alm(int nside,int lmax,int ntrans,int spin,flouble **maps,fcomplex *
     for(iter=0;iter<niter;iter++) {
       //Get new map
       for(itrans=0;itrans<nbatches;itrans++) {
-	sht_wrapper(spin,lmax,nside,MAX_SHT,&(maps_2[itrans*nmaps*MAX_SHT]),
+	sht_wrapper(spin,lmax,cs,MAX_SHT,&(maps_2[itrans*nmaps*MAX_SHT]),
 		    &(alms[itrans*nmaps*MAX_SHT]),SHARP_ALM2MAP);
       }
       if(nodd>0) {
-	sht_wrapper(spin,lmax,nside,nodd,&(maps_2[nbatches*nmaps*MAX_SHT]),
+	sht_wrapper(spin,lmax,cs,nodd,&(maps_2[nbatches*nmaps*MAX_SHT]),
 		    &(alms[nbatches*nmaps*MAX_SHT]),SHARP_ALM2MAP);
       }
 
@@ -741,11 +872,11 @@ void he_map2alm(int nside,int lmax,int ntrans,int spin,flouble **maps,fcomplex *
 
       //Get alms of difference
       for(itrans=0;itrans<nbatches;itrans++) {
-	sht_wrapper(spin,lmax,nside,MAX_SHT,&(maps_2[itrans*nmaps*MAX_SHT]),
+	sht_wrapper(spin,lmax,cs,MAX_SHT,&(maps_2[itrans*nmaps*MAX_SHT]),
 		    &(alms_2[itrans*nmaps*MAX_SHT]),SHARP_MAP2ALM);
       }
       if(nodd>0) {
-	sht_wrapper(spin,lmax,nside,nodd,&(maps_2[nbatches*nmaps*MAX_SHT]),
+	sht_wrapper(spin,lmax,cs,nodd,&(maps_2[nbatches*nmaps*MAX_SHT]),
 		    &(alms_2[nbatches*nmaps*MAX_SHT]),SHARP_MAP2ALM);
       }
 
@@ -766,9 +897,7 @@ void he_map2alm(int nside,int lmax,int ntrans,int spin,flouble **maps,fcomplex *
   }
 }
 
-void he_alm2cl(fcomplex **alms_1,fcomplex **alms_2,
-	       int pol_1,int pol_2,
-	       flouble **cls,int lmax)
+void he_alm2cl(fcomplex **alms_1,fcomplex **alms_2,int pol_1,int pol_2,flouble **cls,int lmax)
 {
   int i1,index_cl;
   int nmaps_1=1,nmaps_2=1;
@@ -798,12 +927,22 @@ void he_alm2cl(fcomplex **alms_1,fcomplex **alms_2,
   }
 }
 
+int he_get_lmax(nmt_curvedsky_info *cs)
+{
+  if(cs->is_healpix)
+    return 3*cs->n_eq-1;
+  else {
+    double dxmin=NMT_MIN(cs->Delta_phi,cs->Delta_theta);
+    return (int)(M_PI/dxmin);
+  }
+}
+
 void he_anafast(flouble **maps_1,flouble **maps_2,
 		int pol_1,int pol_2,flouble **cls,
-		int nside,int lmax,int iter)
+		nmt_curvedsky_info *cs,int lmax,int iter)
 {
   fcomplex **alms_1,**alms_2;
-  int i1,lmax_here=NMT_MAX(lmax,3*nside-1);
+  int i1,lmax_here=NMT_MAX(lmax,(he_get_lmax(cs)));
   int nmaps_1=1, nmaps_2=1;
   if(pol_1) nmaps_1=2;
   if(pol_2) nmaps_2=2;
@@ -811,7 +950,7 @@ void he_anafast(flouble **maps_1,flouble **maps_2,
   alms_1=my_malloc(nmaps_1*sizeof(fcomplex *));
   for(i1=0;i1<nmaps_1;i1++)
     alms_1[i1]=my_malloc(he_nalms(lmax_here)*sizeof(fcomplex));
-  he_map2alm(nside,lmax,1,2*pol_1,maps_1,alms_1,iter);
+  he_map2alm(cs,lmax,1,2*pol_1,maps_1,alms_1,iter);
 
   if(maps_1==maps_2)
     alms_2=alms_1;
@@ -819,7 +958,7 @@ void he_anafast(flouble **maps_1,flouble **maps_2,
     alms_2=my_malloc(nmaps_2*sizeof(fcomplex *));
     for(i1=0;i1<nmaps_2;i1++)
       alms_2[i1]=my_malloc(he_nalms(lmax_here)*sizeof(fcomplex));
-    he_map2alm(nside,lmax,1,2*pol_2,maps_2,alms_2,iter);
+    he_map2alm(cs,lmax,1,2*pol_2,maps_2,alms_2,iter);
   }
 
   he_alm2cl(alms_1,alms_2,pol_1,pol_2,cls,lmax);
@@ -836,7 +975,7 @@ void he_anafast(flouble **maps_1,flouble **maps_2,
 
 //Transforms FWHM in arcmin to sigma_G in rad:
 //         pi/(60*180*sqrt(8*log(2))
-#define FWHM2SIGMA 0.00012352884853326381 
+#define FWHM2SIGMA 0.00012352884853326381
 flouble *he_generate_beam_window(int lmax,double fwhm_amin)
 {
   long l;
@@ -845,7 +984,7 @@ flouble *he_generate_beam_window(int lmax,double fwhm_amin)
 
   for(l=0;l<=lmax;l++)
     beam[l]=exp(-0.5*l*(l+1)*sigma*sigma);
-  
+
   return beam;
 }
 
@@ -886,13 +1025,24 @@ void he_alter_alm(int lmax,double fwhm_amin,fcomplex *alm_in,fcomplex *alm_out,
     free(beam);
 }
 
-void he_map_product(int nside,flouble *mp1,flouble *mp2,flouble *mp_out)
+flouble he_get_pix_area(nmt_curvedsky_info *cs,long iy)
+{
+  if(cs->is_healpix) {
+    return M_PI/(3*cs->n_eq*cs->n_eq);
+  }
+  else {
+    flouble theta1 = (iy+1-cs->ny) * cs->Delta_theta + cs->theta0;
+    return sin(theta1) * cs->Delta_phi * cs->Delta_theta;
+  }
+}
+
+void he_map_product(nmt_curvedsky_info *cs,flouble *mp1,flouble *mp2,flouble *mp_out)
 {
 #pragma omp parallel default(none)		\
-  shared(nside,mp1,mp2,mp_out)
+  shared(cs,mp1,mp2,mp_out)
   {
     long ip;
-    long npix=12*nside*nside;
+    long npix=cs->npix;
 
 #pragma omp for
     for(ip=0;ip<npix;ip++) {
@@ -901,37 +1051,64 @@ void he_map_product(int nside,flouble *mp1,flouble *mp2,flouble *mp_out)
   } //end omp parallel
 }
 
-flouble he_map_dot(int nside,flouble *mp1,flouble *mp2)
+flouble he_map_dot(nmt_curvedsky_info *cs,flouble *mp1,flouble *mp2)
 {
   double sum=0;
-  long npix=12*nside*nside;
-  double pixsize=4*M_PI/npix;
 
+  if(cs->is_healpix) {
 #pragma omp parallel default(none)		\
-  shared(nside,mp1,mp2,sum,npix)
-  {
-    long ip;
-    double sum_thr=0;
-    
+  shared(cs,mp1,mp2,sum)
+    {
+      long ip;
+      double sum_thr=0;
+      double pixsize=he_get_pix_area(cs,0);
+
 #pragma omp for
-    for(ip=0;ip<npix;ip++) {
-      sum_thr+=mp1[ip]*mp2[ip];
-    } //end omp for
+      for(ip=0;ip<cs->npix;ip++) {
+	sum_thr+=mp1[ip]*mp2[ip];
+      } //end omp for
 
 #pragma omp critical
+      {
+	sum+=sum_thr*pixsize;
+      } //end omp critical
+    } //end omp parallel
+  }
+  else {
+#pragma omp parallel default(none)		\
+  shared(cs,mp1,mp2,sum)
     {
-      sum+=sum_thr;
-    } //end omp critical
-  } //end omp parallel
+      long ii;
+      double sum_thr=0;
 
-  return (flouble)(sum*pixsize);
+#pragma omp for
+      for(ii=0;ii<cs->ny;ii++) {
+	long jj;
+	double sum_this=0;
+	long ip=cs->nx*ii;
+	double  pixsize=he_get_pix_area(cs,ii);
+	for(jj=0;jj<cs->nx;jj++) {
+	  sum_this+=mp1[ip]*mp2[ip];
+	  ip++;
+	}
+	sum_thr+=sum_this*pixsize;
+      } //end omp for
+
+#pragma omp critical
+      {
+	sum+=sum_thr;
+      } //end omp critical
+    } //end omp parallel
+  }
+
+  return (flouble)(sum);
 }
 
-fcomplex **he_synalm(int nside,int nmaps,int lmax,flouble **cells,flouble **beam,int seed)
+fcomplex **he_synalm(nmt_curvedsky_info *cs,int nmaps,int lmax,flouble **cells,flouble **beam,int seed)
 {
   int imap;
   fcomplex **alms;
-  int lmax_here=3*nside-1;
+  int lmax_here=he_get_lmax(cs);
   alms=my_malloc(nmaps*sizeof(fcomplex *));
   for(imap=0;imap<nmaps;imap++)
     alms[imap]=my_malloc(he_nalms(lmax_here)*sizeof(fcomplex));
@@ -943,7 +1120,7 @@ fcomplex **he_synalm(int nside,int nmaps,int lmax,flouble **cells,flouble **beam
   int numthr=0;
 
 #pragma omp parallel default(none)					\
-  shared(nside,nmaps,lmax,cells,beam,seed,alms,lmax_here,numthr)
+  shared(cs,nmaps,lmax,cells,beam,seed,alms,lmax_here,numthr)
   {
     //This is to avoid using the omp.h library
     int ithr;
@@ -959,9 +1136,9 @@ fcomplex **he_synalm(int nside,int nmaps,int lmax,flouble **cells,flouble **beam
     gsl_vector *iv1  =gsl_vector_alloc(nmaps);
     gsl_vector *rv2  =gsl_vector_alloc(nmaps);
     gsl_vector *iv2  =gsl_vector_alloc(nmaps);
-    gsl_matrix *clmat=gsl_matrix_alloc(nmaps,nmaps); 
+    gsl_matrix *clmat=gsl_matrix_alloc(nmaps,nmaps);
     gsl_vector *eval =gsl_vector_alloc(nmaps);
-    gsl_matrix *evec =gsl_matrix_alloc(nmaps,nmaps); 
+    gsl_matrix *evec =gsl_matrix_alloc(nmaps,nmaps);
     gsl_eigen_symmv_workspace *wsym=gsl_eigen_symmv_alloc(nmaps);
     //int ithr=omp_get_thread_num();
     unsigned int seed_thr=(unsigned int)(seed+ithr);
