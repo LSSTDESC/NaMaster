@@ -6,10 +6,10 @@ NaMaster is a C library, Python module and standalone program to compute full-sk
 ## Installation
 NaMaster has the following dependencies, which should be present in your system before you can install the code:
 * [GSL](https://www.gnu.org/software/gsl/). Version 2 required.
-* [FFTW](http://www.fftw.org/). Version 3 required. Install with `--enable-openmp`.
+* [FFTW](http://www.fftw.org/). Version 3 required. Install with `--enable-openmp` and potentially also `--enable-shared`.
 * [libsharp](https://github.com/Libsharp/libsharp) (see instructions in [NERSC_installation.md](NERSC_installation.md) for more details on how to install libsharp).
 * [cfitsio](https://heasarc.gsfc.nasa.gov/fitsio/). Any version >3 should work.
-* [HEALPix](https://sourceforge.net/projects/healpix/). Any version >2 should work. You only need to install the C libraries.
+* [HEALPix](https://sourceforge.net/projects/healpix/). Any version >2 should work. You only need to install the C libraries (including the shared ones).
 
 ### 1- C library
 First, install the C library `libnmt`. In UNIX, in the simplest case, this should be a matter of running
@@ -43,6 +43,10 @@ Installing the python module `pymaster` should be as simple as running
 ```
 python setup.py install [--user]
 ```
+or, even better, if you can use `pip`:
+```
+pip install . [--user]
+```
 where the optional `--user` flag can be used if you don't have admin privileges.
 
 You can check that the python installation works by running the unit tests:
@@ -50,6 +54,12 @@ You can check that the python installation works by running the unit tests:
 python -m unittest discover -v
 ```
 Note that the `test` directory, containing all unit tests, also contains all the sample python scripts described in the documentation (see below).
+
+If you installed `pymaster` via `pip`, you can uninstall everything by running
+```
+pip uninstall pymaster
+```
+
 
 
 ## Documentation 

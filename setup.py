@@ -1,8 +1,6 @@
 #!/usr/bin/env python
-
-from distutils.core import *
-from distutils import sysconfig
-import os.path
+import sys
+from setuptools import setup, Extension
 
 # Get numpy include directory (works across versions)
 import numpy
@@ -11,27 +9,45 @@ try:
 except AttributeError:
     numpy_include = numpy.get_numpy_include()
 
+if '--enable-fftw-pthreads' in sys.argv:
+    sys.argv.pop(sys.argv.index('--enable-fftw-pthreads'))
+    FFTW_LIBS = ['fftw3', 'fftw3_threads', 'pthread']
+else:
+    FFTW_LIBS = ['fftw3', 'fftw3_omp']
 
-use_icc=False #Set to True if you compiled libsharp with icc
-if use_icc :
-    libs=['nmt','fftw3','fftw3_omp','sharp','fftpack','c_utils','chealpix','cfitsio','gsl','gslcblas','m','gomp','iomp5']
-    extra=['-openmp',]
-else :
-    libs=['nmt','fftw3','fftw3_omp','sharp','fftpack','c_utils','chealpix','cfitsio','gsl','gslcblas','m','gomp']
-    extra=['-O4', '-fopenmp',]
+if '--disable-openmp' in sys.argv:
+    sys.argv.pop(sys.argv.index('--disable-openmp'))
+    USE_OPENMP = False
+else:
+    USE_OPENMP = True
 
+libs = [
+    'nmt', 'sharp', 'fftpack', 'c_utils', 'chealpix', 'cfitsio', 'gsl',
+    'gslcblas', 'm'] + FFTW_LIBS
+
+use_icc = False  # Set to True if you compiled libsharp with icc
+if use_icc:
+    extra = []
+    if USE_OPENMP:
+        libs += ['gomp', 'iomp5']
+        extra += ['-openmp']
+else:
+    extra = ['-O4']
+    if USE_OPENMP:
+        libs += ['gomp']
+        extra += ['-fopenmp']
 
 _nmtlib = Extension("_nmtlib",
                     ["pymaster/namaster_wrap.c"],
-                    libraries = libs,
-                    include_dirs = [numpy_include, "../src/"],
+                    libraries=libs,
+                    include_dirs=[numpy_include, "../src/"],
                     extra_compile_args=extra,
                     )
 
-setup(name = "pymaster",
-      description = "Library for pseudo-Cl computation",
-      author = "David Alonso",
-      version = "0.1",
-      packages = ['pymaster'],
-      ext_modules = [_nmtlib],
+setup(name="pymaster",
+      description="Library for pseudo-Cl computation",
+      author="David Alonso",
+      version="0.9",
+      packages=['pymaster'],
+      ext_modules=[_nmtlib],
       )

@@ -428,16 +428,90 @@ synfast_flat = _nmtlib.synfast_flat
 def purify_flat(fl, mask, walm0, maps_in, maps_out, alms):
     return _nmtlib.purify_flat(fl, mask, walm0, maps_in, maps_out, alms)
 purify_flat = _nmtlib.purify_flat
+class curvedsky_info(_object):
+    __swig_setmethods__ = {}
+    __setattr__ = lambda self, name, value: _swig_setattr(self, curvedsky_info, name, value)
+    __swig_getmethods__ = {}
+    __getattr__ = lambda self, name: _swig_getattr(self, curvedsky_info, name)
+    __repr__ = _swig_repr
+    __swig_setmethods__["is_healpix"] = _nmtlib.curvedsky_info_is_healpix_set
+    __swig_getmethods__["is_healpix"] = _nmtlib.curvedsky_info_is_healpix_get
+    if _newclass:
+        is_healpix = _swig_property(_nmtlib.curvedsky_info_is_healpix_get, _nmtlib.curvedsky_info_is_healpix_set)
+    __swig_setmethods__["n_eq"] = _nmtlib.curvedsky_info_n_eq_set
+    __swig_getmethods__["n_eq"] = _nmtlib.curvedsky_info_n_eq_get
+    if _newclass:
+        n_eq = _swig_property(_nmtlib.curvedsky_info_n_eq_get, _nmtlib.curvedsky_info_n_eq_set)
+    __swig_setmethods__["nx_short"] = _nmtlib.curvedsky_info_nx_short_set
+    __swig_getmethods__["nx_short"] = _nmtlib.curvedsky_info_nx_short_get
+    if _newclass:
+        nx_short = _swig_property(_nmtlib.curvedsky_info_nx_short_get, _nmtlib.curvedsky_info_nx_short_set)
+    __swig_setmethods__["nx"] = _nmtlib.curvedsky_info_nx_set
+    __swig_getmethods__["nx"] = _nmtlib.curvedsky_info_nx_get
+    if _newclass:
+        nx = _swig_property(_nmtlib.curvedsky_info_nx_get, _nmtlib.curvedsky_info_nx_set)
+    __swig_setmethods__["ny"] = _nmtlib.curvedsky_info_ny_set
+    __swig_getmethods__["ny"] = _nmtlib.curvedsky_info_ny_get
+    if _newclass:
+        ny = _swig_property(_nmtlib.curvedsky_info_ny_get, _nmtlib.curvedsky_info_ny_set)
+    __swig_setmethods__["npix"] = _nmtlib.curvedsky_info_npix_set
+    __swig_getmethods__["npix"] = _nmtlib.curvedsky_info_npix_get
+    if _newclass:
+        npix = _swig_property(_nmtlib.curvedsky_info_npix_get, _nmtlib.curvedsky_info_npix_set)
+    __swig_setmethods__["Delta_theta"] = _nmtlib.curvedsky_info_Delta_theta_set
+    __swig_getmethods__["Delta_theta"] = _nmtlib.curvedsky_info_Delta_theta_get
+    if _newclass:
+        Delta_theta = _swig_property(_nmtlib.curvedsky_info_Delta_theta_get, _nmtlib.curvedsky_info_Delta_theta_set)
+    __swig_setmethods__["Delta_phi"] = _nmtlib.curvedsky_info_Delta_phi_set
+    __swig_getmethods__["Delta_phi"] = _nmtlib.curvedsky_info_Delta_phi_get
+    if _newclass:
+        Delta_phi = _swig_property(_nmtlib.curvedsky_info_Delta_phi_get, _nmtlib.curvedsky_info_Delta_phi_set)
+    __swig_setmethods__["phi0"] = _nmtlib.curvedsky_info_phi0_set
+    __swig_getmethods__["phi0"] = _nmtlib.curvedsky_info_phi0_get
+    if _newclass:
+        phi0 = _swig_property(_nmtlib.curvedsky_info_phi0_get, _nmtlib.curvedsky_info_phi0_set)
+    __swig_setmethods__["theta0"] = _nmtlib.curvedsky_info_theta0_set
+    __swig_getmethods__["theta0"] = _nmtlib.curvedsky_info_theta0_get
+    if _newclass:
+        theta0 = _swig_property(_nmtlib.curvedsky_info_theta0_get, _nmtlib.curvedsky_info_theta0_set)
+
+    def __init__(self):
+        this = _nmtlib.new_curvedsky_info()
+        try:
+            self.this.append(this)
+        except Exception:
+            self.this = this
+    __swig_destroy__ = _nmtlib.delete_curvedsky_info
+    __del__ = lambda self: None
+curvedsky_info_swigregister = _nmtlib.curvedsky_info_swigregister
+curvedsky_info_swigregister(curvedsky_info)
+
+
+def curvedsky_info_copy(cs_in):
+    return _nmtlib.curvedsky_info_copy(cs_in)
+curvedsky_info_copy = _nmtlib.curvedsky_info_copy
+
+def curvedsky_info_alloc(is_healpix, nside, nx0, ny0, Dtheta, Dphi, phi0, theta0):
+    return _nmtlib.curvedsky_info_alloc(is_healpix, nside, nx0, ny0, Dtheta, Dphi, phi0, theta0)
+curvedsky_info_alloc = _nmtlib.curvedsky_info_alloc
+
+def diff_curvedsky_info(c1, c2):
+    return _nmtlib.diff_curvedsky_info(c1, c2)
+diff_curvedsky_info = _nmtlib.diff_curvedsky_info
+
+def extend_CAR_map(cs, map_in):
+    return _nmtlib.extend_CAR_map(cs, map_in)
+extend_CAR_map = _nmtlib.extend_CAR_map
 class field(_object):
     __swig_setmethods__ = {}
     __setattr__ = lambda self, name, value: _swig_setattr(self, field, name, value)
     __swig_getmethods__ = {}
     __getattr__ = lambda self, name: _swig_getattr(self, field, name)
     __repr__ = _swig_repr
-    __swig_setmethods__["nside"] = _nmtlib.field_nside_set
-    __swig_getmethods__["nside"] = _nmtlib.field_nside_get
+    __swig_setmethods__["cs"] = _nmtlib.field_cs_set
+    __swig_getmethods__["cs"] = _nmtlib.field_cs_get
     if _newclass:
-        nside = _swig_property(_nmtlib.field_nside_get, _nmtlib.field_nside_set)
+        cs = _swig_property(_nmtlib.field_cs_get, _nmtlib.field_cs_set)
     __swig_setmethods__["npix"] = _nmtlib.field_npix_set
     __swig_getmethods__["npix"] = _nmtlib.field_npix_get
     if _newclass:
@@ -515,20 +589,20 @@ def field_free(fl):
     return _nmtlib.field_free(fl)
 field_free = _nmtlib.field_free
 
-def field_alloc_sph(nside, mask, pol, maps, ntemp, temp, beam, pure_e, pure_b, n_iter_mask_purify, tol_pinv):
-    return _nmtlib.field_alloc_sph(nside, mask, pol, maps, ntemp, temp, beam, pure_e, pure_b, n_iter_mask_purify, tol_pinv)
+def field_alloc_sph(cs, mask, pol, maps, ntemp, temp, beam, pure_e, pure_b, n_iter_mask_purify, tol_pinv, niter):
+    return _nmtlib.field_alloc_sph(cs, mask, pol, maps, ntemp, temp, beam, pure_e, pure_b, n_iter_mask_purify, tol_pinv, niter)
 field_alloc_sph = _nmtlib.field_alloc_sph
 
-def field_read(fname_mask, fname_maps, fname_temp, fname_beam, pol, pure_e, pure_b, n_iter_mask_purify, tol_pinv):
-    return _nmtlib.field_read(fname_mask, fname_maps, fname_temp, fname_beam, pol, pure_e, pure_b, n_iter_mask_purify, tol_pinv)
+def field_read(is_healpix, fname_mask, fname_maps, fname_temp, fname_beam, pol, pure_e, pure_b, n_iter_mask_purify, tol_pinv, niter):
+    return _nmtlib.field_read(is_healpix, fname_mask, fname_maps, fname_temp, fname_beam, pol, pure_e, pure_b, n_iter_mask_purify, tol_pinv, niter)
 field_read = _nmtlib.field_read
 
-def synfast_sph(nside, nfields, spin_arr, lmax, cells, beam_fields, seed):
-    return _nmtlib.synfast_sph(nside, nfields, spin_arr, lmax, cells, beam_fields, seed)
+def synfast_sph(cs, nfields, spin_arr, lmax, cells, beam_fields, seed):
+    return _nmtlib.synfast_sph(cs, nfields, spin_arr, lmax, cells, beam_fields, seed)
 synfast_sph = _nmtlib.synfast_sph
 
-def purify(fl, mask, walm0, maps_in, maps_out, alms):
-    return _nmtlib.purify(fl, mask, walm0, maps_in, maps_out, alms)
+def purify(fl, mask, walm0, maps_in, maps_out, alms, niter):
+    return _nmtlib.purify(fl, mask, walm0, maps_in, maps_out, alms, niter)
 purify = _nmtlib.purify
 
 def apodize_mask(nside, mask_in, mask_out, aposize, apotype):
@@ -686,10 +760,10 @@ class workspace(_object):
     __swig_getmethods__["ncls"] = _nmtlib.workspace_ncls_get
     if _newclass:
         ncls = _swig_property(_nmtlib.workspace_ncls_get, _nmtlib.workspace_ncls_set)
-    __swig_setmethods__["nside"] = _nmtlib.workspace_nside_set
-    __swig_getmethods__["nside"] = _nmtlib.workspace_nside_get
+    __swig_setmethods__["cs"] = _nmtlib.workspace_cs_set
+    __swig_getmethods__["cs"] = _nmtlib.workspace_cs_get
     if _newclass:
-        nside = _swig_property(_nmtlib.workspace_nside_get, _nmtlib.workspace_nside_set)
+        cs = _swig_property(_nmtlib.workspace_cs_get, _nmtlib.workspace_cs_set)
     __swig_setmethods__["mask1"] = _nmtlib.workspace_mask1_set
     __swig_getmethods__["mask1"] = _nmtlib.workspace_mask1_get
     if _newclass:
@@ -731,8 +805,8 @@ workspace_swigregister = _nmtlib.workspace_swigregister
 workspace_swigregister(workspace)
 
 
-def compute_coupling_matrix(fl1, fl2, bin, is_teb):
-    return _nmtlib.compute_coupling_matrix(fl1, fl2, bin, is_teb)
+def compute_coupling_matrix(fl1, fl2, bin, is_teb, niter):
+    return _nmtlib.compute_coupling_matrix(fl1, fl2, bin, is_teb, niter)
 compute_coupling_matrix = _nmtlib.compute_coupling_matrix
 
 def update_coupling_matrix(w, n_rows, new_matrix):
@@ -751,12 +825,12 @@ def workspace_free(w):
     return _nmtlib.workspace_free(w)
 workspace_free = _nmtlib.workspace_free
 
-def compute_deprojection_bias(fl1, fl2, cl_proposal, cl_bias):
-    return _nmtlib.compute_deprojection_bias(fl1, fl2, cl_proposal, cl_bias)
+def compute_deprojection_bias(fl1, fl2, cl_proposal, cl_bias, niter):
+    return _nmtlib.compute_deprojection_bias(fl1, fl2, cl_proposal, cl_bias, niter)
 compute_deprojection_bias = _nmtlib.compute_deprojection_bias
 
-def compute_uncorr_noise_deprojection_bias(fl1, map_var, cl_bias):
-    return _nmtlib.compute_uncorr_noise_deprojection_bias(fl1, map_var, cl_bias)
+def compute_uncorr_noise_deprojection_bias(fl1, map_var, cl_bias, niter):
+    return _nmtlib.compute_uncorr_noise_deprojection_bias(fl1, map_var, cl_bias, niter)
 compute_uncorr_noise_deprojection_bias = _nmtlib.compute_uncorr_noise_deprojection_bias
 
 def couple_cl_l(w, cl_in, cl_out):
@@ -771,8 +845,8 @@ def compute_coupled_cell(fl1, fl2, cl_out):
     return _nmtlib.compute_coupled_cell(fl1, fl2, cl_out)
 compute_coupled_cell = _nmtlib.compute_coupled_cell
 
-def compute_power_spectra(fl1, fl2, bin, w0, cl_noise, cl_proposal, cl_out):
-    return _nmtlib.compute_power_spectra(fl1, fl2, bin, w0, cl_noise, cl_proposal, cl_out)
+def compute_power_spectra(fl1, fl2, bin, w0, cl_noise, cl_proposal, cl_out, niter):
+    return _nmtlib.compute_power_spectra(fl1, fl2, bin, w0, cl_noise, cl_proposal, cl_out, niter)
 compute_power_spectra = _nmtlib.compute_power_spectra
 class covar_workspace_flat(_object):
     __swig_setmethods__ = {}
@@ -878,10 +952,10 @@ class covar_workspace(_object):
     __swig_getmethods__["bin_b"] = _nmtlib.covar_workspace_bin_b_get
     if _newclass:
         bin_b = _swig_property(_nmtlib.covar_workspace_bin_b_get, _nmtlib.covar_workspace_bin_b_set)
-    __swig_setmethods__["nside"] = _nmtlib.covar_workspace_nside_set
-    __swig_getmethods__["nside"] = _nmtlib.covar_workspace_nside_get
+    __swig_setmethods__["cs"] = _nmtlib.covar_workspace_cs_set
+    __swig_getmethods__["cs"] = _nmtlib.covar_workspace_cs_get
     if _newclass:
-        nside = _swig_property(_nmtlib.covar_workspace_nside_get, _nmtlib.covar_workspace_nside_set)
+        cs = _swig_property(_nmtlib.covar_workspace_cs_get, _nmtlib.covar_workspace_cs_set)
     __swig_setmethods__["xi_1122"] = _nmtlib.covar_workspace_xi_1122_set
     __swig_getmethods__["xi_1122"] = _nmtlib.covar_workspace_xi_1122_get
     if _newclass:
@@ -923,8 +997,8 @@ def covar_workspace_free(cw):
     return _nmtlib.covar_workspace_free(cw)
 covar_workspace_free = _nmtlib.covar_workspace_free
 
-def covar_workspace_init(wa, wb):
-    return _nmtlib.covar_workspace_init(wa, wb)
+def covar_workspace_init(wa, wb, niter):
+    return _nmtlib.covar_workspace_init(wa, wb, niter)
 covar_workspace_init = _nmtlib.covar_workspace_init
 
 def compute_gaussian_covariance(cw, cla1b1, cla1b2, cla2b1, cla2b2, covar_out):
@@ -954,6 +1028,10 @@ get_ell_list = _nmtlib.get_ell_list
 def get_weight_list(bins, ibin, dout):
     return _nmtlib.get_weight_list(bins, ibin, dout)
 get_weight_list = _nmtlib.get_weight_list
+
+def get_lmax_py(is_healpix, nside, nx, ny, delta_phi, delta_theta, phi0, theta0):
+    return _nmtlib.get_lmax_py(is_healpix, nside, nx, ny, delta_phi, delta_theta, phi0, theta0)
+get_lmax_py = _nmtlib.get_lmax_py
 
 def get_ell_eff(bins, dout):
     return _nmtlib.get_ell_eff(bins, dout)
@@ -995,12 +1073,12 @@ def unbin_cl_flat(bins, ncl1, nell3, dout):
     return _nmtlib.unbin_cl_flat(bins, ncl1, nell3, dout)
 unbin_cl_flat = _nmtlib.unbin_cl_flat
 
-def field_alloc_new(npix_1, nmap_2, ntmp_3, nell3, pure_e, pure_b, n_iter_mask_purify, tol_pinv):
-    return _nmtlib.field_alloc_new(npix_1, nmap_2, ntmp_3, nell3, pure_e, pure_b, n_iter_mask_purify, tol_pinv)
+def field_alloc_new(is_healpix, nside, nx, ny, delta_phi, delta_theta, phi0, theta0, npix_1, nmap_2, ntmp_3, nell3, pure_e, pure_b, n_iter_mask_purify, tol_pinv, n_iter):
+    return _nmtlib.field_alloc_new(is_healpix, nside, nx, ny, delta_phi, delta_theta, phi0, theta0, npix_1, nmap_2, ntmp_3, nell3, pure_e, pure_b, n_iter_mask_purify, tol_pinv, n_iter)
 field_alloc_new = _nmtlib.field_alloc_new
 
-def field_alloc_new_notemp(npix_1, nmap_2, nell3, pure_e, pure_b, n_iter_mask_purify):
-    return _nmtlib.field_alloc_new_notemp(npix_1, nmap_2, nell3, pure_e, pure_b, n_iter_mask_purify)
+def field_alloc_new_notemp(is_healpix, nside, nx, ny, delta_phi, delta_theta, phi0, theta0, npix_1, nmap_2, nell3, pure_e, pure_b, n_iter_mask_purify, n_iter):
+    return _nmtlib.field_alloc_new_notemp(is_healpix, nside, nx, ny, delta_phi, delta_theta, phi0, theta0, npix_1, nmap_2, nell3, pure_e, pure_b, n_iter_mask_purify, n_iter)
 field_alloc_new_notemp = _nmtlib.field_alloc_new_notemp
 
 def field_alloc_new_flat(nx, ny, lx, ly, npix_1, nmap_2, ntmp_3, ncl1, pure_e, pure_b, tol_pinv):
@@ -1035,16 +1113,16 @@ def apomask_flat(nx, ny, lx, ly, npix_1, dout, aposize, apotype):
     return _nmtlib.apomask_flat(nx, ny, lx, ly, npix_1, dout, aposize, apotype)
 apomask_flat = _nmtlib.apomask_flat
 
-def synfast_new(nside, nfields, seed, ncl1, ncl2, ldout):
-    return _nmtlib.synfast_new(nside, nfields, seed, ncl1, ncl2, ldout)
+def synfast_new(is_healpix, nside, nx, ny, delta_phi, delta_theta, phi0, theta0, nfields, seed, ncl1, ncl2, ldout):
+    return _nmtlib.synfast_new(is_healpix, nside, nx, ny, delta_phi, delta_theta, phi0, theta0, nfields, seed, ncl1, ncl2, ldout)
 synfast_new = _nmtlib.synfast_new
 
 def synfast_new_flat(nx, ny, lx, ly, nfields, seed, ncl1, ncl2, dout):
     return _nmtlib.synfast_new_flat(nx, ny, lx, ly, nfields, seed, ncl1, ncl2, dout)
 synfast_new_flat = _nmtlib.synfast_new_flat
 
-def comp_coupling_matrix(fl1, fl2, bin, is_teb):
-    return _nmtlib.comp_coupling_matrix(fl1, fl2, bin, is_teb)
+def comp_coupling_matrix(fl1, fl2, bin, is_teb, n_iter):
+    return _nmtlib.comp_coupling_matrix(fl1, fl2, bin, is_teb, n_iter)
 comp_coupling_matrix = _nmtlib.comp_coupling_matrix
 
 def comp_coupling_matrix_flat(fl1, fl2, bin, lmn_x, lmx_x, lmn_y, lmx_y, is_teb):
@@ -1067,12 +1145,12 @@ def write_workspace_flat(w, fname):
     return _nmtlib.write_workspace_flat(w, fname)
 write_workspace_flat = _nmtlib.write_workspace_flat
 
-def comp_uncorr_noise_deproj_bias(fl1, npix_1, dout):
-    return _nmtlib.comp_uncorr_noise_deproj_bias(fl1, npix_1, dout)
+def comp_uncorr_noise_deproj_bias(fl1, npix_1, dout, n_iter):
+    return _nmtlib.comp_uncorr_noise_deproj_bias(fl1, npix_1, dout, n_iter)
 comp_uncorr_noise_deproj_bias = _nmtlib.comp_uncorr_noise_deproj_bias
 
-def comp_deproj_bias(fl1, fl2, ncl1, dout):
-    return _nmtlib.comp_deproj_bias(fl1, fl2, ncl1, dout)
+def comp_deproj_bias(fl1, fl2, ncl1, dout, n_iter):
+    return _nmtlib.comp_deproj_bias(fl1, fl2, ncl1, dout, n_iter)
 comp_deproj_bias = _nmtlib.comp_deproj_bias
 
 def comp_deproj_bias_flat(fl1, fl2, bin, lmn_x, lmx_x, lmn_y, lmx_y, nell3, ncl1, dout):
@@ -1087,8 +1165,8 @@ def read_covar_workspace(fname):
     return _nmtlib.read_covar_workspace(fname)
 read_covar_workspace = _nmtlib.read_covar_workspace
 
-def covar_workspace_init_py(wa, wb):
-    return _nmtlib.covar_workspace_init_py(wa, wb)
+def covar_workspace_init_py(wa, wb, n_iter):
+    return _nmtlib.covar_workspace_init_py(wa, wb, n_iter)
 covar_workspace_init_py = _nmtlib.covar_workspace_init_py
 
 def write_covar_workspace_flat(cw, fname):
@@ -1135,8 +1213,8 @@ def couple_cell_py_flat(w, nell3, ncl1, dout):
     return _nmtlib.couple_cell_py_flat(w, nell3, ncl1, dout)
 couple_cell_py_flat = _nmtlib.couple_cell_py_flat
 
-def comp_pspec(fl1, fl2, bin, w0, ncl1, ncl2, dout):
-    return _nmtlib.comp_pspec(fl1, fl2, bin, w0, ncl1, ncl2, dout)
+def comp_pspec(fl1, fl2, bin, w0, ncl1, ncl2, dout, n_iter):
+    return _nmtlib.comp_pspec(fl1, fl2, bin, w0, ncl1, ncl2, dout, n_iter)
 comp_pspec = _nmtlib.comp_pspec
 
 def comp_pspec_flat(fl1, fl2, bin, w0, ncl1, nell3, ncl2, dout, lmn_x, lmx_x, lmn_y, lmx_y):

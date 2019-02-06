@@ -123,7 +123,7 @@ class TestUtilsSynfastFsk(unittest.TestCase) :
         self.assertTrue(get_diff(ceb2,self.cleb,self.clbb,self.clee,self.cleb,nk).all())
         #Check TB
         self.assertTrue(get_diff(ctb2,self.cltb,self.cltt,self.clbb,self.cltb,nk).all())
-        
+
 class TestUtilsSynfastSph(unittest.TestCase) :
     def setUp(self) :
         self.nside=128

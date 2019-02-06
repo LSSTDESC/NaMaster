@@ -173,7 +173,8 @@ am_test_check_nmt_OBJECTS = test/test_check_nmt-nmt_test.$(OBJEXT) \
 	test/test_check_nmt-nmt_test_field_flat.$(OBJEXT) \
 	test/test_check_nmt-nmt_test_master_flat.$(OBJEXT) \
 	test/test_check_nmt-nmt_test_covar_flat.$(OBJEXT) \
-	test/test_check_nmt-nmt_test_mask.$(OBJEXT)
+	test/test_check_nmt-nmt_test_mask.$(OBJEXT) \
+	test/test_check_nmt-nmt_test_field_car.$(OBJEXT)
 test_check_nmt_OBJECTS = $(am_test_check_nmt_OBJECTS)
 test_check_nmt_LDADD = $(LDADD)
 test_check_nmt_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
@@ -377,6 +378,7 @@ datarootdir = @datarootdir@
 docdir = @docdir@
 dvidir = @dvidir@
 exec_prefix = @exec_prefix@
+fftw_thread_type = @fftw_thread_type@
 host = @host@
 host_alias = @host_alias@
 host_cpu = @host_cpu@
@@ -410,14 +412,14 @@ EXTRA_DIST = doc README.md
 lib_LTLIBRARIES = libnmt.la
 libnmt_la_SOURCES = src/utils.c src/flatsky_utils.c src/healpix_extra.c src/nmt_bins.c src/nmt_bins_flat.c src/nmt_field.c src/nmt_field_flat.c src/nmt_mask.c src/nmt_mask_flat.c src/nmt_master.c src/nmt_covar.c src/nmt_master_flat.c src/nmt_covar_flat.c
 libnmt_la_CPPFLAGS = $(OPENMP_CFLAGS) -I./src/
-libnmt_la_LDFLAGS = $(OPENP_CFLAGS) -lfftw3 -lfftw3_omp -lgsl -lgslcblas -lcfitsio -lsharp -lfftpack -lc_utils -lm
+libnmt_la_LDFLAGS = $(OPENMP_CFLAGS) @fftw_thread_type@ -lfftw3 -lgsl -lgslcblas -lcfitsio -lsharp -lfftpack -lc_utils -lm
 include_HEADERS = src/namaster.h
 namaster_SOURCES = src/nmt_main.c
 namaster_CPPFLAGS = $(OPENMP_CFLAGS) -I./src/
-namaster_LDFLAGS = $(OPENMP_CFLAGS) -L./ -lnmt -lfftw3 -lfftw3_omp -lgsl -lgslcblas -lcfitsio -lsharp -lfftpack -lc_utils -lm 
-test_check_nmt_SOURCES = test/nmt_test.c test/nmt_test_utils.c test/nmt_test_fsk.c test/nmt_test_hpex.c test/nmt_test_bins.c test/nmt_test_field.c test/nmt_test_master.c test/nmt_test_covar.c test/nmt_test_bins_flat.c test/nmt_test_field_flat.c test/nmt_test_master_flat.c test/nmt_test_covar_flat.c test/nmt_test_mask.c
+namaster_LDFLAGS = $(OPENMP_CFLAGS) -L./ -lnmt @fftw_thread_type@ -lfftw3 -lgsl -lgslcblas -lcfitsio -lsharp -lfftpack -lc_utils -lm 
+test_check_nmt_SOURCES = test/nmt_test.c test/nmt_test_utils.c test/nmt_test_fsk.c test/nmt_test_hpex.c test/nmt_test_bins.c test/nmt_test_field.c test/nmt_test_master.c test/nmt_test_covar.c test/nmt_test_bins_flat.c test/nmt_test_field_flat.c test/nmt_test_master_flat.c test/nmt_test_covar_flat.c test/nmt_test_mask.c test/nmt_test_field_car.c
 test_check_nmt_CPPFLAGS = $(OPENMP_CFLAGS) -I./test/ -I./src/
-test_check_nmt_LDFLAGS = $(OPENP_CFLAGS) -L./ -lnmt -lfftw3 -lfftw3_omp -lgsl -lgslcblas -lcfitsio -lsharp -lfftpack -lc_utils -lm 
+test_check_nmt_LDFLAGS = $(OPENMP_CFLAGS) -L./ -lnmt @fftw_thread_type@ -lfftw3 -lgsl -lgslcblas -lcfitsio -lsharp -lfftpack -lc_utils -lm 
 all: config.h
 	$(MAKE) $(AM_MAKEFLAGS) all-am
 
@@ -637,6 +639,8 @@ test/test_check_nmt-nmt_test_covar_flat.$(OBJEXT):  \
 	test/$(am__dirstamp) test/$(DEPDIR)/$(am__dirstamp)
 test/test_check_nmt-nmt_test_mask.$(OBJEXT): test/$(am__dirstamp) \
 	test/$(DEPDIR)/$(am__dirstamp)
+test/test_check_nmt-nmt_test_field_car.$(OBJEXT):  \
+	test/$(am__dirstamp) test/$(DEPDIR)/$(am__dirstamp)
 
 test/check_nmt$(EXEEXT): $(test_check_nmt_OBJECTS) $(test_check_nmt_DEPENDENCIES) $(EXTRA_test_check_nmt_DEPENDENCIES) test/$(am__dirstamp)
 	@rm -f test/check_nmt$(EXEEXT)
@@ -671,6 +675,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@test/$(DEPDIR)/test_check_nmt-nmt_test_covar.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@test/$(DEPDIR)/test_check_nmt-nmt_test_covar_flat.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@test/$(DEPDIR)/test_check_nmt-nmt_test_field.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@test/$(DEPDIR)/test_check_nmt-nmt_test_field_car.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@test/$(DEPDIR)/test_check_nmt-nmt_test_field_flat.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@test/$(DEPDIR)/test_check_nmt-nmt_test_fsk.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@test/$(DEPDIR)/test_check_nmt-nmt_test_hpex.Po@am__quote@
@@ -989,6 +994,20 @@ test/test_check_nmt-nmt_test_mask.obj: test/nmt_test_mask.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='test/nmt_test_mask.c' object='test/test_check_nmt-nmt_test_mask.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(test_check_nmt_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o test/test_check_nmt-nmt_test_mask.obj `if test -f 'test/nmt_test_mask.c'; then $(CYGPATH_W) 'test/nmt_test_mask.c'; else $(CYGPATH_W) '$(srcdir)/test/nmt_test_mask.c'; fi`
+
+test/test_check_nmt-nmt_test_field_car.o: test/nmt_test_field_car.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(test_check_nmt_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT test/test_check_nmt-nmt_test_field_car.o -MD -MP -MF test/$(DEPDIR)/test_check_nmt-nmt_test_field_car.Tpo -c -o test/test_check_nmt-nmt_test_field_car.o `test -f 'test/nmt_test_field_car.c' || echo '$(srcdir)/'`test/nmt_test_field_car.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) test/$(DEPDIR)/test_check_nmt-nmt_test_field_car.Tpo test/$(DEPDIR)/test_check_nmt-nmt_test_field_car.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='test/nmt_test_field_car.c' object='test/test_check_nmt-nmt_test_field_car.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(test_check_nmt_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o test/test_check_nmt-nmt_test_field_car.o `test -f 'test/nmt_test_field_car.c' || echo '$(srcdir)/'`test/nmt_test_field_car.c
+
+test/test_check_nmt-nmt_test_field_car.obj: test/nmt_test_field_car.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(test_check_nmt_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT test/test_check_nmt-nmt_test_field_car.obj -MD -MP -MF test/$(DEPDIR)/test_check_nmt-nmt_test_field_car.Tpo -c -o test/test_check_nmt-nmt_test_field_car.obj `if test -f 'test/nmt_test_field_car.c'; then $(CYGPATH_W) 'test/nmt_test_field_car.c'; else $(CYGPATH_W) '$(srcdir)/test/nmt_test_field_car.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) test/$(DEPDIR)/test_check_nmt-nmt_test_field_car.Tpo test/$(DEPDIR)/test_check_nmt-nmt_test_field_car.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='test/nmt_test_field_car.c' object='test/test_check_nmt-nmt_test_field_car.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(test_check_nmt_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o test/test_check_nmt-nmt_test_field_car.obj `if test -f 'test/nmt_test_field_car.c'; then $(CYGPATH_W) 'test/nmt_test_field_car.c'; else $(CYGPATH_W) '$(srcdir)/test/nmt_test_field_car.c'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo

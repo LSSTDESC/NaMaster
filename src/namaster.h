@@ -10,7 +10,6 @@
 #include <math.h>
 #include <time.h>
 #include <complex.h>
-#include <omp.h>
 #include <gsl/gsl_vector.h>
 #include <gsl/gsl_matrix.h>
 #include <gsl/gsl_linalg.h>
@@ -440,13 +439,90 @@ void nmt_purify_flat(nmt_field_flat *fl,flouble *mask,fcomplex **walm0,
 		     flouble **maps_in,flouble **maps_out,fcomplex **alms);
 
 /**
+ * @brief Curved-sky information.
+ *
+ * This structure contains all the information defining a given full-sky patch.
+ * It describes either a HEALPix grid (in which case is_healpix!=0) or a CAR
+ * patch (for is_healpix==0). If the latter, then the CAR pixelization must
+ * conform to the Clenshaw-Curtis sampling. In this case the colatitude theta
+ * must be sampled at N points going from 0 to pi (including both), separated
+ * by an interval Dtheta = pi/(N-1). Not all iso-latitude rings must be stored
+ * in the patch (i.e. ny!=N necessarily). See the documentation for 
+ * nmt_curvedsky_info_alloc for further information on the constraints that
+ * some of the members of this structure must fulfill.
+ */
+typedef struct {
+  int is_healpix; //!< is this HEALPix pixelization?
+  long n_eq; //!< equivalent of nside, number of pixels in the equatorial ring
+  int nx_short; //!< Number of grid points in the x dimension before completing the circle
+  int nx; //!< Number of grid points in the phi dimension
+  int ny; //!< Number of grid points in the theta dimension
+  long npix; //!< Total number of pixels (given by \p nx * \p ny
+  flouble Delta_theta; //!< pixel size in theta direction
+  flouble Delta_phi; //!< pixel size in phi direction
+  flouble phi0; // longitude of first pixel
+  flouble theta0; // colatitude of last ring
+} nmt_curvedsky_info;
+
+/**
+ * @brief Makes a copy of a nmt_curvedsky_info structure
+ *
+ * @param cs_in input structure to be copied.
+ * @return copy of input nmt_curvedsky_info structure.
+ */
+nmt_curvedsky_info *nmt_curvedsky_info_copy(nmt_curvedsky_info *cs_in);
+
+/**
+ * @brief nmt_curvedsky_info creator
+ *
+ * If generating a Clenshaw-Curtis grid, then Dtheta and Dphi must be (close to)
+ * exact divisor of pi and 2pi respectively. Likewise, theta0 must be an integer
+ * multiple of Dtheta, and the number of pixels in the theta direction must be
+ * such that the map actually fits on the sphere (i.e. theta0-(ny-1)*Dtheta >=0).
+ * @param is_healpix is this HEALPix pixelization.
+ * @param nside if is_healpix, this should be the HEALPix Nside parameter.
+ * @param nx0 number of pixels in the phi direction.
+ * @param ny0 number of pixels in the theta direction.
+ * @param Dtheta pixel size in the theta direction. In radians. Must be positive.
+ * @param Dphi pixel size in the phi direction. In radians, must be positive.
+ * @param theta0 colatitude of the last ring in the map. In radians.
+ * @param phi0 minimum azimuth covered by the map. In radians.
+ * @return nmt_curvedsky_info struct.
+ */
+nmt_curvedsky_info *nmt_curvedsky_info_alloc(int is_healpix,long nside,
+					     int nx0,int ny0,flouble Dtheta,flouble Dphi,
+					     flouble phi0,flouble theta0);
+
+
+/**
+ * @brief Compare two nmt_curvedsky_info structs.
+ *
+ * @return true (!=0) if both structs are equivalent, and false (0) if they aren't.
+ */
+int nmt_diff_curvedsky_info(nmt_curvedsky_info *c1, nmt_curvedsky_info *c2);
+
+/**
+ * @brief Extend CAR map to cover the full circle.
+ *
+ * CAR maps only cover a particular part of the sky, but the SHT routines need as
+ * input maps that are complete in the azimuth direction. This routine takes in
+ * a raw CAR map with its corresponding nmt_curvedsky_info and returns the 
+ * phi-complete map (with zeros in all pixels outside the original map).
+ * If the input map is in HEALPix, this routine just returns a copy of it.
+ * @param cs curved sky geometry info.
+ * @param map_in input incomplete map.
+ * @return phi-complete map.
+ */
+flouble *nmt_extend_CAR_map(nmt_curvedsky_info *cs,flouble *map_in);
+
+/**
  * @brief Full-sky field
  *
  * This structure contains all the information defining a spin-s full-sky field.
  * This includes field values, masking, purification and contamination.
  */
 typedef struct {
-  long nside; //!< HEALPix resolution parameters
+  nmt_curvedsky_info *cs; //!< pixelization parameters
   long npix; //!< Number of pixels in all maps
   int lmax; //!< Maximum multipole used
   int pure_e; //!< >0 if E-modes have been purified
@@ -473,15 +549,15 @@ void nmt_field_free(nmt_field *fl);
  * @brief nmt_field constructor
  *
  * Builds an nmt_field structure from input maps and resolution parameters.
- * @param nside HEALPix resolution parameter.
- * @param mask Field's mask (an array of 12 * \p nside^2 values).
+ * @param cs curved sky geometry info.
+ * @param mask Field's mask.
  * @param pol >0 if this is a spin-2 field (spin-0 otherwise).
  * @param maps Observed field values BEFORE multiplying by the mask
           (this is irrelevant for binary masks).
  * @param ntemp Number of contaminant templates affecting this field.
  * @param temp Contaminant template maps (again, NOT multiplied by the mask).
  * @param beam Harmonic coefficients of the beam (defined for all multipoles up to
- *        3 * \p nside - 1). Pass a NULL pointer if you don't want any beam.
+ *        the maximum multipole sampled by the map). Pass a NULL pointer if you don't want any beam.
  * @param pure_e Set to >0 if you want purified E-modes.
  * @param pure_b Set to >0 if you want purified B-modes.
  * @param n_iter_mask_purify E/B purification requires a number of harmonic-space
@@ -495,14 +571,18 @@ void nmt_field_free(nmt_field *fl);
 	  possibility in a consistent way. Effectively this is a singular-value
 	  decomposition. All eigenvalues that are smaller than \p tol_pinv the largest
 	  eigenvalue will be discarded.
+ * @param niter number of iterations when computing alms (for all transforms other than the mask's).
  */
-nmt_field *nmt_field_alloc_sph(long nside,flouble *mask,int pol,flouble **maps,
+nmt_field *nmt_field_alloc_sph(nmt_curvedsky_info *cs,flouble *mask,int pol,flouble **maps,
 			       int ntemp,flouble ***temp,flouble *beam,
-			       int pure_e,int pure_b,int n_iter_mask_purify,double tol_pinv);
+			       int pure_e,int pure_b,int n_iter_mask_purify,double tol_pinv,
+			       int niter);
+
 /**
  * @brief nmt_field constructor from file.
  *
  * Builds an nmt_field structure from data written in files.
+ * @param is_healpix is the map stored in healpix format?
  * @param fname_mask Path to FITS file containing the field's mask (single HEALPix map).
  * @param pol >0 if this is a spin-2 field (spin-0 otherwise).
  * @param fname_maps Path to FITS file containing the field's observed maps
@@ -527,15 +607,17 @@ nmt_field *nmt_field_alloc_sph(long nside,flouble *mask,int pol,flouble **maps,
 	  possibility in a consistent way. Effectively this is a singular-value
 	  decomposition. All eigenvalues that are smaller than \p tol_pinv the largest
 	  eigenvalue will be discarded.
+ * @param niter number of iterations when computing alms (other than the mask's).
  */
-nmt_field *nmt_field_read(char *fname_mask,char *fname_maps,char *fname_temp,char *fname_beam,
-			  int pol,int pure_e,int pure_b,int n_iter_mask_purify,double tol_pinv);
+nmt_field *nmt_field_read(int is_healpix,char *fname_mask,char *fname_maps,char *fname_temp,
+			  char *fname_beam,int pol,int pure_e,int pure_b,
+			  int n_iter_mask_purify,double tol_pinv,int niter);
 
 /**
  * @brief Gaussian realizations of full-sky fields
  *
  * Generates a Gaussian realization of an arbitrary list of possibly-correlated fields with different spins.
- * @param nside HEALPix resolution parameter.
+ * @param cs curved sky geometry info.
  * @param lmax Maximum multipole used.
  * @param nfields Number of fields to generate.
  * @param spin_arr Array (size \p nfields) containing the spins of the fields to be generated.
@@ -550,7 +632,7 @@ nmt_field *nmt_field_read(char *fname_mask,char *fname_maps,char *fname_temp,cha
  * @param seed Seed for this particular realization.
  * @return Gaussian realization.
  */
-flouble **nmt_synfast_sph(int nside,int nfields,int *spin_arr,int lmax,
+flouble **nmt_synfast_sph(nmt_curvedsky_info *cs,int nfields,int *spin_arr,int lmax,
 			  flouble **cells,flouble **beam_fields,int seed);
 
 /**
@@ -563,9 +645,10 @@ flouble **nmt_synfast_sph(int nside,int nfields,int *spin_arr,int lmax,
  * @param maps_in Maps to be purified (should NOT be mask-multiplied).
  * @param maps_out Output purified maps.
  * @param alms Spherical harmonic transform of the output purified maps.
+ * @param niter number of iterations when computing alms.
  */
 void nmt_purify(nmt_field *fl,flouble *mask,fcomplex **walm0,
-		flouble **maps_in,flouble **maps_out,fcomplex **alms);
+		flouble **maps_in,flouble **maps_out,fcomplex **alms,int niter);
 
 /**
  * @brief Apodize full-sky mask.
@@ -854,7 +937,7 @@ typedef struct {
   int lmax; //!< Maximum multipole used
   int is_teb; //!< Does it hold all MCM elements to compute all of spin0-spin0, 0-2 and 2-2 correlations?
   int ncls; //!< Number of power spectra (1, 2 or 4 depending of the spins of the fields being correlated.
-  int nside; //!< HEALPix resolution parameter
+  nmt_curvedsky_info *cs; //!< curved sky geometry information.
   flouble *mask1; //!< Mask of the first field being correlated.
   flouble *mask2; //!< Mask of the second field being correlated.
   flouble *pcl_masks; //!< Pseudo-CL of the masks.
@@ -872,8 +955,10 @@ typedef struct {
  * @param fl2 nmt_field structure defining the second field to correlate.
  * @param bin nmt_binning_scheme defining the power spectrum bandpowers.
  * @param is_teb if !=0, all mode-coupling matrices (0-0,0-2,2-2) will be computed at the same time.
+ * @param niter number of iterations when computing alms.
  */
-nmt_workspace *nmt_compute_coupling_matrix(nmt_field *fl1,nmt_field *fl2,nmt_binning_scheme *bin,int is_teb);
+nmt_workspace *nmt_compute_coupling_matrix(nmt_field *fl1,nmt_field *fl2,nmt_binning_scheme *bin,
+					   int is_teb,int niter);
 
 /**
  * @brief Updates the mode coupling matrix with a new one.Saves nmt_workspace structure to file
@@ -881,7 +966,7 @@ nmt_workspace *nmt_compute_coupling_matrix(nmt_field *fl1,nmt_field *fl2,nmt_bin
  * The new matrix must be provided as a single 1D array of size n_rows\f$^2\f$.
  * Here n_rows=n_cls * n_ell is the size of the flattened power spectra, where n_cls is the number
  * of power spectra (1, 2 or 4 for spin0-0, spin0-2 and spin2-2 correlations) and n_ells=lmax+1
- * (by default lmax=3*nside-1). The ordering of the power spectra should be such that the
+ * (by default lmax=3*nside-1 for HEALPix, and pi/dx for CAR (where dx is the minimum angular pixel size)). The ordering of the power spectra should be such that the
  * l-th element of the i-th power spectrum is stored with index l * n_cls + i.
  * @param w nmt_workspace to be updated.
  * @param n_rows size of the flattened power spectra.
@@ -924,14 +1009,15 @@ void nmt_workspace_free(nmt_workspace *w);
  * See notes about power spectrum ordering in the main page of this documentation.
  * @param fl1 nmt_field structure defining the first field to correlate.
  * @param fl2 nmt_field structure defining the second field to correlate.
- * @param cl_proposal Proposed power spectrum. Should have shape [ncls][3 \p nside], where
+ * @param cl_proposal Proposed power spectrum. Should have shape [ncls][lmax+1], where
           \p ncls is the appropriate number of power spectra given the spins of the input
 	  fields (e.g. \p ncls = 2*2 = 4 if both fields have spin=2).
- * @param cl_bias Ouptput deprojection bias. Should be allocated to shape [ncls][3 * \p nside],
+ * @param cl_bias Ouptput deprojection bias. Should be allocated to shape [ncls][lmax+1],
           where \p ncls is defined above.
+ * @param niter number of iterations when computing alms.
  */
 void nmt_compute_deprojection_bias(nmt_field *fl1,nmt_field *fl2,
-				   flouble **cl_proposal,flouble **cl_bias);
+				   flouble **cl_proposal,flouble **cl_bias,int niter);
 
 /**
  * @brief Noise bias from uncorrelated noise map
@@ -941,11 +1027,13 @@ void nmt_compute_deprojection_bias(nmt_field *fl1,nmt_field *fl2,
  * @param fl1 nmt_field structure defining the properties of the field for which this noise bias
           applies.
  * @param map_var Noise variance map (should contain per-pixel noise variance).
- * @param cl_bias Ouptput noise bias. Should be allocated to shape [ncls][3 * \p nside],
+ * @param cl_bias Ouptput noise bias. Should be allocated to shape [ncls][lmax+1],
           where \p ncls is the appropriate number of power spectra given the spins of the input
 	  fields (e.g. \p ncls = 2*2 = 4 if both fields have spin=2).
+ * @param niter number of iterations when computing alms.
  */
-void nmt_compute_uncorr_noise_deprojection_bias(nmt_field *fl1,flouble *map_var,flouble **cl_bias);
+void nmt_compute_uncorr_noise_deprojection_bias(nmt_field *fl1,flouble *map_var,flouble **cl_bias,
+						int niter);
 
 /**
  * @brief Mode-couples an input power spectrum
@@ -955,10 +1043,10 @@ void nmt_compute_uncorr_noise_deprojection_bias(nmt_field *fl1,flouble *map_var,
  * to compute the theory prediction of the pseudo-CL estimator.
  * See notes about power spectrum ordering in the main page of this documentation.
  * @param w nmt_workspace structure containing the mode-coupling matrix
- * @param cl_in Array of input power spectra. Should have shape [ncls][3 * \p nside], where ncls
+ * @param cl_in Array of input power spectra. Should have shape [ncls][lmax+1], where ncls
           is the appropriate number of power spectra given the fields being correlated
 	  (e.g. ncls=4=2*2 for two spin-2 fields).
- * @param cl_out Array of output power spectra. Should have shape [ncls][3 * \p nside], where
+ * @param cl_out Array of output power spectra. Should have shape [ncls][lmax+1], where
           ncls is defined above.
  */
 void nmt_couple_cl_l(nmt_workspace *w,flouble **cl_in,flouble **cl_out);
@@ -969,7 +1057,7 @@ void nmt_couple_cl_l(nmt_workspace *w,flouble **cl_in,flouble **cl_out);
  * Multiplies coupled power spectra by inverse mode-coupling matrix.
  * See notes about power spectrum ordering in the main page of this documentation.
  * @param w nmt_workspace containing the mode-coupling matrix.
- * @param cl_in Input coupled power spectra. Should have shape [ncls][3 * \p nside], where
+ * @param cl_in Input coupled power spectra. Should have shape [ncls][lmax+1], where
           \p ncls is the appropriate number of power spectra given the fields used
 	  to define \p w (e.g. 4=2*2 for two spin-2 fields).
  * @param cl_noise_in Noise bias (same shape as \p cl_in).
@@ -989,7 +1077,7 @@ void nmt_decouple_cl_l(nmt_workspace *w,flouble **cl_in,flouble **cl_noise_in,
  * See notes about power spectrum ordering in the main page of this documentation.
  * @param fl1 nmt_field structure defining the first field to correlate.
  * @param fl2 nmt_field structure defining the second field to correlate.
- * @param cl_out Ouptput power spectrum. Should be allocated to shape [ncls][3 * \p nside], where
+ * @param cl_out Ouptput power spectrum. Should be allocated to shape [ncls][lmax+1], where
           \p ncls is the appropriate number of power spectra (e.g. 4=2*2 for two spin-2 fields).
  */
 void nmt_compute_coupled_cell(nmt_field *fl1,nmt_field *fl2,flouble **cl_out);
@@ -1007,19 +1095,21 @@ void nmt_compute_coupled_cell(nmt_field *fl1,nmt_field *fl2,flouble **cl_out);
  * @param w0 nmt_workspace structure containing the mode-coupling matrix. If NULL, a new
           computation of the MCM will be carried out and stored in the output nmt_workspace.
 	  Otherwise, \p w0 will be used and returned by this function.
- * @param cl_proposal Proposed power spectrum. Should have shape [ncls][3 * \p nside], where
+ * @param cl_proposal Proposed power spectrum. Should have shape [ncls][lmax+1], where
           \p ncls is the appropriate number of power spectra given the spins of the input
 	  fields (e.g. \p ncls = 2*2 = 4 if both fields have spin=2).
  * @param cl_noise Noise bias (same shape as \p cl_prop).
  * @param cl_out Ouptput power spectrum. Should be allocated to shape [ncls][nbpw],
           where \p ncls is defined above and \p nbpw is the number of bandpowers defined
 	  by \p bin.
+ * @param niter number of iterations when computing alms.
  * @return Newly allocated nmt_workspace structure containing the mode-coupling matrix
            if \p w0 is NULL (will return \p w0 otherwise).
  */
 nmt_workspace *nmt_compute_power_spectra(nmt_field *fl1,nmt_field *fl2,
 					 nmt_binning_scheme *bin,nmt_workspace *w0,
-					 flouble **cl_noise,flouble **cl_proposal,flouble **cl_out);
+					 flouble **cl_noise,flouble **cl_proposal,flouble **cl_out,
+					 int niter);
 
 /**
  * @brief Flat-sky Gaussian covariance matrix
@@ -1122,7 +1212,7 @@ typedef struct {
   int ncls_b; //!< Number of elements for the second set of power spectra (1 for the time being)
   nmt_binning_scheme *bin_a; //!< Bandpowers defining the binning for the first set of spectra
   nmt_binning_scheme *bin_b; //!< Bandpowers defining the binning for the second set of spectra
-  int nside; //!< HEALPix resolution parameter
+  nmt_curvedsky_info *cs; //!< curved sky geometry information.
   flouble **xi_1122; //!< First (a1b1-a2b2) mode coupling matrix (see scientific documentation)
   flouble **xi_1221; //!< Second (a1b2-a2b1) mode coupling matrix (see scientific documentation)
   gsl_matrix *coupling_binned_a; //!< Coupling matrix associated to the first set of power spectra
@@ -1144,9 +1234,10 @@ void nmt_covar_workspace_free(nmt_covar_workspace *cw);
  * to the two sets of power spectra for which the covariance is required.
  * @param wa nmt_workspace for the first set of power spectra.
  * @param wb nmt_workspace for the second set of power spectra.
+ * @param niter number of iterations when computing alms.
  * @warning All covariance-related functionality is still under development, and in the future will hopefully support.
  */
-nmt_covar_workspace *nmt_covar_workspace_init(nmt_workspace *wa,nmt_workspace *wb);
+nmt_covar_workspace *nmt_covar_workspace_init(nmt_workspace *wa,nmt_workspace *wb,int niter);
 
 /**
  * @brief Compute full-sky Gaussian covariance matrix
@@ -1156,7 +1247,7 @@ nmt_covar_workspace *nmt_covar_workspace_init(nmt_workspace *wa,nmt_workspace *w
  * @param cw nmt_covar_workspace structure containing the information necessary to compute the
           covariance matrix.
  * @param cla1b1 Cross-power spectrum between field 1 in set a and field 1 in set b.
-          All power spectra should be defined for all ell < 3 * \p nside - 1.
+          All power spectra should be defined for all ell < lmax.
  * @param cla1b2 Cross-power spectrum between field 1 in set a and field 2 in set b.
  * @param cla2b1 Cross-power spectrum between field 2 in set a and field 1 in set b.
  * @param cla2b2 Cross-power spectrum between field 2 in set a and field 2 in set b.
@@ -1193,122 +1284,5 @@ void nmt_covar_workspace_write(nmt_covar_workspace *cw,char *fname);
  * @warning All covariance-related functionality is still under development, and in the future will hopefully support.
  */
 nmt_covar_workspace *nmt_covar_workspace_read(char *fname);
-
-
-// --------------------------------CAR-------------------------------------------
-
-
-
-/**
-* @brief Curved-sky information.
-*
-* This structure contains all the information defining a given
-* rectangular curved-sky patch.
-*/
-typedef struct {
-long n_eq; //!< equivalent of nside, number of pixels in the equatorial ring
-int nx; //!< Number of grid points in the x dimension
-int ny; //!< Number of grid points in the y dimension
-long npix; //!< Total number of pixels (given by \p nx * \p ny
-flouble Delta_theta; //!< pixel size in y direction
-flouble Delta_phi; //!< pixel size in x direction
-flouble phi0; // longitude of first pixel
-flouble theta0; // latitude of first pixel
-} nmt_curvedsky_info;
-
-/**
- * @brief Full-sky field
- *
- * This structure contains all the information defining a spin-s full-sky field.
- * This includes field values, masking, purification and contamination.
- */
-typedef struct {
-  nmt_curvedsky_info *cs; //!< pixelization parameters
-  long npix; //!< Number of pixels in all maps
-  int lmax; //!< Maximum multipole used
-  int pure_e; //!< >0 if E-modes have been purified
-  int pure_b; //!< >0 if B-modes have been purified
-  flouble *mask; //!< Field's mask (an array of \p npix values).
-  fcomplex **a_mask; //!< Spherical transform of the mask. Only computed if E or B are purified.
-  int pol; //!< >0 if field is spin-2 (otherwise it's spin-0).
-  int nmaps; //!< Number of maps in the field (2 for spin-2, 1 for spin-0).
-  flouble **maps; //!< Observed field values. When initialized, these maps are already multiplied by the mask, contaminant-deprojected and purified if requested.
-  fcomplex **alms; //!< Spherical harmonic transfoms of the maps.
-  int ntemp; //!< Number of contaminant templates
-  flouble ***temp; //!< Contaminant template maps (mask-multiplied but NOT purified).
-  fcomplex ***a_temp; //!< Spherical harmonic transfomrs of template maps (mask-multiplied AND purified if requested).
-  gsl_matrix *matrix_M; //!< Inverse contaminant covariance matrix (see scientific documentation or companion paper).
-  flouble *beam; //!< Field's beam (defined on all multipoles up to \p lmax).
-} nmt_field_CAR;
-
-/**
- * @brief nmt_field destructor.
- */
-void nmt_field_CAR_free(nmt_field_CAR *fl);
-
-nmt_field_CAR *nmt_field_CAR_alloc_sph(nmt_curvedsky_info *cs,flouble *mask,int pol,
-             flouble **maps,
-			       int ntemp,flouble ***temp,flouble *beam,
-			       int pure_e,int pure_b,int n_iter_mask_purify,double tol_pinv);
-
-int diff_curvedsky_info(nmt_curvedsky_info *c1, nmt_curvedsky_info *c2);
-
-nmt_field_CAR *nmt_field_CAR_read(char *fname_mask,char *fname_maps,char *fname_temp,char *fname_beam,
-			  int pol,int pure_e,int pure_b,int n_iter_mask_purify,double tol_pinv);
-
-flouble **nmt_synfast_sph_CAR(nmt_curvedsky_info *cs,int nfields,int *spin_arr,int lmax,
-			  flouble **cells,flouble **beam_fields,int seed);
-
-void nmt_purify_CAR(nmt_field_CAR *fl,flouble *mask,fcomplex **walm0,
-	flouble **maps_in,flouble **maps_out,fcomplex **alms);
-
-// TODO
-// void nmt_apodize_mask_CAR(nmt_curvedsky_info *cs,flouble *mask_in,
-//   flouble *mask_out,flouble aposize,char *apotype);
-
-typedef struct {
-  int lmax; //!< Maximum multipole used
-  int is_teb; //!< Does it hold all MCM elements to compute all of spin0-spin0, 0-2 and 2-2 correlations?
-  int ncls; //!< Number of power spectra (1, 2 or 4 depending of the spins of the fields being correlated.
-  nmt_curvedsky_info *cs; //!< CAR resolution parameters
-  flouble *mask1; //!< Mask of the first field being correlated.
-  flouble *mask2; //!< Mask of the second field being correlated.
-  flouble *pcl_masks; //!< Pseudo-CL of the masks.
-  flouble **coupling_matrix_unbinned; //!< Unbinned mode-coupling matrix
-  nmt_binning_scheme *bin; //!< Bandpowers defining the binning
-  gsl_matrix *coupling_matrix_binned; //!< GSL version of MCM (prepared for inversion)
-  gsl_permutation *coupling_matrix_perm; //!< Complements \p coupling_matrix_binned_gsl for inversion.
-} nmt_workspace_CAR;
-
-void nmt_workspace_CAR_free(nmt_workspace_CAR *w);
-
-nmt_workspace_CAR *nmt_compute_coupling_matrix_CAR(nmt_field_CAR *fl1,nmt_field_CAR *fl2,nmt_binning_scheme *bin,int is_teb);
-
-void nmt_compute_deprojection_bias_CAR(nmt_field_CAR *fl1,nmt_field_CAR *fl2,
-  				   flouble **cl_proposal,flouble **cl_bias);
-
-void nmt_compute_coupled_cell_CAR(nmt_field_CAR *fl1,nmt_field_CAR *fl2,flouble **cl_out);
-
-void nmt_decouple_cl_l_CAR(nmt_workspace_CAR *w,flouble **cl_in,flouble **cl_noise_in,
-  		       flouble **cl_bias,flouble **cl_out);
-
-
-nmt_workspace_CAR *nmt_compute_power_spectra_CAR(nmt_field_CAR *fl1,nmt_field_CAR *fl2,
-					 nmt_binning_scheme *bin,nmt_workspace_CAR *w0,
-					 flouble **cl_noise,flouble **cl_proposal,flouble **cl_out);
-
-
-nmt_workspace_CAR *nmt_workspace_CAR_read(char *fname);
-void nmt_workspace_CAR_write(nmt_workspace_CAR *w,char *fname);
-
-//
-void nmt_update_coupling_matrix_CAR(nmt_workspace_CAR *w,int n_rows,double *new_matrix);
-
-void nmt_compute_uncorr_noise_deprojection_bias_CAR(nmt_field_CAR *fl1,flouble *map_var,flouble **cl_bias);
-
-void nmt_couple_cl_l_CAR(nmt_workspace_CAR *w,flouble **cl_in,flouble **cl_out);
-
-
-// -----------------------------------------------------------------------------
 
 #endif //_NAMASTER_H_

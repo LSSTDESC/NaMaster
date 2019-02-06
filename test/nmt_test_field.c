@@ -8,7 +8,8 @@ CTEST(nmt,field_alloc) {
   int ii,nmaps;
   double ntemp=5;
   long nside=128;
-  long lmax=3*nside-1;
+  nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(1,nside,-1,-1,-1,-1,-1,-1);
+  long lmax=he_get_lmax(cs);
   long npix=he_nside2npix(nside);
   double **maps;
   double ***temp=my_malloc(ntemp*sizeof(double **));
@@ -30,13 +31,13 @@ CTEST(nmt,field_alloc) {
     temp[ii]=test_make_map_analytic(nside,0);
 
   //No templates
-  f=nmt_field_alloc_sph(nside,mask,0,maps,0,NULL,beam,0,0,0,1E-5);
+  f=nmt_field_alloc_sph(cs,mask,0,maps,0,NULL,beam,0,0,0,1E-5,HE_NITER_DEFAULT);
   //Sanity checks
   ASSERT_EQUAL(lmax,f->lmax);
   ASSERT_EQUAL(0,f->pure_e);
   ASSERT_EQUAL(0,f->pure_b);
-  ASSERT_EQUAL(npix,f->npix);
-  ASSERT_EQUAL(nside,f->nside);
+  ASSERT_EQUAL(npix,f->cs->npix);
+  ASSERT_EQUAL(nside,f->cs->n_eq);
   ASSERT_EQUAL(0,f->pol);
   ASSERT_EQUAL(1,f->nmaps);
   //Harmonic transform
@@ -45,7 +46,7 @@ CTEST(nmt,field_alloc) {
   nmt_field_free(f);
   
   //With templates
-  f=nmt_field_alloc_sph(nside,mask,0,maps,ntemp,temp,NULL,0,0,0,1E-5);
+  f=nmt_field_alloc_sph(cs,mask,0,maps,ntemp,temp,NULL,0,0,0,1E-5,HE_NITER_DEFAULT);
   //Since maps and templates are the same, template-deprojected map should be 0
   for(ii=0;ii<npix;ii++)
     ASSERT_DBL_NEAR_TOL(0.0,f->maps[0][ii],1E-10);
@@ -75,7 +76,7 @@ CTEST(nmt,field_alloc) {
     temp[ii]=test_make_map_analytic(nside,1);
 
   //No templates
-  f=nmt_field_alloc_sph(nside,mask,1,maps,0,NULL,beam,0,0,0,1E-5);
+  f=nmt_field_alloc_sph(cs,mask,1,maps,0,NULL,beam,0,0,0,1E-5,HE_NITER_DEFAULT);
   //Sanity checks
   ASSERT_EQUAL(1,f->pol);
   ASSERT_EQUAL(2,f->nmaps);
@@ -95,7 +96,7 @@ CTEST(nmt,field_alloc) {
   nmt_field_free(f);
 
   //With purification (nothing should change)
-  f=nmt_field_alloc_sph(nside,mask,1,maps,0,NULL,beam,1,1,5,1E-5);
+  f=nmt_field_alloc_sph(cs,mask,1,maps,0,NULL,beam,1,1,5,1E-5,HE_NITER_DEFAULT);
   //Sanity checks
   ASSERT_EQUAL(1,f->pol);
   ASSERT_EQUAL(2,f->nmaps);
@@ -115,7 +116,7 @@ CTEST(nmt,field_alloc) {
   nmt_field_free(f);
   
   //With templates
-  f=nmt_field_alloc_sph(nside,mask,1,maps,ntemp,temp,beam,0,0,0,1E-5);
+  f=nmt_field_alloc_sph(cs,mask,1,maps,ntemp,temp,beam,0,0,0,1E-5,HE_NITER_DEFAULT);
   //Since maps and templates are the same, template-deprojected map should be 0
   for(ii=0;ii<nmaps;ii++) {
     int jj;
@@ -139,7 +140,7 @@ CTEST(nmt,field_alloc) {
   nmt_field_free(f);
   
   //With templates and purification (nothing should change)
-  f=nmt_field_alloc_sph(nside,mask,1,maps,ntemp,temp,beam,1,1,5,1E-5);
+  f=nmt_field_alloc_sph(cs,mask,1,maps,ntemp,temp,beam,1,1,5,1E-5,HE_NITER_DEFAULT);
   //Since maps and templates are the same, template-deprojected map should be 0
   for(ii=0;ii<nmaps;ii++) {
     int jj;
@@ -178,6 +179,7 @@ CTEST(nmt,field_alloc) {
   free(temp);
   free(beam);
   free(mask);
+  free(cs);
 }
 
 CTEST(nmt,field_read) {
@@ -185,28 +187,28 @@ CTEST(nmt,field_read) {
   nmt_field *f;
 
   //Spin-0, no templates
-  f=nmt_field_read("test/mask.fits","test/maps.fits","none","none",0,0,0,3,1E-10);
-  ASSERT_EQUAL(f->nside,256);
+  f=nmt_field_read(1,"test/mask.fits","test/maps.fits","none","none",0,0,0,3,1E-10,HE_NITER_DEFAULT);
+  ASSERT_EQUAL(f->cs->n_eq,256);
   nmt_field_free(f);
 
   //Spin-0, with templates
-  f=nmt_field_read("test/mask.fits","test/maps.fits","test/maps.fits","none",0,0,0,3,1E-10);
-  ASSERT_EQUAL(f->nside,256);
+  f=nmt_field_read(1,"test/mask.fits","test/maps.fits","test/maps.fits","none",0,0,0,3,1E-10,HE_NITER_DEFAULT);
+  ASSERT_EQUAL(f->cs->n_eq,256);
   //Template=map -> map=0
-  for(ii=0;ii<f->npix;ii++)
+  for(ii=0;ii<f->cs->npix;ii++)
     ASSERT_DBL_NEAR_TOL(0.0,f->maps[0][ii],1E-10);
   nmt_field_free(f);
 
   //Spin-2, no templates
-  f=nmt_field_read("test/mask.fits","test/maps.fits","none","none",1,0,0,3,1E-10);
-  ASSERT_EQUAL(f->nside,256);
+  f=nmt_field_read(1,"test/mask.fits","test/maps.fits","none","none",1,0,0,3,1E-10,HE_NITER_DEFAULT);
+  ASSERT_EQUAL(f->cs->n_eq,256);
   nmt_field_free(f);
 
   //Spin-2, with templates
   f=NULL;
   //Check that an error is thrown if file is wrong
   set_error_policy(THROW_ON_ERROR);
-  try { f=nmt_field_read("test/mask.fits","test/maps.fits","test/maps.fits","none",1,0,0,3,1E-10); }
+  try { f=nmt_field_read(1,"test/mask.fits","test/maps.fits","test/maps.fits","none",1,0,0,3,1E-10,HE_NITER_DEFAULT); }
   ASSERT_NOT_EQUAL(0,nmt_exception_status);
   ASSERT_NULL(f);
   set_error_policy(EXIT_ON_ERROR);
@@ -215,7 +217,8 @@ CTEST(nmt,field_read) {
 CTEST(nmt,field_synfast) {
   int ii,im1,im2,l,if1,if2;
   long nside=128;
-  long lmax=3*nside-1;
+  nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(1,nside,-1,-1,-1,-1,-1,-1);
+  long lmax=he_get_lmax(cs);
   int nfields=3;
   int field_spins[3]={0,2,0};
   int field_nmaps[3]={1,2,1};
@@ -257,7 +260,7 @@ CTEST(nmt,field_synfast) {
   }
 
   //Generate maps
-  flouble **maps=nmt_synfast_sph(nside,nfields,field_spins,lmax,cells_pass,beam,1234);
+  flouble **maps=nmt_synfast_sph(cs,nfields,field_spins,lmax,cells_pass,beam,1234);
 
   //Compute power spectra
   im1=0;
@@ -270,7 +273,7 @@ CTEST(nmt,field_synfast) {
 	cells_here[ii]=my_malloc((lmax+1)*sizeof(double));
       
       he_anafast(&(maps[im1]),&(maps[im2]),field_spins[if1],field_spins[if2],
-		 cells_here,nside,lmax,3);
+		 cells_here,cs,lmax,3);
 
       int i1;
       for(i1=0;i1<field_nmaps[if1];i1++) {
@@ -321,4 +324,5 @@ CTEST(nmt,field_synfast) {
   free(cells_in);
   free(cells_out);
   free(cells_pass);
+  free(cs);
 }
