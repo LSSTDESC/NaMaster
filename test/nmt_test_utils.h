@@ -12,6 +12,8 @@
 
 double **test_make_map_analytic_flat(nmt_flatsky_info *fsk,int pol,int i0_x,int i0_y);
 
+double **test_make_map_analytic_car(nmt_curvedsky_info *cs,int pol);
+
 double **test_make_map_analytic(long nside,int pol);
 
 int *test_get_sequence(int n0,int nf);

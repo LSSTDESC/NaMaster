@@ -19,23 +19,22 @@ static nmt_binning_scheme *nmt_bins_copy(nmt_binning_scheme *b_or)
   return b;
 }
 
-nmt_covar_workspace *nmt_covar_workspace_init(nmt_workspace *wa,nmt_workspace *wb)
+nmt_covar_workspace *nmt_covar_workspace_init(nmt_workspace *wa,nmt_workspace *wb,int niter)
 {
-  if((wa->nside!=wb->nside) || (wa->lmax!=wb->lmax))
+  if(!(nmt_diff_curvedsky_info(wa->cs,wb->cs)) || (wa->lmax!=wb->lmax))
     report_error(NMT_ERROR_COVAR,"Can't compute covariance for fields with different resolutions\n");
   if((wa->ncls!=1) || (wb->ncls!=1))
     report_error(NMT_ERROR_COVAR,"Gaussian covariance only implemented for spin-0 fields\n");
 
   nmt_covar_workspace *cw=my_malloc(sizeof(nmt_covar_workspace));
   int ii;
-  int nside=wa->nside;
-  int npix=he_nside2npix(nside);
+  int npix=wa->cs->npix;
   flouble *mask_a1b1=my_malloc(npix*sizeof(flouble));
   flouble *mask_a1b2=my_malloc(npix*sizeof(flouble));
   flouble *mask_a2b1=my_malloc(npix*sizeof(flouble));
   flouble *mask_a2b2=my_malloc(npix*sizeof(flouble));
 
-  cw->nside=wa->nside;
+  cw->cs=nmt_curvedsky_info_copy(wa->cs);
   cw->lmax_a=wa->lmax;
   cw->lmax_b=wb->lmax;
   cw->ncls_a=wa->ncls;
@@ -61,12 +60,12 @@ nmt_covar_workspace *nmt_covar_workspace_init(nmt_workspace *wa,nmt_workspace *w
   cw->coupling_binned_perm_b=gsl_permutation_alloc(cw->ncls_b*cw->bin_b->n_bands);
   gsl_permutation_memcpy(cw->coupling_binned_perm_b,wb->coupling_matrix_perm);
 
-  he_map_product(nside,wa->mask1,wb->mask1,mask_a1b1);
-  he_map_product(nside,wa->mask1,wb->mask2,mask_a1b2);
-  he_map_product(nside,wa->mask2,wb->mask1,mask_a2b1);
-  he_map_product(nside,wa->mask2,wb->mask2,mask_a2b2);
-  he_anafast(&mask_a1b1,&mask_a2b2,0,0,&cl_mask_1122,wa->nside,cw->lmax_a,HE_NITER_DEFAULT);
-  he_anafast(&mask_a1b2,&mask_a2b1,0,0,&cl_mask_1221,wa->nside,cw->lmax_a,HE_NITER_DEFAULT);
+  he_map_product(cw->cs,wa->mask1,wb->mask1,mask_a1b1);
+  he_map_product(cw->cs,wa->mask1,wb->mask2,mask_a1b2);
+  he_map_product(cw->cs,wa->mask2,wb->mask1,mask_a2b1);
+  he_map_product(cw->cs,wa->mask2,wb->mask2,mask_a2b2);
+  he_anafast(&mask_a1b1,&mask_a2b2,0,0,&cl_mask_1122,cw->cs,cw->lmax_a,niter);
+  he_anafast(&mask_a1b2,&mask_a2b1,0,0,&cl_mask_1221,cw->cs,cw->lmax_a,niter);
   free(mask_a1b1); free(mask_a1b2); free(mask_a2b1); free(mask_a2b2);
   for(ii=0;ii<=cw->lmax_a;ii++) {
     cl_mask_1122[ii]*=(ii+0.5)/(2*M_PI);
@@ -125,6 +124,7 @@ nmt_covar_workspace *nmt_covar_workspace_init(nmt_workspace *wa,nmt_workspace *w
 void nmt_covar_workspace_free(nmt_covar_workspace *cw)
 {
   int ii;
+  free(cw->cs);
   gsl_permutation_free(cw->coupling_binned_perm_b);
   gsl_permutation_free(cw->coupling_binned_perm_a);
   gsl_matrix_free(cw->coupling_binned_b);
@@ -206,7 +206,7 @@ void nmt_covar_workspace_write(nmt_covar_workspace *cw,char *fname)
 
   my_fwrite(&(cw->lmax_a),sizeof(int),1,fo);
   my_fwrite(&(cw->lmax_b),sizeof(int),1,fo);
-  my_fwrite(&(cw->nside),sizeof(int),1,fo);
+  my_fwrite(cw->cs,sizeof(nmt_curvedsky_info),1,fo);
   my_fwrite(&(cw->ncls_a),sizeof(int),1,fo);
   my_fwrite(&(cw->ncls_b),sizeof(int),1,fo);
   for(ii=0;ii<cw->ncls_a*(cw->lmax_a+1);ii++)
@@ -241,10 +241,11 @@ nmt_covar_workspace *nmt_covar_workspace_read(char *fname)
   int ii;
   nmt_covar_workspace *cw=my_malloc(sizeof(nmt_covar_workspace));
   FILE *fi=my_fopen(fname,"rb");
+  cw->cs=my_malloc(sizeof(nmt_curvedsky_info));
 
   my_fread(&(cw->lmax_a),sizeof(int),1,fi);
   my_fread(&(cw->lmax_b),sizeof(int),1,fi);
-  my_fread(&(cw->nside),sizeof(int),1,fi);
+  my_fread(cw->cs,sizeof(nmt_curvedsky_info),1,fi);
   my_fread(&(cw->ncls_a),sizeof(int),1,fi);
   my_fread(&(cw->ncls_b),sizeof(int),1,fi);
 

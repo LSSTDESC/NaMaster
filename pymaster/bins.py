@@ -6,12 +6,12 @@ class NmtBin(object):
     """
     An NmtBin object defines the set of bandpowers used in the computation of the pseudo-Cl estimator. The definition of bandpowers is described in Section 3.6 of the scientific documentation.
 
-    :param int nside: HEALPix nside resolution parameter of the maps you intend to correlate. The maximum multipole considered for bandpowers will be 3*nside-1.
+    :param int nside: HEALPix nside resolution parameter of the maps you intend to correlate. The maximum multipole considered for bandpowers will be 3*nside-1, unless `lmax` is set.
     :param array-like ells: array of integers corresponding to different multipoles
     :param array-like bpws: array of integers that assign the multipoles in ells to different bandpowers
     :param array-like weights: array of floats corresponding to the weights associated to each multipole in ells. The sum of weights within each bandpower is normalized to 1.
     :param int nlb: integer value corresponding to a constant bandpower width. I.e. the bandpowers will be defined as consecutive sets of nlb multipoles from l=2 to l=lmax (see below) with equal weights. If this argument is provided, the values of ells, bpws and weights are ignored.
-    :param int lmax: integer value corresponding to the maximum multiple used by these bandpowers. If None, it will be set to 3*nside-1. In any case the actual maximum multipole will be chosen as the minimum of lmax, 3*nside-1 and the maximum element of ells.
+    :param int lmax: integer value corresponding to the maximum multipole used by these bandpowers. If None, it will be set to 3*nside-1. In any case the actual maximum multipole will be chosen as the minimum of lmax, 3*nside-1 and the maximum element of ells (e.g. if you are using CAR maps and don't care about nside, you can pass whatever lmax you want and e.g. nside=lmax).
     """
 
     def __init__(self, nside, bpws=None, ells=None, weights=None, nlb=None, lmax=None):

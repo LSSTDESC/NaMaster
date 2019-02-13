@@ -1,15 +1,16 @@
 #include "utils.h"
 
-static void purify_generic(nmt_field *fl,flouble *mask,fcomplex **walm0,flouble **maps_in,fcomplex **alms_out)
+static void purify_generic(nmt_field *fl,flouble *mask,fcomplex **walm0,
+			   flouble **maps_in,fcomplex **alms_out,int niter)
 {
   if(fl->pure_b || fl->pure_e) {
-    nmt_purify(fl,mask,walm0,maps_in,maps_in,alms_out);
+    nmt_purify(fl,mask,walm0,maps_in,maps_in,alms_out,niter);
   }
   else {
     int im1;
     for(im1=0;im1<fl->nmaps;im1++)
-      he_map_product(fl->nside,maps_in[im1],mask,maps_in[im1]);
-    he_map2alm(fl->nside,fl->lmax,1,2*fl->pol,maps_in,alms_out,HE_NITER_DEFAULT);
+      he_map_product(fl->cs,maps_in[im1],mask,maps_in[im1]);
+    he_map2alm(fl->cs,fl->lmax,1,2*fl->pol,maps_in,alms_out,niter);
   }
 }
 
@@ -22,7 +23,8 @@ static flouble weigh_l(int l)
 #endif //_WEIGH_L2
 }
 
-static nmt_workspace *nmt_workspace_new(int nside,int ncls,nmt_binning_scheme *bin,int is_teb)
+static nmt_workspace *nmt_workspace_new(nmt_curvedsky_info *cs,int ncls,
+					nmt_binning_scheme *bin,int is_teb)
 {
   int ii;
   nmt_workspace *w=my_malloc(sizeof(nmt_workspace));
@@ -30,10 +32,10 @@ static nmt_workspace *nmt_workspace_new(int nside,int ncls,nmt_binning_scheme *b
   w->is_teb=is_teb;
   w->ncls=ncls;
 
-  w->nside=nside;
-  w->mask1=my_malloc(he_nside2npix(w->nside)*sizeof(flouble));
-  w->mask2=my_malloc(he_nside2npix(w->nside)*sizeof(flouble));
-  w->pcl_masks=my_malloc((w->lmax+1)*sizeof(flouble));
+  w->cs=nmt_curvedsky_info_copy(cs);
+  w->mask1=my_malloc(w->cs->npix*sizeof(flouble));
+  w->mask2=my_malloc(w->cs->npix*sizeof(flouble));
+  w->pcl_masks=my_malloc((he_get_lmax(w->cs)+1)*sizeof(flouble));
 
   w->coupling_matrix_unbinned=my_malloc(w->ncls*(w->lmax+1)*sizeof(flouble *));
   for(ii=0;ii<w->ncls*(w->lmax+1);ii++)
@@ -61,6 +63,7 @@ static nmt_workspace *nmt_workspace_new(int nside,int ncls,nmt_binning_scheme *b
 void nmt_workspace_free(nmt_workspace *w)
 {
   int ii;
+  free(w->cs);
   gsl_permutation_free(w->coupling_matrix_perm);
   gsl_matrix_free(w->coupling_matrix_binned);
   nmt_bins_free(w->bin);
@@ -81,14 +84,15 @@ nmt_workspace *nmt_workspace_read(char *fname)
 
   my_fread(&(w->is_teb),sizeof(int),1,fi);
   my_fread(&(w->lmax),sizeof(int),1,fi);
-  my_fread(&(w->nside),sizeof(int),1,fi);
+  w->cs=my_malloc(sizeof(nmt_curvedsky_info));
+  my_fread(w->cs,sizeof(nmt_curvedsky_info),1,fi);
   my_fread(&(w->ncls),sizeof(int),1,fi);
 
-  w->mask1=my_malloc(he_nside2npix(w->nside)*sizeof(flouble));
-  my_fread(w->mask1,sizeof(flouble),he_nside2npix(w->nside),fi);
+  w->mask1=my_malloc(w->cs->npix*sizeof(flouble));
+  my_fread(w->mask1,sizeof(flouble),w->cs->npix,fi);
 
-  w->mask2=my_malloc(he_nside2npix(w->nside)*sizeof(flouble));
-  my_fread(w->mask2,sizeof(flouble),he_nside2npix(w->nside),fi);
+  w->mask2=my_malloc(w->cs->npix*sizeof(flouble));
+  my_fread(w->mask2,sizeof(flouble),w->cs->npix,fi);
 
   w->pcl_masks=my_malloc((w->lmax+1)*sizeof(flouble));
   my_fread(w->pcl_masks,sizeof(flouble),w->lmax+1,fi);
@@ -116,7 +120,7 @@ nmt_workspace *nmt_workspace_read(char *fname)
   w->coupling_matrix_perm=gsl_permutation_alloc(w->ncls*w->bin->n_bands);
   gsl_matrix_fread(fi,w->coupling_matrix_binned);
   gsl_permutation_fread(fi,w->coupling_matrix_perm);
-  
+
   fclose(fi);
 
   return w;
@@ -129,10 +133,10 @@ void nmt_workspace_write(nmt_workspace *w,char *fname)
 
   my_fwrite(&(w->is_teb),sizeof(int),1,fo);
   my_fwrite(&(w->lmax),sizeof(int),1,fo);
-  my_fwrite(&(w->nside),sizeof(int),1,fo);
+  my_fwrite(w->cs,sizeof(nmt_curvedsky_info),1,fo);
   my_fwrite(&(w->ncls),sizeof(int),1,fo);
-  my_fwrite(w->mask1,sizeof(flouble),he_nside2npix(w->nside),fo);
-  my_fwrite(w->mask2,sizeof(flouble),he_nside2npix(w->nside),fo);
+  my_fwrite(w->mask1,sizeof(flouble),w->cs->npix,fo);
+  my_fwrite(w->mask2,sizeof(flouble),w->cs->npix,fo);
   my_fwrite(w->pcl_masks,sizeof(flouble),w->lmax+1,fo);
   for(ii=0;ii<w->ncls*(w->lmax+1);ii++)
     my_fwrite(w->coupling_matrix_unbinned[ii],sizeof(flouble),w->ncls*(w->lmax+1),fo);
@@ -146,14 +150,14 @@ void nmt_workspace_write(nmt_workspace *w,char *fname)
 
   gsl_matrix_fwrite(fo,w->coupling_matrix_binned);
   gsl_permutation_fwrite(fo,w->coupling_matrix_perm);
-  
+
   fclose(fo);
 }
 
 static void bin_coupling_matrix(nmt_workspace *w)
 {
   int icl_a,icl_b,ib2,ib3,l2,l3,i2,i3,sig;
-  
+
   for(icl_a=0;icl_a<w->ncls;icl_a++) {
     for(icl_b=0;icl_b<w->ncls;icl_b++) {
       for(ib2=0;ib2<w->bin->n_bands;ib2++) {
@@ -179,7 +183,7 @@ static void bin_coupling_matrix(nmt_workspace *w)
 void nmt_update_coupling_matrix(nmt_workspace *w,int n_rows,double *new_matrix)
 {
   int ii;
-  
+
   if(n_rows!=w->ncls*(w->lmax+1)) {
     report_error(NMT_ERROR_INCONSISTENT,"Input matrix has the wrong size. Expected %d, got %d\n",
 		 w->ncls*(w->lmax+1),n_rows);
@@ -193,9 +197,10 @@ void nmt_update_coupling_matrix(nmt_workspace *w,int n_rows,double *new_matrix)
 //Computes binned coupling matrix
 // fl1,fl2 (in) : fields we're correlating
 // coupling_matrix_out (out) : unbinned coupling matrix
-nmt_workspace *nmt_compute_coupling_matrix(nmt_field *fl1,nmt_field *fl2,nmt_binning_scheme *bin,int is_teb)
+nmt_workspace *nmt_compute_coupling_matrix(nmt_field *fl1,nmt_field *fl2,
+					   nmt_binning_scheme *bin,int is_teb,int niter)
 {
-  int l2;
+  int l2,lmax_large;
   nmt_workspace *w;
   flouble *beam_prod;
   int n_cl=fl1->nmaps*fl2->nmaps;
@@ -205,22 +210,23 @@ nmt_workspace *nmt_compute_coupling_matrix(nmt_field *fl1,nmt_field *fl2,nmt_bin
     n_cl=7;
   }
 
-  if(fl1->nside!=fl2->nside)
-    report_error(NMT_ERROR_CONSISTENT_RESO,"Can't correlate fields with different resolutions\n");
-  if(bin->ell_max>=3*fl1->nside)
+  if(!(nmt_diff_curvedsky_info(fl1->cs,fl2->cs)))
+    report_error(NMT_ERROR_CONSISTENT_RESO,"Can't correlate fields with different pixelizations\n");
+  if(bin->ell_max>he_get_lmax(fl1->cs))
     report_error(NMT_ERROR_CONSISTENT_RESO,"Requesting bandpowers for too high a multipole given map resolution\n");
-  w=nmt_workspace_new(fl1->nside,n_cl,bin,is_teb);
-  beam_prod=my_malloc((w->lmax+1)*sizeof(flouble));
-  memcpy(w->mask1,fl1->mask,he_nside2npix(w->nside)*sizeof(flouble));
-  memcpy(w->mask2,fl2->mask,he_nside2npix(w->nside)*sizeof(flouble));
-  he_anafast(&(fl1->mask),&(fl2->mask),0,0,&(w->pcl_masks),fl1->nside,w->lmax,HE_NITER_DEFAULT);
-  for(l2=0;l2<=w->lmax;l2++) {
+  w=nmt_workspace_new(fl1->cs,n_cl,bin,is_teb);
+  lmax_large=he_get_lmax(w->cs);
+  beam_prod=my_malloc((lmax_large+1)*sizeof(flouble));
+  memcpy(w->mask1,fl1->mask,w->cs->npix*sizeof(flouble));
+  memcpy(w->mask2,fl2->mask,w->cs->npix*sizeof(flouble));
+  he_anafast(&(fl1->mask),&(fl2->mask),0,0,&(w->pcl_masks),fl1->cs,lmax_large,niter);
+  for(l2=0;l2<=lmax_large;l2++) {
     w->pcl_masks[l2]*=(2*l2+1.);
     beam_prod[l2]=fl1->beam[l2]*fl2->beam[l2];
   }
 
 #pragma omp parallel default(none)		\
-  shared(w,beam_prod,fl1,fl2)
+  shared(w,beam_prod,fl1,fl2,lmax_large)
   {
     int ll2,ll3;
     double *wigner_00=NULL,*wigner_22=NULL,*wigner_12=NULL,*wigner_02=NULL;
@@ -229,12 +235,12 @@ nmt_workspace *nmt_compute_coupling_matrix(nmt_field *fl1,nmt_field *fl2,nmt_bin
     int pure_any=pe1 || pb1 || pe2 || pb2;
 
     if((w->ncls==1) || (w->ncls==2) || (w->ncls==7))
-      wigner_00=my_malloc(2*(w->lmax+1)*sizeof(double));
+      wigner_00=my_malloc(2*(lmax_large+1)*sizeof(double));
     if((w->ncls==2) || (w->ncls==4) || (w->ncls==7))
-      wigner_22=my_malloc(2*(w->lmax+1)*sizeof(double));
+      wigner_22=my_malloc(2*(lmax_large+1)*sizeof(double));
     if(pure_any) {
-      wigner_12=my_malloc(2*(w->lmax+1)*sizeof(double));
-      wigner_02=my_malloc(2*(w->lmax+1)*sizeof(double));
+      wigner_12=my_malloc(2*(lmax_large+1)*sizeof(double));
+      wigner_02=my_malloc(2*(lmax_large+1)*sizeof(double));
     }
 
     if((w->ncls!=1) && (w->ncls!=7))
@@ -244,18 +250,18 @@ nmt_workspace *nmt_compute_coupling_matrix(nmt_field *fl1,nmt_field *fl2,nmt_bin
     for(ll2=lstart;ll2<=w->lmax;ll2++) {
       for(ll3=lstart;ll3<=w->lmax;ll3++) {
 	int jj,l1,lmin_here,lmax_here;
-	int lmin_here_00=0,lmax_here_00=2*(w->lmax+1)+1;
-	int lmin_here_22=0,lmax_here_22=2*(w->lmax+1)+1;
-	int lmin_here_12=0,lmax_here_12=2*(w->lmax+1)+1;
-	int lmin_here_02=0,lmax_here_02=2*(w->lmax+1)+1;
+	int lmin_here_00=0,lmax_here_00=2*(lmax_large+1)+1;
+	int lmin_here_22=0,lmax_here_22=2*(lmax_large+1)+1;
+	int lmin_here_12=0,lmax_here_12=2*(lmax_large+1)+1;
+	int lmin_here_02=0,lmax_here_02=2*(lmax_large+1)+1;
 
 	if((w->ncls==1) || (w->ncls==2) || (w->ncls==7))
-	  drc3jj(ll2,ll3,0,0,&lmin_here_00,&lmax_here_00,wigner_00,2*(w->lmax+1));
+	  drc3jj(ll2,ll3,0,0,&lmin_here_00,&lmax_here_00,wigner_00,2*(lmax_large+1));
 	if((w->ncls==2) || (w->ncls==4) || (w->ncls==7))
-	  drc3jj(ll2,ll3,2,-2,&lmin_here_22,&lmax_here_22,wigner_22,2*(w->lmax+1));
+	  drc3jj(ll2,ll3,2,-2,&lmin_here_22,&lmax_here_22,wigner_22,2*(lmax_large+1));
 	if(pure_any) {
-	  drc3jj(ll2,ll3,1,-2,&lmin_here_12,&lmax_here_12,wigner_12,2*(w->lmax+1));
-	  drc3jj(ll2,ll3,0,-2,&lmin_here_02,&lmax_here_02,wigner_02,2*(w->lmax+1));
+	  drc3jj(ll2,ll3,1,-2,&lmin_here_12,&lmax_here_12,wigner_12,2*(lmax_large+1));
+	  drc3jj(ll2,ll3,0,-2,&lmin_here_02,&lmax_here_02,wigner_02,2*(lmax_large+1));
 	}
 
 	if(w->ncls!=7) {
@@ -275,7 +281,7 @@ nmt_workspace *nmt_compute_coupling_matrix(nmt_field *fl1,nmt_field *fl2,nmt_bin
 	//All lines regarding lmax are in principle unnecessary, since lmax is just l3+l2
 
 	for(l1=lmin_here;l1<=lmax_here;l1++) {
-	  if(l1<=w->lmax) {
+	  if(l1<=lmax_large) {
 	    flouble wfac,fac_12=0,fac_02=0;
 	    int j02,j12;
 	    int j00=l1-lmin_here_00;
@@ -416,7 +422,8 @@ nmt_workspace *nmt_compute_coupling_matrix(nmt_field *fl1,nmt_field *fl2,nmt_bin
   return w;
 }
 
-void nmt_compute_uncorr_noise_deprojection_bias(nmt_field *fl1,flouble *map_var,flouble **cl_bias)
+void nmt_compute_uncorr_noise_deprojection_bias(nmt_field *fl1,flouble *map_var,flouble **cl_bias,
+						int  niter)
 {
   int ii;
   long ip;
@@ -448,17 +455,17 @@ void nmt_compute_uncorr_noise_deprojection_bias(nmt_field *fl1,flouble *map_var,
       for(itj=0;itj<fl1->ntemp;itj++) {
 	double nij=gsl_matrix_get(fl1->matrix_M,iti,itj);
 	for(im1=0;im1<fl1->nmaps;im1++) {
-	  he_map_product(fl1->nside,fl1->temp[itj][im1],map_var,map_dum[im1]); //sigma^2*f^j
-	  he_map_product(fl1->nside,map_dum[im1],fl1->mask,map_dum[im1]); //v*sigma^2*f^j
-	  he_map_product(fl1->nside,map_dum[im1],fl1->mask,map_dum[im1]); //v^2*sigma^2*f^j
+	  he_map_product(fl1->cs,fl1->temp[itj][im1],map_var,map_dum[im1]); //sigma^2*f^j
+	  he_map_product(fl1->cs,map_dum[im1],fl1->mask,map_dum[im1]); //v*sigma^2*f^j
+	  he_map_product(fl1->cs,map_dum[im1],fl1->mask,map_dum[im1]); //v^2*sigma^2*f^j
 	}
 
 	//Int[v^2*sigma^2*f^j*f^r]
 	for(im1=0;im1<fl1->nmaps;im1++)
-	  mat_prod[iti*fl1->ntemp+itj]+=he_map_dot(fl1->nside,map_dum[im1],fl1->temp[iti][im1]);
-	
+	  mat_prod[iti*fl1->ntemp+itj]+=he_map_dot(fl1->cs,map_dum[im1],fl1->temp[iti][im1]);
+
 	//SHT[v^2*sigma^2*f^j]
-	he_map2alm(fl1->nside,fl1->lmax,1,2*fl1->pol,map_dum,alm_dum,HE_NITER_DEFAULT);
+	he_map2alm(fl1->cs,fl1->lmax,1,2*fl1->pol,map_dum,alm_dum,niter);
 	//Sum_m(SHT[v^2*sigma^2*f^j]*f^i)/(2l+1)
 	he_alm2cl(alm_dum,fl1->a_temp[iti],fl1->pol,fl1->pol,cl_dum,lmax);
 	for(im1=0;im1<nspec;im1++) {
@@ -500,7 +507,7 @@ void nmt_compute_uncorr_noise_deprojection_bias(nmt_field *fl1,flouble *map_var,
 }
 
 void nmt_compute_deprojection_bias(nmt_field *fl1,nmt_field *fl2,
-				   flouble **cl_proposal,flouble **cl_bias)
+				   flouble **cl_proposal,flouble **cl_bias,int niter)
 {
   int ii;
   flouble **cl_dum;
@@ -508,9 +515,9 @@ void nmt_compute_deprojection_bias(nmt_field *fl1,nmt_field *fl2,
   int nspec=fl1->nmaps*fl2->nmaps;
   int lmax=fl1->lmax;
 
-  if(fl1->nside!=fl2->nside)
-    report_error(NMT_ERROR_CONSISTENT_RESO,"Can't correlate fields with different resolutions\n");
-  
+  if(!(nmt_diff_curvedsky_info(fl1->cs,fl2->cs)))
+    report_error(NMT_ERROR_CONSISTENT_RESO,"Can't correlate fields with different pixelizations\n");
+
   cl_dum=my_malloc(nspec*sizeof(flouble *));
   for(ii=0;ii<nspec;ii++) {
     cl_dum[ii]=my_calloc((lmax+1),sizeof(flouble));
@@ -543,9 +550,9 @@ void nmt_compute_deprojection_bias(nmt_field *fl1,nmt_field *fl2,
 	double nij=gsl_matrix_get(fl2->matrix_M,iti,itj);
 	//w*g^j
 	for(im2=0;im2<fl2->nmaps;im2++)
-	  he_map_product(fl2->nside,fl2->temp[itj][im2],fl2->mask,map_2_dum[im2]);
+	  he_map_product(fl2->cs,fl2->temp[itj][im2],fl2->mask,map_2_dum[im2]);
 	//SHT[w*g^j]
-	he_map2alm(fl2->nside,fl2->lmax,1,2*fl2->pol,map_2_dum,alm_2_dum,HE_NITER_DEFAULT);
+	he_map2alm(fl2->cs,fl2->lmax,1,2*fl2->pol,map_2_dum,alm_2_dum,niter);
 	//C^ab*SHT[w*g^j]
 	for(im1=0;im1<fl1->nmaps;im1++) {
 	  he_zero_alm(fl1->lmax,alm_1_dum[im1]);
@@ -553,9 +560,9 @@ void nmt_compute_deprojection_bias(nmt_field *fl1,nmt_field *fl2,
 	    he_alter_alm(lmax,-1.,alm_2_dum[im2],alm_1_dum[im1],cl_proposal[im1*fl2->nmaps+im2],1);
 	}
 	//SHT^-1[C^ab*SHT[w*g^j]]
-	he_alm2map(fl1->nside,fl1->lmax,1,2*fl1->pol,map_1_dum,alm_1_dum);
+	he_alm2map(fl1->cs,fl1->lmax,1,2*fl1->pol,map_1_dum,alm_1_dum);
 	//SHT[v*SHT^-1[C^ab*SHT[w*g^j]]]
-	purify_generic(fl1,fl1->mask,fl1->a_mask,map_1_dum,alm_1_dum);
+	purify_generic(fl1,fl1->mask,fl1->a_mask,map_1_dum,alm_1_dum,niter);
 	//Sum_m(SHT[v*SHT^-1[C^ab*SHT[w*g^j]]]*g^i*)/(2l+1)
 	he_alm2cl(alm_1_dum,fl2->a_temp[iti],fl1->pol,fl2->pol,cl_dum,lmax);
 	for(im1=0;im1<nspec;im1++) {
@@ -575,9 +582,9 @@ void nmt_compute_deprojection_bias(nmt_field *fl1,nmt_field *fl2,
 	double mij=gsl_matrix_get(fl1->matrix_M,iti,itj);
 	//v*f^j
 	for(im1=0;im1<fl1->nmaps;im1++)
-	  he_map_product(fl1->nside,fl1->temp[itj][im1],fl1->mask,map_1_dum[im1]);
+	  he_map_product(fl1->cs,fl1->temp[itj][im1],fl1->mask,map_1_dum[im1]);
 	//SHT[v*f^j]
-	he_map2alm(fl1->nside,fl1->lmax,1,2*fl1->pol,map_1_dum,alm_1_dum,HE_NITER_DEFAULT);
+	he_map2alm(fl1->cs,fl1->lmax,1,2*fl1->pol,map_1_dum,alm_1_dum,niter);
 	//C^abT*SHT[v*f^j]
 	for(im2=0;im2<fl2->nmaps;im2++) {
 	  he_zero_alm(fl2->lmax,alm_2_dum[im2]);
@@ -585,9 +592,9 @@ void nmt_compute_deprojection_bias(nmt_field *fl1,nmt_field *fl2,
 	    he_alter_alm(lmax,-1.,alm_1_dum[im1],alm_2_dum[im2],cl_proposal[im1*fl2->nmaps+im2],1);
 	}
 	//SHT^-1[C^abT*SHT[v*f^j]]
-	he_alm2map(fl2->nside,fl2->lmax,1,2*fl2->pol,map_2_dum,alm_2_dum);
+	he_alm2map(fl2->cs,fl2->lmax,1,2*fl2->pol,map_2_dum,alm_2_dum);
 	//SHT[w*SHT^-1[C^abT*SHT[v*f^j]]]
-	purify_generic(fl2,fl2->mask,fl2->a_mask,map_2_dum,alm_2_dum);
+	purify_generic(fl2,fl2->mask,fl2->a_mask,map_2_dum,alm_2_dum,niter);
 	//Sum_m(f^i*SHT[w*SHT^-1[C^abT*SHT[v*f^j]]]^*)/(2l+1)
 	he_alm2cl(fl1->a_temp[iti],alm_2_dum,fl1->pol,fl2->pol,cl_dum,lmax);
 	for(im1=0;im1<nspec;im1++) {
@@ -605,9 +612,9 @@ void nmt_compute_deprojection_bias(nmt_field *fl1,nmt_field *fl2,
       for(itq=0;itq<fl2->ntemp;itq++) {
 	//w*g^q
 	for(im2=0;im2<fl2->nmaps;im2++)
-	  he_map_product(fl2->nside,fl2->temp[itq][im2],fl2->mask,map_2_dum[im2]);
+	  he_map_product(fl2->cs,fl2->temp[itq][im2],fl2->mask,map_2_dum[im2]);
 	//SHT[w*g^q]
-	he_map2alm(fl2->nside,fl2->lmax,1,2*fl2->pol,map_2_dum,alm_2_dum,HE_NITER_DEFAULT);
+	he_map2alm(fl2->cs,fl2->lmax,1,2*fl2->pol,map_2_dum,alm_2_dum,niter);
 	//C^ab*SHT[w*g^q]
 	for(im1=0;im1<fl1->nmaps;im1++) {
 	  he_zero_alm(fl1->lmax,alm_1_dum[im1]);
@@ -615,12 +622,12 @@ void nmt_compute_deprojection_bias(nmt_field *fl1,nmt_field *fl2,
 	    he_alter_alm(lmax,-1.,alm_2_dum[im2],alm_1_dum[im1],cl_proposal[im1*fl2->nmaps+im2],1);
 	}
 	//SHT^-1[C^ab*SHT[w*g^q]]
-	he_alm2map(fl1->nside,fl1->lmax,1,2*fl1->pol,map_1_dum,alm_1_dum);
+	he_alm2map(fl1->cs,fl1->lmax,1,2*fl1->pol,map_1_dum,alm_1_dum);
 	for(im1=0;im1<fl1->nmaps;im1++) {
 	  //v*SHT^-1[C^ab*SHT[w*g^q]]
-	  he_map_product(fl1->nside,map_1_dum[im1],fl1->mask,map_1_dum[im1]);
+	  he_map_product(fl1->cs,map_1_dum[im1],fl1->mask,map_1_dum[im1]);
 	  //Int[f^jT*v*SHT^-1[C^ab*SHT[w*g^q]]]
-	  mat_prod[itj*fl2->ntemp+itq]+=he_map_dot(fl1->nside,map_1_dum[im1],fl1->temp[itj][im1]);
+	  mat_prod[itj*fl2->ntemp+itq]+=he_map_dot(fl1->cs,map_1_dum[im1],fl1->temp[itj][im1]);
 	}
       }
     }
@@ -715,23 +722,24 @@ void nmt_compute_coupled_cell(nmt_field *fl1,nmt_field *fl2,flouble **cl_out)
 {
   if(fl1->lmax!=fl2->lmax)
     report_error(NMT_ERROR_CONSISTENT_RESO,"Can't correlate fields with different resolutions\n");
-  
+
   he_alm2cl(fl1->alms,fl2->alms,fl1->pol,fl2->pol,cl_out,fl1->lmax);
 }
 
 nmt_workspace *nmt_compute_power_spectra(nmt_field *fl1,nmt_field *fl2,
 					 nmt_binning_scheme *bin,nmt_workspace *w0,
-					 flouble **cl_noise,flouble **cl_proposal,flouble **cl_out)
+					 flouble **cl_noise,flouble **cl_proposal,flouble **cl_out,
+					 int niter)
 {
   int ii;
   flouble **cl_bias,**cl_data;
   nmt_workspace *w;
 
-  if(w0==NULL) 
-    w=nmt_compute_coupling_matrix(fl1,fl2,bin,0);
+  if(w0==NULL)
+    w=nmt_compute_coupling_matrix(fl1,fl2,bin,0,niter);
   else {
     w=w0;
-    if(w->lmax>=3*fl1->nside)
+    if(w->lmax>fl1->lmax)
       report_error(NMT_ERROR_CONSISTENT_RESO,"Workspace does not match map resolution\n");
   }
 
@@ -742,7 +750,7 @@ nmt_workspace *nmt_compute_power_spectra(nmt_field *fl1,nmt_field *fl2,
     cl_data[ii]=my_calloc((fl1->lmax+1),sizeof(flouble));
   }
   nmt_compute_coupled_cell(fl1,fl2,cl_data);
-  nmt_compute_deprojection_bias(fl1,fl2,cl_proposal,cl_bias);
+  nmt_compute_deprojection_bias(fl1,fl2,cl_proposal,cl_bias,niter);
   nmt_decouple_cl_l(w,cl_data,cl_noise,cl_bias,cl_out);
   for(ii=0;ii<w->ncls;ii++) {
     free(cl_bias[ii]);
