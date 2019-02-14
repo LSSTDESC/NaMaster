@@ -14,15 +14,6 @@ static void purify_generic(nmt_field *fl,flouble *mask,fcomplex **walm0,
   }
 }
 
-static flouble weigh_l(int l)
-{
-#ifdef _WEIGH_L2
-  return (flouble)(l*(l+1))/(2*M_PI);
-#else //_WEIGH_L2
-  return 1.;
-#endif //_WEIGH_L2
-}
-
 static nmt_workspace *nmt_workspace_new(nmt_curvedsky_info *cs,int ncls,
 					nmt_binning_scheme *bin,int is_teb)
 {
@@ -47,11 +38,14 @@ static nmt_workspace *nmt_workspace_new(nmt_curvedsky_info *cs,int ncls,
   memcpy(w->bin->nell_list,bin->nell_list,w->bin->n_bands*sizeof(int));
   w->bin->ell_list=my_malloc(w->bin->n_bands*sizeof(int *));
   w->bin->w_list=my_malloc(w->bin->n_bands*sizeof(flouble *));
+  w->bin->f_ell=my_malloc(w->bin->n_bands*sizeof(flouble *));
   for(ii=0;ii<w->bin->n_bands;ii++) {
     w->bin->ell_list[ii]=my_malloc(w->bin->nell_list[ii]*sizeof(int));
     w->bin->w_list[ii]=my_malloc(w->bin->nell_list[ii]*sizeof(flouble));
+    w->bin->f_ell[ii]=my_malloc(w->bin->nell_list[ii]*sizeof(flouble));
     memcpy(w->bin->ell_list[ii],bin->ell_list[ii],w->bin->nell_list[ii]*sizeof(int));
     memcpy(w->bin->w_list[ii],bin->w_list[ii],w->bin->nell_list[ii]*sizeof(flouble));
+    memcpy(w->bin->f_ell[ii],bin->f_ell[ii],w->bin->nell_list[ii]*sizeof(flouble));
   }
 
   w->coupling_matrix_binned=gsl_matrix_alloc(w->ncls*w->bin->n_bands,w->ncls*w->bin->n_bands);
@@ -108,12 +102,15 @@ nmt_workspace *nmt_workspace_read(char *fname)
   w->bin->nell_list=my_malloc(w->bin->n_bands*sizeof(int));
   w->bin->ell_list=my_malloc(w->bin->n_bands*sizeof(int *));
   w->bin->w_list=my_malloc(w->bin->n_bands*sizeof(flouble *));
+  w->bin->f_ell=my_malloc(w->bin->n_bands*sizeof(flouble *));
   my_fread(w->bin->nell_list,sizeof(int),w->bin->n_bands,fi);
   for(ii=0;ii<w->bin->n_bands;ii++) {
     w->bin->ell_list[ii]=my_malloc(w->bin->nell_list[ii]*sizeof(int));
     w->bin->w_list[ii]=my_malloc(w->bin->nell_list[ii]*sizeof(flouble));
+    w->bin->f_ell[ii]=my_malloc(w->bin->nell_list[ii]*sizeof(flouble));
     my_fread(w->bin->ell_list[ii],sizeof(int),w->bin->nell_list[ii],fi);
     my_fread(w->bin->w_list[ii],sizeof(flouble),w->bin->nell_list[ii],fi);
+    my_fread(w->bin->f_ell[ii],sizeof(flouble),w->bin->nell_list[ii],fi);
   }
 
   w->coupling_matrix_binned=gsl_matrix_alloc(w->ncls*w->bin->n_bands,w->ncls*w->bin->n_bands);
@@ -146,6 +143,7 @@ void nmt_workspace_write(nmt_workspace *w,char *fname)
   for(ii=0;ii<w->bin->n_bands;ii++) {
     my_fwrite(w->bin->ell_list[ii],sizeof(int),w->bin->nell_list[ii],fo);
     my_fwrite(w->bin->w_list[ii],sizeof(flouble),w->bin->nell_list[ii],fo);
+    my_fwrite(w->bin->f_ell[ii],sizeof(flouble),w->bin->nell_list[ii],fo);
   }
 
   gsl_matrix_fwrite(fo,w->coupling_matrix_binned);
@@ -168,7 +166,7 @@ static void bin_coupling_matrix(nmt_workspace *w)
 	    for(i3=0;i3<w->bin->nell_list[ib3];i3++) {
 	      l3=w->bin->ell_list[ib3][i3];
 	      coupling_b+=w->coupling_matrix_unbinned[w->ncls*l2+icl_a][w->ncls*l3+icl_b]*
-		w->bin->w_list[ib2][i2]*weigh_l(l2)/weigh_l(l3);
+		w->bin->w_list[ib2][i2]*w->bin->f_ell[ib2][i2]/w->bin->f_ell[ib3][i3];
 	    }
 	  }
 	  gsl_matrix_set(w->coupling_matrix_binned,w->ncls*ib2+icl_a,w->ncls*ib3+icl_b,coupling_b);
@@ -702,7 +700,7 @@ void nmt_decouple_cl_l(nmt_workspace *w,flouble **cl_in,flouble **cl_noise_in,
       double dl_b=0;
       for(i2=0;i2<w->bin->nell_list[ib2];i2++) {
 	l2=w->bin->ell_list[ib2][i2];
-	dl_b+=(cl_in[icl][l2]-cl_noise_in[icl][l2]-cl_bias[icl][l2])*weigh_l(l2)*w->bin->w_list[ib2][i2];
+	dl_b+=(cl_in[icl][l2]-cl_noise_in[icl][l2]-cl_bias[icl][l2])*w->bin->f_ell[ib2][i2]*w->bin->w_list[ib2][i2];
       }
       gsl_vector_set(dl_map_bad_b,w->ncls*ib2+icl,dl_b);
     }

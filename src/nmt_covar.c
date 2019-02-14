@@ -9,11 +9,14 @@ static nmt_binning_scheme *nmt_bins_copy(nmt_binning_scheme *b_or)
   memcpy(b->nell_list,b_or->nell_list,b->n_bands*sizeof(int));
   b->ell_list=my_malloc(b->n_bands*sizeof(int *));
   b->w_list=my_malloc(b->n_bands*sizeof(flouble *));
+  b->f_ell=my_malloc(b->n_bands*sizeof(flouble *));
   for(ii=0;ii<b->n_bands;ii++) {
     b->ell_list[ii]=my_malloc(b->nell_list[ii]*sizeof(int));
     b->w_list[ii]=my_malloc(b->nell_list[ii]*sizeof(flouble));
+    b->f_ell[ii]=my_malloc(b->nell_list[ii]*sizeof(flouble));
     memcpy(b->ell_list[ii],b_or->ell_list[ii],b->nell_list[ii]*sizeof(int));
     memcpy(b->w_list[ii],b_or->w_list[ii],b->nell_list[ii]*sizeof(flouble));
+    memcpy(b->f_ell[ii],b_or->f_ell[ii],b->nell_list[ii]*sizeof(flouble));
   }
   
   return b;
@@ -219,6 +222,7 @@ void nmt_covar_workspace_write(nmt_covar_workspace *cw,char *fname)
   for(ii=0;ii<cw->bin_a->n_bands;ii++) {
     my_fwrite(cw->bin_a->ell_list[ii],sizeof(int),cw->bin_a->nell_list[ii],fo);
     my_fwrite(cw->bin_a->w_list[ii],sizeof(flouble),cw->bin_a->nell_list[ii],fo);
+    my_fwrite(cw->bin_a->f_ell[ii],sizeof(flouble),cw->bin_a->nell_list[ii],fo);
   }
 
   my_fwrite(&(cw->bin_b->n_bands),sizeof(int),1,fo);
@@ -226,6 +230,7 @@ void nmt_covar_workspace_write(nmt_covar_workspace *cw,char *fname)
   for(ii=0;ii<cw->bin_b->n_bands;ii++) {
     my_fwrite(cw->bin_b->ell_list[ii],sizeof(int),cw->bin_b->nell_list[ii],fo);
     my_fwrite(cw->bin_b->w_list[ii],sizeof(flouble),cw->bin_b->nell_list[ii],fo);
+    my_fwrite(cw->bin_b->f_ell[ii],sizeof(flouble),cw->bin_b->nell_list[ii],fo);
   }
 
   gsl_matrix_fwrite(fo,cw->coupling_binned_a);
@@ -265,12 +270,15 @@ nmt_covar_workspace *nmt_covar_workspace_read(char *fname)
   cw->bin_a->nell_list=my_malloc(cw->bin_a->n_bands*sizeof(int));
   cw->bin_a->ell_list=my_malloc(cw->bin_a->n_bands*sizeof(int *));
   cw->bin_a->w_list=my_malloc(cw->bin_a->n_bands*sizeof(flouble *));
+  cw->bin_a->f_ell=my_malloc(cw->bin_a->n_bands*sizeof(flouble *));
   my_fread(cw->bin_a->nell_list,sizeof(int),cw->bin_a->n_bands,fi);
   for(ii=0;ii<cw->bin_a->n_bands;ii++) {
     cw->bin_a->ell_list[ii]=my_malloc(cw->bin_a->nell_list[ii]*sizeof(int));
     cw->bin_a->w_list[ii]=my_malloc(cw->bin_a->nell_list[ii]*sizeof(flouble));
+    cw->bin_a->f_ell[ii]=my_malloc(cw->bin_a->nell_list[ii]*sizeof(flouble));
     my_fread(cw->bin_a->ell_list[ii],sizeof(int),cw->bin_a->nell_list[ii],fi);
     my_fread(cw->bin_a->w_list[ii],sizeof(flouble),cw->bin_a->nell_list[ii],fi);
+    my_fread(cw->bin_a->f_ell[ii],sizeof(flouble),cw->bin_a->nell_list[ii],fi);
   }
 
   cw->bin_b=my_malloc(sizeof(nmt_binning_scheme));
@@ -278,12 +286,15 @@ nmt_covar_workspace *nmt_covar_workspace_read(char *fname)
   cw->bin_b->nell_list=my_malloc(cw->bin_b->n_bands*sizeof(int));
   cw->bin_b->ell_list=my_malloc(cw->bin_b->n_bands*sizeof(int *));
   cw->bin_b->w_list=my_malloc(cw->bin_b->n_bands*sizeof(flouble *));
+  cw->bin_b->f_ell=my_malloc(cw->bin_b->n_bands*sizeof(flouble *));
   my_fread(cw->bin_b->nell_list,sizeof(int),cw->bin_b->n_bands,fi);
   for(ii=0;ii<cw->bin_b->n_bands;ii++) {
     cw->bin_b->ell_list[ii]=my_malloc(cw->bin_b->nell_list[ii]*sizeof(int));
     cw->bin_b->w_list[ii]=my_malloc(cw->bin_b->nell_list[ii]*sizeof(flouble));
+    cw->bin_b->f_ell[ii]=my_malloc(cw->bin_b->nell_list[ii]*sizeof(flouble));
     my_fread(cw->bin_b->ell_list[ii],sizeof(int),cw->bin_b->nell_list[ii],fi);
     my_fread(cw->bin_b->w_list[ii],sizeof(flouble),cw->bin_b->nell_list[ii],fi);
+    my_fread(cw->bin_b->f_ell[ii],sizeof(flouble),cw->bin_b->nell_list[ii],fi);
   }
 
   cw->coupling_binned_a=gsl_matrix_alloc(cw->ncls_a*cw->bin_a->n_bands,cw->ncls_a*cw->bin_a->n_bands);

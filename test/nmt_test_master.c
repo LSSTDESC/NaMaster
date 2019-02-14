@@ -124,7 +124,7 @@ CTEST(nmt,master_teb_full) {
   double **mps2=my_malloc(2*sizeof(double *));
   double *msk=he_read_map("test/benchmarks/msk.fits",cs,0);
   long lmax=he_get_lmax(cs);
-  nmt_binning_scheme *bin=nmt_bins_constant(16,lmax);
+  nmt_binning_scheme *bin=nmt_bins_constant(16,lmax,0);
   mps0[0]=he_read_map("test/benchmarks/mps.fits",cs,0);
   mps2[0]=he_read_map("test/benchmarks/mps.fits",cs,1);
   mps2[1]=he_read_map("test/benchmarks/mps.fits",cs,2);
@@ -218,7 +218,7 @@ CTEST(nmt,master_22_full) {
   double **tmp2=my_malloc(2*sizeof(double *));
   double *msk=he_read_map("test/benchmarks/msk.fits",cs,0);
   long lmax=he_get_lmax(cs);
-  nmt_binning_scheme *bin=nmt_bins_constant(16,lmax);
+  nmt_binning_scheme *bin=nmt_bins_constant(16,lmax,0);
   mps2[0]=he_read_map("test/benchmarks/mps.fits",cs,1);
   mps2[1]=he_read_map("test/benchmarks/mps.fits",cs,2);
   tmp2[0]=he_read_map("test/benchmarks/tmp.fits",cs,1);
@@ -332,7 +332,7 @@ CTEST(nmt,master_02_full) {
   double **tmp2=my_malloc(2*sizeof(double *));
   double *msk=he_read_map("test/benchmarks/msk.fits",cs,0);
   long lmax=he_get_lmax(cs);
-  nmt_binning_scheme *bin=nmt_bins_constant(16,lmax);
+  nmt_binning_scheme *bin=nmt_bins_constant(16,lmax,0);
   mps0[0]=he_read_map("test/benchmarks/mps.fits",cs,0);
   mps2[0]=he_read_map("test/benchmarks/mps.fits",cs,1);
   mps2[1]=he_read_map("test/benchmarks/mps.fits",cs,2);
@@ -458,7 +458,7 @@ CTEST(nmt,master_00_full) {
   double **tmp=my_malloc(sizeof(double *));
   double *msk=he_read_map("test/benchmarks/msk.fits",cs,0);
   long lmax=he_get_lmax(cs);
-  nmt_binning_scheme *bin=nmt_bins_constant(16,lmax);
+  nmt_binning_scheme *bin=nmt_bins_constant(16,lmax,0);
   tmp[0]=he_read_map("test/benchmarks/tmp.fits",cs,0);
   
   //Init power spectra
@@ -549,13 +549,13 @@ CTEST(nmt,master_errors) {
   ASSERT_NOT_EQUAL(0,nmt_exception_status);
   ASSERT_NULL(w);
   //Wrong bins
-  bin=nmt_bins_constant(20,6*cs->n_eq-1);
+  bin=nmt_bins_constant(20,6*cs->n_eq-1,0);
   try { w=nmt_compute_coupling_matrix(f0,f0,bin,0,HE_NITER_DEFAULT); }
   ASSERT_NOT_EQUAL(0,nmt_exception_status);
   ASSERT_NULL(w);
   nmt_bins_free(bin);
   //Mismatching resolutions
-  bin=nmt_bins_constant(20,lmax);
+  bin=nmt_bins_constant(20,lmax,0);
   try { w=nmt_compute_coupling_matrix(f0,f0b,bin,0,HE_NITER_DEFAULT); }
   ASSERT_NOT_EQUAL(0,nmt_exception_status);
   ASSERT_NULL(w);
@@ -570,7 +570,7 @@ CTEST(nmt,master_errors) {
   //nmt_compute_power_spectra with mis-matching input workspace
   w=nmt_compute_coupling_matrix(f0,f0,bin,0,HE_NITER_DEFAULT);
   nmt_bins_free(bin);
-  bin=nmt_bins_constant(20,3*cs->n_eq/2-1);
+  bin=nmt_bins_constant(20,3*cs->n_eq/2-1,0);
   try { wb=nmt_compute_power_spectra(f0b,f0b,bin,w,NULL,NULL,NULL,HE_NITER_DEFAULT); }
   ASSERT_NOT_EQUAL(0,nmt_exception_status);
   ASSERT_NULL(wb);
