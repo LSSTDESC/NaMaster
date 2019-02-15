@@ -3,6 +3,46 @@
 #include "utils.h"
 #include "nmt_test_utils.h"
 
+CTEST(nmt,covar_f_ell) {
+  int ii;
+  nmt_workspace *w=nmt_workspace_read("test/benchmarks/bm_nc_np_w00.dat");
+  nmt_bins_free(w->bin);
+  w->bin=nmt_bins_constant(16,191,2);
+  nmt_covar_workspace *cw=nmt_covar_workspace_init(w,w,HE_NITER_DEFAULT);
+  nmt_workspace_free(w);
+
+  //Init power spectra
+  int ncls=1;
+  long lmax=he_get_lmax(cw->cs);
+  double *cell=my_malloc((lmax+1)*sizeof(double));
+  //Read signal and noise power spectrum
+  FILE *fi=my_fopen("test/benchmarks/cls_lss.txt","r");
+  for(ii=0;ii<=lmax;ii++) {
+    double dum,cl,nl;
+    int stat=fscanf(fi,"%lf %lf %lf %lf %lf %lf %lf %lf %lf",&dum,
+		    &cl,&dum,&dum,&dum,&nl,&dum,&dum,&dum);
+    ASSERT_EQUAL(stat,9);
+    cell[ii]=cl+nl;
+    cell[ii]*=2*M_PI/(ii*(ii+1.));
+  }
+  fclose(fi);
+
+  double *covar=my_malloc(cw->bin_a->n_bands*cw->bin_b->n_bands*sizeof(double));
+  nmt_compute_gaussian_covariance(cw,cell,cell,cell,cell,covar);
+
+  fi=my_fopen("test/benchmarks/bm_nc_np_cov.txt","r");
+  for(ii=0;ii<cw->bin_a->n_bands*cw->bin_b->n_bands;ii++) {
+    double cov;
+    int stat=fscanf(fi,"%lf",&cov);
+    ASSERT_DBL_NEAR_TOL(cov,covar[ii],fabs(fmax(cov,covar[ii]))*1E-3);
+  }
+  fclose(fi);
+
+  free(covar);
+  free(cell);
+  nmt_covar_workspace_free(cw);
+}
+
 CTEST(nmt,covar) {
   int ii;
   nmt_workspace *w=nmt_workspace_read("test/benchmarks/bm_nc_np_w00.dat");

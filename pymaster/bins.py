@@ -14,7 +14,7 @@ class NmtBin(object):
     :param int lmax: integer value corresponding to the maximum multipole used by these bandpowers. If None, it will be set to 3*nside-1. In any case the actual maximum multipole will be chosen as the minimum of lmax, 3*nside-1 and the maximum element of ells (e.g. if you are using CAR maps and don't care about nside, you can pass whatever lmax you want and e.g. nside=lmax).
     """
 
-    def __init__(self, nside, bpws=None, ells=None, weights=None, nlb=None, lmax=None):
+    def __init__(self, nside, bpws=None, ells=None, weights=None, nlb=None, lmax=None, is_Dell=False, f_ell=None):
         self.bin = None
 
         if (bpws is None) and (ells is None) and (weights is None) and (nlb is None):
@@ -26,15 +26,24 @@ class NmtBin(object):
             lmax_in = lmax
 
         if nlb is None:
-            if (bpws is None) and (ells is None) and (weights is None):
+            if (bpws is None) or (ells is None) or (weights is None):
                 raise KeyError("Must provide bpws, ells and weights")
+            if f_ell is None:
+                if is_Dell:
+                    f_ell = ells * (ells + 1.) / (2 * np.pi)
+                else:
+                    f_ell = np.ones(len(ells))
             ell_max = min(3 * nside - 1, lmax_in)
             self.bin = lib.bins_create_py(
-                bpws.astype(np.int32), ells.astype(np.int32), weights, int(ell_max)
+                bpws.astype(np.int32), ells.astype(np.int32), weights, f_ell, int(ell_max)
             )
         else:
             ell_max = min(3 * nside - 1, lmax_in)
-            self.bin = lib.bins_constant(nlb, ell_max)
+            if is_Dell:
+                l2 = 1
+            else:
+                l2 = 0
+            self.bin = lib.bins_constant(nlb, ell_max, l2)
         self.lmax = ell_max
 
     def __del__(self):

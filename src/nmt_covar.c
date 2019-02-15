@@ -167,7 +167,8 @@ void  nmt_compute_gaussian_covariance(nmt_covar_workspace *cw,
 	      double fac_1221=0.5*(cla1b2[la]*cla2b1[lb]+cla1b2[lb]*cla2b1[la]);
 
 	      cbinned+=(xi_1122*fac_1122+xi_1221*fac_1221)*
-		cw->bin_a->w_list[iba][ila]*cw->bin_b->w_list[ibb][ilb];
+		cw->bin_a->w_list[iba][ila]*cw->bin_a->f_ell[iba][ila]*
+		cw->bin_b->w_list[ibb][ilb]*cw->bin_b->f_ell[ibb][ilb];
 	    }
 	  }
 	  gsl_matrix_set(covar_binned,cw->ncls_a*iba+icl_a,cw->ncls_b*ibb+icl_b,cbinned);

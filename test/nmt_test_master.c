@@ -530,6 +530,74 @@ CTEST(nmt,master_00_full) {
   free(cs);
 }
 
+CTEST(nmt,master_00_f_ell) {
+  //Generate fields and compute coupling matrix
+  int ii;
+  long ipix;
+  nmt_field *f0;
+  nmt_workspace *w00;
+  nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(1,1,-1,-1,-1,-1,-1,-1);
+  double *mps=he_read_map("test/benchmarks/mps.fits",cs,0);
+  double *msk=he_read_map("test/benchmarks/msk.fits",cs,0);
+  long lmax=he_get_lmax(cs);
+  nmt_binning_scheme *bin=nmt_bins_constant(16,lmax,1);
+  double *ell_eff=my_malloc(bin->n_bands*sizeof(double));
+  nmt_ell_eff(bin,ell_eff);
+  
+  //Init power spectra
+  int ncls=1;
+  double **cell=my_malloc(ncls*sizeof(double *));
+  double **cell_out=my_malloc(ncls*sizeof(double *));
+  double **cell_noise=my_malloc(ncls*sizeof(double *));
+  double **cell_deproj=my_malloc(ncls*sizeof(double *));
+  for(ii=0;ii<ncls;ii++) {
+    cell[ii]=my_malloc((lmax+1)*sizeof(double));
+    cell_noise[ii]=my_calloc((lmax+1),sizeof(double));
+    cell_deproj[ii]=my_calloc((lmax+1),sizeof(double));
+    cell_out[ii]=my_malloc(bin->n_bands*sizeof(double));
+  }
+  //Read signal and noise power spectrum
+  FILE *fi=my_fopen("test/benchmarks/cls_lss.txt","r");
+  for(ii=0;ii<=lmax;ii++) {
+    int jj;
+    double dum;
+    int stat=fscanf(fi,"%lf %lf %lf %lf %lf %lf %lf %lf %lf",&dum,
+  		    &dum,&dum,&dum,&dum,
+  		    &(cell_noise[0][ii]),&dum,&dum,&dum);
+    ASSERT_EQUAL(stat,9);
+  }
+  fclose(fi);
+  
+  //No contaminants
+  f0=nmt_field_alloc_sph(cs,msk,0,&mps,0,NULL,NULL,0,0,3,1E-10,HE_NITER_DEFAULT);
+  w00=nmt_compute_coupling_matrix(f0,f0,bin,0,HE_NITER_DEFAULT);
+  nmt_compute_coupled_cell(f0,f0,cell);
+  nmt_decouple_cl_l(w00,cell,cell_noise,cell_deproj,cell_out);
+  for(ii=0;ii<bin->n_bands;ii++) { //Rough correction for ell-dependent prefactor
+    double ell=ell_eff[ii]+1;
+    cell_out[0][ii]*=(2*M_PI)/(ell*(ell+1));
+  }
+  for(ii=0;ii<ncls;ii++)
+    test_compare_arrays(bin->n_bands,cell_out[ii],ncls,ii,"test/benchmarks/bm_nc_np_c00.txt",1E-1);
+  nmt_workspace_free(w00);
+  nmt_field_free(f0);
+
+  //Free up power spectra
+  for(ii=0;ii<ncls;ii++) {
+    free(cell[ii]);
+    free(cell_noise[ii]);
+    free(cell_deproj[ii]);
+    free(cell_out[ii]);
+  }
+  free(cell); free(cell_noise); free(cell_deproj); free(cell_out);
+
+  nmt_bins_free(bin);
+  free(mps);
+  free(msk);
+  free(cs);
+  free(ell_eff);
+}
+
 CTEST(nmt,master_errors) {
   nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(1,1,-1,-1,-1,-1,-1,-1);
   double *mpt=he_read_map("test/benchmarks/mps.fits",cs,0);
