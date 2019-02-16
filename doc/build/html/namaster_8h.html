@@ -113,6 +113,9 @@ Data Structures</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structnmt__field__flat.html">nmt_field_flat</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Flat-sky field.  <a href="structnmt__field__flat.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structnmt__curvedsky__info.html">nmt_curvedsky_info</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Curved-sky information.  <a href="structnmt__curvedsky__info.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structnmt__field.html">nmt_field</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Full-sky field.  <a href="structnmt__field.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -214,21 +217,33 @@ Functions</h2></td></tr>
 <tr class="memitem:a20a9ad884a0463fd2f6df1b1586aac30"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namaster_8h.html#a20a9ad884a0463fd2f6df1b1586aac30">nmt_purify_flat</a> (<a class="el" href="structnmt__field__flat.html">nmt_field_flat</a> *fl, <a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> *mask, <a class="el" href="namaster_8h.html#a8f59ea55fc4d564945b2e8712a6ef482">fcomplex</a> **walm0, <a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> **maps_in, <a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> **maps_out, <a class="el" href="namaster_8h.html#a8f59ea55fc4d564945b2e8712a6ef482">fcomplex</a> **alms)</td></tr>
 <tr class="memdesc:a20a9ad884a0463fd2f6df1b1586aac30"><td class="mdescLeft">&#160;</td><td class="mdescRight">E- or B-mode purifies a given pair of flat-sky (Q,U) maps.  <a href="#a20a9ad884a0463fd2f6df1b1586aac30">More...</a><br /></td></tr>
 <tr class="separator:a20a9ad884a0463fd2f6df1b1586aac30"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a46c5a35c9137afa016b17a6df474185c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structnmt__curvedsky__info.html">nmt_curvedsky_info</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namaster_8h.html#a46c5a35c9137afa016b17a6df474185c">nmt_curvedsky_info_copy</a> (<a class="el" href="structnmt__curvedsky__info.html">nmt_curvedsky_info</a> *cs_in)</td></tr>
+<tr class="memdesc:a46c5a35c9137afa016b17a6df474185c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Makes a copy of a <a class="el" href="structnmt__curvedsky__info.html" title="Curved-sky information. ">nmt_curvedsky_info</a> structure.  <a href="#a46c5a35c9137afa016b17a6df474185c">More...</a><br /></td></tr>
+<tr class="separator:a46c5a35c9137afa016b17a6df474185c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac67e3dda581b552e4e9c945b42c187fd"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structnmt__curvedsky__info.html">nmt_curvedsky_info</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namaster_8h.html#ac67e3dda581b552e4e9c945b42c187fd">nmt_curvedsky_info_alloc</a> (int is_healpix, long nside, int nx0, int ny0, <a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> Dtheta, <a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> Dphi, <a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> phi0, <a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> theta0)</td></tr>
+<tr class="memdesc:ac67e3dda581b552e4e9c945b42c187fd"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="structnmt__curvedsky__info.html" title="Curved-sky information. ">nmt_curvedsky_info</a> creator  <a href="#ac67e3dda581b552e4e9c945b42c187fd">More...</a><br /></td></tr>
+<tr class="separator:ac67e3dda581b552e4e9c945b42c187fd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa604b94c7dcd98040c8cad98db5e8e87"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namaster_8h.html#aa604b94c7dcd98040c8cad98db5e8e87">nmt_diff_curvedsky_info</a> (<a class="el" href="structnmt__curvedsky__info.html">nmt_curvedsky_info</a> *c1, <a class="el" href="structnmt__curvedsky__info.html">nmt_curvedsky_info</a> *c2)</td></tr>
+<tr class="memdesc:aa604b94c7dcd98040c8cad98db5e8e87"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compare two <a class="el" href="structnmt__curvedsky__info.html" title="Curved-sky information. ">nmt_curvedsky_info</a> structs.  <a href="#aa604b94c7dcd98040c8cad98db5e8e87">More...</a><br /></td></tr>
+<tr class="separator:aa604b94c7dcd98040c8cad98db5e8e87"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7e478d292e9d6ebd73ae461e35c7a565"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namaster_8h.html#a7e478d292e9d6ebd73ae461e35c7a565">nmt_extend_CAR_map</a> (<a class="el" href="structnmt__curvedsky__info.html">nmt_curvedsky_info</a> *cs, <a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> *map_in)</td></tr>
+<tr class="memdesc:a7e478d292e9d6ebd73ae461e35c7a565"><td class="mdescLeft">&#160;</td><td class="mdescRight">Extend CAR map to cover the full circle.  <a href="#a7e478d292e9d6ebd73ae461e35c7a565">More...</a><br /></td></tr>
+<tr class="separator:a7e478d292e9d6ebd73ae461e35c7a565"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a41926995999fb081de99f07473559af8"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namaster_8h.html#a41926995999fb081de99f07473559af8">nmt_field_free</a> (<a class="el" href="structnmt__field.html">nmt_field</a> *fl)</td></tr>
 <tr class="memdesc:a41926995999fb081de99f07473559af8"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="structnmt__field.html" title="Full-sky field. ">nmt_field</a> destructor.  <a href="#a41926995999fb081de99f07473559af8">More...</a><br /></td></tr>
 <tr class="separator:a41926995999fb081de99f07473559af8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6ed3884b9f62ec6023b7f13d41994ae7"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structnmt__field.html">nmt_field</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namaster_8h.html#a6ed3884b9f62ec6023b7f13d41994ae7">nmt_field_alloc_sph</a> (long nside, <a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> *mask, int pol, <a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> **maps, int ntemp, <a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> ***temp, <a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> *beam, int pure_e, int pure_b, int n_iter_mask_purify, double tol_pinv)</td></tr>
-<tr class="memdesc:a6ed3884b9f62ec6023b7f13d41994ae7"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="structnmt__field.html" title="Full-sky field. ">nmt_field</a> constructor  <a href="#a6ed3884b9f62ec6023b7f13d41994ae7">More...</a><br /></td></tr>
-<tr class="separator:a6ed3884b9f62ec6023b7f13d41994ae7"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0dd8d3092cb952e87c313994c526fb83"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structnmt__field.html">nmt_field</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namaster_8h.html#a0dd8d3092cb952e87c313994c526fb83">nmt_field_read</a> (char *fname_mask, char *fname_maps, char *fname_temp, char *fname_beam, int pol, int pure_e, int pure_b, int n_iter_mask_purify, double tol_pinv)</td></tr>
-<tr class="memdesc:a0dd8d3092cb952e87c313994c526fb83"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="structnmt__field.html" title="Full-sky field. ">nmt_field</a> constructor from file.  <a href="#a0dd8d3092cb952e87c313994c526fb83">More...</a><br /></td></tr>
-<tr class="separator:a0dd8d3092cb952e87c313994c526fb83"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5d72deec9d6976d1a170fe4a81f6a4d8"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> **&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namaster_8h.html#a5d72deec9d6976d1a170fe4a81f6a4d8">nmt_synfast_sph</a> (int nside, int nfields, int *spin_arr, int lmax, <a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> **cells, <a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> **beam_fields, int seed)</td></tr>
-<tr class="memdesc:a5d72deec9d6976d1a170fe4a81f6a4d8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gaussian realizations of full-sky fields.  <a href="#a5d72deec9d6976d1a170fe4a81f6a4d8">More...</a><br /></td></tr>
-<tr class="separator:a5d72deec9d6976d1a170fe4a81f6a4d8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3a4c97f815164c2243e679c74bddc317"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namaster_8h.html#a3a4c97f815164c2243e679c74bddc317">nmt_purify</a> (<a class="el" href="structnmt__field.html">nmt_field</a> *fl, <a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> *mask, <a class="el" href="namaster_8h.html#a8f59ea55fc4d564945b2e8712a6ef482">fcomplex</a> **walm0, <a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> **maps_in, <a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> **maps_out, <a class="el" href="namaster_8h.html#a8f59ea55fc4d564945b2e8712a6ef482">fcomplex</a> **alms)</td></tr>
-<tr class="memdesc:a3a4c97f815164c2243e679c74bddc317"><td class="mdescLeft">&#160;</td><td class="mdescRight">E- or B-mode purifies a given pair of full-sky (Q,U) maps.  <a href="#a3a4c97f815164c2243e679c74bddc317">More...</a><br /></td></tr>
-<tr class="separator:a3a4c97f815164c2243e679c74bddc317"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae00e74027538fc3966a0ec501afabb90"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structnmt__field.html">nmt_field</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namaster_8h.html#ae00e74027538fc3966a0ec501afabb90">nmt_field_alloc_sph</a> (<a class="el" href="structnmt__curvedsky__info.html">nmt_curvedsky_info</a> *cs, <a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> *mask, int pol, <a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> **maps, int ntemp, <a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> ***temp, <a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> *beam, int pure_e, int pure_b, int n_iter_mask_purify, double tol_pinv, int niter)</td></tr>
+<tr class="memdesc:ae00e74027538fc3966a0ec501afabb90"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="structnmt__field.html" title="Full-sky field. ">nmt_field</a> constructor  <a href="#ae00e74027538fc3966a0ec501afabb90">More...</a><br /></td></tr>
+<tr class="separator:ae00e74027538fc3966a0ec501afabb90"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a047fefbb9c98299ba573ec97fbdc6b5d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structnmt__field.html">nmt_field</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namaster_8h.html#a047fefbb9c98299ba573ec97fbdc6b5d">nmt_field_read</a> (int is_healpix, char *fname_mask, char *fname_maps, char *fname_temp, char *fname_beam, int pol, int pure_e, int pure_b, int n_iter_mask_purify, double tol_pinv, int niter)</td></tr>
+<tr class="memdesc:a047fefbb9c98299ba573ec97fbdc6b5d"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="structnmt__field.html" title="Full-sky field. ">nmt_field</a> constructor from file.  <a href="#a047fefbb9c98299ba573ec97fbdc6b5d">More...</a><br /></td></tr>
+<tr class="separator:a047fefbb9c98299ba573ec97fbdc6b5d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0301d78ad2c129ee60585250bc5b1a24"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> **&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namaster_8h.html#a0301d78ad2c129ee60585250bc5b1a24">nmt_synfast_sph</a> (<a class="el" href="structnmt__curvedsky__info.html">nmt_curvedsky_info</a> *cs, int nfields, int *spin_arr, int lmax, <a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> **cells, <a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> **beam_fields, int seed)</td></tr>
+<tr class="memdesc:a0301d78ad2c129ee60585250bc5b1a24"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gaussian realizations of full-sky fields.  <a href="#a0301d78ad2c129ee60585250bc5b1a24">More...</a><br /></td></tr>
+<tr class="separator:a0301d78ad2c129ee60585250bc5b1a24"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a78f00fd7809b204c7b77cf92a6f2ea3a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namaster_8h.html#a78f00fd7809b204c7b77cf92a6f2ea3a">nmt_purify</a> (<a class="el" href="structnmt__field.html">nmt_field</a> *fl, <a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> *mask, <a class="el" href="namaster_8h.html#a8f59ea55fc4d564945b2e8712a6ef482">fcomplex</a> **walm0, <a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> **maps_in, <a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> **maps_out, <a class="el" href="namaster_8h.html#a8f59ea55fc4d564945b2e8712a6ef482">fcomplex</a> **alms, int niter)</td></tr>
+<tr class="memdesc:a78f00fd7809b204c7b77cf92a6f2ea3a"><td class="mdescLeft">&#160;</td><td class="mdescRight">E- or B-mode purifies a given pair of full-sky (Q,U) maps.  <a href="#a78f00fd7809b204c7b77cf92a6f2ea3a">More...</a><br /></td></tr>
+<tr class="separator:a78f00fd7809b204c7b77cf92a6f2ea3a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae7f66ad1bdf24d4eb26fa8c8b0f7d148"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namaster_8h.html#ae7f66ad1bdf24d4eb26fa8c8b0f7d148">nmt_apodize_mask</a> (long nside, <a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> *mask_in, <a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> *mask_out, <a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> aposize, char *apotype)</td></tr>
 <tr class="memdesc:ae7f66ad1bdf24d4eb26fa8c8b0f7d148"><td class="mdescLeft">&#160;</td><td class="mdescRight">Apodize full-sky mask.  <a href="#ae7f66ad1bdf24d4eb26fa8c8b0f7d148">More...</a><br /></td></tr>
 <tr class="separator:ae7f66ad1bdf24d4eb26fa8c8b0f7d148"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -265,9 +280,9 @@ Functions</h2></td></tr>
 <tr class="memitem:a44ce37ef13cd790542e302ebc896e013"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structnmt__workspace__flat.html">nmt_workspace_flat</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namaster_8h.html#a44ce37ef13cd790542e302ebc896e013">nmt_compute_power_spectra_flat</a> (<a class="el" href="structnmt__field__flat.html">nmt_field_flat</a> *fl1, <a class="el" href="structnmt__field__flat.html">nmt_field_flat</a> *fl2, <a class="el" href="structnmt__binning__scheme__flat.html">nmt_binning_scheme_flat</a> *bin, <a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> lmn_x, <a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> lmx_x, <a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> lmn_y, <a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> lmx_y, <a class="el" href="structnmt__workspace__flat.html">nmt_workspace_flat</a> *w0, <a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> **cl_noise, int nl_prop, <a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> *l_prop, <a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> **cl_prop, <a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> **cl_out)</td></tr>
 <tr class="memdesc:a44ce37ef13cd790542e302ebc896e013"><td class="mdescLeft">&#160;</td><td class="mdescRight">Computes pseudo-CL specrum.  <a href="#a44ce37ef13cd790542e302ebc896e013">More...</a><br /></td></tr>
 <tr class="separator:a44ce37ef13cd790542e302ebc896e013"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:abb75221ad311fed4d4202ebe901b2f6a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structnmt__workspace.html">nmt_workspace</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namaster_8h.html#abb75221ad311fed4d4202ebe901b2f6a">nmt_compute_coupling_matrix</a> (<a class="el" href="structnmt__field.html">nmt_field</a> *fl1, <a class="el" href="structnmt__field.html">nmt_field</a> *fl2, <a class="el" href="structnmt__binning__scheme.html">nmt_binning_scheme</a> *bin, int is_teb)</td></tr>
-<tr class="memdesc:abb75221ad311fed4d4202ebe901b2f6a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Computes mode-coupling matrix.  <a href="#abb75221ad311fed4d4202ebe901b2f6a">More...</a><br /></td></tr>
-<tr class="separator:abb75221ad311fed4d4202ebe901b2f6a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af5bd27cdd2fcf472ed250a19688ed4d5"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structnmt__workspace.html">nmt_workspace</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namaster_8h.html#af5bd27cdd2fcf472ed250a19688ed4d5">nmt_compute_coupling_matrix</a> (<a class="el" href="structnmt__field.html">nmt_field</a> *fl1, <a class="el" href="structnmt__field.html">nmt_field</a> *fl2, <a class="el" href="structnmt__binning__scheme.html">nmt_binning_scheme</a> *bin, int is_teb, int niter)</td></tr>
+<tr class="memdesc:af5bd27cdd2fcf472ed250a19688ed4d5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Computes mode-coupling matrix.  <a href="#af5bd27cdd2fcf472ed250a19688ed4d5">More...</a><br /></td></tr>
+<tr class="separator:af5bd27cdd2fcf472ed250a19688ed4d5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3954855f8a5f03c8d2a71cc99f1837cb"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namaster_8h.html#a3954855f8a5f03c8d2a71cc99f1837cb">nmt_update_coupling_matrix</a> (<a class="el" href="structnmt__workspace.html">nmt_workspace</a> *w, int n_rows, double *new_matrix)</td></tr>
 <tr class="memdesc:a3954855f8a5f03c8d2a71cc99f1837cb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Updates the mode coupling matrix with a new one.Saves <a class="el" href="structnmt__workspace.html" title="Full-sky mode-coupling matrix. ">nmt_workspace</a> structure to file.  <a href="#a3954855f8a5f03c8d2a71cc99f1837cb">More...</a><br /></td></tr>
 <tr class="separator:a3954855f8a5f03c8d2a71cc99f1837cb"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -280,12 +295,12 @@ Functions</h2></td></tr>
 <tr class="memitem:a358fa83e000ffb4711ecfef862b6206b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namaster_8h.html#a358fa83e000ffb4711ecfef862b6206b">nmt_workspace_free</a> (<a class="el" href="structnmt__workspace.html">nmt_workspace</a> *w)</td></tr>
 <tr class="memdesc:a358fa83e000ffb4711ecfef862b6206b"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="structnmt__workspace.html" title="Full-sky mode-coupling matrix. ">nmt_workspace</a> destructor  <a href="#a358fa83e000ffb4711ecfef862b6206b">More...</a><br /></td></tr>
 <tr class="separator:a358fa83e000ffb4711ecfef862b6206b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2fba28eb770dddf7714bc1a2638cb128"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namaster_8h.html#a2fba28eb770dddf7714bc1a2638cb128">nmt_compute_deprojection_bias</a> (<a class="el" href="structnmt__field.html">nmt_field</a> *fl1, <a class="el" href="structnmt__field.html">nmt_field</a> *fl2, <a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> **cl_proposal, <a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> **cl_bias)</td></tr>
-<tr class="memdesc:a2fba28eb770dddf7714bc1a2638cb128"><td class="mdescLeft">&#160;</td><td class="mdescRight">Computes deprojection bias.  <a href="#a2fba28eb770dddf7714bc1a2638cb128">More...</a><br /></td></tr>
-<tr class="separator:a2fba28eb770dddf7714bc1a2638cb128"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:acb4a72b8cdd9e72af4974a0265876807"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namaster_8h.html#acb4a72b8cdd9e72af4974a0265876807">nmt_compute_uncorr_noise_deprojection_bias</a> (<a class="el" href="structnmt__field.html">nmt_field</a> *fl1, <a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> *map_var, <a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> **cl_bias)</td></tr>
-<tr class="memdesc:acb4a72b8cdd9e72af4974a0265876807"><td class="mdescLeft">&#160;</td><td class="mdescRight">Noise bias from uncorrelated noise map.  <a href="#acb4a72b8cdd9e72af4974a0265876807">More...</a><br /></td></tr>
-<tr class="separator:acb4a72b8cdd9e72af4974a0265876807"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a02e7b074b42124167f02d744c463aef6"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namaster_8h.html#a02e7b074b42124167f02d744c463aef6">nmt_compute_deprojection_bias</a> (<a class="el" href="structnmt__field.html">nmt_field</a> *fl1, <a class="el" href="structnmt__field.html">nmt_field</a> *fl2, <a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> **cl_proposal, <a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> **cl_bias, int niter)</td></tr>
+<tr class="memdesc:a02e7b074b42124167f02d744c463aef6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Computes deprojection bias.  <a href="#a02e7b074b42124167f02d744c463aef6">More...</a><br /></td></tr>
+<tr class="separator:a02e7b074b42124167f02d744c463aef6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adb841c44110754681e9a9efc0e6ad9a0"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namaster_8h.html#adb841c44110754681e9a9efc0e6ad9a0">nmt_compute_uncorr_noise_deprojection_bias</a> (<a class="el" href="structnmt__field.html">nmt_field</a> *fl1, <a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> *map_var, <a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> **cl_bias, int niter)</td></tr>
+<tr class="memdesc:adb841c44110754681e9a9efc0e6ad9a0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Noise bias from uncorrelated noise map.  <a href="#adb841c44110754681e9a9efc0e6ad9a0">More...</a><br /></td></tr>
+<tr class="separator:adb841c44110754681e9a9efc0e6ad9a0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6d43874e3327f14ddf2c98fe39c8d58e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namaster_8h.html#a6d43874e3327f14ddf2c98fe39c8d58e">nmt_couple_cl_l</a> (<a class="el" href="structnmt__workspace.html">nmt_workspace</a> *w, <a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> **cl_in, <a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> **cl_out)</td></tr>
 <tr class="memdesc:a6d43874e3327f14ddf2c98fe39c8d58e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Mode-couples an input power spectrum.  <a href="#a6d43874e3327f14ddf2c98fe39c8d58e">More...</a><br /></td></tr>
 <tr class="separator:a6d43874e3327f14ddf2c98fe39c8d58e"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -295,9 +310,9 @@ Functions</h2></td></tr>
 <tr class="memitem:a77290fac5184833c9c140af37eff2f9f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namaster_8h.html#a77290fac5184833c9c140af37eff2f9f">nmt_compute_coupled_cell</a> (<a class="el" href="structnmt__field.html">nmt_field</a> *fl1, <a class="el" href="structnmt__field.html">nmt_field</a> *fl2, <a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> **cl_out)</td></tr>
 <tr class="memdesc:a77290fac5184833c9c140af37eff2f9f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Coupled pseudo-CL.  <a href="#a77290fac5184833c9c140af37eff2f9f">More...</a><br /></td></tr>
 <tr class="separator:a77290fac5184833c9c140af37eff2f9f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab4c46dddb4e78a7ff512de0c5ebd3f99"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structnmt__workspace.html">nmt_workspace</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namaster_8h.html#ab4c46dddb4e78a7ff512de0c5ebd3f99">nmt_compute_power_spectra</a> (<a class="el" href="structnmt__field.html">nmt_field</a> *fl1, <a class="el" href="structnmt__field.html">nmt_field</a> *fl2, <a class="el" href="structnmt__binning__scheme.html">nmt_binning_scheme</a> *bin, <a class="el" href="structnmt__workspace.html">nmt_workspace</a> *w0, <a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> **cl_noise, <a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> **cl_proposal, <a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> **cl_out)</td></tr>
-<tr class="memdesc:ab4c46dddb4e78a7ff512de0c5ebd3f99"><td class="mdescLeft">&#160;</td><td class="mdescRight">Computes pseudo-CL specrum.  <a href="#ab4c46dddb4e78a7ff512de0c5ebd3f99">More...</a><br /></td></tr>
-<tr class="separator:ab4c46dddb4e78a7ff512de0c5ebd3f99"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7d5e93cf329738367eb70bb84d1d6ff0"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structnmt__workspace.html">nmt_workspace</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namaster_8h.html#a7d5e93cf329738367eb70bb84d1d6ff0">nmt_compute_power_spectra</a> (<a class="el" href="structnmt__field.html">nmt_field</a> *fl1, <a class="el" href="structnmt__field.html">nmt_field</a> *fl2, <a class="el" href="structnmt__binning__scheme.html">nmt_binning_scheme</a> *bin, <a class="el" href="structnmt__workspace.html">nmt_workspace</a> *w0, <a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> **cl_noise, <a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> **cl_proposal, <a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> **cl_out, int niter)</td></tr>
+<tr class="memdesc:a7d5e93cf329738367eb70bb84d1d6ff0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Computes pseudo-CL specrum.  <a href="#a7d5e93cf329738367eb70bb84d1d6ff0">More...</a><br /></td></tr>
+<tr class="separator:a7d5e93cf329738367eb70bb84d1d6ff0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a41fe3d135cf2d47140575575a673b2bd"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namaster_8h.html#a41fe3d135cf2d47140575575a673b2bd">nmt_covar_workspace_flat_free</a> (<a class="el" href="structnmt__covar__workspace__flat.html">nmt_covar_workspace_flat</a> *cw)</td></tr>
 <tr class="memdesc:a41fe3d135cf2d47140575575a673b2bd"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="structnmt__covar__workspace__flat.html" title="Flat-sky Gaussian covariance matrix. ">nmt_covar_workspace_flat</a> destructor.  <a href="#a41fe3d135cf2d47140575575a673b2bd">More...</a><br /></td></tr>
 <tr class="separator:a41fe3d135cf2d47140575575a673b2bd"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -316,9 +331,9 @@ Functions</h2></td></tr>
 <tr class="memitem:aebf7230a53eaeed7bd251162e0fc6c94"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namaster_8h.html#aebf7230a53eaeed7bd251162e0fc6c94">nmt_covar_workspace_free</a> (<a class="el" href="structnmt__covar__workspace.html">nmt_covar_workspace</a> *cw)</td></tr>
 <tr class="memdesc:aebf7230a53eaeed7bd251162e0fc6c94"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="structnmt__covar__workspace.html" title="Full-sky Gaussian covariance matrix. ">nmt_covar_workspace</a> destructor.  <a href="#aebf7230a53eaeed7bd251162e0fc6c94">More...</a><br /></td></tr>
 <tr class="separator:aebf7230a53eaeed7bd251162e0fc6c94"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aebc8cfaa8fce2a862d96db30d40b1284"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structnmt__covar__workspace.html">nmt_covar_workspace</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namaster_8h.html#aebc8cfaa8fce2a862d96db30d40b1284">nmt_covar_workspace_init</a> (<a class="el" href="structnmt__workspace.html">nmt_workspace</a> *wa, <a class="el" href="structnmt__workspace.html">nmt_workspace</a> *wb)</td></tr>
-<tr class="memdesc:aebc8cfaa8fce2a862d96db30d40b1284"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="structnmt__covar__workspace.html" title="Full-sky Gaussian covariance matrix. ">nmt_covar_workspace</a> constructor  <a href="#aebc8cfaa8fce2a862d96db30d40b1284">More...</a><br /></td></tr>
-<tr class="separator:aebc8cfaa8fce2a862d96db30d40b1284"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a009b0fc3c54b8b074e1cb24616aaf181"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structnmt__covar__workspace.html">nmt_covar_workspace</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namaster_8h.html#a009b0fc3c54b8b074e1cb24616aaf181">nmt_covar_workspace_init</a> (<a class="el" href="structnmt__workspace.html">nmt_workspace</a> *wa, <a class="el" href="structnmt__workspace.html">nmt_workspace</a> *wb, int niter)</td></tr>
+<tr class="memdesc:a009b0fc3c54b8b074e1cb24616aaf181"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="structnmt__covar__workspace.html" title="Full-sky Gaussian covariance matrix. ">nmt_covar_workspace</a> constructor  <a href="#a009b0fc3c54b8b074e1cb24616aaf181">More...</a><br /></td></tr>
+<tr class="separator:a009b0fc3c54b8b074e1cb24616aaf181"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8761951e56eaa60cf482756c6f33cbd8"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namaster_8h.html#a8761951e56eaa60cf482756c6f33cbd8">nmt_compute_gaussian_covariance</a> (<a class="el" href="structnmt__covar__workspace.html">nmt_covar_workspace</a> *cw, <a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> *cla1b1, <a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> *cla1b2, <a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> *cla2b1, <a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> *cla2b2, <a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> *covar_out)</td></tr>
 <tr class="memdesc:a8761951e56eaa60cf482756c6f33cbd8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute full-sky Gaussian covariance matrix.  <a href="#a8761951e56eaa60cf482756c6f33cbd8">More...</a><br /></td></tr>
 <tr class="separator:a8761951e56eaa60cf482756c6f33cbd8"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -991,7 +1006,7 @@ Functions</h2></td></tr>
   <table class="params">
     <tr><td class="paramname">fl1</td><td><a class="el" href="structnmt__field.html" title="Full-sky field. ">nmt_field</a> structure defining the first field to correlate. </td></tr>
     <tr><td class="paramname">fl2</td><td><a class="el" href="structnmt__field.html" title="Full-sky field. ">nmt_field</a> structure defining the second field to correlate. </td></tr>
-    <tr><td class="paramname">cl_out</td><td>Ouptput power spectrum. Should be allocated to shape [ncls][3 * <code>nside</code>], where <code>ncls</code> is the appropriate number of power spectra (e.g. 4=2*2 for two spin-2 fields). </td></tr>
+    <tr><td class="paramname">cl_out</td><td>Ouptput power spectrum. Should be allocated to shape [ncls][lmax+1], where <code>ncls</code> is the appropriate number of power spectra (e.g. 4=2*2 for two spin-2 fields). </td></tr>
   </table>
   </dd>
 </dl>
@@ -1075,7 +1090,7 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a class="anchor" id="abb75221ad311fed4d4202ebe901b2f6a"></a>
+<a class="anchor" id="af5bd27cdd2fcf472ed250a19688ed4d5"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
@@ -1101,7 +1116,13 @@ Functions</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">int&#160;</td>
-          <td class="paramname"><em>is_teb</em>&#160;</td>
+          <td class="paramname"><em>is_teb</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>niter</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -1118,6 +1139,7 @@ Functions</h2></td></tr>
     <tr><td class="paramname">fl2</td><td><a class="el" href="structnmt__field.html" title="Full-sky field. ">nmt_field</a> structure defining the second field to correlate. </td></tr>
     <tr><td class="paramname">bin</td><td><a class="el" href="structnmt__binning__scheme.html" title="Full-sky bandpowers. ">nmt_binning_scheme</a> defining the power spectrum bandpowers. </td></tr>
     <tr><td class="paramname">is_teb</td><td>if !=0, all mode-coupling matrices (0-0,0-2,2-2) will be computed at the same time. </td></tr>
+    <tr><td class="paramname">niter</td><td>number of iterations when computing alms. </td></tr>
   </table>
   </dd>
 </dl>
@@ -1201,7 +1223,7 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a class="anchor" id="a2fba28eb770dddf7714bc1a2638cb128"></a>
+<a class="anchor" id="a02e7b074b42124167f02d744c463aef6"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
@@ -1227,7 +1249,13 @@ Functions</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype"><a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> **&#160;</td>
-          <td class="paramname"><em>cl_bias</em>&#160;</td>
+          <td class="paramname"><em>cl_bias</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>niter</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -1242,8 +1270,9 @@ Functions</h2></td></tr>
   <table class="params">
     <tr><td class="paramname">fl1</td><td><a class="el" href="structnmt__field.html" title="Full-sky field. ">nmt_field</a> structure defining the first field to correlate. </td></tr>
     <tr><td class="paramname">fl2</td><td><a class="el" href="structnmt__field.html" title="Full-sky field. ">nmt_field</a> structure defining the second field to correlate. </td></tr>
-    <tr><td class="paramname">cl_proposal</td><td>Proposed power spectrum. Should have shape [ncls][3 <code>nside</code>], where <code>ncls</code> is the appropriate number of power spectra given the spins of the input fields (e.g. <code>ncls</code> = 2*2 = 4 if both fields have spin=2). </td></tr>
-    <tr><td class="paramname">cl_bias</td><td>Ouptput deprojection bias. Should be allocated to shape [ncls][3 * <code>nside</code>], where <code>ncls</code> is defined above. </td></tr>
+    <tr><td class="paramname">cl_proposal</td><td>Proposed power spectrum. Should have shape [ncls][lmax+1], where <code>ncls</code> is the appropriate number of power spectra given the spins of the input fields (e.g. <code>ncls</code> = 2*2 = 4 if both fields have spin=2). </td></tr>
+    <tr><td class="paramname">cl_bias</td><td>Ouptput deprojection bias. Should be allocated to shape [ncls][lmax+1], where <code>ncls</code> is defined above. </td></tr>
+    <tr><td class="paramname">niter</td><td>number of iterations when computing alms. </td></tr>
   </table>
   </dd>
 </dl>
@@ -1400,7 +1429,7 @@ Functions</h2></td></tr>
 <p>Computes the covariance matrix for two sets of power spectra given input predicted spectra and a <a class="el" href="structnmt__covar__workspace.html" title="Full-sky Gaussian covariance matrix. ">nmt_covar_workspace</a> structure. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">cw</td><td><a class="el" href="structnmt__covar__workspace.html" title="Full-sky Gaussian covariance matrix. ">nmt_covar_workspace</a> structure containing the information necessary to compute the covariance matrix. </td></tr>
-    <tr><td class="paramname">cla1b1</td><td>Cross-power spectrum between field 1 in set a and field 1 in set b. All power spectra should be defined for all ell &lt; 3 * <code>nside</code> - 1. </td></tr>
+    <tr><td class="paramname">cla1b1</td><td>Cross-power spectrum between field 1 in set a and field 1 in set b. All power spectra should be defined for all ell &lt; lmax. </td></tr>
     <tr><td class="paramname">cla1b2</td><td>Cross-power spectrum between field 1 in set a and field 2 in set b. </td></tr>
     <tr><td class="paramname">cla2b1</td><td>Cross-power spectrum between field 2 in set a and field 1 in set b. </td></tr>
     <tr><td class="paramname">cla2b2</td><td>Cross-power spectrum between field 2 in set a and field 2 in set b. </td></tr>
@@ -1490,7 +1519,7 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a class="anchor" id="ab4c46dddb4e78a7ff512de0c5ebd3f99"></a>
+<a class="anchor" id="a7d5e93cf329738367eb70bb84d1d6ff0"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
@@ -1534,7 +1563,13 @@ Functions</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype"><a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> **&#160;</td>
-          <td class="paramname"><em>cl_out</em>&#160;</td>
+          <td class="paramname"><em>cl_out</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>niter</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -1551,9 +1586,10 @@ Functions</h2></td></tr>
     <tr><td class="paramname">fl2</td><td><a class="el" href="structnmt__field.html" title="Full-sky field. ">nmt_field</a> structure defining the second field to correlate. </td></tr>
     <tr><td class="paramname">bin</td><td><a class="el" href="structnmt__binning__scheme.html" title="Full-sky bandpowers. ">nmt_binning_scheme</a> defining the power spectrum bandpowers. </td></tr>
     <tr><td class="paramname">w0</td><td><a class="el" href="structnmt__workspace.html" title="Full-sky mode-coupling matrix. ">nmt_workspace</a> structure containing the mode-coupling matrix. If NULL, a new computation of the MCM will be carried out and stored in the output <a class="el" href="structnmt__workspace.html" title="Full-sky mode-coupling matrix. ">nmt_workspace</a>. Otherwise, <code>w0</code> will be used and returned by this function. </td></tr>
-    <tr><td class="paramname">cl_proposal</td><td>Proposed power spectrum. Should have shape [ncls][3 * <code>nside</code>], where <code>ncls</code> is the appropriate number of power spectra given the spins of the input fields (e.g. <code>ncls</code> = 2*2 = 4 if both fields have spin=2). </td></tr>
+    <tr><td class="paramname">cl_proposal</td><td>Proposed power spectrum. Should have shape [ncls][lmax+1], where <code>ncls</code> is the appropriate number of power spectra given the spins of the input fields (e.g. <code>ncls</code> = 2*2 = 4 if both fields have spin=2). </td></tr>
     <tr><td class="paramname">cl_noise</td><td>Noise bias (same shape as <code>cl_prop</code>). </td></tr>
     <tr><td class="paramname">cl_out</td><td>Ouptput power spectrum. Should be allocated to shape [ncls][nbpw], where <code>ncls</code> is defined above and <code>nbpw</code> is the number of bandpowers defined by <code>bin</code>. </td></tr>
+    <tr><td class="paramname">niter</td><td>number of iterations when computing alms. </td></tr>
   </table>
   </dd>
 </dl>
@@ -1674,7 +1710,7 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a class="anchor" id="acb4a72b8cdd9e72af4974a0265876807"></a>
+<a class="anchor" id="adb841c44110754681e9a9efc0e6ad9a0"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
@@ -1694,7 +1730,13 @@ Functions</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype"><a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> **&#160;</td>
-          <td class="paramname"><em>cl_bias</em>&#160;</td>
+          <td class="paramname"><em>cl_bias</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>niter</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -1709,7 +1751,8 @@ Functions</h2></td></tr>
   <table class="params">
     <tr><td class="paramname">fl1</td><td><a class="el" href="structnmt__field.html" title="Full-sky field. ">nmt_field</a> structure defining the properties of the field for which this noise bias applies. </td></tr>
     <tr><td class="paramname">map_var</td><td>Noise variance map (should contain per-pixel noise variance). </td></tr>
-    <tr><td class="paramname">cl_bias</td><td>Ouptput noise bias. Should be allocated to shape [ncls][3 * <code>nside</code>], where <code>ncls</code> is the appropriate number of power spectra given the spins of the input fields (e.g. <code>ncls</code> = 2*2 = 4 if both fields have spin=2). </td></tr>
+    <tr><td class="paramname">cl_bias</td><td>Ouptput noise bias. Should be allocated to shape [ncls][lmax+1], where <code>ncls</code> is the appropriate number of power spectra given the spins of the input fields (e.g. <code>ncls</code> = 2*2 = 4 if both fields have spin=2). </td></tr>
+    <tr><td class="paramname">niter</td><td>number of iterations when computing alms. </td></tr>
   </table>
   </dd>
 </dl>
@@ -1750,8 +1793,8 @@ Functions</h2></td></tr>
 <p>This function applies the effects of the mode-coupling the pseudo-CL estimator for a given input power spectrum. This function should be used in conjunction with <a class="el" href="namaster_8h.html#a05ef1535466acb450266593fc1b9a5c7" title="Inverts mode-coupling matrix. ">nmt_decouple_cl_l()</a> to compute the theory prediction of the pseudo-CL estimator. See notes about power spectrum ordering in the main page of this documentation. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">w</td><td><a class="el" href="structnmt__workspace.html" title="Full-sky mode-coupling matrix. ">nmt_workspace</a> structure containing the mode-coupling matrix </td></tr>
-    <tr><td class="paramname">cl_in</td><td>Array of input power spectra. Should have shape [ncls][3 * <code>nside</code>], where ncls is the appropriate number of power spectra given the fields being correlated (e.g. ncls=4=2*2 for two spin-2 fields). </td></tr>
-    <tr><td class="paramname">cl_out</td><td>Array of output power spectra. Should have shape [ncls][3 * <code>nside</code>], where ncls is defined above. </td></tr>
+    <tr><td class="paramname">cl_in</td><td>Array of input power spectra. Should have shape [ncls][lmax+1], where ncls is the appropriate number of power spectra given the fields being correlated (e.g. ncls=4=2*2 for two spin-2 fields). </td></tr>
+    <tr><td class="paramname">cl_out</td><td>Array of output power spectra. Should have shape [ncls][lmax+1], where ncls is defined above. </td></tr>
   </table>
   </dd>
 </dl>
@@ -2005,7 +2048,7 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a class="anchor" id="aebc8cfaa8fce2a862d96db30d40b1284"></a>
+<a class="anchor" id="a009b0fc3c54b8b074e1cb24616aaf181"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
@@ -2019,7 +2062,13 @@ Functions</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype"><a class="el" href="structnmt__workspace.html">nmt_workspace</a> *&#160;</td>
-          <td class="paramname"><em>wb</em>&#160;</td>
+          <td class="paramname"><em>wb</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>niter</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -2034,6 +2083,7 @@ Functions</h2></td></tr>
   <table class="params">
     <tr><td class="paramname">wa</td><td><a class="el" href="structnmt__workspace.html" title="Full-sky mode-coupling matrix. ">nmt_workspace</a> for the first set of power spectra. </td></tr>
     <tr><td class="paramname">wb</td><td><a class="el" href="structnmt__workspace.html" title="Full-sky mode-coupling matrix. ">nmt_workspace</a> for the second set of power spectra. </td></tr>
+    <tr><td class="paramname">niter</td><td>number of iterations when computing alms. </td></tr>
   </table>
   </dd>
 </dl>
@@ -2102,6 +2152,109 @@ Functions</h2></td></tr>
 
 </div>
 </div>
+<a class="anchor" id="ac67e3dda581b552e4e9c945b42c187fd"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="structnmt__curvedsky__info.html">nmt_curvedsky_info</a>* nmt_curvedsky_info_alloc </td>
+          <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>is_healpix</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">long&#160;</td>
+          <td class="paramname"><em>nside</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>nx0</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>ny0</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a>&#160;</td>
+          <td class="paramname"><em>Dtheta</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a>&#160;</td>
+          <td class="paramname"><em>Dphi</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a>&#160;</td>
+          <td class="paramname"><em>phi0</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a>&#160;</td>
+          <td class="paramname"><em>theta0</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p><a class="el" href="structnmt__curvedsky__info.html" title="Curved-sky information. ">nmt_curvedsky_info</a> creator </p>
+<p>If generating a Clenshaw-Curtis grid, then Dtheta and Dphi must be (close to) exact divisor of pi and 2pi respectively. Likewise, theta0 must be an integer multiple of Dtheta, and the number of pixels in the theta direction must be such that the map actually fits on the sphere (i.e. theta0-(ny-1)*Dtheta &gt;=0). </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">is_healpix</td><td>is this HEALPix pixelization. </td></tr>
+    <tr><td class="paramname">nside</td><td>if is_healpix, this should be the HEALPix Nside parameter. </td></tr>
+    <tr><td class="paramname">nx0</td><td>number of pixels in the phi direction. </td></tr>
+    <tr><td class="paramname">ny0</td><td>number of pixels in the theta direction. </td></tr>
+    <tr><td class="paramname">Dtheta</td><td>pixel size in the theta direction. In radians. Must be positive. </td></tr>
+    <tr><td class="paramname">Dphi</td><td>pixel size in the phi direction. In radians, must be positive. </td></tr>
+    <tr><td class="paramname">theta0</td><td>colatitude of the last ring in the map. In radians. </td></tr>
+    <tr><td class="paramname">phi0</td><td>minimum azimuth covered by the map. In radians. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd><a class="el" href="structnmt__curvedsky__info.html" title="Curved-sky information. ">nmt_curvedsky_info</a> struct. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a46c5a35c9137afa016b17a6df474185c"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="structnmt__curvedsky__info.html">nmt_curvedsky_info</a>* nmt_curvedsky_info_copy </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structnmt__curvedsky__info.html">nmt_curvedsky_info</a> *&#160;</td>
+          <td class="paramname"><em>cs_in</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Makes a copy of a <a class="el" href="structnmt__curvedsky__info.html" title="Curved-sky information. ">nmt_curvedsky_info</a> structure. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">cs_in</td><td>input structure to be copied. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>copy of input <a class="el" href="structnmt__curvedsky__info.html" title="Curved-sky information. ">nmt_curvedsky_info</a> structure. </dd></dl>
+
+</div>
+</div>
 <a class="anchor" id="a05ef1535466acb450266593fc1b9a5c7"></a>
 <div class="memitem">
 <div class="memproto">
@@ -2148,9 +2301,9 @@ Functions</h2></td></tr>
 <p>Multiplies coupled power spectra by inverse mode-coupling matrix. See notes about power spectrum ordering in the main page of this documentation. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">w</td><td><a class="el" href="structnmt__workspace.html" title="Full-sky mode-coupling matrix. ">nmt_workspace</a> containing the mode-coupling matrix. </td></tr>
-    <tr><td class="paramname">cl_in</td><td>Input coupled power spectra. Should have shape [ncls][3 * <code>nside</code>], where <code>ncls</code> is the appropriate number of power spectra given the fields used to define <code>w</code> (e.g. 4=2*2 for two spin-2 fields). </td></tr>
+    <tr><td class="paramname">cl_in</td><td>Input coupled power spectra. Should have shape [ncls][lmax+1], where <code>ncls</code> is the appropriate number of power spectra given the fields used to define <code>w</code> (e.g. 4=2*2 for two spin-2 fields). </td></tr>
     <tr><td class="paramname">cl_noise_in</td><td>Noise bias (same shape as <code>cl_in</code>). </td></tr>
-    <tr><td class="paramname">cl_bias</td><td>Deprojection bias (same shape as <code>cl_in</code>, see <a class="el" href="namaster_8h.html#a2fba28eb770dddf7714bc1a2638cb128" title="Computes deprojection bias. ">nmt_compute_deprojection_bias()</a>). </td></tr>
+    <tr><td class="paramname">cl_bias</td><td>Deprojection bias (same shape as <code>cl_in</code>, see <a class="el" href="namaster_8h.html#a02e7b074b42124167f02d744c463aef6" title="Computes deprojection bias. ">nmt_compute_deprojection_bias()</a>). </td></tr>
     <tr><td class="paramname">cl_out</td><td>Mode-decoupled power spectrum. Should have shape [ncls][nbpw], where ncls is defined above and nbpw is the number of bandpowers used to define <code>w</code>. </td></tr>
   </table>
   </dd>
@@ -2211,6 +2364,35 @@ Functions</h2></td></tr>
   </table>
   </dd>
 </dl>
+
+</div>
+</div>
+<a class="anchor" id="aa604b94c7dcd98040c8cad98db5e8e87"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int nmt_diff_curvedsky_info </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structnmt__curvedsky__info.html">nmt_curvedsky_info</a> *&#160;</td>
+          <td class="paramname"><em>c1</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structnmt__curvedsky__info.html">nmt_curvedsky_info</a> *&#160;</td>
+          <td class="paramname"><em>c2</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Compare two <a class="el" href="structnmt__curvedsky__info.html" title="Curved-sky information. ">nmt_curvedsky_info</a> structs. </p>
+<dl class="section return"><dt>Returns</dt><dd>true (!=0) if both structs are equivalent, and false (0) if they aren't. </dd></dl>
 
 </div>
 </div>
@@ -2284,15 +2466,51 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a class="anchor" id="a6ed3884b9f62ec6023b7f13d41994ae7"></a>
+<a class="anchor" id="a7e478d292e9d6ebd73ae461e35c7a565"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a>* nmt_extend_CAR_map </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structnmt__curvedsky__info.html">nmt_curvedsky_info</a> *&#160;</td>
+          <td class="paramname"><em>cs</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> *&#160;</td>
+          <td class="paramname"><em>map_in</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Extend CAR map to cover the full circle. </p>
+<p>CAR maps only cover a particular part of the sky, but the SHT routines need as input maps that are complete in the azimuth direction. This routine takes in a raw CAR map with its corresponding <a class="el" href="structnmt__curvedsky__info.html" title="Curved-sky information. ">nmt_curvedsky_info</a> and returns the phi-complete map (with zeros in all pixels outside the original map). If the input map is in HEALPix, this routine just returns a copy of it. </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">cs</td><td>curved sky geometry info. </td></tr>
+    <tr><td class="paramname">map_in</td><td>input incomplete map. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>phi-complete map. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="ae00e74027538fc3966a0ec501afabb90"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
           <td class="memname"><a class="el" href="structnmt__field.html">nmt_field</a>* nmt_field_alloc_sph </td>
           <td>(</td>
-          <td class="paramtype">long&#160;</td>
-          <td class="paramname"><em>nside</em>, </td>
+          <td class="paramtype"><a class="el" href="structnmt__curvedsky__info.html">nmt_curvedsky_info</a> *&#160;</td>
+          <td class="paramname"><em>cs</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -2352,7 +2570,13 @@ Functions</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">double&#160;</td>
-          <td class="paramname"><em>tol_pinv</em>&#160;</td>
+          <td class="paramname"><em>tol_pinv</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>niter</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -2365,17 +2589,18 @@ Functions</h2></td></tr>
 <p><a class="el" href="structnmt__field.html" title="Full-sky field. ">nmt_field</a> constructor </p>
 <p>Builds an <a class="el" href="structnmt__field.html" title="Full-sky field. ">nmt_field</a> structure from input maps and resolution parameters. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">nside</td><td>HEALPix resolution parameter. </td></tr>
-    <tr><td class="paramname">mask</td><td>Field's mask (an array of 12 * <code>nside^2</code> values). </td></tr>
+    <tr><td class="paramname">cs</td><td>curved sky geometry info. </td></tr>
+    <tr><td class="paramname">mask</td><td>Field's mask. </td></tr>
     <tr><td class="paramname">pol</td><td>&gt;0 if this is a spin-2 field (spin-0 otherwise). </td></tr>
     <tr><td class="paramname">maps</td><td>Observed field values BEFORE multiplying by the mask (this is irrelevant for binary masks). </td></tr>
     <tr><td class="paramname">ntemp</td><td>Number of contaminant templates affecting this field. </td></tr>
     <tr><td class="paramname">temp</td><td>Contaminant template maps (again, NOT multiplied by the mask). </td></tr>
-    <tr><td class="paramname">beam</td><td>Harmonic coefficients of the beam (defined for all multipoles up to 3 * <code>nside</code> - 1). Pass a NULL pointer if you don't want any beam. </td></tr>
+    <tr><td class="paramname">beam</td><td>Harmonic coefficients of the beam (defined for all multipoles up to the maximum multipole sampled by the map). Pass a NULL pointer if you don't want any beam. </td></tr>
     <tr><td class="paramname">pure_e</td><td>Set to &gt;0 if you want purified E-modes. </td></tr>
     <tr><td class="paramname">pure_b</td><td>Set to &gt;0 if you want purified B-modes. </td></tr>
     <tr><td class="paramname">n_iter_mask_purify</td><td>E/B purification requires a number of harmonic-space operations on an appropriately apodized mask. This parameter sets the number of iterations requested to compute the spherical harmonic transform of the field's mask. Higher values will produce more accurate results (at the cost of computational time). </td></tr>
     <tr><td class="paramname">tol_pinv</td><td>Contaminant deprojection requires the inversion of the template covariance matrix. This could be ill-defined if some templates are linearly related. In this case we use a pseudo-inverse that accounts for this possibility in a consistent way. Effectively this is a singular-value decomposition. All eigenvalues that are smaller than <code>tol_pinv</code> the largest eigenvalue will be discarded. </td></tr>
+    <tr><td class="paramname">niter</td><td>number of iterations when computing alms (for all transforms other than the mask's). </td></tr>
   </table>
   </dd>
 </dl>
@@ -2544,13 +2769,19 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a class="anchor" id="a0dd8d3092cb952e87c313994c526fb83"></a>
+<a class="anchor" id="a047fefbb9c98299ba573ec97fbdc6b5d"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
           <td class="memname"><a class="el" href="structnmt__field.html">nmt_field</a>* nmt_field_read </td>
           <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>is_healpix</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
           <td class="paramtype">char *&#160;</td>
           <td class="paramname"><em>fname_mask</em>, </td>
         </tr>
@@ -2600,7 +2831,13 @@ Functions</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">double&#160;</td>
-          <td class="paramname"><em>tol_pinv</em>&#160;</td>
+          <td class="paramname"><em>tol_pinv</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>niter</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -2613,6 +2850,7 @@ Functions</h2></td></tr>
 <p><a class="el" href="structnmt__field.html" title="Full-sky field. ">nmt_field</a> constructor from file. </p>
 <p>Builds an <a class="el" href="structnmt__field.html" title="Full-sky field. ">nmt_field</a> structure from data written in files. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
+    <tr><td class="paramname">is_healpix</td><td>is the map stored in healpix format? </td></tr>
     <tr><td class="paramname">fname_mask</td><td>Path to FITS file containing the field's mask (single HEALPix map). </td></tr>
     <tr><td class="paramname">pol</td><td>&gt;0 if this is a spin-2 field (spin-0 otherwise). </td></tr>
     <tr><td class="paramname">fname_maps</td><td>Path to FITS file containing the field's observed maps (1(2) maps if <code>pol=0</code>(1)). </td></tr>
@@ -2622,6 +2860,7 @@ Functions</h2></td></tr>
     <tr><td class="paramname">pure_b</td><td>&gt;0 if you want B-mode purification. </td></tr>
     <tr><td class="paramname">n_iter_mask_purify</td><td>E/B purification requires a number of harmonic-space operations on an appropriately apodized mask. This parameter sets the number of iterations requested to compute the spherical harmonic transform of the field's mask. Higher values will produce more accurate results (at the cost of computational time). </td></tr>
     <tr><td class="paramname">tol_pinv</td><td>Contaminant deprojection requires the inversion of the template covariance matrix. This could be ill-defined if some templates are linearly related. In this case we use a pseudo-inverse that accounts for this possibility in a consistent way. Effectively this is a singular-value decomposition. All eigenvalues that are smaller than <code>tol_pinv</code> the largest eigenvalue will be discarded. </td></tr>
+    <tr><td class="paramname">niter</td><td>number of iterations when computing alms (other than the mask's). </td></tr>
   </table>
   </dd>
 </dl>
@@ -2819,7 +3058,7 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a class="anchor" id="a3a4c97f815164c2243e679c74bddc317"></a>
+<a class="anchor" id="a78f00fd7809b204c7b77cf92a6f2ea3a"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
@@ -2857,7 +3096,13 @@ Functions</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype"><a class="el" href="namaster_8h.html#a8f59ea55fc4d564945b2e8712a6ef482">fcomplex</a> **&#160;</td>
-          <td class="paramname"><em>alms</em>&#160;</td>
+          <td class="paramname"><em>alms</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>niter</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -2876,6 +3121,7 @@ Functions</h2></td></tr>
     <tr><td class="paramname">maps_in</td><td>Maps to be purified (should NOT be mask-multiplied). </td></tr>
     <tr><td class="paramname">maps_out</td><td>Output purified maps. </td></tr>
     <tr><td class="paramname">alms</td><td>Spherical harmonic transform of the output purified maps. </td></tr>
+    <tr><td class="paramname">niter</td><td>number of iterations when computing alms. </td></tr>
   </table>
   </dd>
 </dl>
@@ -3058,15 +3304,15 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a class="anchor" id="a5d72deec9d6976d1a170fe4a81f6a4d8"></a>
+<a class="anchor" id="a0301d78ad2c129ee60585250bc5b1a24"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
           <td class="memname"><a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a>** nmt_synfast_sph </td>
           <td>(</td>
-          <td class="paramtype">int&#160;</td>
-          <td class="paramname"><em>nside</em>, </td>
+          <td class="paramtype"><a class="el" href="structnmt__curvedsky__info.html">nmt_curvedsky_info</a> *&#160;</td>
+          <td class="paramname"><em>cs</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -3115,7 +3361,7 @@ Functions</h2></td></tr>
 <p>Gaussian realizations of full-sky fields. </p>
 <p>Generates a Gaussian realization of an arbitrary list of possibly-correlated fields with different spins. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">nside</td><td>HEALPix resolution parameter. </td></tr>
+    <tr><td class="paramname">cs</td><td>curved sky geometry info. </td></tr>
     <tr><td class="paramname">lmax</td><td>Maximum multipole used. </td></tr>
     <tr><td class="paramname">nfields</td><td>Number of fields to generate. </td></tr>
     <tr><td class="paramname">spin_arr</td><td>Array (size <code>nfields</code>) containing the spins of the fields to be generated. </td></tr>
@@ -3272,7 +3518,7 @@ Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Updates the mode coupling matrix with a new one.Saves <a class="el" href="structnmt__workspace.html" title="Full-sky mode-coupling matrix. ">nmt_workspace</a> structure to file. </p>
-<p>The new matrix must be provided as a single 1D array of size n_rows <img class="formulaInl" alt="$^2$" src="form_24.png"/>. Here n_rows=n_cls * n_ell is the size of the flattened power spectra, where n_cls is the number of power spectra (1, 2 or 4 for spin0-0, spin0-2 and spin2-2 correlations) and n_ells=lmax+1 (by default lmax=3*nside-1). The ordering of the power spectra should be such that the l-th element of the i-th power spectrum is stored with index l * n_cls + i. </p><dl class="params"><dt>Parameters</dt><dd>
+<p>The new matrix must be provided as a single 1D array of size n_rows <img class="formulaInl" alt="$^2$" src="form_24.png"/>. Here n_rows=n_cls * n_ell is the size of the flattened power spectra, where n_cls is the number of power spectra (1, 2 or 4 for spin0-0, spin0-2 and spin2-2 correlations) and n_ells=lmax+1 (by default lmax=3*nside-1 for HEALPix, and pi/dx for CAR (where dx is the minimum angular pixel size)). The ordering of the power spectra should be such that the l-th element of the i-th power spectrum is stored with index l * n_cls + i. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">w</td><td><a class="el" href="structnmt__workspace.html" title="Full-sky mode-coupling matrix. ">nmt_workspace</a> to be updated. </td></tr>
     <tr><td class="paramname">n_rows</td><td>size of the flattened power spectra. </td></tr>

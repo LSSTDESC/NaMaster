@@ -1,0 +1,297 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Example 9: Rectangular pixels &mdash; pymaster 0.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="genindex.html"/>
+        <link rel="search" title="Search" href="search.html"/>
+    <link rel="top" title="pymaster 0.1 documentation" href="index.html"/>
+        <link rel="prev" title="Example 8: Computing covariance matrices" href="sample_covariance.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> pymaster
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="pymaster.html">Python API documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sample_simple.html">Example 1: simple pseudo-Cl computation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sample_bins.html">Example 2: Bandpowers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sample_fields.html">Example 3: Fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sample_masks.html">Example 4: Masks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sample_workspaces.html">Example 5: Using workspaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sample_pureb.html">Example 6: Pure E and B</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sample_flat.html">Example 7: Flat-sky fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sample_covariance.html">Example 8: Computing covariance matrices</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Example 9: Rectangular pixels</a></li>
+<li class="toctree-l1"><a class="reference external" href="index_doxy.html#http://">C API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">pymaster</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Example 9: Rectangular pixels</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/sample_rectpix.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="example-9-rectangular-pixels">
+<h1>Example 9: Rectangular pixels<a class="headerlink" href="#example-9-rectangular-pixels" title="Permalink to this headline">¶</a></h1>
+<p>This sample script showcases the use of the NmtField class for maps with rectangular pixellization.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="kn">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">pymaster</span> <span class="kn">as</span> <span class="nn">nmt</span>
+<span class="kn">from</span> <span class="nn">astropy.io</span> <span class="kn">import</span> <span class="n">fits</span>
+<span class="kn">from</span> <span class="nn">astropy.wcs</span> <span class="kn">import</span> <span class="n">WCS</span>
+
+<span class="c1">#This script showcases the use of the NaMaster to compute power spectra</span>
+<span class="c1">#for curved-sky fields with rectangular pixelization.</span>
+<span class="c1">#</span>
+<span class="c1">#Note that NaMaster does not support any kind of rectangular pixellization.</span>
+<span class="c1">#The specific kind supported is pixels defined using the CAR (Plate-Carree)</span>
+<span class="c1">#projection and with Clenshaw-Curtis weights (i.e. the WCS reference pixel</span>
+<span class="c1">#must lie on the equator, and the full latitude range must be divided</span>
+<span class="c1">#exactly into pixels, with one pixel centre at both poles.</span>
+
+<span class="c1">#Fields with rectangular pixelization are created from a WCS object that</span>
+<span class="c1">#defines the geometry of the map.</span>
+<span class="n">hdul</span><span class="o">=</span><span class="n">fits</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;benchmarks/msk_car.fits&quot;</span><span class="p">)</span>
+<span class="n">wcs</span><span class="o">=</span><span class="n">WCS</span><span class="p">(</span><span class="n">hdul</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">header</span><span class="p">)</span>
+<span class="n">hdul</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+<span class="c1">#### Read input maps</span>
+<span class="c1">#a) Read mask</span>
+<span class="n">mask</span><span class="o">=</span><span class="n">fits</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;benchmarks/msk_car.fits&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">data</span>
+<span class="c1">#b) Read maps</span>
+<span class="n">mp_t</span><span class="p">,</span><span class="n">mp_q</span><span class="p">,</span><span class="n">mp_u</span><span class="o">=</span><span class="n">fits</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;benchmarks/mps_car.fits&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">data</span>
+<span class="c1">#You can also read and use contaminant maps in the same fashion.</span>
+<span class="c1">#We&#39;ll skip that step here.</span>
+
+<span class="c1">#### Create fields</span>
+<span class="c1">#Create spin-0 field. Pass a WCS structure do define the rectangular pixels.</span>
+<span class="n">f0</span><span class="o">=</span><span class="n">nmt</span><span class="o">.</span><span class="n">NmtField</span><span class="p">(</span><span class="n">mask</span><span class="p">,[</span><span class="n">mp_t</span><span class="p">],</span><span class="n">wcs</span><span class="o">=</span><span class="n">wcs</span><span class="p">,</span><span class="n">n_iter</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="c1">#Create spin-2 field</span>
+<span class="n">f2</span><span class="o">=</span><span class="n">nmt</span><span class="o">.</span><span class="n">NmtField</span><span class="p">(</span><span class="n">mask</span><span class="p">,[</span><span class="n">mp_q</span><span class="p">,</span><span class="n">mp_u</span><span class="p">],</span><span class="n">wcs</span><span class="o">=</span><span class="n">wcs</span><span class="p">,</span><span class="n">n_iter</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+<span class="c1">#Let&#39;s check out the maps.</span>
+<span class="c1">#First the original map</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">();</span> <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s2">&quot;Original map&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">mp_t</span><span class="p">,</span><span class="n">interpolation</span><span class="o">=</span><span class="s1">&#39;nearest&#39;</span><span class="p">,</span><span class="n">origin</span><span class="o">=</span><span class="s1">&#39;lower&#39;</span><span class="p">)</span>
+<span class="c1">#Now the map processed after creating the NmtField. Note that `get_maps()`</span>
+<span class="c1">#will return flattened maps, so you need to undo that.</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">();</span> <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s2">&quot;Map from NmtField&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">f0</span><span class="o">.</span><span class="n">get_maps</span><span class="p">()</span><span class="o">.</span><span class="n">reshape</span><span class="p">([</span><span class="n">mp_t</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="o">-</span><span class="mi">1</span><span class="p">]),</span>
+           <span class="n">interpolation</span><span class="o">=</span><span class="s1">&#39;nearest&#39;</span><span class="p">,</span><span class="n">origin</span><span class="o">=</span><span class="s1">&#39;lower&#39;</span><span class="p">)</span>
+<span class="c1">#You&#39;ll notice that, after creating the NmtField, the maps get extended</span>
+<span class="c1">#to cover the full 2*pi azimuth range. If you want to recover the original</span>
+<span class="c1">#map, you&#39;ll need to cut that out.</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">();</span> <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s2">&quot;Map from NmtField, cut&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">f0</span><span class="o">.</span><span class="n">get_maps</span><span class="p">()</span><span class="o">.</span><span class="n">reshape</span><span class="p">([</span><span class="n">mp_t</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="o">-</span><span class="mi">1</span><span class="p">])[:,:</span><span class="n">mp_t</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]],</span>
+           <span class="n">interpolation</span><span class="o">=</span><span class="s1">&#39;nearest&#39;</span><span class="p">,</span><span class="n">origin</span><span class="o">=</span><span class="s1">&#39;lower&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+      
+        <a href="sample_covariance.html" class="btn btn-neutral" title="Example 8: Computing covariance matrices" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, David Alonso.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'0.1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>
