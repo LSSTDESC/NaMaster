@@ -170,6 +170,10 @@ class binning_scheme(_object):
     __swig_getmethods__["w_list"] = _nmtlib.binning_scheme_w_list_get
     if _newclass:
         w_list = _swig_property(_nmtlib.binning_scheme_w_list_get, _nmtlib.binning_scheme_w_list_set)
+    __swig_setmethods__["f_ell"] = _nmtlib.binning_scheme_f_ell_set
+    __swig_getmethods__["f_ell"] = _nmtlib.binning_scheme_f_ell_get
+    if _newclass:
+        f_ell = _swig_property(_nmtlib.binning_scheme_f_ell_get, _nmtlib.binning_scheme_f_ell_set)
     __swig_setmethods__["ell_max"] = _nmtlib.binning_scheme_ell_max_set
     __swig_getmethods__["ell_max"] = _nmtlib.binning_scheme_ell_max_get
     if _newclass:
@@ -187,12 +191,12 @@ binning_scheme_swigregister = _nmtlib.binning_scheme_swigregister
 binning_scheme_swigregister(binning_scheme)
 
 
-def bins_constant(nlb, lmax):
-    return _nmtlib.bins_constant(nlb, lmax)
+def bins_constant(nlb, lmax, is_l2):
+    return _nmtlib.bins_constant(nlb, lmax, is_l2)
 bins_constant = _nmtlib.bins_constant
 
-def bins_create(nell, bpws, ells, weights, lmax):
-    return _nmtlib.bins_create(nell, bpws, ells, weights, lmax)
+def bins_create(nell, bpws, ells, weights, f_ell, lmax):
+    return _nmtlib.bins_create(nell, bpws, ells, weights, f_ell, lmax)
 bins_create = _nmtlib.bins_create
 
 def bins_read(fname, lmax):
@@ -1041,8 +1045,8 @@ def get_ell_eff_flat(bins, dout):
     return _nmtlib.get_ell_eff_flat(bins, dout)
 get_ell_eff_flat = _nmtlib.get_ell_eff_flat
 
-def bins_create_py(nell1, nell2, nell3, lmax):
-    return _nmtlib.bins_create_py(nell1, nell2, nell3, lmax)
+def bins_create_py(nell1, nell2, nell3, nell4, lmax):
+    return _nmtlib.bins_create_py(nell1, nell2, nell3, nell4, lmax)
 bins_create_py = _nmtlib.bins_create_py
 
 def update_mcm(w, n_rows, nell3):

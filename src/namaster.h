@@ -168,6 +168,7 @@ typedef struct {
   int *nell_list; //!< Number of multipoles belonging to each bandpower.
   int **ell_list; //!< List of multipoles in each bandpowers.
   flouble **w_list; //!< List of weights associated to each multipole in \p ell_list.
+  flouble **f_ell; //!< Multiplicative ell factor
   int ell_max; //!< Maximum multipole included.
 } nmt_binning_scheme;
 
@@ -178,9 +179,10 @@ typedef struct {
  * width \p nlb, from ell = 2 to ell = \p lmax.
  * @param nlb Constant band width
  * @param lmax Maximum multipole
+ * @param is_l2 If not zero, will assume l*(l+1)/2pi weighting
  * @return Allocated binning structure.
  */
-nmt_binning_scheme *nmt_bins_constant(int nlb,int lmax);
+nmt_binning_scheme *nmt_bins_constant(int nlb,int lmax,int is_l2);
 
 /**
  * @brief  nmt_binning_scheme generic constructor.
@@ -191,10 +193,14 @@ nmt_binning_scheme *nmt_bins_constant(int nlb,int lmax);
  *        into their associated bandpowers.
  * @param weights Array of weights associated to each multipole. Weights are
  *        normalized to 1 within each bandpower.
+ * @param f_ell Array of ell-dependent prefactor (e.g. l*(l+1)/2pi is a typical choice).
+ *        Pass NULL if you don't want any prefactor.
+ *        normalized to 1 within each bandpower.
  * @param lmax Maximum multipole to consider.
  * @return Allocated binning structure.
  */
-nmt_binning_scheme *nmt_bins_create(int nell,int *bpws,int *ells,flouble *weights,int lmax);
+nmt_binning_scheme *nmt_bins_create(int nell,int *bpws,int *ells,flouble *weights,
+				    flouble *f_ell,int lmax);
 
 /**
  * @brief nmt_binning_scheme constructor from file

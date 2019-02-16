@@ -3,7 +3,7 @@
 #include "utils.h"
 #include "nmt_test_utils.h"
 
-CTEST(nmt,covar) {
+CTEST(nmt,covar_flat) {
   int ii;
   nmt_workspace_flat *w=nmt_workspace_flat_read("test/benchmarks/bm_f_nc_np_w00.dat");
   nmt_covar_workspace_flat *cw=nmt_covar_workspace_flat_init(w,w);

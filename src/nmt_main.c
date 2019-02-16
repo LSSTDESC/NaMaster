@@ -20,7 +20,7 @@ void run_master(nmt_field *fl1,nmt_field *fl2,
   //Binning
   nmt_binning_scheme *bin;
   if(!strcmp(fname_bins,"none"))
-    bin=nmt_bins_constant(n_lbin,fl1->lmax);
+    bin=nmt_bins_constant(n_lbin,fl1->lmax,0);
   else
     bin=nmt_bins_read(fname_bins,fl1->lmax);
 

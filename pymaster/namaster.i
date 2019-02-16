@@ -25,7 +25,8 @@
                                      (int nell12,double *c12),
                                      (int nell21,double *c21),
                                      (int nell22,double *c22),
-                                     (int nell3,double *weights)};
+                                     (int nell3,double *weights),
+                                     (int nell4,double *f_ell)};
 %apply (int DIM1,int *IN_ARRAY1) {(int nell1,int *bpws),
                                   (int nell2,int *ells),
                                   (int nfields,int *spin_arr)};
@@ -109,12 +110,14 @@ void get_ell_eff_flat(nmt_binning_scheme_flat *bins,double *dout,int ndout)
 nmt_binning_scheme *bins_create_py(int nell1,int *bpws,
 				   int nell2,int *ells,
 				   int nell3,double *weights,
+				   int nell4,double *f_ell,
 				   int lmax)
 {
   asserting(nell1==nell2);
   asserting(nell2==nell3);
+  asserting(nell3==nell4);
   
-  return nmt_bins_create(nell1,bpws,ells,weights,lmax);
+  return nmt_bins_create(nell1,bpws,ells,weights,f_ell,lmax);
 }
 
 void update_mcm(nmt_workspace *w,int n_rows,int nell3,double *weights)

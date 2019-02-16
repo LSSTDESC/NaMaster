@@ -3396,12 +3396,14 @@ void get_ell_eff_flat(nmt_binning_scheme_flat *bins,double *dout,int ndout)
 nmt_binning_scheme *bins_create_py(int nell1,int *bpws,
 				   int nell2,int *ells,
 				   int nell3,double *weights,
+				   int nell4,double *f_ell,
 				   int lmax)
 {
   asserting(nell1==nell2);
   asserting(nell2==nell3);
+  asserting(nell3==nell4);
   
-  return nmt_bins_create(nell1,bpws,ells,weights,lmax);
+  return nmt_bins_create(nell1,bpws,ells,weights,f_ell,lmax);
 }
 
 void update_mcm(nmt_workspace *w,int n_rows,int nell3,double *weights)
@@ -5395,6 +5397,58 @@ fail:
 }
 
 
+SWIGINTERN PyObject *_wrap_binning_scheme_f_ell_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_binning_scheme *arg1 = (nmt_binning_scheme *) 0 ;
+  flouble **arg2 = (flouble **) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  void *argp2 = 0 ;
+  int res2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:binning_scheme_f_ell_set",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_binning_scheme, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "binning_scheme_f_ell_set" "', argument " "1"" of type '" "nmt_binning_scheme *""'"); 
+  }
+  arg1 = (nmt_binning_scheme *)(argp1);
+  res2 = SWIG_ConvertPtr(obj1, &argp2,SWIGTYPE_p_p_double, 0 |  0 );
+  if (!SWIG_IsOK(res2)) {
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "binning_scheme_f_ell_set" "', argument " "2"" of type '" "flouble **""'"); 
+  }
+  arg2 = (flouble **)(argp2);
+  if (arg1) (arg1)->f_ell = arg2;
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_binning_scheme_f_ell_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_binning_scheme *arg1 = (nmt_binning_scheme *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  flouble **result = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:binning_scheme_f_ell_get",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_binning_scheme, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "binning_scheme_f_ell_get" "', argument " "1"" of type '" "nmt_binning_scheme *""'"); 
+  }
+  arg1 = (nmt_binning_scheme *)(argp1);
+  result = (flouble **) ((arg1)->f_ell);
+  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_p_double, 0 |  0 );
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
 SWIGINTERN PyObject *_wrap_binning_scheme_ell_max_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   nmt_binning_scheme *arg1 = (nmt_binning_scheme *) 0 ;
@@ -5506,15 +5560,19 @@ SWIGINTERN PyObject *_wrap_bins_constant(PyObject *SWIGUNUSEDPARM(self), PyObjec
   PyObject *resultobj = 0;
   int arg1 ;
   int arg2 ;
+  int arg3 ;
   int val1 ;
   int ecode1 = 0 ;
   int val2 ;
   int ecode2 = 0 ;
+  int val3 ;
+  int ecode3 = 0 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
+  PyObject * obj2 = 0 ;
   nmt_binning_scheme *result = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"OO:bins_constant",&obj0,&obj1)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOO:bins_constant",&obj0,&obj1,&obj2)) SWIG_fail;
   ecode1 = SWIG_AsVal_int(obj0, &val1);
   if (!SWIG_IsOK(ecode1)) {
     SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "bins_constant" "', argument " "1"" of type '" "int""'");
@@ -5525,7 +5583,12 @@ SWIGINTERN PyObject *_wrap_bins_constant(PyObject *SWIGUNUSEDPARM(self), PyObjec
     SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "bins_constant" "', argument " "2"" of type '" "int""'");
   } 
   arg2 = (int)(val2);
-  result = (nmt_binning_scheme *)nmt_bins_constant(arg1,arg2);
+  ecode3 = SWIG_AsVal_int(obj2, &val3);
+  if (!SWIG_IsOK(ecode3)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "bins_constant" "', argument " "3"" of type '" "int""'");
+  } 
+  arg3 = (int)(val3);
+  result = (nmt_binning_scheme *)nmt_bins_constant(arg1,arg2,arg3);
   resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_nmt_binning_scheme, 0 |  0 );
   return resultobj;
 fail:
@@ -5539,7 +5602,8 @@ SWIGINTERN PyObject *_wrap_bins_create(PyObject *SWIGUNUSEDPARM(self), PyObject 
   int *arg2 = (int *) 0 ;
   int *arg3 = (int *) 0 ;
   flouble *arg4 = (flouble *) 0 ;
-  int arg5 ;
+  flouble *arg5 = (flouble *) 0 ;
+  int arg6 ;
   int val1 ;
   int ecode1 = 0 ;
   void *argp2 = 0 ;
@@ -5548,16 +5612,19 @@ SWIGINTERN PyObject *_wrap_bins_create(PyObject *SWIGUNUSEDPARM(self), PyObject 
   int res3 = 0 ;
   void *argp4 = 0 ;
   int res4 = 0 ;
-  int val5 ;
-  int ecode5 = 0 ;
+  void *argp5 = 0 ;
+  int res5 = 0 ;
+  int val6 ;
+  int ecode6 = 0 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   PyObject * obj2 = 0 ;
   PyObject * obj3 = 0 ;
   PyObject * obj4 = 0 ;
+  PyObject * obj5 = 0 ;
   nmt_binning_scheme *result = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"OOOOO:bins_create",&obj0,&obj1,&obj2,&obj3,&obj4)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOOOOO:bins_create",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5)) SWIG_fail;
   ecode1 = SWIG_AsVal_int(obj0, &val1);
   if (!SWIG_IsOK(ecode1)) {
     SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "bins_create" "', argument " "1"" of type '" "int""'");
@@ -5578,12 +5645,17 @@ SWIGINTERN PyObject *_wrap_bins_create(PyObject *SWIGUNUSEDPARM(self), PyObject 
     SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "bins_create" "', argument " "4"" of type '" "flouble *""'"); 
   }
   arg4 = (flouble *)(argp4);
-  ecode5 = SWIG_AsVal_int(obj4, &val5);
-  if (!SWIG_IsOK(ecode5)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode5), "in method '" "bins_create" "', argument " "5"" of type '" "int""'");
+  res5 = SWIG_ConvertPtr(obj4, &argp5,SWIGTYPE_p_double, 0 |  0 );
+  if (!SWIG_IsOK(res5)) {
+    SWIG_exception_fail(SWIG_ArgError(res5), "in method '" "bins_create" "', argument " "5"" of type '" "flouble *""'"); 
+  }
+  arg5 = (flouble *)(argp5);
+  ecode6 = SWIG_AsVal_int(obj5, &val6);
+  if (!SWIG_IsOK(ecode6)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode6), "in method '" "bins_create" "', argument " "6"" of type '" "int""'");
   } 
-  arg5 = (int)(val5);
-  result = (nmt_binning_scheme *)nmt_bins_create(arg1,arg2,arg3,arg4,arg5);
+  arg6 = (int)(val6);
+  result = (nmt_binning_scheme *)nmt_bins_create(arg1,arg2,arg3,arg4,arg5,arg6);
   resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_nmt_binning_scheme, 0 |  0 );
   return resultobj;
 fail:
@@ -15145,21 +15217,26 @@ SWIGINTERN PyObject *_wrap_bins_create_py(PyObject *SWIGUNUSEDPARM(self), PyObje
   int arg5 ;
   double *arg6 = (double *) 0 ;
   int arg7 ;
+  double *arg8 = (double *) 0 ;
+  int arg9 ;
   PyArrayObject *array1 = NULL ;
   int is_new_object1 = 0 ;
   PyArrayObject *array3 = NULL ;
   int is_new_object3 = 0 ;
   PyArrayObject *array5 = NULL ;
   int is_new_object5 = 0 ;
-  int val7 ;
-  int ecode7 = 0 ;
+  PyArrayObject *array7 = NULL ;
+  int is_new_object7 = 0 ;
+  int val9 ;
+  int ecode9 = 0 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   PyObject * obj2 = 0 ;
   PyObject * obj3 = 0 ;
+  PyObject * obj4 = 0 ;
   nmt_binning_scheme *result = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"OOOO:bins_create_py",&obj0,&obj1,&obj2,&obj3)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOOOO:bins_create_py",&obj0,&obj1,&obj2,&obj3,&obj4)) SWIG_fail;
   {
     npy_intp size[1] = {
       -1
@@ -15196,14 +15273,26 @@ SWIGINTERN PyObject *_wrap_bins_create_py(PyObject *SWIGUNUSEDPARM(self), PyObje
     arg5 = (int) array_size(array5,0);
     arg6 = (double*) array_data(array5);
   }
-  ecode7 = SWIG_AsVal_int(obj3, &val7);
-  if (!SWIG_IsOK(ecode7)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode7), "in method '" "bins_create_py" "', argument " "7"" of type '" "int""'");
+  {
+    npy_intp size[1] = {
+      -1
+    };
+    array7 = obj_to_array_contiguous_allow_conversion(obj3,
+      NPY_DOUBLE,
+      &is_new_object7);
+    if (!array7 || !require_dimensions(array7, 1) ||
+      !require_size(array7, size, 1)) SWIG_fail;
+    arg7 = (int) array_size(array7,0);
+    arg8 = (double*) array_data(array7);
+  }
+  ecode9 = SWIG_AsVal_int(obj4, &val9);
+  if (!SWIG_IsOK(ecode9)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode9), "in method '" "bins_create_py" "', argument " "9"" of type '" "int""'");
   } 
-  arg7 = (int)(val7);
+  arg9 = (int)(val9);
   {
     try {
-      result = (nmt_binning_scheme *)bins_create_py(arg1,arg2,arg3,arg4,arg5,arg6,arg7);
+      result = (nmt_binning_scheme *)bins_create_py(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9);
     }
     finally {
       SWIG_exception(SWIG_RuntimeError,nmt_error_message);
@@ -15228,6 +15317,12 @@ SWIGINTERN PyObject *_wrap_bins_create_py(PyObject *SWIGUNUSEDPARM(self), PyObje
       Py_DECREF(array5); 
     }
   }
+  {
+    if (is_new_object7 && array7)
+    {
+      Py_DECREF(array7); 
+    }
+  }
   return resultobj;
 fail:
   {
@@ -15246,6 +15341,12 @@ fail:
     if (is_new_object5 && array5)
     {
       Py_DECREF(array5); 
+    }
+  }
+  {
+    if (is_new_object7 && array7)
+    {
+      Py_DECREF(array7); 
     }
   }
   return NULL;
@@ -19822,6 +19923,8 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"binning_scheme_ell_list_get", _wrap_binning_scheme_ell_list_get, METH_VARARGS, NULL},
 	 { (char *)"binning_scheme_w_list_set", _wrap_binning_scheme_w_list_set, METH_VARARGS, NULL},
 	 { (char *)"binning_scheme_w_list_get", _wrap_binning_scheme_w_list_get, METH_VARARGS, NULL},
+	 { (char *)"binning_scheme_f_ell_set", _wrap_binning_scheme_f_ell_set, METH_VARARGS, NULL},
+	 { (char *)"binning_scheme_f_ell_get", _wrap_binning_scheme_f_ell_get, METH_VARARGS, NULL},
 	 { (char *)"binning_scheme_ell_max_set", _wrap_binning_scheme_ell_max_set, METH_VARARGS, NULL},
 	 { (char *)"binning_scheme_ell_max_get", _wrap_binning_scheme_ell_max_get, METH_VARARGS, NULL},
 	 { (char *)"new_binning_scheme", _wrap_new_binning_scheme, METH_VARARGS, NULL},

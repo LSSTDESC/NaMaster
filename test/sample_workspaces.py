@@ -24,6 +24,12 @@ f0=nmt.NmtField(mask,[mp_t+tm_t],templates=[[tm_t]])
 f2=nmt.NmtField(mask,[mp_q+tm_q,mp_u+tm_u],templates=[[tm_q,tm_u]])
 #e) Create binning scheme. We will use 20 multipoles per bandpower.
 b=nmt.NmtBin(nside,nlb=20)
+#Note that, if you want to compute bandpowers assuming constant underlying
+#D_ell = ell*(ell+1)*C_ell/(2*pi) (instead of constant C_ell) within each
+#bandpower, you can add `is_Dell=True` when defining an NmtBin. The
+#prefactor is actually fully tuneable - check out the documentation for the
+#NmtBin constructor.
+#
 #f) Finally, we read our best guess for the true power spectrum. We will
 #   use this to:
 #   i)  Compute the bias to the power spectrum from contaminant cleaning
