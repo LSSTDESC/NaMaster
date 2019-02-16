@@ -15,7 +15,11 @@ class TestBinsSph(unittest.TestCase) :
         ells=np.arange(self.lmax-4,dtype=int)+2
         bpws=(ells-2)//4
         weights=0.25*np.ones(self.lmax-4)
+        fell=ells*(ells+1.)/(2*np.pi)
         self.bv=nmt.NmtBin(self.nside,bpws=bpws,ells=ells,weights=weights,lmax=self.lmax)
+        self.bcf=nmt.NmtBin(self.nside,nlb=4,lmax=self.lmax,is_Dell=True)
+        self.bvf1=nmt.NmtBin(self.nside,bpws=bpws,ells=ells,weights=weights,lmax=self.lmax,is_Dell=True)
+        self.bvf2=nmt.NmtBin(self.nside,bpws=bpws,ells=ells,weights=weights,lmax=self.lmax,f_ell=fell)
         
     def test_bins_errors(self) :
         #Tests raised exceptions
@@ -55,6 +59,22 @@ class TestBinsSph(unittest.TestCase) :
         cl_b_p=np.mean(cls[2:2+self.nlb*((self.lmax-2)//self.nlb)].reshape([-1,self.nlb]),axis=1)
         self.assertTrue(normdiff(cl_b_p,cl_b)<1E-5)
         cl_u_p=(cl_b[:,None]*np.ones([len(cl_b),self.nlb])).flatten()
+        self.assertTrue(normdiff(cl_u_p,cl_u[2:2+self.nlb*((self.lmax-2)//self.nlb)])<1E-5)
+
+    def test_bins_binning_f_ell(self) :
+        #Tests C_l binning and unbinning with ell-dependent prefactors
+        cls=np.arange(self.lmax+1,dtype=float)
+        fell=cls*(cls+1.)/2/np.pi
+        cl_b=self.bcf.bin_cell(cls)
+        self.assertTrue(normdiff(cl_b,self.bvf1.bin_cell(cls))<1E-5)
+        self.assertTrue(normdiff(cl_b,self.bvf2.bin_cell(cls))<1E-5)
+        cl_u=self.bcf.unbin_cell(cl_b)
+        self.assertTrue(normdiff(cl_u,self.bvf1.unbin_cell(cl_b))<1E-5)
+        self.assertTrue(normdiff(cl_u,self.bvf2.unbin_cell(cl_b))<1E-5)
+        cl_b_p=np.mean((fell*cls)[2:2+self.nlb*((self.lmax-2)//self.nlb)].reshape([-1,self.nlb]),axis=1)
+        self.assertTrue(normdiff(cl_b_p,cl_b)<1E-5)
+        cl_u_p=(cl_b[:,None]*np.ones([len(cl_b),self.nlb])).flatten()
+        cl_u_p/=fell[2:2+self.nlb*((self.lmax-2)//self.nlb)]
         self.assertTrue(normdiff(cl_u_p,cl_u[2:2+self.nlb*((self.lmax-2)//self.nlb)])<1E-5)
         
 class TestBinsFsk(unittest.TestCase) :
