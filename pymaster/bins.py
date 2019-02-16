@@ -12,7 +12,7 @@ class NmtBin(object):
     :param array-like weights: array of floats corresponding to the weights associated to each multipole in ells. The sum of weights within each bandpower is normalized to 1.
     :param int nlb: integer value corresponding to a constant bandpower width. I.e. the bandpowers will be defined as consecutive sets of nlb multipoles from l=2 to l=lmax (see below) with equal weights. If this argument is provided, the values of ells, bpws and weights are ignored.
     :param int lmax: integer value corresponding to the maximum multipole used by these bandpowers. If None, it will be set to 3*nside-1. In any case the actual maximum multipole will be chosen as the minimum of lmax, 3*nside-1 and the maximum element of ells (e.g. if you are using CAR maps and don't care about nside, you can pass whatever lmax you want and e.g. nside=lmax).
-    :param boolean is_Dell: if True, the output of all pseudo-Cl computations carried out using this bandpower scheme (e.g. `from NmtWorkspace.decouple_cell`) will be multiplied by `ell * (ell + 1) / 2 * PI`, where `ell` is the multipole order (no prefactor otherwise).
+    :param boolean is_Dell: if True, the output of all pseudo-Cl computations carried out using this bandpower scheme (e.g. from :py:meth:`pymaster.workspaces.NmtWorkspace.decouple_cell`) will be multiplied by `ell * (ell + 1) / 2 * PI`, where `ell` is the multipole order (no prefactor otherwise).
     :param array-like f_ell: if present, this is array represents an `ell-dependent` function that will be multiplied by all pseudo-Cl computations carried out using this bandpower scheme. If not `None`, the value of `is_Dell` is ignored.
     """
 

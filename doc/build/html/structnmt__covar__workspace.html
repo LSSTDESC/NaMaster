@@ -113,9 +113,9 @@ Data Fields</h2></td></tr>
 <tr class="memitem:a3f4edc69b92458bc56a756071751f445"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structnmt__binning__scheme.html">nmt_binning_scheme</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structnmt__covar__workspace.html#a3f4edc69b92458bc56a756071751f445">bin_b</a></td></tr>
 <tr class="memdesc:a3f4edc69b92458bc56a756071751f445"><td class="mdescLeft">&#160;</td><td class="mdescRight">Bandpowers defining the binning for the second set of spectra.  <a href="#a3f4edc69b92458bc56a756071751f445">More...</a><br /></td></tr>
 <tr class="separator:a3f4edc69b92458bc56a756071751f445"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a68bc6e38b04bcfc60a38ca2b0c21a128"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structnmt__covar__workspace.html#a68bc6e38b04bcfc60a38ca2b0c21a128">nside</a></td></tr>
-<tr class="memdesc:a68bc6e38b04bcfc60a38ca2b0c21a128"><td class="mdescLeft">&#160;</td><td class="mdescRight">HEALPix resolution parameter.  <a href="#a68bc6e38b04bcfc60a38ca2b0c21a128">More...</a><br /></td></tr>
-<tr class="separator:a68bc6e38b04bcfc60a38ca2b0c21a128"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a724ab5a7fcace90c66bbf53ffaeb2830"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structnmt__curvedsky__info.html">nmt_curvedsky_info</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structnmt__covar__workspace.html#a724ab5a7fcace90c66bbf53ffaeb2830">cs</a></td></tr>
+<tr class="memdesc:a724ab5a7fcace90c66bbf53ffaeb2830"><td class="mdescLeft">&#160;</td><td class="mdescRight">curved sky geometry information.  <a href="#a724ab5a7fcace90c66bbf53ffaeb2830">More...</a><br /></td></tr>
+<tr class="separator:a724ab5a7fcace90c66bbf53ffaeb2830"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a624eba510b272f523e93210eaf1f9ab9"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> **&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structnmt__covar__workspace.html#a624eba510b272f523e93210eaf1f9ab9">xi_1122</a></td></tr>
 <tr class="memdesc:a624eba510b272f523e93210eaf1f9ab9"><td class="mdescLeft">&#160;</td><td class="mdescRight">First (a1b1-a2b2) mode coupling matrix (see scientific documentation)  <a href="#a624eba510b272f523e93210eaf1f9ab9">More...</a><br /></td></tr>
 <tr class="separator:a624eba510b272f523e93210eaf1f9ab9"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -224,6 +224,20 @@ Data Fields</h2></td></tr>
 
 </div>
 </div>
+<a class="anchor" id="a724ab5a7fcace90c66bbf53ffaeb2830"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="structnmt__curvedsky__info.html">nmt_curvedsky_info</a>* nmt_covar_workspace::cs</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>curved sky geometry information. </p>
+
+</div>
+</div>
 <a class="anchor" id="a249f2cbf0740e81d1392437af8b26adb"></a>
 <div class="memitem">
 <div class="memproto">
@@ -277,20 +291,6 @@ Data Fields</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Number of elements for the second set of power spectra (1 for the time being) </p>
-
-</div>
-</div>
-<a class="anchor" id="a68bc6e38b04bcfc60a38ca2b0c21a128"></a>
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">int nmt_covar_workspace::nside</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>HEALPix resolution parameter. </p>
 
 </div>
 </div>

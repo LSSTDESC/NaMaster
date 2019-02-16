@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import pymaster as nmt
 
 #This script showcases the use of the NmtField structure to store information
-#about the fields to be correlated an define bandpowers.
+#about the fields to be correlated.
 
 #HEALPix map resolution
 nside=256
