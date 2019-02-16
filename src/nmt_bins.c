@@ -7,13 +7,15 @@ void nmt_bins_free(nmt_binning_scheme *bins)
   for(ii=0;ii<bins->n_bands;ii++) {
     free(bins->ell_list[ii]);
     free(bins->w_list[ii]);
+    free(bins->f_ell[ii]);
   }
   free(bins->ell_list);
   free(bins->w_list);
+  free(bins->f_ell);
   free(bins);
 }
 
-nmt_binning_scheme *nmt_bins_constant(int nlb,int lmax)
+nmt_binning_scheme *nmt_bins_constant(int nlb,int lmax,int is_l2)
 {
   int ii;
   int nband_max=(lmax-1)/nlb;
@@ -25,22 +27,30 @@ nmt_binning_scheme *nmt_bins_constant(int nlb,int lmax)
   bins->nell_list=my_calloc(nband_max,sizeof(int));
   bins->ell_list=my_malloc(nband_max*sizeof(int *));
   bins->w_list=my_malloc(nband_max*sizeof(flouble *));
+  bins->f_ell=my_malloc(nband_max*sizeof(flouble *));
 
   for(ii=0;ii<nband_max;ii++) {
     int jj;
     bins->nell_list[ii]=nlb;
     bins->ell_list[ii]=my_malloc(nlb*sizeof(int));
     bins->w_list[ii]=my_malloc(nlb*sizeof(flouble));
+    bins->f_ell[ii]=my_malloc(nlb*sizeof(flouble));
     for(jj=0;jj<nlb;jj++) {
-      bins->ell_list[ii][jj]=2+ii*nlb+jj;
+      int ell=2+ii*nlb+jj;
+      bins->ell_list[ii][jj]=ell;
       bins->w_list[ii][jj]=w0;
+      if(is_l2)
+	bins->f_ell[ii][jj]=ell*(ell+1.)/(2*M_PI);
+      else
+	bins->f_ell[ii][jj]=1;
     }
   }
 
   return bins;
 }
 
-nmt_binning_scheme *nmt_bins_create(int nell,int *bpws,int *ells,flouble *weights,int lmax)
+nmt_binning_scheme *nmt_bins_create(int nell,int *bpws,int *ells,flouble *weights,
+				    flouble *f_ell,int lmax)
 {
   nmt_binning_scheme *bins;
   int ii,nband_max=0;
@@ -59,6 +69,7 @@ nmt_binning_scheme *nmt_bins_create(int nell,int *bpws,int *ells,flouble *weight
   bins->nell_list=my_calloc(nband_max,sizeof(int));
   bins->ell_list=my_malloc(nband_max*sizeof(int *));
   bins->w_list=my_malloc(nband_max*sizeof(flouble *));
+  bins->f_ell=my_malloc(nband_max*sizeof(flouble *));
 
   for(ii=0;ii<nell;ii++) {
     if(ells[ii]<=lmax) {
@@ -70,20 +81,30 @@ nmt_binning_scheme *nmt_bins_create(int nell,int *bpws,int *ells,flouble *weight
   for(ii=0;ii<nband_max;ii++) {
     bins->ell_list[ii]=my_malloc(bins->nell_list[ii]*sizeof(int));
     bins->w_list[ii]=my_malloc(bins->nell_list[ii]*sizeof(flouble));
+    bins->f_ell[ii]=my_malloc(bins->nell_list[ii]*sizeof(flouble));
   }
 
   for(ii=0;ii<nband_max;ii++)
     bins->nell_list[ii]=0;
 
   for(ii=0;ii<nell;ii++) {
+    flouble f;
     int l=ells[ii];
     int b=bpws[ii];
     flouble w=weights[ii];
+    if(f_ell==NULL)
+      f=1;
+    else
+      f=f_ell[ii];
 
     if(l<=lmax) {
       if(b>=0) {
 	bins->ell_list[b][bins->nell_list[b]]=l;
 	bins->w_list[b][bins->nell_list[b]]=w;
+	if(f<=0) //Prevent division by zero later on
+	  bins->f_ell[b][bins->nell_list[b]]=1;
+	else
+	  bins->f_ell[b][bins->nell_list[b]]=f;
 	bins->nell_list[b]++;
       }
     }
@@ -122,7 +143,7 @@ nmt_binning_scheme *nmt_bins_read(char *fname,int lmax)
   }
   fclose(fi);
 
-  bins=nmt_bins_create(nlines,band_number,larr,warr,lmax);
+  bins=nmt_bins_create(nlines,band_number,larr,warr,NULL,lmax);
 
   free(larr);
   free(band_number);
@@ -143,7 +164,8 @@ void nmt_bin_cls(nmt_binning_scheme *bin,flouble **cls_in,flouble **cls_out,int 
       for(il=0;il<bin->nell_list[ib];il++) {
 	int l=bin->ell_list[ib][il];
 	flouble w=bin->w_list[ib][il];
-	cls_out[icl][ib]+=w*cls_in[icl][l];
+	flouble f=bin->f_ell[ib][il];
+	cls_out[icl][ib]+=w*f*cls_in[icl][l];
       }
     }
   }
@@ -160,7 +182,7 @@ void nmt_unbin_cls(nmt_binning_scheme *bin,flouble **cls_in,flouble **cls_out,in
       flouble clb=cls_in[icl][ib];
       for(il=0;il<bin->nell_list[ib];il++) {
 	int l=bin->ell_list[ib][il];
-	cls_out[icl][l]=clb;
+	cls_out[icl][l]=clb/bin->f_ell[ib][il];
       }
     }
   }

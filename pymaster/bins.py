@@ -12,9 +12,11 @@ class NmtBin(object):
     :param array-like weights: array of floats corresponding to the weights associated to each multipole in ells. The sum of weights within each bandpower is normalized to 1.
     :param int nlb: integer value corresponding to a constant bandpower width. I.e. the bandpowers will be defined as consecutive sets of nlb multipoles from l=2 to l=lmax (see below) with equal weights. If this argument is provided, the values of ells, bpws and weights are ignored.
     :param int lmax: integer value corresponding to the maximum multipole used by these bandpowers. If None, it will be set to 3*nside-1. In any case the actual maximum multipole will be chosen as the minimum of lmax, 3*nside-1 and the maximum element of ells (e.g. if you are using CAR maps and don't care about nside, you can pass whatever lmax you want and e.g. nside=lmax).
+    :param boolean is_Dell: if True, the output of all pseudo-Cl computations carried out using this bandpower scheme (e.g. `from NmtWorkspace.decouple_cell`) will be multiplied by `ell * (ell + 1) / 2 * PI`, where `ell` is the multipole order (no prefactor otherwise).
+    :param array-like f_ell: if present, this is array represents an `ell-dependent` function that will be multiplied by all pseudo-Cl computations carried out using this bandpower scheme. If not `None`, the value of `is_Dell` is ignored.
     """
 
-    def __init__(self, nside, bpws=None, ells=None, weights=None, nlb=None, lmax=None):
+    def __init__(self, nside, bpws=None, ells=None, weights=None, nlb=None, lmax=None, is_Dell=False, f_ell=None):
         self.bin = None
 
         if (bpws is None) and (ells is None) and (weights is None) and (nlb is None):
@@ -26,15 +28,20 @@ class NmtBin(object):
             lmax_in = lmax
 
         if nlb is None:
-            if (bpws is None) and (ells is None) and (weights is None):
+            if (bpws is None) or (ells is None) or (weights is None):
                 raise KeyError("Must provide bpws, ells and weights")
+            if f_ell is None:
+                if is_Dell:
+                    f_ell = ells * (ells + 1.) / (2 * np.pi)
+                else:
+                    f_ell = np.ones(len(ells))
             ell_max = min(3 * nside - 1, lmax_in)
             self.bin = lib.bins_create_py(
-                bpws.astype(np.int32), ells.astype(np.int32), weights, int(ell_max)
+                bpws.astype(np.int32), ells.astype(np.int32), weights, f_ell, int(ell_max)
             )
         else:
             ell_max = min(3 * nside - 1, lmax_in)
-            self.bin = lib.bins_constant(nlb, ell_max)
+            self.bin = lib.bins_constant(nlb, ell_max, int(is_Dell))
         self.lmax = ell_max
 
     def __del__(self):
