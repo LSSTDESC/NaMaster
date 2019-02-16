@@ -101,7 +101,7 @@
 <li class="toctree-l1"><a class="reference internal" href="sample_pureb.html">Example 6: Pure E and B</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sample_flat.html">Example 7: Flat-sky fields</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sample_covariance.html">Example 8: Computing covariance matrices</a></li>
-<li class="toctree-l1"><a class="reference internal" href="sample_rectpix.html">Example 3: Fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sample_rectpix.html">Example 9: Rectangular pixels</a></li>
 <li class="toctree-l1"><a class="reference external" href="index_doxy.html#http://">C API documentation</a></li>
 </ul>
 
@@ -311,7 +311,7 @@
 
 <span class="target" id="module-pymaster.bins"></span><dl class="class">
 <dt id="pymaster.bins.NmtBin">
-<em class="property">class </em><code class="descclassname">pymaster.bins.</code><code class="descname">NmtBin</code><span class="sig-paren">(</span><em>nside</em>, <em>bpws=None</em>, <em>ells=None</em>, <em>weights=None</em>, <em>nlb=None</em>, <em>lmax=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pymaster.bins.NmtBin" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">pymaster.bins.</code><code class="descname">NmtBin</code><span class="sig-paren">(</span><em>nside</em>, <em>bpws=None</em>, <em>ells=None</em>, <em>weights=None</em>, <em>nlb=None</em>, <em>lmax=None</em>, <em>is_Dell=False</em>, <em>f_ell=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pymaster.bins.NmtBin" title="Permalink to this definition">¶</a></dt>
 <dd><p>An NmtBin object defines the set of bandpowers used in the computation of the pseudo-Cl estimator. The definition of bandpowers is described in Section 3.6 of the scientific documentation.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -324,6 +324,8 @@
 <li><strong>weights</strong> (<em>array-like</em>) – array of floats corresponding to the weights associated to each multipole in ells. The sum of weights within each bandpower is normalized to 1.</li>
 <li><strong>nlb</strong> (<em>int</em>) – integer value corresponding to a constant bandpower width. I.e. the bandpowers will be defined as consecutive sets of nlb multipoles from l=2 to l=lmax (see below) with equal weights. If this argument is provided, the values of ells, bpws and weights are ignored.</li>
 <li><strong>lmax</strong> (<em>int</em>) – integer value corresponding to the maximum multipole used by these bandpowers. If None, it will be set to 3*nside-1. In any case the actual maximum multipole will be chosen as the minimum of lmax, 3*nside-1 and the maximum element of ells (e.g. if you are using CAR maps and don’t care about nside, you can pass whatever lmax you want and e.g. nside=lmax).</li>
+<li><strong>is_Dell</strong> (<em>boolean</em>) – if True, the output of all pseudo-Cl computations carried out using this bandpower scheme (e.g. from <a class="reference internal" href="#pymaster.workspaces.NmtWorkspace.decouple_cell" title="pymaster.workspaces.NmtWorkspace.decouple_cell"><code class="xref py py-meth docutils literal"><span class="pre">pymaster.workspaces.NmtWorkspace.decouple_cell()</span></code></a>) will be multiplied by <cite>ell * (ell + 1) / 2 * PI</cite>, where <cite>ell</cite> is the multipole order (no prefactor otherwise).</li>
+<li><strong>f_ell</strong> (<em>array-like</em>) – if present, this is array represents an <cite>ell-dependent</cite> function that will be multiplied by all pseudo-Cl computations carried out using this bandpower scheme. If not <cite>None</cite>, the value of <cite>is_Dell</cite> is ignored.</li>
 </ul>
 </td>
 </tr>

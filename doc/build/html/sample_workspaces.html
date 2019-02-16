@@ -101,7 +101,7 @@
 <li class="toctree-l1"><a class="reference internal" href="sample_pureb.html">Example 6: Pure E and B</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sample_flat.html">Example 7: Flat-sky fields</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sample_covariance.html">Example 8: Computing covariance matrices</a></li>
-<li class="toctree-l1"><a class="reference internal" href="sample_rectpix.html">Example 3: Fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sample_rectpix.html">Example 9: Rectangular pixels</a></li>
 <li class="toctree-l1"><a class="reference external" href="index_doxy.html#http://">C API documentation</a></li>
 </ul>
 
@@ -195,6 +195,12 @@
 <span class="n">f2</span><span class="o">=</span><span class="n">nmt</span><span class="o">.</span><span class="n">NmtField</span><span class="p">(</span><span class="n">mask</span><span class="p">,[</span><span class="n">mp_q</span><span class="o">+</span><span class="n">tm_q</span><span class="p">,</span><span class="n">mp_u</span><span class="o">+</span><span class="n">tm_u</span><span class="p">],</span><span class="n">templates</span><span class="o">=</span><span class="p">[[</span><span class="n">tm_q</span><span class="p">,</span><span class="n">tm_u</span><span class="p">]])</span>
 <span class="c1">#e) Create binning scheme. We will use 20 multipoles per bandpower.</span>
 <span class="n">b</span><span class="o">=</span><span class="n">nmt</span><span class="o">.</span><span class="n">NmtBin</span><span class="p">(</span><span class="n">nside</span><span class="p">,</span><span class="n">nlb</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+<span class="c1">#Note that, if you want to compute bandpowers assuming constant underlying</span>
+<span class="c1">#D_ell = ell*(ell+1)*C_ell/(2*pi) (instead of constant C_ell) within each</span>
+<span class="c1">#bandpower, you can add `is_Dell=True` when defining an NmtBin. The</span>
+<span class="c1">#prefactor is actually fully tuneable - check out the documentation for the</span>
+<span class="c1">#NmtBin constructor.</span>
+<span class="c1">#</span>
 <span class="c1">#f) Finally, we read our best guess for the true power spectrum. We will</span>
 <span class="c1">#   use this to:</span>
 <span class="c1">#   i)  Compute the bias to the power spectrum from contaminant cleaning</span>
