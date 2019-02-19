@@ -4,10 +4,28 @@
 #include "nmt_test_utils.h"
 
 CTEST(nmt,covar_flat) {
-  int ii;
+  int ii,nx,ny;
+  double lx,ly;
+  nmt_binning_scheme_flat *bin;
+  double *msk=fs_read_flat_map("test/benchmarks/msk_flat.fits",&nx,&ny,&lx,&ly,0);
+  double *map=fs_read_flat_map("test/benchmarks/msk_flat.fits",&nx,&ny,&lx,&ly,0);
+  int nell=25;
+  double dell=20.;
+  double *larr_e=my_malloc((nell+1)*sizeof(double));
+  for(ii=0;ii<=nell;ii++)
+    larr_e[ii]=ii*dell+2;
+  bin=nmt_bins_flat_create(nell,larr_e,&(larr_e[1]));
+  free(larr_e);
+
+  nmt_field_flat *f0=nmt_field_flat_alloc(NX_TEST,NY_TEST,
+					  DX_TEST*NX_TEST*M_PI/180,
+					  DY_TEST*NY_TEST*M_PI/180,
+					  msk,0,&map,0,NULL,0,NULL,NULL,0,0,1E-10);
+  
   nmt_workspace_flat *w=nmt_workspace_flat_read("test/benchmarks/bm_f_nc_np_w00.dat");
-  nmt_covar_workspace_flat *cw=nmt_covar_workspace_flat_init(w,w);
+  nmt_covar_workspace_flat *cw=nmt_covar_workspace_flat_init(f0,f0,bin,f0,f0,bin);
   nmt_covar_workspace_flat *cwr=nmt_covar_workspace_flat_read("test/benchmarks/bm_f_nc_np_cw00.dat");
+  free(msk); free(map); nmt_bins_flat_free(bin); nmt_field_flat_free(f0);
 
   ASSERT_EQUAL(cwr->ncls_a,cw->ncls_a);
   ASSERT_EQUAL(cwr->ncls_b,cw->ncls_b);
@@ -19,7 +37,6 @@ CTEST(nmt,covar_flat) {
       ASSERT_EQUAL(cwr->xi_1221[ii][jj],cw->xi_1221[ii][jj]);
     }
   }
-  nmt_workspace_flat_free(w);
   nmt_covar_workspace_flat_free(cwr);
 
   //Init power spectra
@@ -40,7 +57,7 @@ CTEST(nmt,covar_flat) {
   fclose(fi);
 
   double *covar=my_malloc(cw->bin->n_bands*cw->bin->n_bands*sizeof(double));
-  nmt_compute_gaussian_covariance_flat(cw,lmax_th+1,larr,cell,cell,cell,cell,covar);
+  nmt_compute_gaussian_covariance_flat(cw,w,w,lmax_th+1,larr,cell,cell,cell,cell,covar);
 
   fi=my_fopen("test/benchmarks/bm_f_nc_np_cov.txt","r");
   for(ii=0;ii<cw->bin->n_bands*cw->bin->n_bands;ii++) {
@@ -51,18 +68,42 @@ CTEST(nmt,covar_flat) {
   fclose(fi);
   free(covar);
   free(cell);
+  nmt_workspace_flat_free(w);
   nmt_covar_workspace_flat_free(cw);
 }
 
 CTEST(nmt,covar_flat_errors) {
   nmt_covar_workspace_flat *cw=NULL;
-  nmt_workspace_flat *wb,*wa=nmt_workspace_flat_read("test/benchmarks/bm_f_nc_np_w00.dat");
+  int ii,nx,ny;
+  double lx,ly;
+  nmt_binning_scheme_flat *bin,*binb;
+  double *msk=fs_read_flat_map("test/benchmarks/msk_flat.fits",&nx,&ny,&lx,&ly,0);
+  double *map=fs_read_flat_map("test/benchmarks/msk_flat.fits",&nx,&ny,&lx,&ly,0);
+  int nell=25;
+  double dell=20.;
+  double *larr_e=my_malloc((nell+1)*sizeof(double));
+  for(ii=0;ii<=nell;ii++)
+    larr_e[ii]=ii*dell+2;
+  bin=nmt_bins_flat_create(nell,larr_e,&(larr_e[1]));
+  binb=nmt_bins_flat_create(nell,larr_e,&(larr_e[1]));
+  free(larr_e);
+
+  nmt_field_flat *f0=nmt_field_flat_alloc(NX_TEST,NY_TEST,
+					  DX_TEST*NX_TEST*M_PI/180,
+					  DY_TEST*NY_TEST*M_PI/180,
+					  msk,0,&map,0,NULL,0,NULL,NULL,0,0,1E-10);
+  
+  nmt_field_flat *f0b=nmt_field_flat_alloc(NX_TEST,NY_TEST,
+					   DX_TEST*NX_TEST*M_PI/180,
+					   DY_TEST*NY_TEST*M_PI/180,
+					   msk,0,&map,0,NULL,0,NULL,NULL,0,0,1E-10);
+  
+
 
   set_error_policy(THROW_ON_ERROR);
 
   //All good
-  wb=nmt_workspace_flat_read("test/benchmarks/bm_f_nc_np_w00.dat");
-  try { cw=nmt_covar_workspace_flat_init(wa,wb); }
+  try { cw=nmt_covar_workspace_flat_init(f0,f0,bin,f0b,f0b,binb); }
   ASSERT_EQUAL(0,nmt_exception_status);
   nmt_covar_workspace_flat_free(cw); cw=NULL;
 
@@ -77,34 +118,30 @@ CTEST(nmt,covar_flat_errors) {
   nmt_covar_workspace_flat_free(cw); cw=NULL;
 
   //Incompatible resolutions
-  int nx=wb->fs->nx,ny=wb->fs->ny,n_bands=wb->bin->n_bands;
-  wb->fs->nx=2;
-  try { cw=nmt_covar_workspace_flat_init(wa,wb); }
-  wb->fs->nx=nx;
+  int n_bands=bin->n_bands;
+  nx=f0->fs->nx;
+  ny=f0->fs->ny;
+  f0b->fs->nx=2;
+  try { cw=nmt_covar_workspace_flat_init(f0,f0,bin,f0b,f0b,binb); }
+  f0b->fs->nx=nx;
   ASSERT_NOT_EQUAL(0,nmt_exception_status);
   ASSERT_NULL(cw);
-  wb->fs->ny=2;
-  try { cw=nmt_covar_workspace_flat_init(wa,wb); }
-  wb->fs->ny=ny;
+  f0b->fs->ny=2;
+  try { cw=nmt_covar_workspace_flat_init(f0,f0,bin,f0b,f0b,binb); }
+  f0b->fs->ny=ny;
   ASSERT_NOT_EQUAL(0,nmt_exception_status);
   ASSERT_NULL(cw);
 
   //Incompatible bandpowers
-  wb->bin->n_bands=2;
-  try { cw=nmt_covar_workspace_flat_init(wa,wb); }
-  wb->bin->n_bands=n_bands;
+  binb->n_bands=2;
+  try { cw=nmt_covar_workspace_flat_init(f0,f0,bin,f0b,f0b,binb); }
+  binb->n_bands=n_bands;
   ASSERT_NOT_EQUAL(0,nmt_exception_status);
   ASSERT_NULL(cw);
-  nmt_workspace_flat_free(wb);
-
-  //Spin-2
-  wb=nmt_workspace_flat_read("test/benchmarks/bm_f_nc_np_w02.dat");
-  try { cw=nmt_covar_workspace_flat_init(wa,wb); }
-  ASSERT_NOT_EQUAL(0,nmt_exception_status);
-  ASSERT_NULL(cw);
-  nmt_workspace_flat_free(wb);
 
   set_error_policy(EXIT_ON_ERROR);
 
-  nmt_workspace_flat_free(wa);
+  free(msk); free(map);
+  nmt_bins_flat_free(bin); nmt_field_flat_free(f0);
+  nmt_bins_flat_free(binb); nmt_field_flat_free(f0b);
 }

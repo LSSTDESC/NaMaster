@@ -727,11 +727,6 @@ typedef struct {
   int pb2; //!< Is the B-mode component of the second field purified?
   nmt_flatsky_info *fs; //!< Contains information about rectangular flat-sky patch.
   int is_teb; //!< Does it hold all MCM elements to compute all of spin0-spin0, 0-2 and 2-2 correlations?
-  flouble *mask1; //!< Mask of the first field being correlated
-  flouble *mask2; //!< Mask of the second field being correlated
-#ifdef _ENABLE_FLAT_THEORY_ACCURATE
-  flouble *maskprod; //!< Mask product used for accurate theory estimate (non-tested)
-#endif //_ENABLE_FLAT_THEORY_ACCURATE
   int *n_cells; //!< Number of unmasked Fourier-space grid points contributing to a given bandpower
   flouble **coupling_matrix_unbinned; //!< Unbinned MCM
   flouble **coupling_matrix_binned; //!< Binned MCM
@@ -815,10 +810,6 @@ void nmt_compute_deprojection_bias_flat(nmt_field_flat *fl1,nmt_field_flat *fl2,
 					flouble lmn_x,flouble lmx_x,flouble lmn_y,flouble lmx_y,
 					int nl_prop,flouble *l_prop,flouble **cl_proposal,
 					flouble **cl_bias);
-#ifdef _ENABLE_FLAT_THEORY_ACCURATE
-void nmt_couple_cl_l_flat_accurate(nmt_workspace_flat *w,int nl,flouble *larr,flouble **cl_in,
-				   flouble **cl_out);
-#endif //_ENABLE_FLAT_THEORY_ACCURATE
 
 /**
  * @brief Mode-couples an input power spectrum
@@ -944,8 +935,6 @@ typedef struct {
   int is_teb; //!< Does it hold all MCM elements to compute all of spin0-spin0, 0-2 and 2-2 correlations?
   int ncls; //!< Number of power spectra (1, 2 or 4 depending of the spins of the fields being correlated.
   nmt_curvedsky_info *cs; //!< curved sky geometry information.
-  flouble *mask1; //!< Mask of the first field being correlated.
-  flouble *mask2; //!< Mask of the second field being correlated.
   flouble *pcl_masks; //!< Pseudo-CL of the masks.
   flouble **coupling_matrix_unbinned; //!< Unbinned mode-coupling matrix
   nmt_binning_scheme *bin; //!< Bandpowers defining the binning
@@ -1132,10 +1121,6 @@ typedef struct {
   nmt_binning_scheme_flat *bin; //!< Bandpowers defining the binning
   flouble **xi_1122; //!< First (a1b1-a2b2) mode coupling matrix (see scientific documentation)
   flouble **xi_1221; //!< Second (a1b2-a2b1) mode coupling matrix (see scientific documentation)
-  gsl_matrix *coupling_binned_a; //!< Coupling matrix associated to the first set of power spectra
-  gsl_matrix *coupling_binned_b; //!< Coupling matrix associated to the second set of power spectra
-  gsl_permutation *coupling_binned_perm_a; //!< GSL aid to invert first MCM
-  gsl_permutation *coupling_binned_perm_b; //!< GSL aid to invert second MCM
 } nmt_covar_workspace_flat;
 
 /**
@@ -1149,11 +1134,18 @@ void nmt_covar_workspace_flat_free(nmt_covar_workspace_flat *cw);
  *
  * Builds an nmt_covar_workspace_flat structure from two nmt_workspace_flat structures, corresponding
  * to the two sets of power spectra for which the covariance is required.
- * @param wa nmt_workspace_flat for the first set of power spectra.
- * @param wb nmt_workspace_flat for the second set of power spectra.
+ * @param fla1 nmt_field_field for the first field going into the first (a-th) power spectrum.
+ * @param fla2 nmt_field_field for the second field going into the first (a-th) power spectrum.
+ * @param flb1 nmt_field_field for the first field going into the second (b-th) power spectrum.
+ * @param flb2 nmt_field_field for the second field going into the second (b-th) power spectrum.
+ * @param ba nmt_binning_scheme_flat used for the first power spectrum.
+ * @param bb nmt_binning_scheme_flat used for the second power spectrum.
  * @warning All covariance-related functionality is still under development, and in the future will hopefully support.
  */
-nmt_covar_workspace_flat *nmt_covar_workspace_flat_init(nmt_workspace_flat *wa,nmt_workspace_flat  *wb);
+nmt_covar_workspace_flat *nmt_covar_workspace_flat_init(nmt_field_flat *fla1,nmt_field_flat *fla2,
+							nmt_binning_scheme_flat *ba,
+							nmt_field_flat *flb1,nmt_field_flat *flb2,
+							nmt_binning_scheme_flat *bb);
 
 /**
  * @brief Compute flat-sky Gaussian covariance matrix
@@ -1162,6 +1154,8 @@ nmt_covar_workspace_flat *nmt_covar_workspace_flat_init(nmt_workspace_flat *wa,n
  * and a nmt_covar_workspace_flat structure.
  * @param cw nmt_covar_workspace_flat structure containing the information necessary to compute the
           covariance matrix.
+ * @param wa nmt_workspace_flat structure containing the mode-coupling matrix for the first power spectra.
+ * @param wb nmt_workspace_flat structure containing the mode-coupling matrix for the second power spectra.
  * @param nl Number of multipoles in which input power spectra are computed.
  * @param larr Array of multipoles in which input power spectra are computed.
  * @param cla1b1 Cross-power spectrum between field 1 in set a and field 1 in set b.
@@ -1174,6 +1168,7 @@ nmt_covar_workspace_flat *nmt_covar_workspace_flat_init(nmt_workspace_flat *wa,n
  * @warning All covariance-related functionality is still under development, and in the future will hopefully support.
  */
 void nmt_compute_gaussian_covariance_flat(nmt_covar_workspace_flat *cw,
+					  nmt_workspace_flat *wa,nmt_workspace_flat *wb,
 					  int nl,flouble *larr,flouble *cla1b1,flouble *cla1b2,
 					  flouble *cla2b1,flouble *cla2b2,flouble *covar_out);
 
@@ -1221,10 +1216,6 @@ typedef struct {
   nmt_curvedsky_info *cs; //!< curved sky geometry information.
   flouble **xi_1122; //!< First (a1b1-a2b2) mode coupling matrix (see scientific documentation)
   flouble **xi_1221; //!< Second (a1b2-a2b1) mode coupling matrix (see scientific documentation)
-  gsl_matrix *coupling_binned_a; //!< Coupling matrix associated to the first set of power spectra
-  gsl_matrix *coupling_binned_b; //!< Coupling matrix associated to the second set of power spectra
-  gsl_permutation *coupling_binned_perm_a; //!< GSL aid to invert first MCM
-  gsl_permutation *coupling_binned_perm_b; //!< GSL aid to invert second MCM
 } nmt_covar_workspace;
 
 /**
@@ -1236,14 +1227,20 @@ void nmt_covar_workspace_free(nmt_covar_workspace *cw);
 /**
  * @brief nmt_covar_workspace constructor
  *
- * Builds an nmt_covar_workspace structure from two nmt_workspace structures, corresponding
+ * Builds an nmt_covar_workspace structure from two pairs of nmt_field structures, corresponding
  * to the two sets of power spectra for which the covariance is required.
- * @param wa nmt_workspace for the first set of power spectra.
- * @param wb nmt_workspace for the second set of power spectra.
+ * @param fla1 nmt_field for the first field going into the first (a-th) power spectrum.
+ * @param fla2 nmt_field for the second field going into the first (a-th) power spectrum.
+ * @param flb1 nmt_field for the first field going into the second (b-th) power spectrum.
+ * @param flb2 nmt_field for the second field going into the second (b-th) power spectrum.
+ * @param ba nmt_binning_scheme used for the first power spectrum.
+ * @param bb nmt_binning_scheme used for the second power spectrum.
  * @param niter number of iterations when computing alms.
  * @warning All covariance-related functionality is still under development, and in the future will hopefully support.
  */
-nmt_covar_workspace *nmt_covar_workspace_init(nmt_workspace *wa,nmt_workspace *wb,int niter);
+nmt_covar_workspace *nmt_covar_workspace_init(nmt_field *fla1,nmt_field *fla2,nmt_binning_scheme *ba,
+					      nmt_field *flb1,nmt_field *flb2,nmt_binning_scheme *bb,
+					      int niter);
 
 /**
  * @brief Compute full-sky Gaussian covariance matrix
@@ -1252,6 +1249,8 @@ nmt_covar_workspace *nmt_covar_workspace_init(nmt_workspace *wa,nmt_workspace *w
  * and a nmt_covar_workspace structure.
  * @param cw nmt_covar_workspace structure containing the information necessary to compute the
           covariance matrix.
+ * @param wa nmt_workspace structure containing the mode-coupling matrix for the first power spectra.
+ * @param wb nmt_workspace structure containing the mode-coupling matrix for the second power spectra.
  * @param cla1b1 Cross-power spectrum between field 1 in set a and field 1 in set b.
           All power spectra should be defined for all ell < lmax.
  * @param cla1b2 Cross-power spectrum between field 1 in set a and field 2 in set b.
@@ -1262,7 +1261,7 @@ nmt_covar_workspace *nmt_covar_workspace_init(nmt_workspace *wa,nmt_workspace *w
 	  power spectra (and analogously for nbpw_b).
  * @warning All covariance-related functionality is still under development, and in the future will hopefully support.
  */
-void  nmt_compute_gaussian_covariance(nmt_covar_workspace *cw,
+void  nmt_compute_gaussian_covariance(nmt_covar_workspace *cw,nmt_workspace *wa,nmt_workspace *wb,
 				      flouble *cla1b1,flouble *cla1b2,flouble *cla2b1,flouble *cla2b2,
 				      flouble *covar_out);
 

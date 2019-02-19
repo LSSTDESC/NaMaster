@@ -5,11 +5,17 @@
 
 CTEST(nmt,covar_f_ell) {
   int ii;
+  nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(1,1,-1,-1,-1,-1,-1,-1);
+  double *msk=he_read_map("test/benchmarks/msk.fits",cs,0);
+  double *map=he_read_map("test/benchmarks/mps.fits",cs,0);
   nmt_workspace *w=nmt_workspace_read("test/benchmarks/bm_nc_np_w00.dat");
-  nmt_bins_free(w->bin);
-  w->bin=nmt_bins_constant(16,191,2);
-  nmt_covar_workspace *cw=nmt_covar_workspace_init(w,w,HE_NITER_DEFAULT);
-  nmt_workspace_free(w);
+  nmt_field *f0=nmt_field_alloc_sph(cs,msk,0,&map,0,NULL,NULL,0,0,3,1E-10,HE_NITER_DEFAULT);
+  nmt_binning_scheme *bin=nmt_bins_constant(16,191,2);
+  nmt_covar_workspace *cw=nmt_covar_workspace_init(f0,f0,bin,f0,f0,bin,HE_NITER_DEFAULT);
+  nmt_field_free(f0);
+  nmt_bins_free(bin);
+  free(msk); free(map);
+  free(cs);
 
   //Init power spectra
   int ncls=1;
@@ -28,7 +34,7 @@ CTEST(nmt,covar_f_ell) {
   fclose(fi);
 
   double *covar=my_malloc(cw->bin_a->n_bands*cw->bin_b->n_bands*sizeof(double));
-  nmt_compute_gaussian_covariance(cw,cell,cell,cell,cell,covar);
+  nmt_compute_gaussian_covariance(cw,w,w,cell,cell,cell,cell,covar);
 
   fi=my_fopen("test/benchmarks/bm_nc_np_cov.txt","r");
   for(ii=0;ii<cw->bin_a->n_bands*cw->bin_b->n_bands;ii++) {
@@ -41,13 +47,22 @@ CTEST(nmt,covar_f_ell) {
   free(covar);
   free(cell);
   nmt_covar_workspace_free(cw);
+  nmt_workspace_free(w);
 }
 
 CTEST(nmt,covar) {
   int ii;
+  nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(1,1,-1,-1,-1,-1,-1,-1);
+  double *msk=he_read_map("test/benchmarks/msk.fits",cs,0);
+  double *map=he_read_map("test/benchmarks/mps.fits",cs,0);
   nmt_workspace *w=nmt_workspace_read("test/benchmarks/bm_nc_np_w00.dat");
-  nmt_covar_workspace *cw=nmt_covar_workspace_init(w,w,HE_NITER_DEFAULT);
+  nmt_field *f0=nmt_field_alloc_sph(cs,msk,0,&map,0,NULL,NULL,0,0,3,1E-10,HE_NITER_DEFAULT);
+  nmt_binning_scheme *bin=w->bin;
+  nmt_covar_workspace *cw=nmt_covar_workspace_init(f0,f0,bin,f0,f0,bin,HE_NITER_DEFAULT);
   nmt_covar_workspace *cwr=nmt_covar_workspace_read("test/benchmarks/bm_nc_np_cw00.dat");
+  nmt_field_free(f0);
+  free(msk); free(map);
+  free(cs);
 
   ASSERT_EQUAL(cwr->lmax_a,cw->lmax_a);
   ASSERT_EQUAL(cwr->lmax_b,cw->lmax_b);
@@ -62,7 +77,6 @@ CTEST(nmt,covar) {
     }
   }
 
-  nmt_workspace_free(w);
   nmt_covar_workspace_free(cwr);
 
   //Init power spectra
@@ -81,7 +95,7 @@ CTEST(nmt,covar) {
   fclose(fi);
 
   double *covar=my_malloc(cw->bin_a->n_bands*cw->bin_b->n_bands*sizeof(double));
-  nmt_compute_gaussian_covariance(cw,cell,cell,cell,cell,covar);
+  nmt_compute_gaussian_covariance(cw,w,w,cell,cell,cell,cell,covar);
 
   fi=my_fopen("test/benchmarks/bm_nc_np_cov.txt","r");
   for(ii=0;ii<cw->bin_a->n_bands*cw->bin_b->n_bands;ii++) {
@@ -94,19 +108,27 @@ CTEST(nmt,covar) {
   free(covar);
   free(cell);
   nmt_covar_workspace_free(cw);
+  nmt_workspace_free(w);
 }
   
 CTEST(nmt,covar_errors) {
   nmt_covar_workspace *cw=NULL;
-  nmt_workspace *wb,*wa=nmt_workspace_read("test/benchmarks/bm_nc_np_w00.dat");
-  int nside=wa->cs->n_eq;
-  int lmax=wa->lmax;
+  nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(1,1,-1,-1,-1,-1,-1,-1);
+  double *msk=he_read_map("test/benchmarks/msk.fits",cs,0);
+  double *map=he_read_map("test/benchmarks/mps.fits",cs,0);
+  nmt_field *f0=nmt_field_alloc_sph(cs,msk,0,&map,0,NULL,NULL,0,0,3,1E-10,HE_NITER_DEFAULT);
+  nmt_field *f0b=nmt_field_alloc_sph(cs,msk,0,&map,0,NULL,NULL,0,0,3,1E-10,HE_NITER_DEFAULT);
+  nmt_binning_scheme *bin=nmt_bins_constant(16,191,2);
+  nmt_binning_scheme *binb=nmt_bins_constant(16,191,2);
+  //nmt_workspace *wb,*wa=nmt_workspace_read("test/benchmarks/bm_nc_np_w00.dat");
+  int nside=f0->cs->n_eq;
+  free(msk); free(map);
+  free(cs);
 
   set_error_policy(THROW_ON_ERROR);
 
   //All good
-  wb=nmt_workspace_read("test/benchmarks/bm_nc_np_w00.dat");
-  try { cw=nmt_covar_workspace_init(wa,wb,HE_NITER_DEFAULT); }
+  try { cw=nmt_covar_workspace_init(f0,f0,bin,f0b,f0b,binb,HE_NITER_DEFAULT); }
   ASSERT_EQUAL(0,nmt_exception_status);
   nmt_covar_workspace_free(cw); cw=NULL;
   //Wrong reading
@@ -120,28 +142,22 @@ CTEST(nmt,covar_errors) {
   nmt_covar_workspace_free(cw); cw=NULL;
 
   //Incompatible resolutions
-  wb->cs->n_eq=128;
-  try { cw=nmt_covar_workspace_init(wa,wb,HE_NITER_DEFAULT); }
-  wb->cs->n_eq=nside;
+  f0b->cs->n_eq=128;
+  try { cw=nmt_covar_workspace_init(f0,f0,bin,f0b,f0b,binb,HE_NITER_DEFAULT); }
+  f0b->cs->n_eq=nside;
   ASSERT_NOT_EQUAL(0,nmt_exception_status);
   ASSERT_NULL(cw);
 
   //Incompatible lmax
-  wb->lmax=3*128-1;
-  try { cw=nmt_covar_workspace_init(wa,wb,HE_NITER_DEFAULT); }
-  wb->lmax=lmax;
+  binb->ell_max=3*128-1;
+  try { cw=nmt_covar_workspace_init(f0,f0,bin,f0b,f0b,binb,HE_NITER_DEFAULT); }
+  binb->ell_max=bin->ell_max;
   ASSERT_NOT_EQUAL(0,nmt_exception_status);
   ASSERT_NULL(cw);
-  nmt_workspace_free(wb);
 
-  //Spin-2
-  wb=nmt_workspace_read("test/benchmarks/bm_nc_np_w02.dat");
-  try { cw=nmt_covar_workspace_init(wa,wb,HE_NITER_DEFAULT); }
-  ASSERT_NOT_EQUAL(0,nmt_exception_status);
-  ASSERT_NULL(cw);
-  nmt_workspace_free(wb);
-
+  nmt_field_free(f0);
+  nmt_field_free(f0b);
+  nmt_bins_free(bin);
+  nmt_bins_free(binb);
   set_error_policy(EXIT_ON_ERROR);
-
-  nmt_workspace_free(wa);
 }
