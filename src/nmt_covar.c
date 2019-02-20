@@ -195,24 +195,24 @@ void nmt_covar_workspace_write(nmt_covar_workspace *cw,char *fname)
   my_fwrite(&(cw->lmax),sizeof(int),1,fo);
   //00
   for(ii=0;ii<=cw->lmax;ii++)
-    my_fwrite(cw->xi00_1122[ii],sizeof(flouble),cw->lmax,fo);
+    my_fwrite(cw->xi00_1122[ii],sizeof(flouble),cw->lmax+1,fo);
   for(ii=0;ii<=cw->lmax;ii++)
-    my_fwrite(cw->xi00_1221[ii],sizeof(flouble),cw->lmax,fo);
+    my_fwrite(cw->xi00_1221[ii],sizeof(flouble),cw->lmax+1,fo);
   //02
   for(ii=0;ii<=cw->lmax;ii++)
-    my_fwrite(cw->xi02_1122[ii],sizeof(flouble),cw->lmax,fo);
+    my_fwrite(cw->xi02_1122[ii],sizeof(flouble),cw->lmax+1,fo);
   for(ii=0;ii<=cw->lmax;ii++)
-    my_fwrite(cw->xi02_1221[ii],sizeof(flouble),cw->lmax,fo);
+    my_fwrite(cw->xi02_1221[ii],sizeof(flouble),cw->lmax+1,fo);
   //22+
   for(ii=0;ii<=cw->lmax;ii++)
-    my_fwrite(cw->xi22p_1122[ii],sizeof(flouble),cw->lmax,fo);
+    my_fwrite(cw->xi22p_1122[ii],sizeof(flouble),cw->lmax+1,fo);
   for(ii=0;ii<=cw->lmax;ii++)
-    my_fwrite(cw->xi22p_1221[ii],sizeof(flouble),cw->lmax,fo);
+    my_fwrite(cw->xi22p_1221[ii],sizeof(flouble),cw->lmax+1,fo);
   //22-
   for(ii=0;ii<=cw->lmax;ii++)
-    my_fwrite(cw->xi22m_1122[ii],sizeof(flouble),cw->lmax,fo);
+    my_fwrite(cw->xi22m_1122[ii],sizeof(flouble),cw->lmax+1,fo);
   for(ii=0;ii<=cw->lmax;ii++)
-    my_fwrite(cw->xi22m_1221[ii],sizeof(flouble),cw->lmax,fo);
+    my_fwrite(cw->xi22m_1221[ii],sizeof(flouble),cw->lmax+1,fo);
 
   fclose(fo);
 }
@@ -236,7 +236,6 @@ nmt_covar_workspace *nmt_covar_workspace_read(char *fname)
     cw->xi00_1221[ii]=my_malloc((cw->lmax+1)*sizeof(flouble));
     my_fread(cw->xi00_1221[ii],sizeof(flouble),cw->lmax+1,fi);
   }
-
   //02
   cw->xi02_1122=my_malloc((cw->lmax+1)*sizeof(flouble *));
   for(ii=0;ii<=cw->lmax;ii++) {
@@ -270,7 +269,7 @@ nmt_covar_workspace *nmt_covar_workspace_read(char *fname)
     cw->xi22m_1221[ii]=my_malloc((cw->lmax+1)*sizeof(flouble));
     my_fread(cw->xi22m_1221[ii],sizeof(flouble),cw->lmax+1,fi);
   }
-  
+
   fclose(fi);
 
   return cw;

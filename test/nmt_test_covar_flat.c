@@ -3,7 +3,7 @@
 #include "utils.h"
 #include "nmt_test_utils.h"
 
-CTEST_SKIP(nmt,covar_flat) {
+CTEST(nmt,covar_flat) {
   int ii,nx,ny;
   double lx,ly;
   nmt_binning_scheme_flat *bin;
@@ -69,7 +69,7 @@ CTEST_SKIP(nmt,covar_flat) {
   nmt_covar_workspace_flat_free(cw);
 }
 
-CTEST_SKIP(nmt,covar_flat_errors) {
+CTEST(nmt,covar_flat_errors) {
   nmt_covar_workspace_flat *cw=NULL;
   int ii,nx,ny;
   double lx,ly;

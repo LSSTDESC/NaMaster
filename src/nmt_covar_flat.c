@@ -377,7 +377,6 @@ nmt_covar_workspace_flat *nmt_covar_workspace_flat_read(char *fname)
     cw->xi00_1221[ii]=my_malloc(cw->bin->n_bands*sizeof(flouble));
     my_fread(cw->xi00_1221[ii],sizeof(flouble),cw->bin->n_bands,fi);
   }
-
   //02
   cw->xi02_1122=my_malloc(cw->bin->n_bands*sizeof(flouble *));
   for(ii=0;ii<cw->bin->n_bands;ii++) {
@@ -389,7 +388,6 @@ nmt_covar_workspace_flat *nmt_covar_workspace_flat_read(char *fname)
     cw->xi02_1221[ii]=my_malloc(cw->bin->n_bands*sizeof(flouble));
     my_fread(cw->xi02_1221[ii],sizeof(flouble),cw->bin->n_bands,fi);
   }
-
   //22p
   cw->xi22p_1122=my_malloc(cw->bin->n_bands*sizeof(flouble *));
   for(ii=0;ii<cw->bin->n_bands;ii++) {
@@ -401,7 +399,6 @@ nmt_covar_workspace_flat *nmt_covar_workspace_flat_read(char *fname)
     cw->xi22p_1221[ii]=my_malloc(cw->bin->n_bands*sizeof(flouble));
     my_fread(cw->xi22p_1221[ii],sizeof(flouble),cw->bin->n_bands,fi);
   }
-
   //22m
   cw->xi22m_1122=my_malloc(cw->bin->n_bands*sizeof(flouble *));
   for(ii=0;ii<cw->bin->n_bands;ii++) {

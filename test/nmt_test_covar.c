@@ -3,7 +3,7 @@
 #include "utils.h"
 #include "nmt_test_utils.h"
 
-CTEST_SKIP(nmt,covar_f_ell) {
+CTEST(nmt,covar_f_ell) {
   int ii;
   nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(1,1,-1,-1,-1,-1,-1,-1);
   double *msk=he_read_map("test/benchmarks/msk.fits",cs,0);
@@ -50,7 +50,7 @@ CTEST_SKIP(nmt,covar_f_ell) {
   free(cs);
 }
 
-CTEST_SKIP(nmt,covar) {
+CTEST(nmt,covar) {
   int ii;
   nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(1,1,-1,-1,-1,-1,-1,-1);
   double *msk=he_read_map("test/benchmarks/msk.fits",cs,0);
@@ -117,7 +117,7 @@ CTEST(nmt,covar_errors) {
   int nside=f0->cs->n_eq;
   free(msk); free(map);
   free(cs);
-
+  
   set_error_policy(THROW_ON_ERROR);
 
   //All good
