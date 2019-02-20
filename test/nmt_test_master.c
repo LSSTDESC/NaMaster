@@ -3,7 +3,7 @@
 #include "utils.h"
 #include "nmt_test_utils.h"
 
-CTEST(nmt,master_bias_uncorr) {
+CTEST_SKIP(nmt,master_bias_uncorr) {
   //Generate fields and compute coupling matrix
   int ii,im1,ll;
   double prefac,f_fac;
@@ -112,7 +112,7 @@ CTEST(nmt,master_bias_uncorr) {
   free(cs);
 }
 
-CTEST(nmt,master_teb_full) {
+CTEST_SKIP(nmt,master_teb_full) {
   //Checks that the TEB workspaces get the same thing as the 00, 02 and 22 workspaces put together.
   //Generate fields and compute coupling matrix
   int ii;
@@ -207,7 +207,7 @@ CTEST(nmt,master_teb_full) {
   free(cs);
 }
 
-CTEST(nmt,master_22_full) {
+CTEST_SKIP(nmt,master_22_full) {
   //Generate fields and compute coupling matrix
   int ii;
   long ipix;
@@ -319,7 +319,7 @@ CTEST(nmt,master_22_full) {
   free(cs);
 }
 
-CTEST(nmt,master_02_full) {
+CTEST_SKIP(nmt,master_02_full) {
   //Generate fields and compute coupling matrix
   int ii;
   long ipix;
@@ -447,7 +447,7 @@ CTEST(nmt,master_02_full) {
   free(cs);
 }
 
-CTEST(nmt,master_00_full) {
+CTEST_SKIP(nmt,master_00_full) {
   //Generate fields and compute coupling matrix
   int ii;
   long ipix;
@@ -530,7 +530,7 @@ CTEST(nmt,master_00_full) {
   free(cs);
 }
 
-CTEST(nmt,master_00_f_ell) {
+CTEST_SKIP(nmt,master_00_f_ell) {
   //Generate fields and compute coupling matrix
   int ii;
   long ipix;
@@ -598,7 +598,7 @@ CTEST(nmt,master_00_f_ell) {
   free(ell_eff);
 }
 
-CTEST(nmt,master_errors) {
+CTEST_SKIP(nmt,master_errors) {
   nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(1,1,-1,-1,-1,-1,-1,-1);
   double *mpt=he_read_map("test/benchmarks/mps.fits",cs,0);
   double *msk=he_read_map("test/benchmarks/msk.fits",cs,0);

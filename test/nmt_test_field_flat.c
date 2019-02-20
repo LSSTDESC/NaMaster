@@ -3,7 +3,7 @@
 #include "utils.h"
 #include "nmt_test_utils.h"
 
-CTEST(nmt,field_flat_alloc) {
+CTEST_SKIP(nmt,field_flat_alloc) {
   nmt_field_flat *f;
   int ii,nmaps;
   double ntemp=5;
@@ -258,7 +258,7 @@ CTEST(nmt,field_flat_alloc) {
   free(mask);
 }
 
-CTEST(nmt,field_flat_synfast) {
+CTEST_SKIP(nmt,field_flat_synfast) {
   int ii,im1,im2,l,if1,if2;
   int nbpw=30;
   int nfields=3;

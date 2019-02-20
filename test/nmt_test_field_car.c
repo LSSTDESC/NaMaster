@@ -3,7 +3,7 @@
 #include "utils.h"
 #include "nmt_test_utils.h"
 
-CTEST(nmt,curvedsky_errors)
+CTEST_SKIP(nmt,curvedsky_errors)
 {
   int lmax,ii;
   nmt_curvedsky_info *cs;
@@ -81,7 +81,7 @@ CTEST(nmt,curvedsky_errors)
   free(cs_hpx_ref);
 }
 
-CTEST(nmt,field_car_alloc) {
+CTEST_SKIP(nmt,field_car_alloc) {
   nmt_field *f;
   int ii,nmaps;
   double ntemp=5;
@@ -262,7 +262,7 @@ CTEST(nmt,field_car_alloc) {
   free(cs);
 }
 
-CTEST(nmt,field_car_synfast) {
+CTEST_SKIP(nmt,field_car_synfast) {
   int ii,im1,im2,l,if1,if2;
   int ny=384,nx=2*(ny-1);
   double dtheta=M_PI/(ny-1),dphi=dtheta;

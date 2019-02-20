@@ -4,7 +4,7 @@
 #include "nmt_test_utils.h"
 #include <chealpix.h>
 
-CTEST(nmt,he_synalm) {
+CTEST_SKIP(nmt,he_synalm) {
   int ii,l;
   long nside=128;
   nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(1,nside,-1,-1,-1,-1,-1,-1);
@@ -75,7 +75,7 @@ CTEST(nmt,he_synalm) {
   free(cs);
 }
 
-CTEST(nmt,he_beams) {
+CTEST_SKIP(nmt,he_beams) {
   int l;
   long nside=128;
   long lmax=3*nside-1;
@@ -90,7 +90,7 @@ CTEST(nmt,he_beams) {
   free(beam_he);
 }
 
-CTEST(nmt,he_alm2cl)
+CTEST_SKIP(nmt,he_alm2cl)
 {
   int ii;
   long nside=256;
@@ -144,7 +144,7 @@ CTEST(nmt,he_alm2cl)
   free(cs);
 }  
 
-CTEST(nmt,he_sht) {
+CTEST_SKIP(nmt,he_sht) {
   int ii;
   int nmaps=34;
   long nside=16;
@@ -228,7 +228,7 @@ CTEST(nmt,he_sht) {
   free(cs);
 }
 
-CTEST(nmt,he_get_lmax) {
+CTEST_SKIP(nmt,he_get_lmax) {
   long nside=256;
   int ny=384,nx=2*(ny-1);
   double dtheta=M_PI/(ny-1),dphi=dtheta;
@@ -240,7 +240,7 @@ CTEST(nmt,he_get_lmax) {
   free(cs);
 }
   
-CTEST(nmt,he_get_pix_area) {
+CTEST_SKIP(nmt,he_get_pix_area) {
   long nside=256;
   int ny=383,nx=2*(ny-1);
   double dtheta=M_PI/(ny-1),dphi=dtheta;
@@ -252,7 +252,7 @@ CTEST(nmt,he_get_pix_area) {
   free(cs);
 }
     
-CTEST(nmt,he_sht_car) {
+CTEST_SKIP(nmt,he_sht_car) {
   int ii;
   int nmaps=34;
   int ny=384,nx=2*(ny-1);
@@ -323,7 +323,7 @@ CTEST(nmt,he_sht_car) {
   free(cs);
 }
 
-CTEST(nmt,he_io) {
+CTEST_SKIP(nmt,he_io) {
   set_error_policy(THROW_ON_ERROR);
 
   int ii;
@@ -399,7 +399,7 @@ CTEST_SKIP(nmt,he_qdisc) {
   free(indices);
 }
 
-CTEST(nmt,he_qstrip) {
+CTEST_SKIP(nmt,he_qstrip) {
   long nside=1024;
 
   set_error_policy(THROW_ON_ERROR);
@@ -423,7 +423,7 @@ CTEST(nmt,he_qstrip) {
   set_error_policy(EXIT_ON_ERROR);
 }
 
-CTEST(nmt,he_ringnum) {
+CTEST_SKIP(nmt,he_ringnum) {
   //ring_num
   long nside=1024;
   gsl_rng *r=init_rng(1234);
@@ -436,7 +436,7 @@ CTEST(nmt,he_ringnum) {
   end_rng(r);
 }
 
-CTEST(nmt,he_algb) {
+CTEST_SKIP(nmt,he_algb) {
   int ii;
   long nside=128;
   nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(1,nside,-1,-1,-1,-1,-1,-1);
@@ -493,7 +493,7 @@ CTEST(nmt,he_algb) {
   free(cs);
 }
 
-CTEST(nmt,he_r2n) {
+CTEST_SKIP(nmt,he_r2n) {
   int ii;
   long nside=256;
   long listpix[5]={123,453,6,723475,39642};
@@ -516,7 +516,7 @@ CTEST(nmt,he_r2n) {
   free(mp);
 }
 
-CTEST(nmt,he_ud) {
+CTEST_SKIP(nmt,he_ud) {
   //ud-grade
   int ii;
   long nside=256,npix=he_nside2npix(nside);
@@ -536,7 +536,7 @@ CTEST(nmt,he_ud) {
   free(mplo);  
 }
 
-CTEST(nmt,he_x2y) {
+CTEST_SKIP(nmt,he_x2y) {
   long nside=1024;
   double ip,ip0=1026;
   double vec[3],vec0[3]={0.010057788838065481, 0.015334332284729826, 0.9998318354288737};

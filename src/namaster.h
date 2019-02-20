@@ -1116,11 +1116,15 @@ nmt_workspace *nmt_compute_power_spectra(nmt_field *fl1,nmt_field *fl2,
  * fields of different spins.
  */
 typedef struct {
-  int ncls_a; //!< Number of elements for the first set of power spectra (1 for the time being)
-  int ncls_b; //!< Number of elements for the second set of power spectra (1 for the time being)
   nmt_binning_scheme_flat *bin; //!< Bandpowers defining the binning
-  flouble **xi_1122; //!< First (a1b1-a2b2) mode coupling matrix (see scientific documentation)
-  flouble **xi_1221; //!< Second (a1b2-a2b1) mode coupling matrix (see scientific documentation)
+  flouble **xi00_1122; //!< First (a1b1-a2b2), 00, mode coupling matrix (see scientific documentation)
+  flouble **xi00_1221; //!< Second (a1b2-a2b1), 00, mode coupling matrix (see scientific documentation)
+  flouble **xi02_1122; //!< First (a1b1-a2b2), 02, mode coupling matrix (see scientific documentation)
+  flouble **xi02_1221; //!< Second (a1b2-a2b1), 02, mode coupling matrix (see scientific documentation)
+  flouble **xi22p_1122; //!< First (a1b1-a2b2), 22p, mode coupling matrix (see scientific documentation)
+  flouble **xi22p_1221; //!< Second (a1b2-a2b1), 22p, mode coupling matrix (see scientific documentation)
+  flouble **xi22m_1122; //!< First (a1b1-a2b2), 22m, mode coupling matrix (see scientific documentation)
+  flouble **xi22m_1221; //!< Second (a1b2-a2b1), 22m, mode coupling matrix (see scientific documentation)
 } nmt_covar_workspace_flat;
 
 /**
@@ -1207,15 +1211,15 @@ nmt_covar_workspace_flat *nmt_covar_workspace_flat_read(char *fname);
  * fields of different spins.
  */
 typedef struct {
-  int lmax_a; //!< Maximum multipole for the first set of power spectra
-  int lmax_b; //!< Maximum multipole for the second set of power spectra
-  int ncls_a; //!< Number of elements for the first set of power spectra (1 for the time being)
-  int ncls_b; //!< Number of elements for the second set of power spectra (1 for the time being)
-  nmt_binning_scheme *bin_a; //!< Bandpowers defining the binning for the first set of spectra
-  nmt_binning_scheme *bin_b; //!< Bandpowers defining the binning for the second set of spectra
-  nmt_curvedsky_info *cs; //!< curved sky geometry information.
-  flouble **xi_1122; //!< First (a1b1-a2b2) mode coupling matrix (see scientific documentation)
-  flouble **xi_1221; //!< Second (a1b2-a2b1) mode coupling matrix (see scientific documentation)
+  int lmax; //!< Maximum multipole for the first set of power spectra
+  flouble **xi00_1122; //!< First (a1b1-a2b2), 00, mode coupling matrix (see scientific documentation)
+  flouble **xi00_1221; //!< Second (a1b2-a2b1), 00, mode coupling matrix (see scientific documentation)
+  flouble **xi02_1122; //!< First (a1b1-a2b2), 02, mode coupling matrix (see scientific documentation)
+  flouble **xi02_1221; //!< Second (a1b2-a2b1), 02, mode coupling matrix (see scientific documentation)
+  flouble **xi22p_1122; //!< First (a1b1-a2b2), 22+, mode coupling matrix (see scientific documentation)
+  flouble **xi22p_1221; //!< Second (a1b2-a2b1), 22+, mode coupling matrix (see scientific documentation)
+  flouble **xi22m_1122; //!< First (a1b1-a2b2), 22-, mode coupling matrix (see scientific documentation)
+  flouble **xi22m_1221; //!< Second (a1b2-a2b1), 22-, mode coupling matrix (see scientific documentation)
 } nmt_covar_workspace;
 
 /**
@@ -1233,14 +1237,13 @@ void nmt_covar_workspace_free(nmt_covar_workspace *cw);
  * @param fla2 nmt_field for the second field going into the first (a-th) power spectrum.
  * @param flb1 nmt_field for the first field going into the second (b-th) power spectrum.
  * @param flb2 nmt_field for the second field going into the second (b-th) power spectrum.
- * @param ba nmt_binning_scheme used for the first power spectrum.
- * @param bb nmt_binning_scheme used for the second power spectrum.
+ * @param lmax maximum multipole up to which the coupling coefficients will be calculated.
  * @param niter number of iterations when computing alms.
  * @warning All covariance-related functionality is still under development, and in the future will hopefully support.
  */
-nmt_covar_workspace *nmt_covar_workspace_init(nmt_field *fla1,nmt_field *fla2,nmt_binning_scheme *ba,
-					      nmt_field *flb1,nmt_field *flb2,nmt_binning_scheme *bb,
-					      int niter);
+nmt_covar_workspace *nmt_covar_workspace_init(nmt_field *fla1,nmt_field *fla2,
+					      nmt_field *flb1,nmt_field *flb2,
+					      int lmax,int niter);
 
 /**
  * @brief Compute full-sky Gaussian covariance matrix
