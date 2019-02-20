@@ -57,10 +57,11 @@ nmt_covar_workspace *nmt_covar_workspace_init(nmt_field *fla1,nmt_field *fla2,
   shared(cw,cl_mask_1122,cl_mask_1221)
   {
     int ll2,ll3;
-    double *wigner_00=NULL;
+    double *wigner_00=NULL,*wigner_22=NULL;
     int lstart=0;
     
     wigner_00=my_malloc(2*(cw->lmax+1)*sizeof(double));
+    wigner_22=my_malloc(2*(cw->lmax+1)*sizeof(double));
     
     //if(cw->ncls_a>1)
     //      lstart=2;
@@ -70,34 +71,54 @@ nmt_covar_workspace *nmt_covar_workspace_init(nmt_field *fla1,nmt_field *fla2,
       for(ll3=lstart;ll3<=cw->lmax;ll3++) {
 	int jj,l1,lmin_here,lmax_here;
 	int lmin_here_00=0,lmax_here_00=2*(cw->lmax+1)+1;
+	int lmin_here_22=0,lmax_here_22=2*(cw->lmax+1)+1;
 	flouble xi00_1122=0,xi00_1221=0;
 	flouble xi02_1122=0,xi02_1221=0;
 	flouble xi22p_1122=0,xi22p_1221=0;
 	flouble xi22m_1122=0,xi22m_1221=0;
 
 	drc3jj(ll2,ll3,0,0,&lmin_here_00,&lmax_here_00,wigner_00,2*(cw->lmax+1));
+	drc3jj(ll2,ll3,2,-2,&lmin_here_22,&lmax_here_22,wigner_22,2*(cw->lmax+1));
 
-	lmin_here=lmin_here_00;
-	lmax_here=lmax_here_00;
-
+	lmin_here=NMT_MIN(lmin_here_00,lmin_here_22);
+	lmax_here=NMT_MAX(lmax_here_00,lmax_here_22);
 	for(l1=lmin_here;l1<=lmax_here;l1++) {
 	  if(l1<=cw->lmax) {
-	    flouble wfac_1122,wfac_1221;
+	    flouble wfacs[4];
+	    int suml=l1+ll2+ll3;
 	    int j00=l1-lmin_here_00;
+	    int j22=l1-lmin_here_22;
+	    int prefac_m=suml & 1;
+	    int prefac_p=!prefac_m;
+	    wfacs[0]=wigner_00[j00]*wigner_00[j00];
+	    wfacs[1]=wigner_00[j00]*wigner_22[j22];
+	    wfacs[2]=wigner_22[j22]*wigner_22[j22];
+	    wfacs[3]=prefac_m*wfacs[2];
+	    wfacs[2]*=prefac_p;
 
-	    wfac_1122=cl_mask_1122[l1]*wigner_00[j00]*wigner_00[j00];
-	    wfac_1221=cl_mask_1221[l1]*wigner_00[j00]*wigner_00[j00];
-
-	    xi00_1122+=wfac_1122;
-	    xi00_1221+=wfac_1221;
+	    xi00_1122+=cl_mask_1122[l1]*wfacs[0];
+	    xi00_1221+=cl_mask_1221[l1]*wfacs[0];
+	    xi02_1122+=cl_mask_1122[l1]*wfacs[1];
+	    xi02_1221+=cl_mask_1221[l1]*wfacs[1];
+	    xi22p_1122+=cl_mask_1122[l1]*wfacs[2];
+	    xi22p_1221+=cl_mask_1221[l1]*wfacs[2];
+	    xi22m_1122+=cl_mask_1122[l1]*wfacs[3];
+	    xi22m_1221+=cl_mask_1221[l1]*wfacs[3];
 	  }
 	}
 
-	cw->xi00_1122[ll2+0][ll3+0]=xi00_1122;
-	cw->xi00_1221[ll2+0][ll3+0]=xi00_1221;
+	cw->xi00_1122[ll2][ll3]=xi00_1122;
+	cw->xi00_1221[ll2][ll3]=xi00_1221;
+	cw->xi02_1122[ll2][ll3]=xi02_1122;
+	cw->xi02_1221[ll2][ll3]=xi02_1221;
+	cw->xi22p_1122[ll2][ll3]=xi22p_1122;
+	cw->xi22p_1221[ll2][ll3]=xi22p_1221;
+	cw->xi22m_1122[ll2][ll3]=xi22m_1122;
+	cw->xi22m_1221[ll2][ll3]=xi22m_1221;
       }
     } //end omp for
     free(wigner_00);
+    free(wigner_22);
   } //end omp parallel
 
   free(cl_mask_1122);

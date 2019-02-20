@@ -3,7 +3,7 @@
 #include "utils.h"
 #include "nmt_test_utils.h"
 
-CTEST_SKIP(nmt,field_alloc) {
+CTEST(nmt,field_alloc) {
   nmt_field *f;
   int ii,nmaps;
   double ntemp=5;
@@ -182,7 +182,7 @@ CTEST_SKIP(nmt,field_alloc) {
   free(cs);
 }
 
-CTEST_SKIP(nmt,field_read) {
+CTEST(nmt,field_read) {
   int ii;
   nmt_field *f;
 
@@ -214,7 +214,7 @@ CTEST_SKIP(nmt,field_read) {
   set_error_policy(EXIT_ON_ERROR);
 }
 
-CTEST_SKIP(nmt,field_synfast) {
+CTEST(nmt,field_synfast) {
   int ii,im1,im2,l,if1,if2;
   long nside=128;
   nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(1,nside,-1,-1,-1,-1,-1,-1);

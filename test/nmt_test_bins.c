@@ -3,14 +3,14 @@
 #include "utils.h"
 #include "nmt_test_utils.h"
 
-CTEST_SKIP(nmt,bins_constant) {
+CTEST(nmt,bins_constant) {
   nmt_binning_scheme *bin=nmt_bins_constant(4,2000,0);
   ASSERT_EQUAL(bin->n_bands,499);
   ASSERT_EQUAL(bin->ell_list[5][2],2+4*5+2);
   nmt_bins_free(bin);
 }
 
-CTEST_SKIP(nmt,bins_f_ell) {
+CTEST(nmt,bins_f_ell) {
   int i,j;
   nmt_binning_scheme *bin_nc,*bin_c=nmt_bins_constant(4,2000,1);
   int *ells=test_get_sequence(2,1998);
@@ -40,7 +40,7 @@ CTEST_SKIP(nmt,bins_f_ell) {
   nmt_bins_free(bin_nc);
 }
 
-CTEST_SKIP(nmt,bins_variable) {
+CTEST(nmt,bins_variable) {
   int i,j;
   nmt_binning_scheme *bin=nmt_bins_constant(4,2000,0);
   int *ells=test_get_sequence(2,1998);
@@ -77,7 +77,7 @@ CTEST_SKIP(nmt,bins_variable) {
   nmt_bins_free(bin);
 }
 
-CTEST_SKIP(nmt,bins_read) {
+CTEST(nmt,bins_read) {
   set_error_policy(THROW_ON_ERROR);
 
   nmt_binning_scheme *b=NULL;
@@ -90,7 +90,7 @@ CTEST_SKIP(nmt,bins_read) {
   nmt_bins_free(b);
 }
 
-CTEST_SKIP(nmt,bins_binning) {
+CTEST(nmt,bins_binning) {
   int i,nside=256;
   int lmax=3*nside-1;
   double *cls=my_malloc((lmax+1)*sizeof(double));
@@ -121,7 +121,7 @@ CTEST_SKIP(nmt,bins_binning) {
   free(cls_back);
 }
 
-CTEST_SKIP(nmt,bins_binning_f_ell) {
+CTEST(nmt,bins_binning_f_ell) {
   int i,nside=256;
   int lmax=3*nside-1;
   double *cls=my_malloc((lmax+1)*sizeof(double));
