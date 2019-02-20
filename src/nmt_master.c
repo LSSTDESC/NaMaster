@@ -78,11 +78,6 @@ nmt_workspace *nmt_workspace_read(char *fname)
   my_fread(w->cs,sizeof(nmt_curvedsky_info),1,fi);
   my_fread(&(w->ncls),sizeof(int),1,fi);
 
-  //flouble *dum=my_malloc(w->cs->npix*sizeof(flouble));
-  //  my_fread(dum,sizeof(flouble),w->cs->npix,fi);
-  //  my_fread(dum,sizeof(flouble),w->cs->npix,fi);
-  //  free(dum);
-
   w->pcl_masks=my_malloc((w->lmax+1)*sizeof(flouble));
   my_fread(w->pcl_masks,sizeof(flouble),w->lmax+1,fi);
 

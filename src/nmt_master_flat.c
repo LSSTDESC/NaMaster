@@ -90,11 +90,6 @@ nmt_workspace_flat *nmt_workspace_flat_read(char *fname)
   my_fread(&ly,sizeof(flouble),1,fi);
   w->fs=nmt_flatsky_info_alloc(nx,ny,lx,ly);
 
-  //  flouble *dum=my_malloc(w->fs->npix*sizeof(flouble));
-  //  my_fread(dum,sizeof(flouble),w->fs->npix,fi);
-  //  my_fread(dum,sizeof(flouble),w->fs->npix,fi);
-  //  free(dum);
-
   w->bin=my_malloc(sizeof(nmt_binning_scheme_flat));
   my_fread(&(w->bin->n_bands),sizeof(int),1,fi);
   w->bin->ell_0_list=my_malloc(w->bin->n_bands*sizeof(flouble));

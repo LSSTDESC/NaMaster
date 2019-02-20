@@ -17,5 +17,6 @@ def read_flat_map(filename,i_map=0) :
 
     maps=hdul[i_map].data
     ny,nx=maps.shape
+    hdul.close()
 
     return w,maps

@@ -122,18 +122,6 @@ Data Fields</h2></td></tr>
 <tr class="memitem:a4aa326e78aaa9d2e8b7485b2c993eac0"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> **&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structnmt__covar__workspace.html#a4aa326e78aaa9d2e8b7485b2c993eac0">xi_1221</a></td></tr>
 <tr class="memdesc:a4aa326e78aaa9d2e8b7485b2c993eac0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Second (a1b2-a2b1) mode coupling matrix (see scientific documentation)  <a href="#a4aa326e78aaa9d2e8b7485b2c993eac0">More...</a><br /></td></tr>
 <tr class="separator:a4aa326e78aaa9d2e8b7485b2c993eac0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7134a0ab84643b1acccc399cb5727115"><td class="memItemLeft" align="right" valign="top">gsl_matrix *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structnmt__covar__workspace.html#a7134a0ab84643b1acccc399cb5727115">coupling_binned_a</a></td></tr>
-<tr class="memdesc:a7134a0ab84643b1acccc399cb5727115"><td class="mdescLeft">&#160;</td><td class="mdescRight">Coupling matrix associated to the first set of power spectra.  <a href="#a7134a0ab84643b1acccc399cb5727115">More...</a><br /></td></tr>
-<tr class="separator:a7134a0ab84643b1acccc399cb5727115"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6e98c406c054c261110db0930afd33aa"><td class="memItemLeft" align="right" valign="top">gsl_matrix *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structnmt__covar__workspace.html#a6e98c406c054c261110db0930afd33aa">coupling_binned_b</a></td></tr>
-<tr class="memdesc:a6e98c406c054c261110db0930afd33aa"><td class="mdescLeft">&#160;</td><td class="mdescRight">Coupling matrix associated to the second set of power spectra.  <a href="#a6e98c406c054c261110db0930afd33aa">More...</a><br /></td></tr>
-<tr class="separator:a6e98c406c054c261110db0930afd33aa"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3872fc4184934c06536108ed83fafd4e"><td class="memItemLeft" align="right" valign="top">gsl_permutation *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structnmt__covar__workspace.html#a3872fc4184934c06536108ed83fafd4e">coupling_binned_perm_a</a></td></tr>
-<tr class="memdesc:a3872fc4184934c06536108ed83fafd4e"><td class="mdescLeft">&#160;</td><td class="mdescRight">GSL aid to invert first MCM.  <a href="#a3872fc4184934c06536108ed83fafd4e">More...</a><br /></td></tr>
-<tr class="separator:a3872fc4184934c06536108ed83fafd4e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9a8fa916862266f2cf444d96cd7393a1"><td class="memItemLeft" align="right" valign="top">gsl_permutation *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structnmt__covar__workspace.html#a9a8fa916862266f2cf444d96cd7393a1">coupling_binned_perm_b</a></td></tr>
-<tr class="memdesc:a9a8fa916862266f2cf444d96cd7393a1"><td class="mdescLeft">&#160;</td><td class="mdescRight">GSL aid to invert second MCM.  <a href="#a9a8fa916862266f2cf444d96cd7393a1">More...</a><br /></td></tr>
-<tr class="separator:a9a8fa916862266f2cf444d96cd7393a1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Full-sky Gaussian covariance matrix. </p>
@@ -165,62 +153,6 @@ Data Fields</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Bandpowers defining the binning for the second set of spectra. </p>
-
-</div>
-</div>
-<a class="anchor" id="a7134a0ab84643b1acccc399cb5727115"></a>
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">gsl_matrix* nmt_covar_workspace::coupling_binned_a</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Coupling matrix associated to the first set of power spectra. </p>
-
-</div>
-</div>
-<a class="anchor" id="a6e98c406c054c261110db0930afd33aa"></a>
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">gsl_matrix* nmt_covar_workspace::coupling_binned_b</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Coupling matrix associated to the second set of power spectra. </p>
-
-</div>
-</div>
-<a class="anchor" id="a3872fc4184934c06536108ed83fafd4e"></a>
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">gsl_permutation* nmt_covar_workspace::coupling_binned_perm_a</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>GSL aid to invert first MCM. </p>
-
-</div>
-</div>
-<a class="anchor" id="a9a8fa916862266f2cf444d96cd7393a1"></a>
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">gsl_permutation* nmt_covar_workspace::coupling_binned_perm_b</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>GSL aid to invert second MCM. </p>
 
 </div>
 </div>

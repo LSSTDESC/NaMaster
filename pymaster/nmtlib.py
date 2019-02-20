@@ -658,14 +658,6 @@ class workspace_flat(_object):
     __swig_getmethods__["is_teb"] = _nmtlib.workspace_flat_is_teb_get
     if _newclass:
         is_teb = _swig_property(_nmtlib.workspace_flat_is_teb_get, _nmtlib.workspace_flat_is_teb_set)
-    __swig_setmethods__["mask1"] = _nmtlib.workspace_flat_mask1_set
-    __swig_getmethods__["mask1"] = _nmtlib.workspace_flat_mask1_get
-    if _newclass:
-        mask1 = _swig_property(_nmtlib.workspace_flat_mask1_get, _nmtlib.workspace_flat_mask1_set)
-    __swig_setmethods__["mask2"] = _nmtlib.workspace_flat_mask2_set
-    __swig_getmethods__["mask2"] = _nmtlib.workspace_flat_mask2_get
-    if _newclass:
-        mask2 = _swig_property(_nmtlib.workspace_flat_mask2_get, _nmtlib.workspace_flat_mask2_set)
     __swig_setmethods__["n_cells"] = _nmtlib.workspace_flat_n_cells_set
     __swig_getmethods__["n_cells"] = _nmtlib.workspace_flat_n_cells_get
     if _newclass:
@@ -768,14 +760,6 @@ class workspace(_object):
     __swig_getmethods__["cs"] = _nmtlib.workspace_cs_get
     if _newclass:
         cs = _swig_property(_nmtlib.workspace_cs_get, _nmtlib.workspace_cs_set)
-    __swig_setmethods__["mask1"] = _nmtlib.workspace_mask1_set
-    __swig_getmethods__["mask1"] = _nmtlib.workspace_mask1_get
-    if _newclass:
-        mask1 = _swig_property(_nmtlib.workspace_mask1_get, _nmtlib.workspace_mask1_set)
-    __swig_setmethods__["mask2"] = _nmtlib.workspace_mask2_set
-    __swig_getmethods__["mask2"] = _nmtlib.workspace_mask2_get
-    if _newclass:
-        mask2 = _swig_property(_nmtlib.workspace_mask2_get, _nmtlib.workspace_mask2_set)
     __swig_setmethods__["pcl_masks"] = _nmtlib.workspace_pcl_masks_set
     __swig_getmethods__["pcl_masks"] = _nmtlib.workspace_pcl_masks_get
     if _newclass:
@@ -878,22 +862,6 @@ class covar_workspace_flat(_object):
     __swig_getmethods__["xi_1221"] = _nmtlib.covar_workspace_flat_xi_1221_get
     if _newclass:
         xi_1221 = _swig_property(_nmtlib.covar_workspace_flat_xi_1221_get, _nmtlib.covar_workspace_flat_xi_1221_set)
-    __swig_setmethods__["coupling_binned_a"] = _nmtlib.covar_workspace_flat_coupling_binned_a_set
-    __swig_getmethods__["coupling_binned_a"] = _nmtlib.covar_workspace_flat_coupling_binned_a_get
-    if _newclass:
-        coupling_binned_a = _swig_property(_nmtlib.covar_workspace_flat_coupling_binned_a_get, _nmtlib.covar_workspace_flat_coupling_binned_a_set)
-    __swig_setmethods__["coupling_binned_b"] = _nmtlib.covar_workspace_flat_coupling_binned_b_set
-    __swig_getmethods__["coupling_binned_b"] = _nmtlib.covar_workspace_flat_coupling_binned_b_get
-    if _newclass:
-        coupling_binned_b = _swig_property(_nmtlib.covar_workspace_flat_coupling_binned_b_get, _nmtlib.covar_workspace_flat_coupling_binned_b_set)
-    __swig_setmethods__["coupling_binned_perm_a"] = _nmtlib.covar_workspace_flat_coupling_binned_perm_a_set
-    __swig_getmethods__["coupling_binned_perm_a"] = _nmtlib.covar_workspace_flat_coupling_binned_perm_a_get
-    if _newclass:
-        coupling_binned_perm_a = _swig_property(_nmtlib.covar_workspace_flat_coupling_binned_perm_a_get, _nmtlib.covar_workspace_flat_coupling_binned_perm_a_set)
-    __swig_setmethods__["coupling_binned_perm_b"] = _nmtlib.covar_workspace_flat_coupling_binned_perm_b_set
-    __swig_getmethods__["coupling_binned_perm_b"] = _nmtlib.covar_workspace_flat_coupling_binned_perm_b_get
-    if _newclass:
-        coupling_binned_perm_b = _swig_property(_nmtlib.covar_workspace_flat_coupling_binned_perm_b_get, _nmtlib.covar_workspace_flat_coupling_binned_perm_b_set)
 
     def __init__(self):
         this = _nmtlib.new_covar_workspace_flat()
@@ -911,12 +879,12 @@ def covar_workspace_flat_free(cw):
     return _nmtlib.covar_workspace_flat_free(cw)
 covar_workspace_flat_free = _nmtlib.covar_workspace_flat_free
 
-def covar_workspace_flat_init(wa, wb):
-    return _nmtlib.covar_workspace_flat_init(wa, wb)
+def covar_workspace_flat_init(fla1, fla2, ba, flb1, flb2, bb):
+    return _nmtlib.covar_workspace_flat_init(fla1, fla2, ba, flb1, flb2, bb)
 covar_workspace_flat_init = _nmtlib.covar_workspace_flat_init
 
-def compute_gaussian_covariance_flat(cw, nl, larr, cla1b1, cla1b2, cla2b1, cla2b2, covar_out):
-    return _nmtlib.compute_gaussian_covariance_flat(cw, nl, larr, cla1b1, cla1b2, cla2b1, cla2b2, covar_out)
+def compute_gaussian_covariance_flat(cw, wa, wb, nl, larr, cla1b1, cla1b2, cla2b1, cla2b2, covar_out):
+    return _nmtlib.compute_gaussian_covariance_flat(cw, wa, wb, nl, larr, cla1b1, cla1b2, cla2b1, cla2b2, covar_out)
 compute_gaussian_covariance_flat = _nmtlib.compute_gaussian_covariance_flat
 
 def covar_workspace_flat_write(cw, fname):
@@ -968,22 +936,6 @@ class covar_workspace(_object):
     __swig_getmethods__["xi_1221"] = _nmtlib.covar_workspace_xi_1221_get
     if _newclass:
         xi_1221 = _swig_property(_nmtlib.covar_workspace_xi_1221_get, _nmtlib.covar_workspace_xi_1221_set)
-    __swig_setmethods__["coupling_binned_a"] = _nmtlib.covar_workspace_coupling_binned_a_set
-    __swig_getmethods__["coupling_binned_a"] = _nmtlib.covar_workspace_coupling_binned_a_get
-    if _newclass:
-        coupling_binned_a = _swig_property(_nmtlib.covar_workspace_coupling_binned_a_get, _nmtlib.covar_workspace_coupling_binned_a_set)
-    __swig_setmethods__["coupling_binned_b"] = _nmtlib.covar_workspace_coupling_binned_b_set
-    __swig_getmethods__["coupling_binned_b"] = _nmtlib.covar_workspace_coupling_binned_b_get
-    if _newclass:
-        coupling_binned_b = _swig_property(_nmtlib.covar_workspace_coupling_binned_b_get, _nmtlib.covar_workspace_coupling_binned_b_set)
-    __swig_setmethods__["coupling_binned_perm_a"] = _nmtlib.covar_workspace_coupling_binned_perm_a_set
-    __swig_getmethods__["coupling_binned_perm_a"] = _nmtlib.covar_workspace_coupling_binned_perm_a_get
-    if _newclass:
-        coupling_binned_perm_a = _swig_property(_nmtlib.covar_workspace_coupling_binned_perm_a_get, _nmtlib.covar_workspace_coupling_binned_perm_a_set)
-    __swig_setmethods__["coupling_binned_perm_b"] = _nmtlib.covar_workspace_coupling_binned_perm_b_set
-    __swig_getmethods__["coupling_binned_perm_b"] = _nmtlib.covar_workspace_coupling_binned_perm_b_get
-    if _newclass:
-        coupling_binned_perm_b = _swig_property(_nmtlib.covar_workspace_coupling_binned_perm_b_get, _nmtlib.covar_workspace_coupling_binned_perm_b_set)
 
     def __init__(self):
         this = _nmtlib.new_covar_workspace()
@@ -1001,12 +953,12 @@ def covar_workspace_free(cw):
     return _nmtlib.covar_workspace_free(cw)
 covar_workspace_free = _nmtlib.covar_workspace_free
 
-def covar_workspace_init(wa, wb, niter):
-    return _nmtlib.covar_workspace_init(wa, wb, niter)
+def covar_workspace_init(fla1, fla2, ba, flb1, flb2, bb, niter):
+    return _nmtlib.covar_workspace_init(fla1, fla2, ba, flb1, flb2, bb, niter)
 covar_workspace_init = _nmtlib.covar_workspace_init
 
-def compute_gaussian_covariance(cw, cla1b1, cla1b2, cla2b1, cla2b2, covar_out):
-    return _nmtlib.compute_gaussian_covariance(cw, cla1b1, cla1b2, cla2b1, cla2b2, covar_out)
+def compute_gaussian_covariance(cw, wa, wb, cla1b1, cla1b2, cla2b1, cla2b2, covar_out):
+    return _nmtlib.compute_gaussian_covariance(cw, wa, wb, cla1b1, cla1b2, cla2b1, cla2b2, covar_out)
 compute_gaussian_covariance = _nmtlib.compute_gaussian_covariance
 
 def covar_workspace_write(cw, fname):
@@ -1169,8 +1121,8 @@ def read_covar_workspace(fname):
     return _nmtlib.read_covar_workspace(fname)
 read_covar_workspace = _nmtlib.read_covar_workspace
 
-def covar_workspace_init_py(wa, wb, n_iter):
-    return _nmtlib.covar_workspace_init_py(wa, wb, n_iter)
+def covar_workspace_init_py(fa1, fa2, ba, fb1, fb2, bb, n_iter):
+    return _nmtlib.covar_workspace_init_py(fa1, fa2, ba, fb1, fb2, bb, n_iter)
 covar_workspace_init_py = _nmtlib.covar_workspace_init_py
 
 def write_covar_workspace_flat(cw, fname):
@@ -1181,16 +1133,16 @@ def read_covar_workspace_flat(fname):
     return _nmtlib.read_covar_workspace_flat(fname)
 read_covar_workspace_flat = _nmtlib.read_covar_workspace_flat
 
-def covar_workspace_flat_init_py(wa, wb):
-    return _nmtlib.covar_workspace_flat_init_py(wa, wb)
+def covar_workspace_flat_init_py(fa1, fa2, ba, fb1, fb2, bb):
+    return _nmtlib.covar_workspace_flat_init_py(fa1, fa2, ba, fb1, fb2, bb)
 covar_workspace_flat_init_py = _nmtlib.covar_workspace_flat_init_py
 
-def comp_gaussian_covariance(cw, nell11, nell12, nell21, nell22, dout):
-    return _nmtlib.comp_gaussian_covariance(cw, nell11, nell12, nell21, nell22, dout)
+def comp_gaussian_covariance(cw, wa, wb, nell11, nell12, nell21, nell22, dout):
+    return _nmtlib.comp_gaussian_covariance(cw, wa, wb, nell11, nell12, nell21, nell22, dout)
 comp_gaussian_covariance = _nmtlib.comp_gaussian_covariance
 
-def comp_gaussian_covariance_flat(cw, nell3, nell11, nell12, nell21, nell22, dout):
-    return _nmtlib.comp_gaussian_covariance_flat(cw, nell3, nell11, nell12, nell21, nell22, dout)
+def comp_gaussian_covariance_flat(cw, wa, wb, nell3, nell11, nell12, nell21, nell22, dout):
+    return _nmtlib.comp_gaussian_covariance_flat(cw, wa, wb, nell3, nell11, nell12, nell21, nell22, dout)
 comp_gaussian_covariance_flat = _nmtlib.comp_gaussian_covariance_flat
 
 def comp_pspec_coupled(fl1, fl2, dout):

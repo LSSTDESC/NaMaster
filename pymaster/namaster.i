@@ -664,9 +664,11 @@ nmt_covar_workspace *read_covar_workspace(char *fname)
   return nmt_covar_workspace_read(fname);
 }
 
-nmt_covar_workspace *covar_workspace_init_py(nmt_workspace *wa,nmt_workspace *wb,int n_iter)
+nmt_covar_workspace *covar_workspace_init_py(nmt_field *fa1,nmt_field *fa2,nmt_binning_scheme *ba,
+					     nmt_field *fb1,nmt_field *fb2,nmt_binning_scheme *bb,
+					     int n_iter)
 {
-  return nmt_covar_workspace_init(wa,wb,n_iter);
+  return nmt_covar_workspace_init(fa1,fa2,ba,fb1,fb2,bb,n_iter);
 }
 
 void write_covar_workspace_flat(nmt_covar_workspace_flat *cw,char *fname)
@@ -679,12 +681,16 @@ nmt_covar_workspace_flat *read_covar_workspace_flat(char *fname)
   return nmt_covar_workspace_flat_read(fname);
 }
 
-nmt_covar_workspace_flat *covar_workspace_flat_init_py(nmt_workspace_flat *wa,nmt_workspace_flat *wb)
+nmt_covar_workspace_flat *covar_workspace_flat_init_py(nmt_field_flat *fa1,nmt_field_flat *fa2,
+						       nmt_binning_scheme_flat *ba,
+						       nmt_field_flat *fb1,nmt_field_flat *fb2,
+						       nmt_binning_scheme_flat *bb)
 {
-  return nmt_covar_workspace_flat_init(wa,wb);
+  return nmt_covar_workspace_flat_init(fa1,fa2,ba,fb1,fb2,bb);
 }
 
 void comp_gaussian_covariance(nmt_covar_workspace *cw,
+			      nmt_workspace *wa,nmt_workspace *wb,
 			      int nell11,double *c11,
 			      int nell12,double *c12,
 			      int nell21,double *c21,
@@ -694,10 +700,11 @@ void comp_gaussian_covariance(nmt_covar_workspace *cw,
   asserting(nell11==nell12);
   asserting(nell11==nell21);
   asserting(nell11==nell22);
-  nmt_compute_gaussian_covariance(cw,c11,c12,c21,c22,dout);
+  nmt_compute_gaussian_covariance(cw,wa,wb,c11,c12,c21,c22,dout);
 }
 
 void comp_gaussian_covariance_flat(nmt_covar_workspace_flat *cw,
+				   nmt_workspace_flat *wa,nmt_workspace_flat *wb,
 				   int nell3,double *weights,
 				   int nell11,double *c11,
 				   int nell12,double *c12,
@@ -709,7 +716,7 @@ void comp_gaussian_covariance_flat(nmt_covar_workspace_flat *cw,
   asserting(nell11==nell12);
   asserting(nell11==nell21);
   asserting(nell11==nell22);
-  nmt_compute_gaussian_covariance_flat(cw,nell3,weights,c11,c12,c21,c22,dout);
+  nmt_compute_gaussian_covariance_flat(cw,wa,wb,nell3,weights,c11,c12,c21,c22,dout);
 }
 
 void comp_pspec_coupled(nmt_field *fl1,nmt_field *fl2,

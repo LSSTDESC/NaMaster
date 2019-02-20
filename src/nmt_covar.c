@@ -28,11 +28,13 @@ nmt_covar_workspace *nmt_covar_workspace_init(nmt_field *fla1,nmt_field *fla2,nm
 					      
 {
   if(!(nmt_diff_curvedsky_info(fla1->cs,fla2->cs)) || !(nmt_diff_curvedsky_info(fla1->cs,flb1->cs)) ||
-     !(nmt_diff_curvedsky_info(fla1->cs,flb2->cs)) || (ba->ell_max!=bb->ell_max))
+     !(nmt_diff_curvedsky_info(fla1->cs,flb2->cs)))
     report_error(NMT_ERROR_COVAR,"Can't compute covariance for fields with different resolutions\n");
   if(fla1->pol || fla2->pol || flb1->pol || flb2->pol)
     report_error(NMT_ERROR_COVAR,"Gaussian covariance only implemented for spin-0 fields\n");
-
+  if(ba->ell_max!=bb->ell_max)
+    report_error(NMT_ERROR_COVAR,"Can't compute covariance for different binning schemes\n");
+  
   nmt_covar_workspace *cw=my_malloc(sizeof(nmt_covar_workspace));
   int ii;
   int npix=fla1->cs->npix;
