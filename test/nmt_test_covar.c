@@ -33,7 +33,7 @@ CTEST(nmt,covar_f_ell) {
   fclose(fi);
 
   double *covar=my_malloc(w->bin->n_bands*w->bin->n_bands*sizeof(double));
-  nmt_compute_gaussian_covariance(cw,w,w,cell,cell,cell,cell,covar);
+  nmt_compute_gaussian_covariance(cw,0,0,0,0,w,w,&cell,&cell,&cell,&cell,covar);
 
   fi=my_fopen("test/benchmarks/bm_nc_np_cov.txt","r");
   for(ii=0;ii<w->bin->n_bands*w->bin->n_bands;ii++) {
@@ -89,7 +89,7 @@ CTEST(nmt,covar) {
   fclose(fi);
 
   double *covar=my_malloc(w->bin->n_bands*w->bin->n_bands*sizeof(double));
-  nmt_compute_gaussian_covariance(cw,w,w,cell,cell,cell,cell,covar);
+  nmt_compute_gaussian_covariance(cw,0,0,0,0,w,w,&cell,&cell,&cell,&cell,covar);
 
   fi=my_fopen("test/benchmarks/bm_nc_np_cov.txt","r");
   for(ii=0;ii<w->bin->n_bands*w->bin->n_bands;ii++) {

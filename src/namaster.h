@@ -1172,9 +1172,11 @@ nmt_covar_workspace_flat *nmt_covar_workspace_flat_init(nmt_field_flat *fla1,nmt
  * @warning All covariance-related functionality is still under development, and in the future will hopefully support.
  */
 void nmt_compute_gaussian_covariance_flat(nmt_covar_workspace_flat *cw,
+					  int pol_a,int pol_b,int pol_c,int pol_d,
 					  nmt_workspace_flat *wa,nmt_workspace_flat *wb,
-					  int nl,flouble *larr,flouble *cla1b1,flouble *cla1b2,
-					  flouble *cla2b1,flouble *cla2b2,flouble *covar_out);
+					  int nl,flouble *larr,
+					  flouble **cla1b1,flouble **cla1b2,
+					  flouble **cla2b1,flouble **cla2b2,flouble *covar_out);
 
 /**
  * @brief Saves nmt_covar_workspace_flat structure to file
@@ -1264,8 +1266,11 @@ nmt_covar_workspace *nmt_covar_workspace_init(nmt_field *fla1,nmt_field *fla2,
 	  power spectra (and analogously for nbpw_b).
  * @warning All covariance-related functionality is still under development, and in the future will hopefully support.
  */
-void  nmt_compute_gaussian_covariance(nmt_covar_workspace *cw,nmt_workspace *wa,nmt_workspace *wb,
-				      flouble *cla1b1,flouble *cla1b2,flouble *cla2b1,flouble *cla2b2,
+void  nmt_compute_gaussian_covariance(nmt_covar_workspace *cw,
+				      int pol_a1,int pol_a2,int pol_b1,int pol_b2,
+				      nmt_workspace *wa,nmt_workspace *wb,
+				      flouble **cla1b1,flouble **cla1b2,
+				      flouble **cla2b1,flouble **cla2b2,
 				      flouble *covar_out);
 
 /**
