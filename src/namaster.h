@@ -1155,28 +1155,27 @@ nmt_covar_workspace_flat *nmt_covar_workspace_flat_init(nmt_field_flat *fla1,nmt
  * @brief Compute flat-sky Gaussian covariance matrix
  *
  * Computes the covariance matrix for two sets of power spectra given input predicted spectra
- * and a nmt_covar_workspace_flat structure.
+ * and two nmt_covar_workspace_flat structures.
  * @param cw nmt_covar_workspace_flat structure containing the information necessary to compute the
           covariance matrix.
- * @param wa nmt_workspace_flat structure containing the mode-coupling matrix for the first power spectra.
- * @param wb nmt_workspace_flat structure containing the mode-coupling matrix for the second power spectra.
+ * @param pol_X whether field X is spin-2
+ * @param wa nmt_workspace_flat structure containing the mode-coupling matrix for the first power spectra (between fields a and b).
+ * @param wb nmt_workspace_flat structure containing the mode-coupling matrix for the second power spectra (between fields c and d).
  * @param nl Number of multipoles in which input power spectra are computed.
  * @param larr Array of multipoles in which input power spectra are computed.
- * @param cla1b1 Cross-power spectrum between field 1 in set a and field 1 in set b.
- * @param cla1b2 Cross-power spectrum between field 1 in set a and field 2 in set b.
- * @param cla2b1 Cross-power spectrum between field 2 in set a and field 1 in set b.
- * @param cla2b2 Cross-power spectrum between field 2 in set a and field 2 in set b.
- * @param covar_out flattened covariance matrix. Should be allocated to shape [nbpw_a * nbpw_b],
-          where nbpw_a is the number of bandpowers in the set a of pseudo-CL-estimated
-	  power spectra (and analogously for nbpw_b).
- * @warning All covariance-related functionality is still under development, and in the future will hopefully support.
+ * @param clac Cross-power spectra between field 1 in the first set and field 1 in the second set (ac)
+ * @param clad Cross-power spectra between field 1 in the first set and field 2 in the second set (ad)
+ * @param clbc Cross-power spectra between field 2 in the first set and field 1 in the second set (bc)
+ * @param clbd Cross-power spectra between field 2 in the first set and field 2 in the second set (bd)
+ * @param covar_out flattened covariance matrix. Should be allocated to shape [ncls_1 * nbpw_1 * ncls_2 * nbpw_2],
+          where nbpw_X and ncls_X are the number of bandpowers and different power spectra in the X-th set of fields.
  */
 void nmt_compute_gaussian_covariance_flat(nmt_covar_workspace_flat *cw,
 					  int pol_a,int pol_b,int pol_c,int pol_d,
 					  nmt_workspace_flat *wa,nmt_workspace_flat *wb,
 					  int nl,flouble *larr,
-					  flouble **cla1b1,flouble **cla1b2,
-					  flouble **cla2b1,flouble **cla2b2,flouble *covar_out);
+					  flouble **clac,flouble **clad,
+					  flouble **clbc,flouble **clbd,flouble *covar_out);
 
 /**
  * @brief Saves nmt_covar_workspace_flat structure to file
@@ -1254,23 +1253,22 @@ nmt_covar_workspace *nmt_covar_workspace_init(nmt_field *fla1,nmt_field *fla2,
  * and a nmt_covar_workspace structure.
  * @param cw nmt_covar_workspace structure containing the information necessary to compute the
           covariance matrix.
+ * @param pol_X whether field X is spin-2
  * @param wa nmt_workspace structure containing the mode-coupling matrix for the first power spectra.
  * @param wb nmt_workspace structure containing the mode-coupling matrix for the second power spectra.
- * @param cla1b1 Cross-power spectrum between field 1 in set a and field 1 in set b.
+ * @param clac Cross-power spectra between field 1 in the first set and field 1 in the second set (ac)
           All power spectra should be defined for all ell < lmax.
- * @param cla1b2 Cross-power spectrum between field 1 in set a and field 2 in set b.
- * @param cla2b1 Cross-power spectrum between field 2 in set a and field 1 in set b.
- * @param cla2b2 Cross-power spectrum between field 2 in set a and field 2 in set b.
- * @param covar_out flattened covariance matrix. Should be allocated to shape [nbpw_a * nbpw_b],
-          where nbpw_a is the number of bandpowers in the set a of pseudo-CL-estimated
-	  power spectra (and analogously for nbpw_b).
- * @warning All covariance-related functionality is still under development, and in the future will hopefully support.
+ * @param clad Cross-power spectra between field 1 in the first set and field 2 in the second set (ad)
+ * @param clbc Cross-power spectra between field 2 in the first set and field 1 in the second set (bc)
+ * @param clbd Cross-power spectra between field 2 in the first set and field 2 in the second set (bd)
+ * @param covar_out flattened covariance matrix. Should be allocated to shape [ncls_1 * nbpw_1 * ncls_2 * nbpw_2],
+          where nbpw_X and ncls_X are the number of bandpowers and different power spectra in the X-th set of fields.
  */
 void  nmt_compute_gaussian_covariance(nmt_covar_workspace *cw,
-				      int pol_a1,int pol_a2,int pol_b1,int pol_b2,
+				      int pol_a,int pol_b,int pol_c,int pol_d,
 				      nmt_workspace *wa,nmt_workspace *wb,
-				      flouble **cla1b1,flouble **cla1b2,
-				      flouble **cla2b1,flouble **cla2b2,
+				      flouble **clac,flouble **clad,
+				      flouble **clbc,flouble **clbd,
 				      flouble *covar_out);
 
 /**

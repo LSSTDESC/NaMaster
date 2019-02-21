@@ -922,10 +922,10 @@
 <span class="target" id="module-pymaster.covariance"></span><dl class="class">
 <dt id="pymaster.covariance.NmtCovarianceWorkspace">
 <em class="property">class </em><code class="descclassname">pymaster.covariance.</code><code class="descname">NmtCovarianceWorkspace</code><a class="headerlink" href="#pymaster.covariance.NmtCovarianceWorkspace" title="Permalink to this definition">¶</a></dt>
-<dd><p>NmtCovarianceWorkspace objects are used to compute and store the coupling coefficients needed to calculate the Gaussian covariance matrix under the Efstathiou approximation (astro-ph/0307515). When initialized, this object is practically empty. The information describing the coupling coefficients must be computed or read from a file afterwards.</p>
+<dd><p>NmtCovarianceWorkspace objects are used to compute and store the coupling coefficients needed to calculate the Gaussian covariance matrix under the approximations in astro-ph/0307515 and arXiv/1609.09730. When initialized, this object is practically empty. The information describing the coupling coefficients must be computed or read from a file afterwards.</p>
 <dl class="method">
 <dt id="pymaster.covariance.NmtCovarianceWorkspace.compute_coupling_coefficients">
-<code class="descname">compute_coupling_coefficients</code><span class="sig-paren">(</span><em>fla1</em>, <em>fla2</em>, <em>bin_a</em>, <em>flb1=None</em>, <em>flb2=None</em>, <em>bin_b=None</em>, <em>n_iter=3</em><span class="sig-paren">)</span><a class="headerlink" href="#pymaster.covariance.NmtCovarianceWorkspace.compute_coupling_coefficients" title="Permalink to this definition">¶</a></dt>
+<code class="descname">compute_coupling_coefficients</code><span class="sig-paren">(</span><em>fla1</em>, <em>fla2</em>, <em>flb1=None</em>, <em>flb2=None</em>, <em>lmax=None</em>, <em>n_iter=3</em><span class="sig-paren">)</span><a class="headerlink" href="#pymaster.covariance.NmtCovarianceWorkspace.compute_coupling_coefficients" title="Permalink to this definition">¶</a></dt>
 <dd><p>Computes coupling coefficients of the Gaussian covariance between the power spectra of two pairs of NmtField objects (fla1, fla2, flb1 and flb2). Note that you can reuse this workspace for the covariance of power spectra between any pairs of fields as long as the fields have the same masks as those passed to this function, and as long as the binning scheme used are also the same.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -933,9 +933,7 @@
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>fla1</strong><strong>,</strong><strong>fla2</strong> (<a class="reference internal" href="#pymaster.field.NmtField" title="pymaster.field.NmtField"><em>NmtField</em></a>) – fields contributing to the first power spectrum whose covariance you want to compute.</li>
-<li><strong>bin_a</strong> (<a class="reference internal" href="#pymaster.bins.NmtBin" title="pymaster.bins.NmtBin"><em>NmtBin</em></a>) – binning scheme for the first power spectrum.</li>
 <li><strong>flb1</strong><strong>,</strong><strong>flb2</strong> (<a class="reference internal" href="#pymaster.field.NmtField" title="pymaster.field.NmtField"><em>NmtField</em></a>) – fields contributing to the second power spectrum whose covariance you want to compute. If None, fla1,fla2 will be used.</li>
-<li><strong>bin_b</strong> (<a class="reference internal" href="#pymaster.bins.NmtBin" title="pymaster.bins.NmtBin"><em>NmtBin</em></a>) – binning scheme for the second power spectrum. If none, bin_a will be used.</li>
 <li><strong>n_iter</strong> – number of iterations when computing a_lms.</li>
 </ul>
 </td>
@@ -977,7 +975,7 @@
 <dl class="class">
 <dt id="pymaster.covariance.NmtCovarianceWorkspaceFlat">
 <em class="property">class </em><code class="descclassname">pymaster.covariance.</code><code class="descname">NmtCovarianceWorkspaceFlat</code><a class="headerlink" href="#pymaster.covariance.NmtCovarianceWorkspaceFlat" title="Permalink to this definition">¶</a></dt>
-<dd><p>NmtCovarianceWorkspaceFlat objects are used to compute and store the coupling coefficients needed to calculate the Gaussian covariance matrix under a flat-sky version the Efstathiou approximation (astro-ph/0307515). When initialized, this object is practically empty. The information describing the coupling coefficients must be computed or read from a file afterwards.</p>
+<dd><p>NmtCovarianceWorkspaceFlat objects are used to compute and store the coupling coefficients needed to calculate the Gaussian covariance matrix under a flat-sky version the Efstathiou approximations in astro-ph/0307515 and arXiv/1609.09730. When initialized, this object is practically empty. The information describing the coupling coefficients must be computed or read from a file afterwards.</p>
 <dl class="method">
 <dt id="pymaster.covariance.NmtCovarianceWorkspaceFlat.compute_coupling_coefficients">
 <code class="descname">compute_coupling_coefficients</code><span class="sig-paren">(</span><em>fla1</em>, <em>fla2</em>, <em>bin_a</em>, <em>flb1=None</em>, <em>flb2=None</em>, <em>bin_b=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pymaster.covariance.NmtCovarianceWorkspaceFlat.compute_coupling_coefficients" title="Permalink to this definition">¶</a></dt>
@@ -1030,20 +1028,17 @@
 
 <dl class="function">
 <dt id="pymaster.covariance.gaussian_covariance">
-<code class="descclassname">pymaster.covariance.</code><code class="descname">gaussian_covariance</code><span class="sig-paren">(</span><em>cw</em>, <em>cla1b1</em>, <em>cla1b2</em>, <em>cla2b1</em>, <em>cla2b2</em>, <em>wa</em>, <em>wb=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pymaster.covariance.gaussian_covariance" title="Permalink to this definition">¶</a></dt>
-<dd><p>Computes Gaussian covariance matrix for power spectra using the information precomputed in cw (a NmtCovarianceWorkspace object). cw should have been initialized using four NmtField objects (let’s call them a1, a2, b1 and b2), corresponding to the two pairs of fields whose power spectra we want the covariance of. These power spectra should have been computed using two NmtWorkspace objects, wa and wb, which must be passed as arguments of this function (the power spectrum for fields a1 and a2 was computed with wa, and that of b1 and b2 with wb). Using the same notation, claXbY should be a prediction for the power spectrum between fields aX and bY. These predicted input power spectra should be defined for all ells &lt;=3*nside (where nside is the HEALPix resolution parameter of the fields that were correlated).</p>
+<code class="descclassname">pymaster.covariance.</code><code class="descname">gaussian_covariance</code><span class="sig-paren">(</span><em>cw</em>, <em>spin_a1</em>, <em>spin_a2</em>, <em>spin_b1</em>, <em>spin_b2</em>, <em>cla1b1</em>, <em>cla1b2</em>, <em>cla2b1</em>, <em>cla2b2</em>, <em>wa</em>, <em>wb=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pymaster.covariance.gaussian_covariance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes Gaussian covariance matrix for power spectra using the information precomputed in cw (a NmtCovarianceWorkspace object). cw should have been initialized using four NmtField objects (let’s call them a1, a2, b1 and b2), corresponding to the two pairs of fields whose power spectra we want the covariance of. These power spectra should have been computed using two NmtWorkspace objects, wa and wb, which must be passed as arguments of this function (the power spectrum for fields a1 and a2 was computed with wa, and that of b1 and b2 with wb). Using the same notation, clXnYm should be a prediction for the power spectrum between fields Xn and Ym. These predicted input power spectra should be defined for all ells &lt;=3*nside (where nside is the HEALPix resolution parameter of the fields that were correlated).</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>cw</strong> (<a class="reference internal" href="#pymaster.covariance.NmtCovarianceWorkspace" title="pymaster.covariance.NmtCovarianceWorkspace"><em>NmtCovarianceWorkspace</em></a>) – workspaces containing the precomputed coupling coefficients.</li>
-<li><strong>cla1b1</strong> – prediction for the cross-power spectrum between a1 and b1.</li>
-<li><strong>cla1b2</strong> – prediction for the cross-power spectrum between a1 and b2.</li>
-<li><strong>cla2b1</strong> – prediction for the cross-power spectrum between a2 and b1.</li>
-<li><strong>cla2b2</strong> – prediction for the cross-power spectrum between a2 and b2.</li>
-<li><strong>wa</strong> (<a class="reference internal" href="#pymaster.workspaces.NmtWorkspace" title="pymaster.workspaces.NmtWorkspace"><em>NmtWorkspace</em></a>) – workspace containing the mode-coupling matrix for the first set of power spectra.</li>
-<li><strong>wb</strong> (<a class="reference internal" href="#pymaster.workspaces.NmtWorkspace" title="pymaster.workspaces.NmtWorkspace"><em>NmtWorkspace</em></a>) – workspace containing the mode-coupling matrix for the first set of power spectra. If <cite>None</cite>, wb=wa.</li>
+<li><strong>spin_Xn</strong> (<em>int</em>) – spin for the n-th field in pair X.</li>
+<li><strong>clXnYm</strong> – prediction for the cross-power spectrum between fields Xn and Ym.</li>
+<li><strong>wX</strong> (<a class="reference internal" href="#pymaster.workspaces.NmtWorkspace" title="pymaster.workspaces.NmtWorkspace"><em>NmtWorkspace</em></a>) – workspace containing the mode-coupling matrix pair X. If <cite>wb</cite> is <cite>None</cite>, the code will assume <cite>wb=wa</cite>.</li>
 </ul>
 </td>
 </tr>
@@ -1053,21 +1048,18 @@
 
 <dl class="function">
 <dt id="pymaster.covariance.gaussian_covariance_flat">
-<code class="descclassname">pymaster.covariance.</code><code class="descname">gaussian_covariance_flat</code><span class="sig-paren">(</span><em>cw</em>, <em>larr</em>, <em>cla1b1</em>, <em>cla1b2</em>, <em>cla2b1</em>, <em>cla2b2</em>, <em>wa</em>, <em>wb=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pymaster.covariance.gaussian_covariance_flat" title="Permalink to this definition">¶</a></dt>
-<dd><p>Computes Gaussian covariance matrix for flat-sky power spectra using the information precomputed in cw (a NmtCovarianceWorkspaceFlat object). cw should have been initialized using four NmtFieldFlat objects (let’s call them a1, a2, b1 and b2), corresponding to the two pairs of fields whose power spectra we want the covariance of. These power spectra should have been computed using two NmtWorkspaceFlat objects, wa and wb, which must be passed as arguments of this function (the power spectrum for fields a1 and a2 was computed with wa, and that of b1 and b2 with wb). Using the same notation, claXbY should be a prediction for the power spectrum between fields aX and bY. These predicted input power spectra should be defined in a sufficiently well sampled range of ells given the map properties from which the power spectra were computed. The values of ell at which they are sampled are given by larr.</p>
+<code class="descclassname">pymaster.covariance.</code><code class="descname">gaussian_covariance_flat</code><span class="sig-paren">(</span><em>cw</em>, <em>spin_a1</em>, <em>spin_a2</em>, <em>spin_b1</em>, <em>spin_b2</em>, <em>larr</em>, <em>cla1b1</em>, <em>cla1b2</em>, <em>cla2b1</em>, <em>cla2b2</em>, <em>wa</em>, <em>wb=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pymaster.covariance.gaussian_covariance_flat" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes Gaussian covariance matrix for flat-sky power spectra using the information precomputed in cw (a NmtCovarianceWorkspaceFlat object). cw should have been initialized using four NmtFieldFlat objects (let’s call them a1, a2, b1 and b2), corresponding to the two pairs of fields whose power spectra we want the covariance of. These power spectra should have been computed using two NmtWorkspaceFlat objects, wa and wb, which must be passed as arguments of this function (the power spectrum for fields a1 and a2 was computed with wa, and that of b1 and b2 with wb). Using the same notation, clXnYm should be a prediction for the power spectrum between fields Xn and Ym. These predicted input power spectra should be defined in a sufficiently well sampled range of ells given the map properties from which the power spectra were computed. The values of ell at which they are sampled are given by larr.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>cw</strong> (<a class="reference internal" href="#pymaster.covariance.NmtCovarianceWorkspaceFlat" title="pymaster.covariance.NmtCovarianceWorkspaceFlat"><em>NmtCovarianceWorkspaceFlat</em></a>) – workspaces containing the precomputed coupling coefficients.</li>
+<li><strong>spin_Xn</strong> (<em>int</em>) – spin for the n-th field in pair X.</li>
 <li><strong>larr</strong> – values of ell at which the following power spectra are computed.</li>
-<li><strong>cla1b1</strong> – prediction for the cross-power spectrum between a1 and b1.</li>
-<li><strong>cla1b2</strong> – prediction for the cross-power spectrum between a1 and b2.</li>
-<li><strong>cla2b1</strong> – prediction for the cross-power spectrum between a2 and b1.</li>
-<li><strong>cla2b2</strong> – prediction for the cross-power spectrum between a2 and b2.</li>
-<li><strong>wa</strong> (<a class="reference internal" href="#pymaster.workspaces.NmtWorkspaceFlat" title="pymaster.workspaces.NmtWorkspaceFlat"><em>NmtWorkspaceFlat</em></a>) – workspace containing the mode-coupling matrix for the first set of power spectra.</li>
-<li><strong>wb</strong> (<a class="reference internal" href="#pymaster.workspaces.NmtWorkspaceFlat" title="pymaster.workspaces.NmtWorkspaceFlat"><em>NmtWorkspaceFlat</em></a>) – workspace containing the mode-coupling matrix for the first set of power spectra. If <cite>None</cite>, wb=wa.</li>
+<li><strong>clXnYm</strong> – prediction for the cross-power spectrum between fields Xn and Ym.</li>
+<li><strong>wX</strong> (<a class="reference internal" href="#pymaster.workspaces.NmtWorkspaceFlat" title="pymaster.workspaces.NmtWorkspaceFlat"><em>NmtWorkspaceFlat</em></a>) – workspace containing the mode-coupling matrix pair X. If <cite>wb</cite> is <cite>None</cite>, the code will assume <cite>wb=wa</cite>.</li>
 </ul>
 </td>
 </tr>

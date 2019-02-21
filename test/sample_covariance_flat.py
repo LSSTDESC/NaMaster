@@ -68,10 +68,10 @@ print("Covariance")
 #and store the necessary coupling coefficients
 cw=nmt.NmtCovarianceWorkspaceFlat();
 if not os.path.isfile("cw_flat.dat") :
-    cw.compute_coupling_coefficients(f0,f0,b) #<- Thisi is the time-consuming operation
+    cw.compute_coupling_coefficients(f0,f0,b) #<- This is the time-consuming operation
     cw.write_to("cw_flat.dat")
 cw.read_from("cw_flat.dat")
-covar=nmt.gaussian_covariance_flat(cw,larr,clarr,clarr,clarr,clarr,w)
+covar=nmt.gaussian_covariance_flat(cw,0,0,0,0,larr,[clarr],[clarr],[clarr],[clarr],w)
 
 #Let's now compute the sample covariance
 print("Sample covariance")

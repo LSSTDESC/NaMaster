@@ -899,8 +899,8 @@ def covar_workspace_flat_init(fla1, fla2, ba, flb1, flb2, bb):
     return _nmtlib.covar_workspace_flat_init(fla1, fla2, ba, flb1, flb2, bb)
 covar_workspace_flat_init = _nmtlib.covar_workspace_flat_init
 
-def compute_gaussian_covariance_flat(cw, pol_a, pol_b, pol_c, pol_d, wa, wb, nl, larr, cla1b1, cla1b2, cla2b1, cla2b2, covar_out):
-    return _nmtlib.compute_gaussian_covariance_flat(cw, pol_a, pol_b, pol_c, pol_d, wa, wb, nl, larr, cla1b1, cla1b2, cla2b1, cla2b2, covar_out)
+def compute_gaussian_covariance_flat(cw, pol_a, pol_b, pol_c, pol_d, wa, wb, nl, larr, clac, clad, clbc, clbd, covar_out):
+    return _nmtlib.compute_gaussian_covariance_flat(cw, pol_a, pol_b, pol_c, pol_d, wa, wb, nl, larr, clac, clad, clbc, clbd, covar_out)
 compute_gaussian_covariance_flat = _nmtlib.compute_gaussian_covariance_flat
 
 def covar_workspace_flat_write(cw, fname):
@@ -973,8 +973,8 @@ def covar_workspace_init(fla1, fla2, flb1, flb2, lmax, niter):
     return _nmtlib.covar_workspace_init(fla1, fla2, flb1, flb2, lmax, niter)
 covar_workspace_init = _nmtlib.covar_workspace_init
 
-def compute_gaussian_covariance(cw, pol_a1, pol_a2, pol_b1, pol_b2, wa, wb, cla1b1, cla1b2, cla2b1, cla2b2, covar_out):
-    return _nmtlib.compute_gaussian_covariance(cw, pol_a1, pol_a2, pol_b1, pol_b2, wa, wb, cla1b1, cla1b2, cla2b1, cla2b2, covar_out)
+def compute_gaussian_covariance(cw, pol_a, pol_b, pol_c, pol_d, wa, wb, clac, clad, clbc, clbd, covar_out):
+    return _nmtlib.compute_gaussian_covariance(cw, pol_a, pol_b, pol_c, pol_d, wa, wb, clac, clad, clbc, clbd, covar_out)
 compute_gaussian_covariance = _nmtlib.compute_gaussian_covariance
 
 def covar_workspace_write(cw, fname):

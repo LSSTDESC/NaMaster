@@ -45,6 +45,7 @@ static nmt_workspace *nmt_workspace_new(nmt_curvedsky_info *cs,int ncls,
     memcpy(w->bin->w_list[ii],bin->w_list[ii],w->bin->nell_list[ii]*sizeof(flouble));
     memcpy(w->bin->f_ell[ii],bin->f_ell[ii],w->bin->nell_list[ii]*sizeof(flouble));
   }
+  w->bin->ell_max=bin->ell_max;
 
   w->coupling_matrix_binned=gsl_matrix_alloc(w->ncls*w->bin->n_bands,w->ncls*w->bin->n_bands);
   w->coupling_matrix_perm=gsl_permutation_alloc(w->ncls*w->bin->n_bands);

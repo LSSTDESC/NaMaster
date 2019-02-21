@@ -4,7 +4,7 @@ import numpy as np
 
 class NmtCovarianceWorkspace(object):
     """
-    NmtCovarianceWorkspace objects are used to compute and store the coupling coefficients needed to calculate the Gaussian covariance matrix under the Efstathiou approximation (astro-ph/0307515). When initialized, this object is practically empty. The information describing the coupling coefficients must be computed or read from a file afterwards.
+    NmtCovarianceWorkspace objects are used to compute and store the coupling coefficients needed to calculate the Gaussian covariance matrix under the approximations in astro-ph/0307515 and arXiv/1609.09730. When initialized, this object is practically empty. The information describing the coupling coefficients must be computed or read from a file afterwards.
     """
 
     def __init__(self):
@@ -65,7 +65,7 @@ class NmtCovarianceWorkspace(object):
 
 class NmtCovarianceWorkspaceFlat(object):
     """
-    NmtCovarianceWorkspaceFlat objects are used to compute and store the coupling coefficients needed to calculate the Gaussian covariance matrix under a flat-sky version the Efstathiou approximation (astro-ph/0307515). When initialized, this object is practically empty. The information describing the coupling coefficients must be computed or read from a file afterwards.
+    NmtCovarianceWorkspaceFlat objects are used to compute and store the coupling coefficients needed to calculate the Gaussian covariance matrix under a flat-sky version the Efstathiou approximations in astro-ph/0307515 and arXiv/1609.09730. When initialized, this object is practically empty. The information describing the coupling coefficients must be computed or read from a file afterwards.
     """
 
     def __init__(self):
@@ -128,15 +128,12 @@ class NmtCovarianceWorkspaceFlat(object):
 def gaussian_covariance(cw, spin_a1, spin_a2, spin_b1, spin_b2, 
                         cla1b1, cla1b2, cla2b1, cla2b2, wa, wb=None):
     """
-    Computes Gaussian covariance matrix for power spectra using the information precomputed in cw (a NmtCovarianceWorkspace object). cw should have been initialized using four NmtField objects (let's call them a1, a2, b1 and b2), corresponding to the two pairs of fields whose power spectra we want the covariance of. These power spectra should have been computed using two NmtWorkspace objects, wa and wb, which must be passed as arguments of this function (the power spectrum for fields a1 and a2 was computed with wa, and that of b1 and b2 with wb). Using the same notation, claXbY should be a prediction for the power spectrum between fields aX and bY. These predicted input power spectra should be defined for all ells <=3*nside (where nside is the HEALPix resolution parameter of the fields that were correlated).
+    Computes Gaussian covariance matrix for power spectra using the information precomputed in cw (a NmtCovarianceWorkspace object). cw should have been initialized using four NmtField objects (let's call them a1, a2, b1 and b2), corresponding to the two pairs of fields whose power spectra we want the covariance of. These power spectra should have been computed using two NmtWorkspace objects, wa and wb, which must be passed as arguments of this function (the power spectrum for fields a1 and a2 was computed with wa, and that of b1 and b2 with wb). Using the same notation, clXnYm should be a prediction for the power spectrum between fields Xn and Ym. These predicted input power spectra should be defined for all ells <=3*nside (where nside is the HEALPix resolution parameter of the fields that were correlated).
 
     :param NmtCovarianceWorkspace cw: workspaces containing the precomputed coupling coefficients.
-    :param cla1b1: prediction for the cross-power spectrum between a1 and b1.
-    :param cla1b2: prediction for the cross-power spectrum between a1 and b2.
-    :param cla2b1: prediction for the cross-power spectrum between a2 and b1.
-    :param cla2b2: prediction for the cross-power spectrum between a2 and b2.
-    :param NmtWorkspace wa: workspace containing the mode-coupling matrix for the first set of power spectra.
-    :param NmtWorkspace wb: workspace containing the mode-coupling matrix for the first set of power spectra. If `None`, wb=wa.
+    :param int spin_Xn: spin for the n-th field in pair X.
+    :param clXnYm: prediction for the cross-power spectrum between fields Xn and Ym.
+    :param NmtWorkspace wX: workspace containing the mode-coupling matrix pair X. If `wb` is `None`, the code will assume `wb=wa`.
     """
     nm_a1 = 2 if spin_a1 else 1
     nm_a2 = 2 if spin_a2 else 1
@@ -175,16 +172,13 @@ def gaussian_covariance(cw, spin_a1, spin_a2, spin_b1, spin_b2,
 def gaussian_covariance_flat(cw, spin_a1, spin_a2, spin_b1, spin_b2, larr,
                              cla1b1, cla1b2, cla2b1, cla2b2, wa, wb=None):
     """
-    Computes Gaussian covariance matrix for flat-sky power spectra using the information precomputed in cw (a NmtCovarianceWorkspaceFlat object). cw should have been initialized using four NmtFieldFlat objects (let's call them a1, a2, b1 and b2), corresponding to the two pairs of fields whose power spectra we want the covariance of. These power spectra should have been computed using two NmtWorkspaceFlat objects, wa and wb, which must be passed as arguments of this function (the power spectrum for fields a1 and a2 was computed with wa, and that of b1 and b2 with wb). Using the same notation, claXbY should be a prediction for the power spectrum between fields aX and bY. These predicted input power spectra should be defined in a sufficiently well sampled range of ells given the map properties from which the power spectra were computed. The values of ell at which they are sampled are given by larr.
+    Computes Gaussian covariance matrix for flat-sky power spectra using the information precomputed in cw (a NmtCovarianceWorkspaceFlat object). cw should have been initialized using four NmtFieldFlat objects (let's call them a1, a2, b1 and b2), corresponding to the two pairs of fields whose power spectra we want the covariance of. These power spectra should have been computed using two NmtWorkspaceFlat objects, wa and wb, which must be passed as arguments of this function (the power spectrum for fields a1 and a2 was computed with wa, and that of b1 and b2 with wb). Using the same notation, clXnYm should be a prediction for the power spectrum between fields Xn and Ym. These predicted input power spectra should be defined in a sufficiently well sampled range of ells given the map properties from which the power spectra were computed. The values of ell at which they are sampled are given by larr.
 
     :param NmtCovarianceWorkspaceFlat cw: workspaces containing the precomputed coupling coefficients.
+    :param int spin_Xn: spin for the n-th field in pair X.
     :param larr: values of ell at which the following power spectra are computed.
-    :param cla1b1: prediction for the cross-power spectrum between a1 and b1.
-    :param cla1b2: prediction for the cross-power spectrum between a1 and b2.
-    :param cla2b1: prediction for the cross-power spectrum between a2 and b1.
-    :param cla2b2: prediction for the cross-power spectrum between a2 and b2.
-    :param NmtWorkspaceFlat wa: workspace containing the mode-coupling matrix for the first set of power spectra.
-    :param NmtWorkspaceFlat wb: workspace containing the mode-coupling matrix for the first set of power spectra. If `None`, wb=wa.
+    :param clXnYm: prediction for the cross-power spectrum between fields Xn and Ym.
+    :param NmtWorkspaceFlat wX: workspace containing the mode-coupling matrix pair X. If `wb` is `None`, the code will assume `wb=wa`.
     """
     nm_a1 = 2 if spin_a1 else 1
     nm_a2 = 2 if spin_a2 else 1

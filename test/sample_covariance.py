@@ -49,8 +49,8 @@ print("Covariance")
 #First we generate a NmtCovarianceWorkspace object to precompute
 #and store the necessary coupling coefficients
 cw=nmt.NmtCovarianceWorkspace()
-cw.compute_coupling_coefficients(f0,f0,b) #<- This is the time-consuming operation
-covar=nmt.gaussian_covariance(cw,clarr,clarr,clarr,clarr,w)
+cw.compute_coupling_coefficients(f0,f0) #<- This is the time-consuming operation
+covar=nmt.gaussian_covariance(cw,0,0,0,0,[clarr],[clarr],[clarr],[clarr],w)
 
 #Let's now compute the sample covariance
 print("Sample covariance")
