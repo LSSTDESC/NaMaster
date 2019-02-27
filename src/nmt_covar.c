@@ -191,9 +191,9 @@ void  nmt_compute_gaussian_covariance(nmt_covar_workspace *cw,
 			int idp;
 			for(idp=0;idp<nmaps_d;idp++) {
 			  double *cl_ac=clac[icp+nmaps_c*iap];
-			  double *cl_ad=clac[idp+nmaps_d*iap];
-			  double *cl_bc=clac[icp+nmaps_c*ibp];
-			  double *cl_bd=clac[idp+nmaps_d*ibp];
+			  double *cl_ad=clad[idp+nmaps_d*iap];
+			  double *cl_bc=clbc[icp+nmaps_c*ibp];
+			  double *cl_bd=clbd[idp+nmaps_d*ibp];
 			  double fac_1122=0.5*(cl_ac[la]*cl_bd[lb]+cl_ac[lb]*cl_bd[la]);
 			  double fac_1221=0.5*(cl_ad[la]*cl_bc[lb]+cl_ad[lb]*cl_bc[la]);
 			  int ind_1122=cov_get_coupling_pair_index(nmaps_a,nmaps_c,nmaps_b,nmaps_d,
@@ -208,7 +208,7 @@ void  nmt_compute_gaussian_covariance(nmt_covar_workspace *cw,
 		  }
 		}
 	      }
-	      gsl_matrix_set(covar_binned,wa->ncls*band_a+icl_a,wa->ncls*band_b+icl_b,cbinned);
+	      gsl_matrix_set(covar_binned,wa->ncls*band_a+icl_a,wb->ncls*band_b+icl_b,cbinned);
 	    }
 	  }
 	}

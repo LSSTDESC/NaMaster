@@ -381,9 +381,9 @@ void nmt_compute_gaussian_covariance_flat(nmt_covar_workspace_flat *cw,
 		    int idp;
 		    for(idp=0;idp<nmaps_d;idp++) {
 		      double *cl_ac=cblac[icp+nmaps_c*iap];
-		      double *cl_ad=cblac[idp+nmaps_d*iap];
-		      double *cl_bc=cblac[icp+nmaps_c*ibp];
-		      double *cl_bd=cblac[idp+nmaps_d*ibp];
+		      double *cl_ad=cblad[idp+nmaps_d*iap];
+		      double *cl_bc=cblbc[icp+nmaps_c*ibp];
+		      double *cl_bd=cblbd[idp+nmaps_d*ibp];
 		      double fac_1122=0.5*(cl_ac[band_a]*cl_bd[band_b]+cl_ac[band_b]*cl_bd[band_a]);
 		      double fac_1221=0.5*(cl_ad[band_a]*cl_bc[band_b]+cl_ad[band_b]*cl_bc[band_a]);
 		      int ind_1122=cov_get_coupling_pair_index(nmaps_a,nmaps_c,nmaps_b,nmaps_d,
