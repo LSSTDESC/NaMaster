@@ -409,7 +409,7 @@ void nmt_compute_gaussian_covariance_flat(nmt_covar_workspace_flat *cw,
   gsl_matrix *inverse_a   =gsl_matrix_alloc(wa->ncls*cw->bin->n_bands,wa->ncls*cw->bin->n_bands);
   gsl_matrix *inverse_b   =gsl_matrix_alloc(wb->ncls*cw->bin->n_bands,wb->ncls*cw->bin->n_bands);
   gsl_linalg_LU_invert(wb->coupling_matrix_binned_gsl,wb->coupling_matrix_perm,inverse_b); //M_b^-1
-  gsl_linalg_LU_invert(wa->coupling_matrix_binned_gsl,wb->coupling_matrix_perm,inverse_a); //M_a^-1
+  gsl_linalg_LU_invert(wa->coupling_matrix_binned_gsl,wa->coupling_matrix_perm,inverse_a); //M_a^-1
   gsl_blas_dgemm(CblasNoTrans,CblasTrans  ,1,covar_binned,inverse_b,0,mat_tmp    ); //tmp = C * M_b^-1^T
   gsl_blas_dgemm(CblasNoTrans,CblasNoTrans,1,inverse_a   ,mat_tmp  ,0,covar_out_g); //C' = M_a^-1 * C * M_b^-1^T
 
