@@ -93,7 +93,6 @@
               <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="pymaster.html">Python API documentation</a></li>
-<li class="toctree-l1"><a class="reference external" href="index_doxy.html#http://">C API documentation</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Example 1: simple pseudo-Cl computation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sample_bins.html">Example 2: Bandpowers</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sample_fields.html">Example 3: Fields</a></li>
@@ -102,6 +101,8 @@
 <li class="toctree-l1"><a class="reference internal" href="sample_pureb.html">Example 6: Pure E and B</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sample_flat.html">Example 7: Flat-sky fields</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sample_covariance.html">Example 8: Computing covariance matrices</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sample_rectpix.html">Example 9: Rectangular pixels</a></li>
+<li class="toctree-l1"><a class="reference external" href="index_doxy.html#http://">C API documentation</a></li>
 </ul>
 
             
@@ -172,43 +173,47 @@
 <span class="kn">import</span> <span class="nn">healpy</span> <span class="kn">as</span> <span class="nn">hp</span>
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="kn">as</span> <span class="nn">plt</span>
 
-<span class="c1">#Import the NaMaster python wrapper</span>
+<span class="c1"># Import the NaMaster python wrapper</span>
 <span class="kn">import</span> <span class="nn">pymaster</span> <span class="kn">as</span> <span class="nn">nmt</span>
 
-<span class="c1"># Simple example showcasing the use of NaMaster to compute the pseudo-Cl</span>
-<span class="c1"># estimator of the angular cross-power spectrum of a spin-0 field and a</span>
-<span class="c1"># spin-2 field</span>
+<span class="c1">#  Simple example showcasing the use of NaMaster to compute the pseudo-Cl</span>
+<span class="c1">#  estimator of the angular cross-power spectrum of a spin-0 field and a</span>
+<span class="c1">#  spin-2 field</span>
 
-<span class="c1">#HEALPix resolution parameter used here</span>
-<span class="n">nside</span><span class="o">=</span><span class="mi">256</span>
+<span class="c1"># HEALPix resolution parameter used here</span>
+<span class="n">nside</span> <span class="o">=</span> <span class="mi">256</span>
 
-<span class="c1">#Read mask and apodize it on a scale of ~1deg</span>
-<span class="n">mask</span><span class="o">=</span><span class="n">nmt</span><span class="o">.</span><span class="n">mask_apodization</span><span class="p">(</span><span class="n">hp</span><span class="o">.</span><span class="n">read_map</span><span class="p">(</span><span class="s2">&quot;mask.fits&quot;</span><span class="p">,</span><span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">),</span><span class="mf">1.</span><span class="p">,</span><span class="n">apotype</span><span class="o">=</span><span class="s2">&quot;Smooth&quot;</span><span class="p">)</span>
-<span class="n">hp</span><span class="o">.</span><span class="n">mollview</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span><span class="n">coord</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;G&#39;</span><span class="p">,</span><span class="s1">&#39;C&#39;</span><span class="p">],</span><span class="n">title</span><span class="o">=</span><span class="s1">&#39;Apodized mask&#39;</span><span class="p">);</span> <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+<span class="c1"># Read mask and apodize it on a scale of ~1deg</span>
+<span class="n">mask</span> <span class="o">=</span> <span class="n">nmt</span><span class="o">.</span><span class="n">mask_apodization</span><span class="p">(</span><span class="n">hp</span><span class="o">.</span><span class="n">read_map</span><span class="p">(</span><span class="s2">&quot;mask.fits&quot;</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">),</span>
+                            <span class="mf">1.</span><span class="p">,</span> <span class="n">apotype</span><span class="o">=</span><span class="s2">&quot;Smooth&quot;</span><span class="p">)</span>
+<span class="n">hp</span><span class="o">.</span><span class="n">mollview</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">coord</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;G&#39;</span><span class="p">,</span> <span class="s1">&#39;C&#39;</span><span class="p">],</span> <span class="n">title</span><span class="o">=</span><span class="s1">&#39;Apodized mask&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 
-<span class="c1">#Read healpix maps and initialize a spin-0 and spin-2 field</span>
-<span class="n">f_0</span><span class="o">=</span><span class="n">nmt</span><span class="o">.</span><span class="n">NmtField</span><span class="p">(</span><span class="n">mask</span><span class="p">,[</span><span class="n">hp</span><span class="o">.</span><span class="n">read_map</span><span class="p">(</span><span class="s2">&quot;maps.fits&quot;</span><span class="p">,</span><span class="n">field</span><span class="o">=</span><span class="mi">0</span>  <span class="p">,</span><span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">)])</span>
-<span class="n">f_2</span><span class="o">=</span><span class="n">nmt</span><span class="o">.</span><span class="n">NmtField</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span><span class="n">hp</span><span class="o">.</span><span class="n">read_map</span><span class="p">(</span><span class="s2">&quot;maps.fits&quot;</span><span class="p">,</span><span class="n">field</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">],</span><span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">))</span>
+<span class="c1"># Read healpix maps and initialize a spin-0 and spin-2 field</span>
+<span class="n">f_0</span> <span class="o">=</span> <span class="n">nmt</span><span class="o">.</span><span class="n">NmtField</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="p">[</span><span class="n">hp</span><span class="o">.</span><span class="n">read_map</span><span class="p">(</span><span class="s2">&quot;maps.fits&quot;</span><span class="p">,</span> <span class="n">field</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">)])</span>
+<span class="n">f_2</span> <span class="o">=</span> <span class="n">nmt</span><span class="o">.</span><span class="n">NmtField</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">hp</span><span class="o">.</span><span class="n">read_map</span><span class="p">(</span><span class="s2">&quot;maps.fits&quot;</span><span class="p">,</span> <span class="n">field</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">))</span>
 
-<span class="c1">#Initialize binning scheme with 4 ells per bandpower</span>
-<span class="n">b</span><span class="o">=</span><span class="n">nmt</span><span class="o">.</span><span class="n">NmtBin</span><span class="p">(</span><span class="n">nside</span><span class="p">,</span><span class="n">nlb</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+<span class="c1"># Initialize binning scheme with 4 ells per bandpower</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">nmt</span><span class="o">.</span><span class="n">NmtBin</span><span class="p">(</span><span class="n">nside</span><span class="p">,</span> <span class="n">nlb</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
 
-<span class="c1">#Compute MASTER estimator</span>
-<span class="c1">#spin-0 x spin-0</span>
-<span class="n">cl_00</span><span class="o">=</span><span class="n">nmt</span><span class="o">.</span><span class="n">compute_full_master</span><span class="p">(</span><span class="n">f_0</span><span class="p">,</span><span class="n">f_0</span><span class="p">,</span><span class="n">b</span><span class="p">)</span>
-<span class="c1">#spin-0 x spin-2</span>
-<span class="n">cl_02</span><span class="o">=</span><span class="n">nmt</span><span class="o">.</span><span class="n">compute_full_master</span><span class="p">(</span><span class="n">f_0</span><span class="p">,</span><span class="n">f_2</span><span class="p">,</span><span class="n">b</span><span class="p">)</span>
-<span class="c1">#spin-2 x spin-2</span>
-<span class="n">cl_22</span><span class="o">=</span><span class="n">nmt</span><span class="o">.</span><span class="n">compute_full_master</span><span class="p">(</span><span class="n">f_2</span><span class="p">,</span><span class="n">f_2</span><span class="p">,</span><span class="n">b</span><span class="p">)</span>
+<span class="c1"># Compute MASTER estimator</span>
+<span class="c1"># spin-0 x spin-0</span>
+<span class="n">cl_00</span> <span class="o">=</span> <span class="n">nmt</span><span class="o">.</span><span class="n">compute_full_master</span><span class="p">(</span><span class="n">f_0</span><span class="p">,</span> <span class="n">f_0</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
+<span class="c1"># spin-0 x spin-2</span>
+<span class="n">cl_02</span> <span class="o">=</span> <span class="n">nmt</span><span class="o">.</span><span class="n">compute_full_master</span><span class="p">(</span><span class="n">f_0</span><span class="p">,</span> <span class="n">f_2</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
+<span class="c1"># spin-2 x spin-2</span>
+<span class="n">cl_22</span> <span class="o">=</span> <span class="n">nmt</span><span class="o">.</span><span class="n">compute_full_master</span><span class="p">(</span><span class="n">f_2</span><span class="p">,</span> <span class="n">f_2</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
 
-<span class="c1">#Plot results</span>
-<span class="n">ell_arr</span><span class="o">=</span><span class="n">b</span><span class="o">.</span><span class="n">get_effective_ells</span><span class="p">()</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">ell_arr</span><span class="p">,</span><span class="n">cl_00</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="s1">&#39;r-&#39;</span><span class="p">,</span><span class="n">label</span><span class="o">=</span><span class="s1">&#39;TT&#39;</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">ell_arr</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">fabs</span><span class="p">(</span><span class="n">cl_02</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span><span class="s1">&#39;g-&#39;</span><span class="p">,</span><span class="n">label</span><span class="o">=</span><span class="s1">&#39;TE&#39;</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">ell_arr</span><span class="p">,</span><span class="n">cl_22</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="s1">&#39;b-&#39;</span><span class="p">,</span><span class="n">label</span><span class="o">=</span><span class="s1">&#39;EE&#39;</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">ell_arr</span><span class="p">,</span><span class="n">cl_22</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span><span class="s1">&#39;y-&#39;</span><span class="p">,</span><span class="n">label</span><span class="o">=</span><span class="s1">&#39;BB&#39;</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">loglog</span><span class="p">();</span> <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;$</span><span class="se">\\</span><span class="s1">ell$&#39;</span><span class="p">,</span><span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">);</span> <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;$C_</span><span class="se">\\</span><span class="s1">ell$&#39;</span><span class="p">,</span><span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">);</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s1">&#39;upper right&#39;</span><span class="p">,</span><span class="n">ncol</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span><span class="n">labelspacing</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
+<span class="c1"># Plot results</span>
+<span class="n">ell_arr</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">get_effective_ells</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">ell_arr</span><span class="p">,</span> <span class="n">cl_00</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s1">&#39;r-&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;TT&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">ell_arr</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">fabs</span><span class="p">(</span><span class="n">cl_02</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="s1">&#39;g-&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;TE&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">ell_arr</span><span class="p">,</span> <span class="n">cl_22</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s1">&#39;b-&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;EE&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">ell_arr</span><span class="p">,</span> <span class="n">cl_22</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="s1">&#39;y-&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;BB&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">loglog</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;$</span><span class="se">\\</span><span class="s1">ell$&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;$C_</span><span class="se">\\</span><span class="s1">ell$&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s1">&#39;upper right&#39;</span><span class="p">,</span> <span class="n">ncol</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">labelspacing</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
 </div>

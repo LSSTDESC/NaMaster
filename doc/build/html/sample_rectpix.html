@@ -168,56 +168,58 @@
   <div class="section" id="example-9-rectangular-pixels">
 <h1>Example 9: Rectangular pixels<a class="headerlink" href="#example-9-rectangular-pixels" title="Permalink to this headline">¶</a></h1>
 <p>This sample script showcases the use of the NmtField class for maps with rectangular pixellization.</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="kn">as</span> <span class="nn">plt</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="kn">as</span> <span class="nn">plt</span>
 <span class="kn">import</span> <span class="nn">pymaster</span> <span class="kn">as</span> <span class="nn">nmt</span>
 <span class="kn">from</span> <span class="nn">astropy.io</span> <span class="kn">import</span> <span class="n">fits</span>
 <span class="kn">from</span> <span class="nn">astropy.wcs</span> <span class="kn">import</span> <span class="n">WCS</span>
 
-<span class="c1">#This script showcases the use of the NaMaster to compute power spectra</span>
-<span class="c1">#for curved-sky fields with rectangular pixelization.</span>
+<span class="c1"># This script showcases the use of the NaMaster to compute power spectra</span>
+<span class="c1"># for curved-sky fields with rectangular pixelization.</span>
 <span class="c1">#</span>
-<span class="c1">#Note that NaMaster does not support any kind of rectangular pixellization.</span>
-<span class="c1">#The specific kind supported is pixels defined using the CAR (Plate-Carree)</span>
-<span class="c1">#projection and with Clenshaw-Curtis weights (i.e. the WCS reference pixel</span>
-<span class="c1">#must lie on the equator, and the full latitude range must be divided</span>
-<span class="c1">#exactly into pixels, with one pixel centre at both poles.</span>
+<span class="c1"># Note that NaMaster does not support any kind of rectangular pixellization.</span>
+<span class="c1"># The specific kind supported is pixels defined using the CAR (Plate-Carree)</span>
+<span class="c1"># projection and with Clenshaw-Curtis weights (i.e. the WCS reference pixel</span>
+<span class="c1"># must lie on the equator, and the full latitude range must be divided</span>
+<span class="c1"># exactly into pixels, with one pixel centre at both poles.</span>
 
-<span class="c1">#Fields with rectangular pixelization are created from a WCS object that</span>
-<span class="c1">#defines the geometry of the map.</span>
-<span class="n">hdul</span><span class="o">=</span><span class="n">fits</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;benchmarks/msk_car.fits&quot;</span><span class="p">)</span>
-<span class="n">wcs</span><span class="o">=</span><span class="n">WCS</span><span class="p">(</span><span class="n">hdul</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">header</span><span class="p">)</span>
+<span class="c1"># Fields with rectangular pixelization are created from a WCS object that</span>
+<span class="c1"># defines the geometry of the map.</span>
+<span class="n">hdul</span> <span class="o">=</span> <span class="n">fits</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;benchmarks/msk_car.fits&quot;</span><span class="p">)</span>
+<span class="n">wcs</span> <span class="o">=</span> <span class="n">WCS</span><span class="p">(</span><span class="n">hdul</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">header</span><span class="p">)</span>
 <span class="n">hdul</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 
-<span class="c1">#### Read input maps</span>
-<span class="c1">#a) Read mask</span>
-<span class="n">mask</span><span class="o">=</span><span class="n">fits</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;benchmarks/msk_car.fits&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">data</span>
-<span class="c1">#b) Read maps</span>
-<span class="n">mp_t</span><span class="p">,</span><span class="n">mp_q</span><span class="p">,</span><span class="n">mp_u</span><span class="o">=</span><span class="n">fits</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;benchmarks/mps_car.fits&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">data</span>
-<span class="c1">#You can also read and use contaminant maps in the same fashion.</span>
-<span class="c1">#We&#39;ll skip that step here.</span>
+<span class="c1"># Read input maps</span>
+<span class="c1"># a) Read mask</span>
+<span class="n">mask</span> <span class="o">=</span> <span class="n">fits</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;benchmarks/msk_car.fits&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">data</span>
+<span class="c1"># b) Read maps</span>
+<span class="n">mp_t</span><span class="p">,</span> <span class="n">mp_q</span><span class="p">,</span> <span class="n">mp_u</span> <span class="o">=</span> <span class="n">fits</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;benchmarks/mps_car.fits&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">data</span>
+<span class="c1"># You can also read and use contaminant maps in the same fashion.</span>
+<span class="c1"># We&#39;ll skip that step here.</span>
 
-<span class="c1">#### Create fields</span>
-<span class="c1">#Create spin-0 field. Pass a WCS structure do define the rectangular pixels.</span>
-<span class="n">f0</span><span class="o">=</span><span class="n">nmt</span><span class="o">.</span><span class="n">NmtField</span><span class="p">(</span><span class="n">mask</span><span class="p">,[</span><span class="n">mp_t</span><span class="p">],</span><span class="n">wcs</span><span class="o">=</span><span class="n">wcs</span><span class="p">,</span><span class="n">n_iter</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-<span class="c1">#Create spin-2 field</span>
-<span class="n">f2</span><span class="o">=</span><span class="n">nmt</span><span class="o">.</span><span class="n">NmtField</span><span class="p">(</span><span class="n">mask</span><span class="p">,[</span><span class="n">mp_q</span><span class="p">,</span><span class="n">mp_u</span><span class="p">],</span><span class="n">wcs</span><span class="o">=</span><span class="n">wcs</span><span class="p">,</span><span class="n">n_iter</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="c1"># # # #  Create fields</span>
+<span class="c1"># Create spin-0 field. Pass a WCS structure do define the rectangular pixels.</span>
+<span class="n">f0</span> <span class="o">=</span> <span class="n">nmt</span><span class="o">.</span><span class="n">NmtField</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="p">[</span><span class="n">mp_t</span><span class="p">],</span> <span class="n">wcs</span><span class="o">=</span><span class="n">wcs</span><span class="p">,</span> <span class="n">n_iter</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="c1"># Create spin-2 field</span>
+<span class="n">f2</span> <span class="o">=</span> <span class="n">nmt</span><span class="o">.</span><span class="n">NmtField</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="p">[</span><span class="n">mp_q</span><span class="p">,</span> <span class="n">mp_u</span><span class="p">],</span> <span class="n">wcs</span><span class="o">=</span><span class="n">wcs</span><span class="p">,</span> <span class="n">n_iter</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 
-<span class="c1">#Let&#39;s check out the maps.</span>
-<span class="c1">#First the original map</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">();</span> <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s2">&quot;Original map&quot;</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">mp_t</span><span class="p">,</span><span class="n">interpolation</span><span class="o">=</span><span class="s1">&#39;nearest&#39;</span><span class="p">,</span><span class="n">origin</span><span class="o">=</span><span class="s1">&#39;lower&#39;</span><span class="p">)</span>
-<span class="c1">#Now the map processed after creating the NmtField. Note that `get_maps()`</span>
-<span class="c1">#will return flattened maps, so you need to undo that.</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">();</span> <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s2">&quot;Map from NmtField&quot;</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">f0</span><span class="o">.</span><span class="n">get_maps</span><span class="p">()</span><span class="o">.</span><span class="n">reshape</span><span class="p">([</span><span class="n">mp_t</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="o">-</span><span class="mi">1</span><span class="p">]),</span>
-           <span class="n">interpolation</span><span class="o">=</span><span class="s1">&#39;nearest&#39;</span><span class="p">,</span><span class="n">origin</span><span class="o">=</span><span class="s1">&#39;lower&#39;</span><span class="p">)</span>
-<span class="c1">#You&#39;ll notice that, after creating the NmtField, the maps get extended</span>
-<span class="c1">#to cover the full 2*pi azimuth range. If you want to recover the original</span>
-<span class="c1">#map, you&#39;ll need to cut that out.</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">();</span> <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s2">&quot;Map from NmtField, cut&quot;</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">f0</span><span class="o">.</span><span class="n">get_maps</span><span class="p">()</span><span class="o">.</span><span class="n">reshape</span><span class="p">([</span><span class="n">mp_t</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="o">-</span><span class="mi">1</span><span class="p">])[:,:</span><span class="n">mp_t</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]],</span>
-           <span class="n">interpolation</span><span class="o">=</span><span class="s1">&#39;nearest&#39;</span><span class="p">,</span><span class="n">origin</span><span class="o">=</span><span class="s1">&#39;lower&#39;</span><span class="p">)</span>
+<span class="c1"># Let&#39;s check out the maps.</span>
+<span class="c1"># First the original map</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s2">&quot;Original map&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">mp_t</span><span class="p">,</span> <span class="n">interpolation</span><span class="o">=</span><span class="s1">&#39;nearest&#39;</span><span class="p">,</span> <span class="n">origin</span><span class="o">=</span><span class="s1">&#39;lower&#39;</span><span class="p">)</span>
+<span class="c1"># Now the map processed after creating the NmtField. Note that `get_maps()`</span>
+<span class="c1"># will return flattened maps, so you need to undo that.</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s2">&quot;Map from NmtField&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">f0</span><span class="o">.</span><span class="n">get_maps</span><span class="p">()</span><span class="o">.</span><span class="n">reshape</span><span class="p">([</span><span class="n">mp_t</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="o">-</span><span class="mi">1</span><span class="p">]),</span>
+           <span class="n">interpolation</span><span class="o">=</span><span class="s1">&#39;nearest&#39;</span><span class="p">,</span> <span class="n">origin</span><span class="o">=</span><span class="s1">&#39;lower&#39;</span><span class="p">)</span>
+<span class="c1"># You&#39;ll notice that, after creating the NmtField, the maps get extended</span>
+<span class="c1"># to cover the full 2*pi azimuth range. If you want to recover the original</span>
+<span class="c1"># map, you&#39;ll need to cut that out.</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s2">&quot;Map from NmtField, cut&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">f0</span><span class="o">.</span><span class="n">get_maps</span><span class="p">()</span><span class="o">.</span><span class="n">reshape</span><span class="p">([</span><span class="n">mp_t</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="o">-</span><span class="mi">1</span><span class="p">])[:,</span> <span class="p">:</span><span class="n">mp_t</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]],</span>
+           <span class="n">interpolation</span><span class="o">=</span><span class="s1">&#39;nearest&#39;</span><span class="p">,</span> <span class="n">origin</span><span class="o">=</span><span class="s1">&#39;lower&#39;</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
 </div>

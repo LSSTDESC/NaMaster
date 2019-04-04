@@ -93,7 +93,6 @@
               <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="pymaster.html">Python API documentation</a></li>
-<li class="toctree-l1"><a class="reference external" href="index_doxy.html#http://">C API documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sample_simple.html">Example 1: simple pseudo-Cl computation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sample_bins.html">Example 2: Bandpowers</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sample_fields.html">Example 3: Fields</a></li>
@@ -102,6 +101,8 @@
 <li class="toctree-l1"><a class="reference internal" href="sample_pureb.html">Example 6: Pure E and B</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sample_flat.html">Example 7: Flat-sky fields</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sample_covariance.html">Example 8: Computing covariance matrices</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sample_rectpix.html">Example 9: Rectangular pixels</a></li>
+<li class="toctree-l1"><a class="reference external" href="index_doxy.html#http://">C API documentation</a></li>
 </ul>
 
             
@@ -168,45 +169,44 @@
   <div class="section" id="example-4-masks">
 <h1>Example 4: Masks<a class="headerlink" href="#example-4-masks" title="Permalink to this headline">¶</a></h1>
 <p>This sample script showcases the apodization routine implemented in NaMaster</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">healpy</span> <span class="kn">as</span> <span class="nn">hp</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">healpy</span> <span class="kn">as</span> <span class="nn">hp</span>
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="kn">as</span> <span class="nn">plt</span>
 <span class="kn">import</span> <span class="nn">pymaster</span> <span class="kn">as</span> <span class="nn">nmt</span>
 
-<span class="c1">#This script showcases the apodization routine included with pymaster</span>
-<span class="c1">#and the three apodization modes supported.</span>
+<span class="c1"># This script showcases the apodization routine included with pymaster</span>
+<span class="c1"># and the three apodization modes supported.</span>
 
 
-<span class="c1">#Read input binary mask</span>
-<span class="n">mask_raw</span><span class="o">=</span><span class="n">hp</span><span class="o">.</span><span class="n">read_map</span><span class="p">(</span><span class="s2">&quot;mask.fits&quot;</span><span class="p">,</span><span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="c1"># Read input binary mask</span>
+<span class="n">mask_raw</span> <span class="o">=</span> <span class="n">hp</span><span class="o">.</span><span class="n">read_map</span><span class="p">(</span><span class="s2">&quot;mask.fits&quot;</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
 
-<span class="c1">#The following function calls create apodized versions of the raw mask</span>
-<span class="c1">#with an apodization scale of 2.5 degrees using three different methods</span>
+<span class="c1"># The following function calls create apodized versions of the raw mask</span>
+<span class="c1"># with an apodization scale of 2.5 degrees using three different methods</span>
 
-<span class="c1">#Apodization scale in degrees</span>
-<span class="n">aposcale</span><span class="o">=</span><span class="mf">2.5</span>
+<span class="c1"># Apodization scale in degrees</span>
+<span class="n">aposcale</span> <span class="o">=</span> <span class="mf">2.5</span>
 
-<span class="c1">#C1 and C2: in these cases, pixels are multiplied by a factor f</span>
-<span class="c1">#           (with 0&lt;=f&lt;=1) based on their distance to the nearest fully</span>
-<span class="c1">#           masked pixel. The choices of f in each case are documented in</span>
-<span class="c1">#           Section 3.4 of the C API documentation. All pixels separated</span>
-<span class="c1">#           from any masked pixel by more than the apodization scale are</span>
-<span class="c1">#           left untouched.</span>
-<span class="n">mask_C1</span><span class="o">=</span><span class="n">nmt</span><span class="o">.</span><span class="n">mask_apodization</span><span class="p">(</span><span class="n">mask_raw</span><span class="p">,</span><span class="n">aposcale</span><span class="p">,</span><span class="n">apotype</span><span class="o">=</span><span class="s2">&quot;C1&quot;</span><span class="p">)</span>
-<span class="n">mask_C2</span><span class="o">=</span><span class="n">nmt</span><span class="o">.</span><span class="n">mask_apodization</span><span class="p">(</span><span class="n">mask_raw</span><span class="p">,</span><span class="n">aposcale</span><span class="p">,</span><span class="n">apotype</span><span class="o">=</span><span class="s2">&quot;C2&quot;</span><span class="p">)</span>
+<span class="c1"># C1 and C2: in these cases, pixels are multiplied by a factor f</span>
+<span class="c1">#            (with 0&lt;=f&lt;=1) based on their distance to the nearest fully</span>
+<span class="c1">#            masked pixel. The choices of f in each case are documented in</span>
+<span class="c1">#            Section 3.4 of the C API documentation. All pixels separated</span>
+<span class="c1">#            from any masked pixel by more than the apodization scale are</span>
+<span class="c1">#            left untouched.</span>
+<span class="n">mask_C1</span> <span class="o">=</span> <span class="n">nmt</span><span class="o">.</span><span class="n">mask_apodization</span><span class="p">(</span><span class="n">mask_raw</span><span class="p">,</span> <span class="n">aposcale</span><span class="p">,</span> <span class="n">apotype</span><span class="o">=</span><span class="s2">&quot;C1&quot;</span><span class="p">)</span>
+<span class="n">mask_C2</span> <span class="o">=</span> <span class="n">nmt</span><span class="o">.</span><span class="n">mask_apodization</span><span class="p">(</span><span class="n">mask_raw</span><span class="p">,</span> <span class="n">aposcale</span><span class="p">,</span> <span class="n">apotype</span><span class="o">=</span><span class="s2">&quot;C2&quot;</span><span class="p">)</span>
 
-<span class="c1">#Smooth: in this case, all pixels closer to a masked pixel than 2.5 times</span>
-<span class="c1">#        the apodization scale are initially set to zero. The resulting</span>
-<span class="c1">#        map is then smoothed with a Gaussian kernel with standard</span>
-<span class="c1">#        deviation given by the apodization scale. Finally, all pixels</span>
-<span class="c1">#        originally masked are forced back to zero.</span>
-<span class="n">mask_Sm</span><span class="o">=</span><span class="n">nmt</span><span class="o">.</span><span class="n">mask_apodization</span><span class="p">(</span><span class="n">mask_raw</span><span class="p">,</span><span class="n">aposcale</span><span class="p">,</span><span class="n">apotype</span><span class="o">=</span><span class="s2">&quot;Smooth&quot;</span><span class="p">)</span>
+<span class="c1"># Smooth: in this case, all pixels closer to a masked pixel than 2.5 times</span>
+<span class="c1">#         the apodization scale are initially set to zero. The resulting</span>
+<span class="c1">#         map is then smoothed with a Gaussian kernel with standard</span>
+<span class="c1">#         deviation given by the apodization scale. Finally, all pixels</span>
+<span class="c1">#         originally masked are forced back to zero.</span>
+<span class="n">mask_Sm</span> <span class="o">=</span> <span class="n">nmt</span><span class="o">.</span><span class="n">mask_apodization</span><span class="p">(</span><span class="n">mask_raw</span><span class="p">,</span> <span class="n">aposcale</span><span class="p">,</span> <span class="n">apotype</span><span class="o">=</span><span class="s2">&quot;Smooth&quot;</span><span class="p">)</span>
 
-<span class="c1">#Let&#39;s plot the results</span>
-<span class="n">hp</span><span class="o">.</span><span class="n">mollview</span><span class="p">(</span><span class="n">mask_raw</span><span class="p">,</span><span class="n">title</span><span class="o">=</span><span class="s1">&#39;Binary mask&#39;</span>       <span class="p">,</span><span class="n">coord</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;G&#39;</span><span class="p">,</span><span class="s1">&#39;C&#39;</span><span class="p">])</span>
-<span class="n">hp</span><span class="o">.</span><span class="n">mollview</span><span class="p">(</span><span class="n">mask_C1</span> <span class="p">,</span><span class="n">title</span><span class="o">=</span><span class="s1">&#39;C1 apodization&#39;</span>    <span class="p">,</span><span class="n">coord</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;G&#39;</span><span class="p">,</span><span class="s1">&#39;C&#39;</span><span class="p">])</span>
-<span class="n">hp</span><span class="o">.</span><span class="n">mollview</span><span class="p">(</span><span class="n">mask_C2</span> <span class="p">,</span><span class="n">title</span><span class="o">=</span><span class="s1">&#39;C2 apodization&#39;</span>    <span class="p">,</span><span class="n">coord</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;G&#39;</span><span class="p">,</span><span class="s1">&#39;C&#39;</span><span class="p">])</span>
-<span class="n">hp</span><span class="o">.</span><span class="n">mollview</span><span class="p">(</span><span class="n">mask_Sm</span> <span class="p">,</span><span class="n">title</span><span class="o">=</span><span class="s1">&#39;Smooth apodization&#39;</span><span class="p">,</span><span class="n">coord</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;G&#39;</span><span class="p">,</span><span class="s1">&#39;C&#39;</span><span class="p">])</span>
+<span class="c1"># Let&#39;s plot the results</span>
+<span class="n">hp</span><span class="o">.</span><span class="n">mollview</span><span class="p">(</span><span class="n">mask_raw</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s1">&#39;Binary mask&#39;</span><span class="p">,</span> <span class="n">coord</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;G&#39;</span><span class="p">,</span> <span class="s1">&#39;C&#39;</span><span class="p">])</span>
+<span class="n">hp</span><span class="o">.</span><span class="n">mollview</span><span class="p">(</span><span class="n">mask_C1</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s1">&#39;C1 apodization&#39;</span><span class="p">,</span> <span class="n">coord</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;G&#39;</span><span class="p">,</span> <span class="s1">&#39;C&#39;</span><span class="p">])</span>
+<span class="n">hp</span><span class="o">.</span><span class="n">mollview</span><span class="p">(</span><span class="n">mask_C2</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s1">&#39;C2 apodization&#39;</span><span class="p">,</span> <span class="n">coord</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;G&#39;</span><span class="p">,</span> <span class="s1">&#39;C&#39;</span><span class="p">])</span>
+<span class="n">hp</span><span class="o">.</span><span class="n">mollview</span><span class="p">(</span><span class="n">mask_Sm</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s1">&#39;Smooth apodization&#39;</span><span class="p">,</span> <span class="n">coord</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;G&#39;</span><span class="p">,</span> <span class="s1">&#39;C&#39;</span><span class="p">])</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
 </div>
