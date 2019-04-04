@@ -168,15 +168,14 @@
             
   <div class="section" id="example-8-computing-covariance-matrices">
 <h1>Example 8: Computing covariance matrices<a class="headerlink" href="#example-8-computing-covariance-matrices" title="Permalink to this headline">¶</a></h1>
-<p>This sample script showcases the ability of NaMaster to estimate the Gaussian covariance matrix for the pseudo-Cl estimator. This is currently only supported for spin-0 fields in the full sky</p>
+<p>This sample script showcases the ability of NaMaster to estimate the Gaussian covariance matrix for the pseudo-Cl estimator.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">healpy</span> <span class="kn">as</span> <span class="nn">hp</span>
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="kn">as</span> <span class="nn">plt</span>
 <span class="kn">import</span> <span class="nn">pymaster</span> <span class="kn">as</span> <span class="nn">nmt</span>
 
 <span class="c1"># This script showcases the ability of namaster to compute Gaussian</span>
-<span class="c1"># estimates of the covariance matrix. This is currently only</span>
-<span class="c1"># supported for spin-0 fields</span>
+<span class="c1"># estimates of the covariance matrix.</span>
 <span class="c1"># A similar example for flat-sky fields can be found in</span>
 <span class="c1"># test/sample_covariance_flat.py</span>
 
@@ -201,8 +200,8 @@
 <span class="n">cl_eb</span> <span class="o">=</span> <span class="mi">0</span><span class="o">*</span><span class="n">clarr</span>
 
 
-<span class="c1"># This routine generates a scalar Gaussian random field based on this</span>
-<span class="c1"># power spectrum</span>
+<span class="c1"># This routine generates a spin-0 and a spin-2 Gaussian random field based</span>
+<span class="c1"># on these power spectra</span>
 <span class="k">def</span> <span class="nf">get_sample_field</span><span class="p">():</span>
     <span class="n">mp_t</span><span class="p">,</span> <span class="n">mp_q</span><span class="p">,</span> <span class="n">mp_u</span> <span class="o">=</span> <span class="n">hp</span><span class="o">.</span><span class="n">synfast</span><span class="p">([</span><span class="n">cl_tt</span><span class="p">,</span> <span class="n">cl_ee</span><span class="p">,</span> <span class="n">cl_bb</span><span class="p">,</span> <span class="n">cl_te</span><span class="p">],</span>
                                   <span class="n">nside</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
@@ -244,6 +243,8 @@
 <span class="c1"># regardless of spin</span>
 <span class="n">cw</span><span class="o">.</span><span class="n">compute_coupling_coefficients</span><span class="p">(</span><span class="n">f0</span><span class="p">,</span> <span class="n">f0</span><span class="p">,</span> <span class="n">f0</span><span class="p">,</span> <span class="n">f0</span><span class="p">)</span>
 
+<span class="c1"># The next few lines show how to extract the covariance matrices</span>
+<span class="c1"># for different spin combinations.</span>
 <span class="n">covar_00_00</span> <span class="o">=</span> <span class="n">nmt</span><span class="o">.</span><span class="n">gaussian_covariance</span><span class="p">(</span><span class="n">cw</span><span class="p">,</span>
                                       <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span>  <span class="c1"># Spins of the 4 fields</span>
                                       <span class="p">[</span><span class="n">cl_tt</span><span class="p">],</span>  <span class="c1"># TT</span>

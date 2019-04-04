@@ -4,8 +4,7 @@ import matplotlib.pyplot as plt
 import pymaster as nmt
 
 # This script showcases the ability of namaster to compute Gaussian
-# estimates of the covariance matrix. This is currently only
-# supported for spin-0 fields
+# estimates of the covariance matrix.
 # A similar example for flat-sky fields can be found in
 # test/sample_covariance_flat.py
 
@@ -30,8 +29,8 @@ cl_tb = 0*clarr
 cl_eb = 0*clarr
 
 
-# This routine generates a scalar Gaussian random field based on this
-# power spectrum
+# This routine generates a spin-0 and a spin-2 Gaussian random field based
+# on these power spectra
 def get_sample_field():
     mp_t, mp_q, mp_u = hp.synfast([cl_tt, cl_ee, cl_bb, cl_te],
                                   nside, verbose=False)
@@ -73,6 +72,8 @@ cw = nmt.NmtCovarianceWorkspace()
 # regardless of spin
 cw.compute_coupling_coefficients(f0, f0, f0, f0)
 
+# The next few lines show how to extract the covariance matrices
+# for different spin combinations.
 covar_00_00 = nmt.gaussian_covariance(cw,
                                       0, 0, 0, 0,  # Spins of the 4 fields
                                       [cl_tt],  # TT
