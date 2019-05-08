@@ -28,20 +28,70 @@ class TestCovarFsk(unittest.TestCase) :
                                       [mps[0,:ny//2,:nx//2]])
         self.w=nmt.NmtWorkspaceFlat()
         self.w.read_from("test/benchmarks/bm_f_nc_np_w00.dat")
+        self.w02=nmt.NmtWorkspaceFlat()
+        self.w02.read_from("test/benchmarks/bm_f_nc_np_w02.dat")
+        self.w22=nmt.NmtWorkspaceFlat()
+        self.w22.read_from("test/benchmarks/bm_f_nc_np_w22.dat")
         
         l,cltt,clee,clbb,clte,nltt,nlee,nlbb,nlte=np.loadtxt("test/benchmarks/cls_lss.txt",unpack=True)
         self.l=l
         self.cltt=cltt+nltt
+        self.clee=clee+nlee
+        self.clbb=clbb+nlbb
+        self.clte=clte
         
     def test_workspace_covar_flat_benchmark(self) :
+        def compare_covars(c,cb):
+            # Check first and second diagonals
+            for k in [0,1]:
+                d=np.diag(c,k=k)
+                db=np.diag(cb,k=k)
+                self.assertTrue((np.fabs(d-db) <= np.fmin(np.fabs(d),np.fabs(db))*1E-4).all())
+
         cw=nmt.NmtCovarianceWorkspaceFlat()
         cw.compute_coupling_coefficients(self.f0,self.f0,self.b)
 
+        # [0,0 ; 0,0]
         covar=nmt.gaussian_covariance_flat(cw,0,0,0,0,self.l,
-                                           [self.cltt],[self.cltt],[self.cltt],[self.cltt],
-                                           self.w)
+                                           [self.cltt],[self.cltt],[self.cltt],[self.cltt],self.w)
         covar_bench=np.loadtxt("test/benchmarks/bm_f_nc_np_cov.txt",unpack=True)
-        self.assertTrue((np.fabs(covar-covar_bench)<=np.fmin(np.fabs(covar),np.fabs(covar_bench))*1E-5).all())
+        compare_covars(covar, covar_bench)
+        # [0,2 ; 0,2]
+        covar=nmt.gaussian_covariance_flat(cw,0,2,0,2,self.l,
+                                           [self.cltt],
+                                           [self.clte, 0*self.clte],
+                                           [self.clte, 0*self.clte],
+                                           [self.clee, 0*self.clee, 0*self.clee, self.clbb],
+                                           self.w02, wb=self.w02)
+        covar_bench=np.loadtxt("test/benchmarks/bm_f_nc_np_cov0202.txt")
+        compare_covars(covar, covar_bench)
+        # [0,0 ; 0,2]
+        covar=nmt.gaussian_covariance_flat(cw,0,0,0,2,self.l,
+                                           [self.cltt],
+                                           [self.clte, 0*self.clte],
+                                           [self.cltt],
+                                           [self.clte, 0*self.clte],
+                                           self.w, wb=self.w02)
+        covar_bench=np.loadtxt("test/benchmarks/bm_f_nc_np_cov0002.txt")
+        compare_covars(covar, covar_bench)
+        # [0,0 ; 2,2]
+        covar=nmt.gaussian_covariance_flat(cw,0,0,2,2,self.l,
+                                           [self.clte, 0*self.clte],
+                                           [self.clte, 0*self.clte],
+                                           [self.clte, 0*self.clte],
+                                           [self.clte, 0*self.clte],
+                                           self.w, wb=self.w22)
+        covar_bench=np.loadtxt("test/benchmarks/bm_f_nc_np_cov0022.txt")
+        compare_covars(covar, covar_bench)
+        # [2,2 ; 2,2]
+        covar=nmt.gaussian_covariance_flat(cw,2,2,2,2,self.l,
+                                           [self.clee, 0*self.clee, 0*self.clee, self.clbb],
+                                           [self.clee, 0*self.clee, 0*self.clee, self.clbb],
+                                           [self.clee, 0*self.clee, 0*self.clee, self.clbb],
+                                           [self.clee, 0*self.clee, 0*self.clee, self.clbb],
+                                           self.w22, wb=self.w22)
+        covar_bench=np.loadtxt("test/benchmarks/bm_f_nc_np_cov2222.txt")
+        compare_covars(covar, covar_bench)
 
     def test_workspace_covar_flat_errors(self) :
         cw=nmt.NmtCovarianceWorkspaceFlat()
@@ -93,18 +143,70 @@ class TestCovarSph(unittest.TestCase) :
         self.f0_half=nmt.NmtField(msk[:self.npix//4],[mps[0,:self.npix//4]]) #Half nside
         self.w=nmt.NmtWorkspace()
         self.w.read_from("test/benchmarks/bm_nc_np_w00.dat")
-        
+        self.w02=nmt.NmtWorkspace()
+        self.w02.read_from("test/benchmarks/bm_nc_np_w02.dat")
+        self.w22=nmt.NmtWorkspace()
+        self.w22.read_from("test/benchmarks/bm_nc_np_w22.dat")
+
         l,cltt,clee,clbb,clte,nltt,nlee,nlbb,nlte=np.loadtxt("test/benchmarks/cls_lss.txt",unpack=True)
         self.l=l[:3*self.nside]
         self.cltt=cltt[:3*self.nside]+nltt[:3*self.nside]
+        self.clee=clee[:3*self.nside]+nlee[:3*self.nside]
+        self.clbb=clbb[:3*self.nside]+nlbb[:3*self.nside]
+        self.clte=clte[:3*self.nside]
                                                                                 
     def test_workspace_covar_benchmark(self) :
+        def compare_covars(c,cb):
+            # Check first and second diagonals
+            for k in [0,1]:
+                d=np.diag(c,k=k)
+                db=np.diag(cb,k=k)
+                self.assertTrue((np.fabs(d-db) <= np.fmin(np.fabs(d),np.fabs(db))*1E-4).all())
+
+        # Check against a benchmark
         cw=nmt.NmtCovarianceWorkspace()
         cw.compute_coupling_coefficients(self.f0,self.f0)
 
+        # [0,0 ; 0,0]
         covar=nmt.gaussian_covariance(cw,0,0,0,0,[self.cltt],[self.cltt],[self.cltt],[self.cltt],self.w)
         covar_bench=np.loadtxt("test/benchmarks/bm_nc_np_cov.txt",unpack=True)
-        self.assertTrue((np.fabs(covar-covar_bench)<=np.fmin(np.fabs(covar),np.fabs(covar_bench))*1E-4).all())
+        compare_covars(covar, covar_bench)
+        # [0,2 ; 0,2]
+        covar=nmt.gaussian_covariance(cw,0,2,0,2,
+                                      [self.cltt],
+                                      [self.clte, 0*self.clte],
+                                      [self.clte, 0*self.clte],
+                                      [self.clee, 0*self.clee, 0*self.clee, self.clbb],
+                                      self.w02, wb=self.w02)
+        covar_bench=np.loadtxt("test/benchmarks/bm_nc_np_cov0202.txt")
+        compare_covars(covar, covar_bench)
+        # [0,0 ; 0,2]
+        covar=nmt.gaussian_covariance(cw,0,0,0,2,
+                                      [self.cltt],
+                                      [self.clte, 0*self.clte],
+                                      [self.cltt],
+                                      [self.clte, 0*self.clte],
+                                      self.w, wb=self.w02)
+        covar_bench=np.loadtxt("test/benchmarks/bm_nc_np_cov0002.txt")
+        compare_covars(covar, covar_bench)
+        # [0,0 ; 2,2]
+        covar=nmt.gaussian_covariance(cw,0,0,2,2,
+                                      [self.clte, 0*self.clte],
+                                      [self.clte, 0*self.clte],
+                                      [self.clte, 0*self.clte],
+                                      [self.clte, 0*self.clte],
+                                      self.w, wb=self.w22)
+        covar_bench=np.loadtxt("test/benchmarks/bm_nc_np_cov0022.txt")
+        compare_covars(covar, covar_bench)
+        # [2,2 ; 2,2]
+        covar=nmt.gaussian_covariance(cw,2,2,2,2,
+                                      [self.clee, 0*self.clee, 0*self.clee, self.clbb],
+                                      [self.clee, 0*self.clee, 0*self.clee, self.clbb],
+                                      [self.clee, 0*self.clee, 0*self.clee, self.clbb],
+                                      [self.clee, 0*self.clee, 0*self.clee, self.clbb],
+                                      self.w22, wb=self.w22)
+        covar_bench=np.loadtxt("test/benchmarks/bm_nc_np_cov2222.txt")
+        compare_covars(covar, covar_bench)
 
     def test_workspace_covar_errors(self) :
         cw=nmt.NmtCovarianceWorkspace()

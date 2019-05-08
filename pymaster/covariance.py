@@ -243,6 +243,12 @@ def gaussian_covariance_flat(cw, spin_a1, spin_a2, spin_b1, spin_b2, larr,
     map properties from which the power spectra were computed. The values of \
     ell at which they are sampled are given by larr.
 
+    Please note that, while the method used to estimate these covariance \
+    is sufficiently accurate in a large number of scenarios, it is based on \
+    a numerical approximation, and its accuracy should be assessed if in \
+    doubt. In particular, we discourage users from using it to compute any \
+    covariance matrix involving B-mode components.
+
     :param NmtCovarianceWorkspaceFlat cw: workspaces containing the \
         precomputed coupling coefficients.
     :param int spin_Xn: spin for the n-th field in pair X.
