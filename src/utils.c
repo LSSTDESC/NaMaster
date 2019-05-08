@@ -375,3 +375,70 @@ void moore_penrose_pinv(gsl_matrix *M,double threshold)
   gsl_matrix_free(Mc);
   gsl_eigen_symmv_free(w);
 }
+
+//Covariance index handling
+#define IND_COV_0 0
+#define IND_COV_P 1
+#define IND_COV_MP 2
+#define IND_COV_MM 3
+#define IND_COV_00 0
+#define IND_COV_0P 1
+#define IND_COV_PP 2
+#define IND_COV_MMP 3
+#define IND_COV_MMM 4
+#define IND_COV_ZERO 5
+static const int covar_indices[16]={IND_COV_P   ,IND_COV_MM  ,IND_COV_MP  ,IND_COV_ZERO,
+				    IND_COV_MP  ,IND_COV_P   ,IND_COV_ZERO,IND_COV_MP  ,
+				    IND_COV_MM  ,IND_COV_ZERO,IND_COV_P   ,IND_COV_MM  ,
+				    IND_COV_ZERO,IND_COV_MM  ,IND_COV_MP  ,IND_COV_P};
+
+static int cov_get_coupling_index(int nma,int nmb,int ia1,int ib1,int ia2,int ib2)
+{
+  if(nma==1) {
+    if(nmb==1) //TT,TT
+      return IND_COV_0;
+    else {
+      if(ib1==ib2) //TE,TE or TB,TB
+	return IND_COV_0;
+      else
+	return IND_COV_ZERO; //TE,TB or TB,TE
+    }
+  }
+  else {
+    if(nmb==1) {
+      if(ia1==ia2) //ET,ET or BT,BT
+	return IND_COV_0;
+      else
+	return IND_COV_ZERO; //ET,BT or BT,ET
+    }
+    else {//22,22
+      int icl1=ib1+2*ia1;
+      int icl2=ib2+2*ia2;
+      int ind=icl2+4*icl1;
+      return covar_indices[ind];
+    }
+  }
+}
+
+int cov_get_coupling_pair_index(int na,int nc,int nb,int nd,
+				int ia1,int ia2,int ic1,int ic2,
+				int ib1,int ib2,int id1,int id2)
+{
+  int ind1=cov_get_coupling_index(na,nc,ia1,ic1,ia2,ic2);
+  int ind2=cov_get_coupling_index(nb,nd,ib1,id1,ib2,id2);
+  
+  if((ind1==IND_COV_0) && (ind2==IND_COV_0))
+    return IND_COV_00;
+  if(((ind1==IND_COV_0) && (ind2==IND_COV_P)) ||
+     ((ind1==IND_COV_P) && (ind2==IND_COV_0)))
+    return IND_COV_0P;
+  if((ind1==IND_COV_P) && (ind2==IND_COV_P))
+    return IND_COV_PP;
+  if(((ind1==IND_COV_MP) && (ind2==IND_COV_MP)) ||
+     ((ind1==IND_COV_MM) && (ind2==IND_COV_MM)))
+    return IND_COV_MMM;
+  if(((ind1==IND_COV_MP) && (ind2==IND_COV_MM)) ||
+     ((ind1==IND_COV_MM) && (ind2==IND_COV_MP)))
+    return IND_COV_MMP;
+  return IND_COV_ZERO;
+}

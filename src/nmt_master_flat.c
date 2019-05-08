@@ -27,11 +27,6 @@ void nmt_workspace_flat_free(nmt_workspace_flat *w)
   free(w->n_cells);
   nmt_bins_flat_free(w->bin);
   nmt_flatsky_info_free(w->fs);
-  free(w->mask1);
-  free(w->mask2);
-#ifdef _ENABLE_FLAT_THEORY_ACCURATE
-  free(w->maskprod);
-#endif //_ENABLE_FLAT_THEORY_ACCURATE
   free(w);
 }
 
@@ -54,12 +49,6 @@ static nmt_workspace_flat *nmt_workspace_flat_new(int ncls,nmt_flatsky_info *fs,
   w->lmax=w->bin->ell_f_list[w->bin->n_bands-1];
 
   w->fs=nmt_flatsky_info_alloc(fs->nx,fs->ny,fs->lx,fs->ly);
-
-  w->mask1=my_malloc(fs->npix*sizeof(flouble));
-  w->mask2=my_malloc(fs->npix*sizeof(flouble));
-#ifdef _ENABLE_FLAT_THEORY_ACCURATE
-  w->maskprod=my_malloc(w->fs->npix*sizeof(flouble));
-#endif //_ENABLE_FLAT_THEORY_ACCURATE
 
   w->n_cells=my_calloc(w->bin->n_bands,sizeof(int));
 
@@ -100,15 +89,6 @@ nmt_workspace_flat *nmt_workspace_flat_read(char *fname)
   my_fread(&lx,sizeof(flouble),1,fi);
   my_fread(&ly,sizeof(flouble),1,fi);
   w->fs=nmt_flatsky_info_alloc(nx,ny,lx,ly);
-
-  w->mask1=my_malloc(w->fs->npix*sizeof(flouble));
-  my_fread(w->mask1,sizeof(flouble),w->fs->npix,fi);
-  w->mask2=my_malloc(w->fs->npix*sizeof(flouble));
-  my_fread(w->mask2,sizeof(flouble),w->fs->npix,fi);
-#ifdef _ENABLE_FLAT_THEORY_ACCURATE
-  w->maskprod=my_malloc(w->fs->npix*sizeof(flouble));
-  my_fread(w->maskprod,sizeof(flouble),w->fs->npix,fi);
-#endif //_ENABLE_FLAT_THEORY_ACCURATE
 
   w->bin=my_malloc(sizeof(nmt_binning_scheme_flat));
   my_fread(&(w->bin->n_bands),sizeof(int),1,fi);
@@ -162,12 +142,6 @@ void nmt_workspace_flat_write(nmt_workspace_flat *w,char *fname)
   my_fwrite(&(w->fs->lx),sizeof(flouble),1,fo);
   my_fwrite(&(w->fs->ly),sizeof(flouble),1,fo);
 
-  my_fwrite(w->mask1,sizeof(flouble),w->fs->npix,fo);
-  my_fwrite(w->mask2,sizeof(flouble),w->fs->npix,fo);
-#ifdef _ENABLE_FLAT_THEORY_ACCURATE
-  my_fwrite(w->maskprod,sizeof(flouble),w->fs->npix,fo);
-#endif //_ENABLE_FLAT_THEORY_ACCURATE
-
   my_fwrite(&(w->bin->n_bands),sizeof(int),1,fo);
   my_fwrite(w->bin->ell_0_list,sizeof(flouble),w->bin->n_bands,fo);
   my_fwrite(w->bin->ell_f_list,sizeof(flouble),w->bin->n_bands,fo);
@@ -220,11 +194,6 @@ cond spin-2\n");
   w->pb1=fl1->pure_b;
   w->pb2=fl2->pure_b;
 
-  for(ii=0;ii<fl1->fs->npix;ii++)
-    w->mask1[ii]=fl1->mask[ii];
-  for(ii=0;ii<fl2->fs->npix;ii++)
-    w->mask2[ii]=fl2->mask[ii];
-  
   fcomplex *cmask1,*cmask2;
   flouble *maskprod,*cosarr,*sinarr,*kmodarr,*beamprod;
   int *i_band,*i_band_nocut,*i_ring;
@@ -238,11 +207,7 @@ cond spin-2\n");
   }
   i_ring=my_malloc(w->fs->npix*sizeof(int));
   i_band=my_malloc(w->fs->npix*sizeof(int));
-#ifdef _ENABLE_FLAT_THEORY_ACCURATE
-  maskprod=w->maskprod;
-#else //_ENABLE_FLAT_THEORY_ACCURATE
   maskprod=my_malloc(w->fs->npix*sizeof(flouble));
-#endif //_ENABLE_FLAT_THEORY_ACCURATE
   i_band_nocut=my_malloc(w->fs->npix*sizeof(int));
   kmodarr=dftw_malloc(w->fs->npix*sizeof(flouble));
   beamprod=dftw_malloc(w->fs->npix*sizeof(flouble));
@@ -601,9 +566,7 @@ cond spin-2\n");
   free(i_band_nocut);
   dftw_free(kmodarr);
   dftw_free(beamprod);
-#ifndef _ENABLE_FLAT_THEORY_ACCURATE
   free(maskprod);
-#endif //_ENABLE_FLAT_THEORY_ACCURATE
   if(w->ncls>1) {
     dftw_free(cosarr);
     dftw_free(sinarr);
@@ -785,237 +748,6 @@ void nmt_compute_deprojection_bias_flat(nmt_field_flat *fl1,nmt_field_flat *fl2,
 
   return;
 }
-
-#ifdef _ENABLE_FLAT_THEORY_ACCURATE
-void nmt_couple_cl_l_flat_accurate(nmt_workspace_flat *w,int nl,flouble *larr,flouble **cl_in,flouble **cl_out)
-{
-  //Zero input array
-  int ii;
-  for(ii=0;ii<w->ncls;ii++) {
-    int jj;
-    for(jj=0;jj<w->bin->n_bands;jj++)
-      cl_out[ii][jj]=0;
-  }
-
-  //Precompute angles, mode lengths and band indices
-  flouble *cosarr,*sinarr,*kmodarr;
-  int *i_band=my_malloc(w->fs->npix*sizeof(int));
-  flouble *clmaps=my_malloc(w->ncls*w->fs->npix*sizeof(flouble));
-  nmt_k_function **fcl=my_malloc(w->ncls*sizeof(nmt_k_function *));
-  for(ii=0;ii<w->ncls;ii++)
-    fcl[ii]=nmt_k_function_alloc(nl,larr,cl_in[ii],cl_in[ii][0],0.,0);
-  if(w->ncls>1) {
-    kmodarr=dftw_malloc(w->fs->npix*sizeof(flouble));
-    cosarr=dftw_malloc(w->fs->npix*sizeof(flouble));
-    sinarr=dftw_malloc(w->fs->npix*sizeof(flouble));
-  }
-
-  int *x_out_range,*y_out_range;
-  x_out_range=my_calloc(w->fs->nx,sizeof(int));
-  y_out_range=my_calloc(w->fs->ny,sizeof(int));
-  for(ii=0;ii<w->fs->nx;ii++) {
-    flouble k;
-    if(2*ii<=w->fs->nx) k=ii*2*M_PI/w->fs->lx;
-    else k=-(w->fs->nx-ii)*2*M_PI/w->fs->lx;
-    if((k<=w->ellcut_x[1]) && (k>=w->ellcut_x[0]))
-      x_out_range[ii]=1;
-  }
-  for(ii=0;ii<w->fs->ny;ii++) {
-    flouble k;
-    if(2*ii<=w->fs->ny) k=ii*2*M_PI/w->fs->ly;
-    else k=-(w->fs->ny-ii)*2*M_PI/w->fs->ly;
-    if((k<=w->ellcut_y[1]) && (k>=w->ellcut_y[0]))
-      y_out_range[ii]=1;
-  }
-
-#pragma omp parallel default(none)		\
-  shared(w,i_band,cosarr,sinarr,kmodarr)	\
-  shared(x_out_range,y_out_range,fcl,clmaps)
-  {
-    flouble dkx=2*M_PI/w->fs->lx;
-    flouble dky=2*M_PI/w->fs->ly;
-    int iy1,ix1;
-    gsl_interp_accel *intacc=gsl_interp_accel_alloc();
-
-#pragma omp for
-    for(iy1=0;iy1<w->fs->ny;iy1++) {
-      flouble ky;
-      int ik=0;
-      if(2*iy1<=w->fs->ny)
-	ky=iy1*dky;
-      else
-	ky=-(w->fs->ny-iy1)*dky;
-      for(ix1=0;ix1<w->fs->nx;ix1++) {
-	flouble kx,kmod;
-	int ix_here,index,ic;
-	index=ix1+w->fs->nx*iy1;
-	if(2*ix1<=w->fs->nx) {
-	  kx=ix1*dkx;
-	  ix_here=ix1;
-	}
-	else {
-	  kx=-(w->fs->nx-ix1)*dkx;
-	  ix_here=w->fs->nx-ix1;
-	}
-
-	kmod=sqrt(kx*kx+ky*ky);
-	for(ic=0;ic<w->ncls;ic++)
-	  clmaps[ic+index*w->ncls]=nmt_k_function_eval(fcl[ic],kmod,intacc);
-
-	if(y_out_range[iy1] || x_out_range[ix1])
-	  i_band[index]=-1;
-	else {
-	  int ic;
-	  ik=nmt_bins_flat_search_fast(w->bin,kmod,ik);
-	  if(ik>=0)
-	    i_band[index]=ik;
-	  else
-	    i_band[index]=-1;
-	  if(w->ncls>1) {
-	    flouble c,s;
-	    if(kmod>0) {
-	      c=kx/kmod;
-	      s=ky/kmod;
-	    }
-	    else {
-	      c=1.;
-	      s=0.;
-	    }
-	    kmodarr[index]=kmod;
-	    cosarr[index]=c*c-s*s;
-	    sinarr[index]=2*s*c;
-	  }	
-	}
-      }
-    } //end omp for
-    gsl_interp_accel_free(intacc);
-  } //end omp parallel
-  free(x_out_range);
-  free(y_out_range);
-  for(ii=0;ii<w->ncls;ii++)
-    nmt_k_function_free(fcl[ii]);
-  free(fcl);
-
-#pragma omp parallel default(none)			\
-  shared(i_band,w,cosarr,sinarr,kmodarr,clmaps,cl_out)
-  {
-    int iy1,ix1,ix2,iy2;
-    int pe1=w->pe1,pe2=w->pe2,pb1=w->pb1,pb2=w->pb2;
-    int pure_any=pe1 || pb1 || pe2 || pb2;
-    flouble **cl_out_thr=my_malloc(w->ncls*sizeof(flouble *));
-    for(iy1=0;iy1<w->ncls;iy1++)
-      cl_out_thr[iy1]=my_calloc(w->bin->n_bands,sizeof(flouble));
-
-#pragma omp for
-    for(iy1=0;iy1<w->fs->ny;iy1++) {
-      for(ix1=0;ix1<w->fs->nx;ix1++) {
-	int index1=ix1+w->fs->nx*iy1;
-	int ik1=i_band[index1];
-	if(ik1>=0) {
-	  flouble inv_k1=0;
-	  if((index1>0) && (w->ncls>1))
-	    inv_k1=1./kmodarr[index1];
-	  for(iy2=0;iy2<w->fs->ny;iy2++) {
-	    for(ix2=0;ix2<w->fs->nx;ix2++) {
-	      int index;
-	      flouble mp,cdiff=1,sdiff=0,kr=1;
-	      int index2=ix2+w->fs->nx*iy2;
-	      flouble *cls_in=&(clmaps[w->ncls*index2]);
-	      int iy=iy1-iy2;
-	      int ix=ix1-ix2;
-	      if(iy<0) iy+=w->fs->ny;
-	      if(ix<0) ix+=w->fs->nx;
-	      index=ix+w->fs->nx*iy;
-
-	      if(w->ncls>1) {
-		cdiff=cosarr[index1]*cosarr[index2]+sinarr[index1]*sinarr[index2];
-		sdiff=sinarr[index1]*cosarr[index2]-cosarr[index1]*sinarr[index2];
-		if((index1==0) && (index2==0))
-		  kr=1;
-		else
-		  kr=kmodarr[index2]*inv_k1;
-		kr*=kr;
-	      }
-	      mp=w->maskprod[index];
-
-	      if(w->ncls==1) {
-		cl_out_thr[0][ik1]+=mp*cls_in[0];
-	      }
-	      if(w->ncls==2) {
-		flouble fc[2],fs[2];
-		fc[0]=cdiff*mp;
-		fs[0]=sdiff*mp;
-		if(pure_any) {
-		  fc[1]=kr*mp; fs[1]=0;
-		}
-		cl_out_thr[0][ik1]+=fc[pe1+pe2]*cls_in[0]; //TE,TE
-		cl_out_thr[0][ik1]-=fs[pe1+pe2]*cls_in[1]; //TE,TB
-		cl_out_thr[1][ik1]+=fs[pb1+pb2]*cls_in[0]; //TB,TE
-		cl_out_thr[1][ik1]+=fc[pb1+pb2]*cls_in[1]; //TB,TB
-	      }
-	      if(w->ncls==4) {
-		flouble fc[2],fs[2];
-		fc[0]=cdiff; fs[0]=sdiff;
-		if(pure_any) {
-		  fc[1]=kr; fs[1]=0;
-		}
-		cl_out_thr[0][ik1]+=fc[pe1]*fc[pe2]*mp*cls_in[0]; //EE,EE
-		cl_out_thr[0][ik1]-=fc[pe1]*fs[pe2]*mp*cls_in[1]; //EE,EB
-		cl_out_thr[0][ik1]-=fs[pe1]*fc[pe2]*mp*cls_in[2]; //EE,BE
-		cl_out_thr[0][ik1]+=fs[pe1]*fs[pe2]*mp*cls_in[3]; //EE,BB
-		cl_out_thr[1][ik1]+=fc[pe1]*fs[pb2]*mp*cls_in[0]; //EB,EE
-		cl_out_thr[1][ik1]+=fc[pe1]*fc[pb2]*mp*cls_in[1]; //EB,EB
-		cl_out_thr[1][ik1]-=fs[pe1]*fs[pb2]*mp*cls_in[2]; //EB,BE
-		cl_out_thr[1][ik1]-=fs[pe1]*fc[pb2]*mp*cls_in[3]; //EB,BB
-		cl_out_thr[2][ik1]+=fs[pb1]*fc[pe2]*mp*cls_in[0]; //BE,EE
-		cl_out_thr[2][ik1]-=fs[pb1]*fs[pe2]*mp*cls_in[1]; //BE,EB
-		cl_out_thr[2][ik1]+=fc[pb1]*fc[pe2]*mp*cls_in[2]; //BE,BE
-		cl_out_thr[2][ik1]-=fc[pb1]*fs[pe2]*mp*cls_in[3]; //BE,BB
-		cl_out_thr[3][ik1]+=fs[pb1]*fs[pb2]*mp*cls_in[0]; //BB,EE
-		cl_out_thr[3][ik1]+=fs[pb1]*fc[pb2]*mp*cls_in[1]; //BB,EB
-		cl_out_thr[3][ik1]+=fc[pb1]*fs[pb2]*mp*cls_in[2]; //BB,BE
-		cl_out_thr[3][ik1]+=fc[pb1]*fc[pb2]*mp*cls_in[3]; //BB,BB
-	      }
-	    }
-	  }
-	}
-      }
-    } //end omp for
-#pragma omp critical
-    {
-      for(iy1=0;iy1<w->ncls;iy1++) {
-	for(iy2=0;iy2<w->bin->n_bands;iy2++)
-	  cl_out[iy1][iy2]+=cl_out_thr[iy1][iy2];
-      }
-    } //end omp critical
-
-    for(iy1=0;iy1<w->ncls;iy1++)
-      free(cl_out_thr[iy1]);
-    free(cl_out_thr);
-  } //end omp parallel
-
-  int il1;
-  flouble fac_norm=4*M_PI*M_PI/(w->fs->lx*w->fs->lx*w->fs->ly*w->fs->ly);
-  for(il1=0;il1<w->bin->n_bands;il1++) {
-    int icl1;
-    flouble norm;
-    if(w->n_cells[il1]>0)
-      norm=fac_norm/w->n_cells[il1];
-    else
-      norm=0;
-    for(icl1=0;icl1<w->ncls;icl1++)
-      cl_out[icl1][il1]*=norm;
-  }
-
-  free(i_band);
-  free(clmaps);
-  if(w->ncls>1) {
-    dftw_free(kmodarr);
-    dftw_free(cosarr);
-    dftw_free(sinarr);
-  }
-}
-#endif //_ENABLE_FLAT_THEORY_ACCURATE
 
 void nmt_couple_cl_l_flat_fast(nmt_workspace_flat *w,int nl,flouble *larr,flouble **cl_in,flouble **cl_out)
 {

@@ -2,24 +2,49 @@ from pymaster import nmtlib as lib
 import numpy as np
 from pymaster.utils import NmtWCSTranslator
 
+
 class NmtField(object):
     """
-    An NmtField object contains all the information describing the fields to correlate, including their observed maps, masks and contaminant templates.
+    An NmtField object contains all the information describing the fields to
+    correlate, including their observed maps, masks and contaminant templates.
 
-    :param mask: array containing a map corresponding to the field's mask. Should be 1-dimensional for a HEALPix map or 2-dimensional for a map with rectangular pixelization.
-    :param maps: array containing the observed maps for this field. Should be at least 2-dimensional. The first dimension corresponds to the number of maps, which should be 1 for a spin-0 field and 2 for a spin-2 field. The other dimensions should be [npix] for HEALPix maps or [ny,nx] for maps with rectangular pixels.
-    :param templates: array containing a set of contaminant templates for this field. This array should have shape [ntemp][nmap]..., where ntemp is the number of templates, nmap should be 1 for spin-0 fields and 2 for spin-2 fields. The other dimensions should be [npix] for HEALPix maps or [ny,nx] for maps with rectangular pixels. The best-fit contribution from each contaminant is automatically removed from the maps unless templates=None.
-    :param beam: spherical harmonic transform of the instrumental beam (assumed to be rotationally symmetric - i.e. no m dependence). If None, no beam will be corrected for. Otherwise, this array should have at least as many elements as the maximum multipole sampled by the maps + 1 (e.g. if a HEALPix map, it should contain 3*nside elements, corresponding to multipoles from 0 to 3*nside-1).
+    :param mask: array containing a map corresponding to the field's mask. \
+        Should be 1-dimensional for a HEALPix map or 2-dimensional for a map \
+        with rectangular pixelization.
+    :param maps: array containing the observed maps for this field. Should be \
+        at least 2-dimensional. The first dimension corresponds to the number \
+        of maps, which should be 1 for a spin-0 field and 2 for a spin-2 \
+        field. The other dimensions should be [npix] for HEALPix maps or \
+        [ny,nx] for maps with rectangular pixels.
+    :param templates: array containing a set of contaminant templates for \
+        this field. This array should have shape [ntemp][nmap]..., where \
+        ntemp is the number of templates, nmap should be 1 for spin-0 fields \
+        and 2 for spin-2 fields. The other dimensions should be [npix] for \
+        HEALPix maps or [ny,nx] for maps with rectangular pixels. The \
+        best-fit contribution from each contaminant is automatically removed \
+        from the maps unless templates=None.
+    :param beam: spherical harmonic transform of the instrumental beam \
+        (assumed to be rotationally symmetric - i.e. no m dependence). If \
+        None, no beam will be corrected for. Otherwise, this array should \
+        have at least as many elements as the maximum multipole sampled by \
+        the maps + 1 (e.g. if a HEALPix map, it should contain 3*nside \
+        elements, corresponding to multipoles from 0 to 3*nside-1).
     :param purify_e: use pure E-modes?
     :param purify_b: use pure B-modes?
-    :param n_iter_mask_purify: number of iterations used to compute an accurate SHT of the mask when using E/B purification
-    :param tol_pinv: when computing the pseudo-inverse of the contaminant covariance matrix, all eigenvalues below tol_pinv * max_eval will be treated as singular values, where max_eval is the largest eigenvalue. Only relevant if passing contaminant templates that are likely to be highly correlated.
-    :param wcs: a WCS object if using rectangular pixels (see http://docs.astropy.org/en/stable/wcs/index.html).
+    :param n_iter_mask_purify: number of iterations used to compute an \
+        accurate SHT of the mask when using E/B purification
+    :param tol_pinv: when computing the pseudo-inverse of the contaminant \
+        covariance matrix, all eigenvalues below tol_pinv * max_eval will be \
+        treated as singular values, where max_eval is the largest eigenvalue. \
+        Only relevant if passing contaminant templates that are likely to be \
+        highly correlated.
+    :param wcs: a WCS object if using rectangular pixels (see \
+        http://docs.astropy.org/en/stable/wcs/index.html).
     :param n_iter: number of iterations when computing a_lms.
     """
-
-    def __init__(self,mask,maps,templates=None,beam=None,purify_e=False,purify_b=False,
-                 n_iter_mask_purify=3,tol_pinv=1E-10,wcs=None,n_iter=3):
+    def __init__(self, mask, maps, templates=None, beam=None,
+                 purify_e=False, purify_b=False, n_iter_mask_purify=3,
+                 tol_pinv=1E-10, wcs=None, n_iter=3):
         self.fl = None
 
         pure_e = 0
@@ -29,25 +54,25 @@ class NmtField(object):
         if purify_b:
             pure_b = 1
 
-        wt=NmtWCSTranslator(wcs,mask.shape)
-        if wt.is_healpix==0 :
-            if wt.flip_th :
-                mask=mask[::-1,:]
-            if wt.flip_ph :
-                mask=mask[:,::-1]
-            mask=mask.reshape(wt.npix)
-            
+        wt = NmtWCSTranslator(wcs, mask.shape)
+        if wt.is_healpix == 0:
+            if wt.flip_th:
+                mask = mask[::-1, :]
+            if wt.flip_ph:
+                mask = mask[:, ::-1]
+            mask = mask.reshape(wt.npix)
+
         if (len(maps) != 1) and (len(maps) != 2):
             raise ValueError("Must supply 1 or 2 maps per field")
 
-        if wt.is_healpix==0 : #Flatten if 2D maps
+        if wt.is_healpix == 0:  # Flatten if 2D maps
             try:
-                maps=np.array(maps)
-                if wt.flip_th :
-                    maps=maps[:,::-1,:]
-                if wt.flip_ph :
-                    maps=maps[:,:,::-1]
-                maps=maps.reshape([len(maps),wt.npix])
+                maps = np.array(maps)
+                if wt.flip_th:
+                    maps = maps[:, ::-1, :]
+                if wt.flip_ph:
+                    maps = maps[:, :, ::-1]
+                maps = maps.reshape([len(maps), wt.npix])
             except:
                 raise ValueError("Input maps have the wrong shape")
 
@@ -55,32 +80,34 @@ class NmtField(object):
             raise ValueError("All maps must have the same resolution")
 
         if isinstance(templates, (list, tuple, np.ndarray)):
-            ntemp=len(templates)
+            ntemp = len(templates)
             if (len(templates[0]) != 1) and (len(templates[0]) != 2):
                 raise ValueError("Must supply 1 or 2 maps per field")
-            
-            if wt.is_healpix==0 : #Flatten if 2D maps
+
+            if wt.is_healpix == 0:  # Flatten if 2D maps
                 try:
-                    templates=np.array(templates)
-                    if wt.flip_th :
-                        templates=templates[:,:,::-1,:]
-                    if wt.flip_ph :
-                        templates=templates[:,:,:,::-1]
-                    templates=templates.reshape([ntemp,len(maps),wt.npix])
+                    templates = np.array(templates)
+                    if wt.flip_th:
+                        templates = templates[:, :, ::-1, :]
+                    if wt.flip_ph:
+                        templates = templates[:, :, :, ::-1]
+                    templates = templates.reshape([ntemp, len(maps), wt.npix])
                 except:
                     raise ValueError("Input templates have the wrong shape")
-                
+
             if len(templates[0][0]) != len(mask):
                 raise ValueError("All maps must have the same resolution")
         else:
             if templates is not None:
-                raise ValueError("Input templates can only be an array or None\n")
+                raise ValueError("Input templates can only be an array "
+                                 "or None\n")
 
-        lmax=wt.get_lmax()
+        lmax = wt.get_lmax()
 
         if isinstance(beam, (list, tuple, np.ndarray)):
-            if len(beam) <= lmax :
-                raise ValueError("Input beam must have at least %d elements given the input map resolution"%(lmax))
+            if len(beam) <= lmax:
+                raise ValueError("Input beam must have at least %d elements "
+                                 "given the input map resolution" % (lmax))
             beam_use = beam
         else:
             if beam is None:
@@ -89,14 +116,19 @@ class NmtField(object):
                 raise ValueError("Input beam can only be an array or None\n")
 
         if isinstance(templates, (list, tuple, np.ndarray)):
-            self.fl = lib.field_alloc_new(wt.is_healpix,wt.nside,wt.nx,wt.ny,
-                                          wt.d_phi,wt.d_theta,wt.phi0,wt.theta_max,
-                                          mask,maps,templates,beam_use,
-                                          pure_e,pure_b,n_iter_mask_purify,tol_pinv,n_iter)
+            self.fl = lib.field_alloc_new(wt.is_healpix, wt.nside,
+                                          wt.nx, wt.ny,
+                                          wt.d_phi, wt.d_theta,
+                                          wt.phi0, wt.theta_max,
+                                          mask, maps, templates, beam_use,
+                                          pure_e, pure_b, n_iter_mask_purify,
+                                          tol_pinv, n_iter)
         else:
             self.fl = lib.field_alloc_new_notemp(
-                wt.is_healpix,wt.nside,wt.nx,wt.ny,wt.d_phi,wt.d_theta,wt.phi0,wt.theta_max,
-                mask, maps, beam_use, pure_e, pure_b, n_iter_mask_purify, n_iter)
+                wt.is_healpix, wt.nside, wt.nx, wt.ny, wt.d_phi,
+                wt.d_theta, wt.phi0, wt.theta_max,
+                mask, maps, beam_use, pure_e, pure_b, n_iter_mask_purify,
+                n_iter)
 
     def __del__(self):
         if self.fl is not None:
@@ -105,8 +137,11 @@ class NmtField(object):
 
     def get_maps(self):
         """
-        Returns a 2D array ([nmap][npix]) corresponding to the observed maps for this field. If the field was initialized with contaminant templates, the maps returned by this function have their best-fit contribution from these contaminants removed.
-        
+        Returns a 2D array ([nmap][npix]) corresponding to the observed maps \
+        for this field. If the field was initialized with contaminant \
+        templates, the maps returned by this function have their best-fit \
+        contribution from these contaminants removed.
+
         :return: 2D array of maps
         """
         maps = np.zeros([self.fl.nmaps, self.fl.npix])
@@ -118,7 +153,8 @@ class NmtField(object):
 
     def get_templates(self):
         """
-        Returns a 3D array ([ntemp][nmap][npix]) corresponding to the contaminant templates passed when initializing this field.
+        Returns a 3D array ([ntemp][nmap][npix]) corresponding to the \
+        contaminant templates passed when initializing this field.
 
         :return: 3D array of maps
         """
@@ -135,17 +171,36 @@ class NmtField(object):
 
 class NmtFieldFlat(object):
     """
-    An NmtFieldFlat object contains all the information describing the flat-sky fields to correlate, including their observed maps, masks and contaminant templates.
+    An NmtFieldFlat object contains all the information describing the \
+    flat-sky fields to correlate, including their observed maps, masks \
+    and contaminant templates.
 
-    :param float lx,ly: size of the patch in the x and y directions (in radians)
-    :param mask: 2D array (nx,ny) containing a HEALPix map corresponding to the field's mask.
-    :param maps: 2 2D arrays (nmaps,nx,ny) containing the observed maps for this field. The first dimension corresponds to the number of maps, which should be 1 for a spin-0 field and 2 for a spin-2 field.
-    :param templates: array of maps (ntemp,nmaps,nx,ny) containing a set of contaminant templates for this field. This array should have shape [ntemp][nmap][nx][ny], where ntemp is the number of templates, nmap should be 1 for spin-0 fields and 2 for spin-2 fields, and nx,ny define the patch. The best-fit contribution from each contaminant is automatically removed from the maps unless templates=None
-    :param beam: 2D array (2,nl) defining the FT of the instrumental beam (assumed to be rotationally symmetric). beam[0] should contain the values of l for which de beam is defined, with beam[1] containing the beam values. If None, no beam will be corrected for.
+    :param float lx,ly: size of the patch in the x and y directions (in \
+        radians)
+    :param mask: 2D array (nx,ny) containing a HEALPix map corresponding \
+        to the field's mask.
+    :param maps: 2 2D arrays (nmaps,nx,ny) containing the observed maps \
+        for this field. The first dimension corresponds to the number of \
+        maps, which should be 1 for a spin-0 field and 2 for a spin-2 field.
+    :param templates: array of maps (ntemp,nmaps,nx,ny) containing a set \
+        of contaminant templates for this field. This array should have \
+        shape [ntemp][nmap][nx][ny], where ntemp is the number of \
+        templates, nmap should be 1 for spin-0 fields and 2 for spin-2 \
+        fields, and nx,ny define the patch. The best-fit contribution \
+        from each contaminant is automatically removed from the maps \
+        unless templates=None
+    :param beam: 2D array (2,nl) defining the FT of the instrumental beam \
+        (assumed to be rotationally symmetric). beam[0] should contain \
+        the values of l for which de beam is defined, with beam[1] \
+        containing the beam values. If None, no beam will be corrected \
+        for.
     :param purify_e: use pure E-modes?
     :param purify_b: use pure B-modes?
-    :param tol_pinv: when computing the pseudo-inverse of the contaminant covariance matrix, all eigenvalues below tol_pinv * max_eval will be treated as singular values, where max_eval is the largest eigenvalue. Only relevant if passing contaminant templates that are likely to be highly correlated.
-
+    :param tol_pinv: when computing the pseudo-inverse of the contaminant \
+        covariance matrix, all eigenvalues below tol_pinv * max_eval will \
+        be treated as singular values, where max_eval is the largest \
+        eigenvalue. Only relevant if passing contaminant templates that \
+        are likely to be highly correlated.
     """
 
     def __init__(
@@ -170,7 +225,8 @@ class NmtFieldFlat(object):
             pure_b = 1
 
         if (lx < 0) or (ly < 0):
-            raise ValueError("Must supply sensible dimensions for flat-sky field")
+            raise ValueError("Must supply sensible dimensions for "
+                             "flat-sky field")
         # Flatten arrays and check dimensions
         shape_2D = np.shape(mask)
         nmaps = len(maps)
@@ -196,18 +252,19 @@ class NmtFieldFlat(object):
             for t in templates:
                 tmp = []
                 if len(t) != nmaps:
-                    raise ValueError(
-                        "Maps and templates should have the same number of maps"
-                    )
+                    raise ValueError("Maps and templates should have the "
+                                     "same number of maps")
                 for m in t:
                     if np.shape(m) != shape_2D:
-                        raise ValueError("Mask and templates don't have the same shape")
+                        raise ValueError("Mask and templates don't have "
+                                         "the same shape")
                     tmp.append((m.astype(np.float64)).flatten())
                 tmps.append(tmp)
             tmps = np.array(tmps)
         else:
             if templates is not None:
-                raise ValueError("Input templates can only be an array or None")
+                raise ValueError("Input templates can only be an array "
+                                 "or None")
 
         # Form beam
         if isinstance(beam, (list, tuple, np.ndarray)):
@@ -216,7 +273,8 @@ class NmtFieldFlat(object):
             if beam is None:
                 beam_use = np.array([[-1.], [-1.]])
             else:
-                raise ValueError("Input beam can only be an array or None")
+                raise ValueError("Input beam can only be an array or "
+                                 "None")
 
         # Generate field
         if isinstance(templates, (list, tuple, np.ndarray)):
@@ -245,8 +303,11 @@ class NmtFieldFlat(object):
 
     def get_maps(self):
         """
-        Returns a 3D array ([nmap][ny][nx]) corresponding to the observed maps for this field. If the field was initialized with contaminant templates, the maps returned by this function have their best-fit contribution from these contaminants removed.
-        
+        Returns a 3D array ([nmap][ny][nx]) corresponding to the observed \
+        maps for this field. If the field was initialized with contaminant \
+        templates, the maps returned by this function have their best-fit \
+        contribution from these contaminants removed.
+
         :return: 3D array of flat-sky maps
         """
         maps = np.zeros([self.fl.nmaps, self.fl.npix])
@@ -258,7 +319,8 @@ class NmtFieldFlat(object):
 
     def get_templates(self):
         """
-        Returns a 4D array ([ntemp][nmap][ny][nx]) corresponding to the contaminant templates passed when initializing this field.
+        Returns a 4D array ([ntemp][nmap][ny][nx]) corresponding to the \
+        contaminant templates passed when initializing this field.
 
         :return: 4D array of flat-sky maps
         """

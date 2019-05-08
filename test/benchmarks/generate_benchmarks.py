@@ -87,18 +87,10 @@ sl,sw_q,sw_u=nmt.synfast_spherical(-1,[cltt/(l+1.)**1.5,0*clte,0*cltt,clee/(l+1.
 wcs._naxis2,wcs._naxis1=dl.shape
 
 mask=getmaskapoana_car(wcs,20.,0.4,dec0=90.)
-write_flat_map("mps_car_small.fits",np.array([dl,dw_q,dw_u]),wcs,["T","Q","U"])
-write_flat_map("tmp_car_small.fits",np.array([sl,sw_q,sw_u]),wcs,["T","Q","U"])
-write_flat_map("msk_car_small.fits",mask,wcs,"mask")
+#write_flat_map("mps_car_small.fits",np.array([dl,dw_q,dw_u]),wcs,["T","Q","U"])
+#write_flat_map("tmp_car_small.fits",np.array([sl,sw_q,sw_u]),wcs,["T","Q","U"])
+#write_flat_map("msk_car_small.fits",mask,wcs,"mask")
 
-plt.figure(); plt.imshow(dl*mask,interpolation='nearest',origin='lower')
-plt.figure(); plt.imshow(dw_q*mask,interpolation='nearest',origin='lower')
-plt.figure(); plt.imshow(dw_u*mask,interpolation='nearest',origin='lower')
-plt.figure(); plt.imshow(sl*mask,interpolation='nearest',origin='lower')
-plt.figure(); plt.imshow(sw_q*mask,interpolation='nearest',origin='lower')
-plt.figure(); plt.imshow(sw_u*mask,interpolation='nearest',origin='lower')
-plt.show()
-exit(1)
 
 ##########################
 # Flat-sky stuff
@@ -122,9 +114,11 @@ prefix='bm_f_nc_np'
 f0=nmt.NmtFieldFlat(lx,ly,msk,[dt])
 f2=nmt.NmtFieldFlat(lx,ly,msk,[dq,du])
 w00=nmt.NmtWorkspaceFlat(); w00.compute_coupling_matrix(f0,f0,b);
-cw00=nmt.NmtCovarianceWorkspaceFlat(); cw00.compute_coupling_coefficients(w00,w00);
+cw00=nmt.NmtCovarianceWorkspaceFlat(); cw00.compute_coupling_coefficients(f0,f0,b);
 cw00.write_to(prefix+'_cw00.dat')
-cov=nmt.gaussian_covariance_flat(cw00,l,cltt+nltt,cltt+nltt,cltt+nltt,cltt+nltt);
+cov=nmt.gaussian_covariance_flat(cw00,0,0,0,0,l,
+                                 [cltt+nltt],[cltt+nltt],[cltt+nltt],[cltt+nltt],
+                                 w00);
 np.savetxt(prefix+"_cov.txt",cov)
 clb00=w00.couple_cell(l,np.array([nltt]))
 c00=w00.decouple_cell(nmt.compute_coupled_cell_flat(f0,f0,b),cl_bias=clb00)
@@ -140,6 +134,38 @@ clb22=w22.couple_cell(l,np.array([nlee,0*nlee,0*nlbb,nlbb]))
 c22=w22.decouple_cell(nmt.compute_coupled_cell_flat(f2,f2,b),cl_bias=clb22)
 w22.write_to(prefix+'_w22.dat')
 np.savetxt(prefix+'_c22.txt',np.transpose([leff,c22[0],c22[1],c22[2],c22[3]]));
+# Covariance for 02,02
+cov=nmt.gaussian_covariance_flat(cw00,0,2,0,2,l,
+                                 [cltt+nltt],
+                                 [clte, 0*clte],
+                                 [clte, 0*clte],
+                                 [clee+nlee,0*clee,0*clee,clbb+nlbb],
+                                 w02, wb=w02);
+np.savetxt(prefix+"_cov0202.txt",cov)
+# Covariance for 00,02
+cov=nmt.gaussian_covariance_flat(cw00,0,0,0,2,l,
+                                 [cltt+nltt],
+                                 [clte, 0*clte],
+                                 [cltt+nltt],
+                                 [clte, 0*clte],
+                                 w00, wb=w02);
+np.savetxt(prefix+"_cov0002.txt",cov)
+# Covariance for 00,22
+cov=nmt.gaussian_covariance_flat(cw00,0,0,2,2,l,
+                                 [clte, 0*clte],
+                                 [clte, 0*clte],
+                                 [clte, 0*clte],
+                                 [clte, 0*clte],
+                                 w00, wb=w22);
+np.savetxt(prefix+"_cov0022.txt",cov)
+# Covariance for 22,22
+cov=nmt.gaussian_covariance_flat(cw00,2,2,2,2,l,
+                                 [clee+nlee, 0*clee, 0*clee, clbb+nlbb],
+                                 [clee+nlee, 0*clee, 0*clee, clbb+nlbb],
+                                 [clee+nlee, 0*clee, 0*clee, clbb+nlbb],
+                                 [clee+nlee, 0*clee, 0*clee, clbb+nlbb],
+                                 w22, wb=w22);
+np.savetxt(prefix+"_cov2222.txt",cov)
 
 #With contaminants
 prefix='bm_f_yc_np'
@@ -259,9 +285,14 @@ prefix='bm_nc_np'
 f0=nmt.NmtField(mask,[dl])
 f2=nmt.NmtField(mask,[dw_q,dw_u])
 w00=nmt.NmtWorkspace(); w00.compute_coupling_matrix(f0,f0,b);
-cw00=nmt.NmtCovarianceWorkspace(); cw00.compute_coupling_coefficients(w00,w00);
+cw00=nmt.NmtCovarianceWorkspace(); cw00.compute_coupling_coefficients(f0,f0);
 cw00.write_to(prefix+'_cw00.dat')
-cov=nmt.gaussian_covariance(cw00,(cltt+nltt)[:3*nside_out],(cltt+nltt)[:3*nside_out],(cltt+nltt)[:3*nside_out],(cltt+nltt)[:3*nside_out])
+cov=nmt.gaussian_covariance(cw00,0,0,0,0,
+                            [(cltt+nltt)[:3*nside_out]],
+                            [(cltt+nltt)[:3*nside_out]],
+                            [(cltt+nltt)[:3*nside_out]],
+                            [(cltt+nltt)[:3*nside_out]],
+                            w00)
 np.savetxt(prefix+"_cov.txt",cov)
 clb00=np.array([nltt[:3*nside_out]])
 c00=w00.decouple_cell(nmt.compute_coupled_cell(f0,f0),cl_bias=clb00)
@@ -278,6 +309,41 @@ clb22=np.array([nlee[:3*nside_out],0*nlee[:3*nside_out],
 c22=w22.decouple_cell(nmt.compute_coupled_cell(f2,f2),cl_bias=clb22)
 w22.write_to(prefix+'_w22.dat')
 np.savetxt(prefix+"_c22.txt",np.transpose([leff,c22[0],c22[1],c22[2],c22[3]]))
+# Covariance for 02,02
+cov=nmt.gaussian_covariance(cw00,0,2,0,2,
+                            [(cltt+nltt)[:3*nside_out]],
+                            [clte[:3*nside_out], 0*clte[:3*nside_out]],
+                            [clte[:3*nside_out], 0*clte[:3*nside_out]],
+                            [(clee+nlee)[:3*nside_out],
+                             0*clee[:3*nside_out],
+                             0*clee[:3*nside_out],
+                             (clbb+nlbb)[:3*nside_out]],
+                            w02, wb=w02);
+np.savetxt(prefix+"_cov0202.txt",cov)
+# Covariance for 00,02
+cov=nmt.gaussian_covariance(cw00,0,0,0,2,
+                            [(cltt+nltt)[:3*nside_out]],
+                            [clte[:3*nside_out], 0*clte[:3*nside_out]],
+                            [(cltt+nltt)[:3*nside_out]],
+                            [clte[:3*nside_out], 0*clte[:3*nside_out]],
+                            w00, wb=w02);
+np.savetxt(prefix+"_cov0002.txt",cov)
+# Covariance for 00,22
+cov=nmt.gaussian_covariance(cw00,0,0,2,2,
+                            [clte[:3*nside_out], 0*clte[:3*nside_out]],
+                            [clte[:3*nside_out], 0*clte[:3*nside_out]],
+                            [clte[:3*nside_out], 0*clte[:3*nside_out]],
+                            [clte[:3*nside_out], 0*clte[:3*nside_out]],
+                            w00, wb=w22);
+np.savetxt(prefix+"_cov0022.txt",cov)
+# Covariance for 22,22
+cov=nmt.gaussian_covariance(cw00,2,2,2,2,
+                            [(clee+nlee)[:3*nside_out], 0*clee[:3*nside_out], 0*clee[:3*nside_out], (clbb+nlbb)[:3*nside_out]],
+                            [(clee+nlee)[:3*nside_out], 0*clee[:3*nside_out], 0*clee[:3*nside_out], (clbb+nlbb)[:3*nside_out]],
+                            [(clee+nlee)[:3*nside_out], 0*clee[:3*nside_out], 0*clee[:3*nside_out], (clbb+nlbb)[:3*nside_out]],
+                            [(clee+nlee)[:3*nside_out], 0*clee[:3*nside_out], 0*clee[:3*nside_out], (clbb+nlbb)[:3*nside_out]],
+                            w22, wb=w22);
+np.savetxt(prefix+"_cov2222.txt",cov)
 
 #With contaminants
 prefix='bm_yc_np'

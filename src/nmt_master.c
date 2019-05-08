@@ -24,8 +24,6 @@ static nmt_workspace *nmt_workspace_new(nmt_curvedsky_info *cs,int ncls,
   w->ncls=ncls;
 
   w->cs=nmt_curvedsky_info_copy(cs);
-  w->mask1=my_malloc(w->cs->npix*sizeof(flouble));
-  w->mask2=my_malloc(w->cs->npix*sizeof(flouble));
   w->pcl_masks=my_malloc((he_get_lmax(w->cs)+1)*sizeof(flouble));
 
   w->coupling_matrix_unbinned=my_malloc(w->ncls*(w->lmax+1)*sizeof(flouble *));
@@ -47,6 +45,7 @@ static nmt_workspace *nmt_workspace_new(nmt_curvedsky_info *cs,int ncls,
     memcpy(w->bin->w_list[ii],bin->w_list[ii],w->bin->nell_list[ii]*sizeof(flouble));
     memcpy(w->bin->f_ell[ii],bin->f_ell[ii],w->bin->nell_list[ii]*sizeof(flouble));
   }
+  w->bin->ell_max=bin->ell_max;
 
   w->coupling_matrix_binned=gsl_matrix_alloc(w->ncls*w->bin->n_bands,w->ncls*w->bin->n_bands);
   w->coupling_matrix_perm=gsl_permutation_alloc(w->ncls*w->bin->n_bands);
@@ -65,8 +64,6 @@ void nmt_workspace_free(nmt_workspace *w)
     free(w->coupling_matrix_unbinned[ii]);
   free(w->coupling_matrix_unbinned);
   free(w->pcl_masks);
-  free(w->mask1);
-  free(w->mask2);
   free(w);
 }
 
@@ -82,12 +79,6 @@ nmt_workspace *nmt_workspace_read(char *fname)
   my_fread(w->cs,sizeof(nmt_curvedsky_info),1,fi);
   my_fread(&(w->ncls),sizeof(int),1,fi);
 
-  w->mask1=my_malloc(w->cs->npix*sizeof(flouble));
-  my_fread(w->mask1,sizeof(flouble),w->cs->npix,fi);
-
-  w->mask2=my_malloc(w->cs->npix*sizeof(flouble));
-  my_fread(w->mask2,sizeof(flouble),w->cs->npix,fi);
-
   w->pcl_masks=my_malloc((w->lmax+1)*sizeof(flouble));
   my_fread(w->pcl_masks,sizeof(flouble),w->lmax+1,fi);
 
@@ -98,6 +89,7 @@ nmt_workspace *nmt_workspace_read(char *fname)
   }
 
   w->bin=my_malloc(sizeof(nmt_binning_scheme));
+  my_fread(&(w->bin->ell_max),sizeof(int),1,fi);
   my_fread(&(w->bin->n_bands),sizeof(int),1,fi);
   w->bin->nell_list=my_malloc(w->bin->n_bands*sizeof(int));
   w->bin->ell_list=my_malloc(w->bin->n_bands*sizeof(int *));
@@ -132,12 +124,11 @@ void nmt_workspace_write(nmt_workspace *w,char *fname)
   my_fwrite(&(w->lmax),sizeof(int),1,fo);
   my_fwrite(w->cs,sizeof(nmt_curvedsky_info),1,fo);
   my_fwrite(&(w->ncls),sizeof(int),1,fo);
-  my_fwrite(w->mask1,sizeof(flouble),w->cs->npix,fo);
-  my_fwrite(w->mask2,sizeof(flouble),w->cs->npix,fo);
   my_fwrite(w->pcl_masks,sizeof(flouble),w->lmax+1,fo);
   for(ii=0;ii<w->ncls*(w->lmax+1);ii++)
     my_fwrite(w->coupling_matrix_unbinned[ii],sizeof(flouble),w->ncls*(w->lmax+1),fo);
 
+  my_fwrite(&(w->bin->ell_max),sizeof(int),1,fo);
   my_fwrite(&(w->bin->n_bands),sizeof(int),1,fo);
   my_fwrite(w->bin->nell_list,sizeof(int),w->bin->n_bands,fo);
   for(ii=0;ii<w->bin->n_bands;ii++) {
@@ -215,8 +206,6 @@ nmt_workspace *nmt_compute_coupling_matrix(nmt_field *fl1,nmt_field *fl2,
   w=nmt_workspace_new(fl1->cs,n_cl,bin,is_teb);
   lmax_large=he_get_lmax(w->cs);
   beam_prod=my_malloc((lmax_large+1)*sizeof(flouble));
-  memcpy(w->mask1,fl1->mask,w->cs->npix*sizeof(flouble));
-  memcpy(w->mask2,fl2->mask,w->cs->npix*sizeof(flouble));
   he_anafast(&(fl1->mask),&(fl2->mask),0,0,&(w->pcl_masks),fl1->cs,lmax_large,niter);
   for(l2=0;l2<=lmax_large;l2++) {
     w->pcl_masks[l2]*=(2*l2+1.);

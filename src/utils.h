@@ -387,7 +387,6 @@ fcomplex **fs_synalm(int nx,int ny,flouble lx,flouble ly,int nmaps,
 flouble *fs_read_flat_map(char *fname,int *nx,int *ny,flouble *lx,flouble *ly,int nfield);
 
 
-//TODO: remember to make this fully tuneable
 #define HE_NITER_DEFAULT 3 //!< Default number of iterations used for full-sky spherical harmonic transforms
 
 /**
@@ -733,5 +732,9 @@ flouble he_map_dot(nmt_curvedsky_info *cs,flouble *mp1,flouble *mp2);
            with he_nalms().
  */
 fcomplex **he_synalm(nmt_curvedsky_info *cs,int nmaps,int lmax,flouble **cells,flouble **beam,int seed);
+
+int cov_get_coupling_pair_index(int na,int nc,int nb,int nd,
+				int ia1,int ia2,int ic1,int ic2,
+				int ib1,int ib2,int id1,int id2);
 
 #endif //_NM_UTILS_

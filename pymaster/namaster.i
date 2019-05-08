@@ -21,16 +21,16 @@
 %apply (double* ARGOUT_ARRAY1, int DIM1) {(double* dout, int ndout)};
 %apply (double* ARGOUT_ARRAY1, long DIM1) {(double* ldout, long nldout)};
 %apply (int DIM1,double *IN_ARRAY1) {(int npix_1,double *mask),
-                                     (int nell11,double *c11),
-                                     (int nell12,double *c12),
-                                     (int nell21,double *c21),
-                                     (int nell22,double *c22),
                                      (int nell3,double *weights),
                                      (int nell4,double *f_ell)};
 %apply (int DIM1,int *IN_ARRAY1) {(int nell1,int *bpws),
                                   (int nell2,int *ells),
                                   (int nfields,int *spin_arr)};
 %apply (int DIM1,int DIM2,double *IN_ARRAY2) {(int nmap_2,int npix_2,double *mps),
+                                              (int ncl11, int nell11,double *c11),
+                                              (int ncl12, int nell12,double *c12),
+                                              (int ncl21, int nell21,double *c21),
+                                              (int ncl22, int nell22,double *c22),
                                               (int ncl1  ,int nell1 ,double *cls1),
                                               (int ncl2  ,int nell2 ,double *cls2),
                                               (int ncl3  ,int nell3 ,double *cls3)};
@@ -93,6 +93,11 @@ int get_lmax_py(int is_healpix,int nside,int nx,int ny,
   int lmax=he_get_lmax(cs);
   free(cs);
   return lmax;
+}
+
+int get_lmax_from_cs_py(nmt_curvedsky_info *cs)
+{
+  return he_get_lmax(cs);
 }
  
 void get_ell_eff(nmt_binning_scheme *bins,double *dout,int ndout)
@@ -664,9 +669,11 @@ nmt_covar_workspace *read_covar_workspace(char *fname)
   return nmt_covar_workspace_read(fname);
 }
 
-nmt_covar_workspace *covar_workspace_init_py(nmt_workspace *wa,nmt_workspace *wb,int n_iter)
+nmt_covar_workspace *covar_workspace_init_py(nmt_field *fa1,nmt_field *fa2,
+					     nmt_field *fb1,nmt_field *fb2,
+					     int lmax,int n_iter)
 {
-  return nmt_covar_workspace_init(wa,wb,n_iter);
+  return nmt_covar_workspace_init(fa1,fa2,fb1,fb2,lmax,n_iter);
 }
 
 void write_covar_workspace_flat(nmt_covar_workspace_flat *cw,char *fname)
@@ -679,37 +686,74 @@ nmt_covar_workspace_flat *read_covar_workspace_flat(char *fname)
   return nmt_covar_workspace_flat_read(fname);
 }
 
-nmt_covar_workspace_flat *covar_workspace_flat_init_py(nmt_workspace_flat *wa,nmt_workspace_flat *wb)
+nmt_covar_workspace_flat *covar_workspace_flat_init_py(nmt_field_flat *fa1,nmt_field_flat *fa2,
+						       nmt_binning_scheme_flat *ba,
+						       nmt_field_flat *fb1,nmt_field_flat *fb2,
+						       nmt_binning_scheme_flat *bb)
 {
-  return nmt_covar_workspace_flat_init(wa,wb);
+  return nmt_covar_workspace_flat_init(fa1,fa2,ba,fb1,fb2,bb);
 }
 
 void comp_gaussian_covariance(nmt_covar_workspace *cw,
-			      int nell11,double *c11,
-			      int nell12,double *c12,
-			      int nell21,double *c21,
-			      int nell22,double *c22,
+			      int pol_a1,int pol_a2,int pol_b1,int pol_b2,
+			      nmt_workspace *wa,nmt_workspace *wb,
+			      int ncl11,int nell11,double *c11,
+			      int ncl12,int nell12,double *c12,
+			      int ncl21,int nell21,double *c21,
+			      int ncl22,int nell22,double *c22,
 			      double *dout,int ndout)
 {
   asserting(nell11==nell12);
   asserting(nell11==nell21);
   asserting(nell11==nell22);
-  nmt_compute_gaussian_covariance(cw,c11,c12,c21,c22,dout);
+  int i;
+  double **c11p=malloc(ncl11*sizeof(double *));
+  for(i=0;i<ncl11;i++)
+    c11p[i]=&(c11[i*nell11]);
+  double **c12p=malloc(ncl12*sizeof(double *));
+  for(i=0;i<ncl12;i++)
+    c12p[i]=&(c12[i*nell12]);
+  double **c21p=malloc(ncl21*sizeof(double *));
+  for(i=0;i<ncl21;i++)
+    c21p[i]=&(c21[i*nell21]);
+  double **c22p=malloc(ncl22*sizeof(double *));
+  for(i=0;i<ncl22;i++)
+    c22p[i]=&(c22[i*nell22]);
+  nmt_compute_gaussian_covariance(cw,pol_a1,pol_a2,pol_b1,pol_b2,wa,wb,
+				  c11p,c12p,c21p,c22p,dout);
+  free(c11p); free(c12p); free(c21p); free(c22p);
 }
 
 void comp_gaussian_covariance_flat(nmt_covar_workspace_flat *cw,
+				   int pol_a1,int pol_a2,int pol_b1,int pol_b2,
+				   nmt_workspace_flat *wa,nmt_workspace_flat *wb,
 				   int nell3,double *weights,
-				   int nell11,double *c11,
-				   int nell12,double *c12,
-				   int nell21,double *c21,
-				   int nell22,double *c22,
+				   int ncl11,int nell11,double *c11,
+				   int ncl12,int nell12,double *c12,
+				   int ncl21,int nell21,double *c21,
+				   int ncl22,int nell22,double *c22,
 				   double *dout,int ndout)
 {
   asserting(nell11==nell3);
   asserting(nell11==nell12);
   asserting(nell11==nell21);
   asserting(nell11==nell22);
-  nmt_compute_gaussian_covariance_flat(cw,nell3,weights,c11,c12,c21,c22,dout);
+  int i;
+  double **c11p=malloc(ncl11*sizeof(double *));
+  for(i=0;i<ncl11;i++)
+    c11p[i]=&(c11[i*nell11]);
+  double **c12p=malloc(ncl12*sizeof(double *));
+  for(i=0;i<ncl12;i++)
+    c12p[i]=&(c12[i*nell12]);
+  double **c21p=malloc(ncl21*sizeof(double *));
+  for(i=0;i<ncl21;i++)
+    c21p[i]=&(c21[i*nell21]);
+  double **c22p=malloc(ncl22*sizeof(double *));
+  for(i=0;i<ncl22;i++)
+    c22p[i]=&(c22[i*nell22]);
+  nmt_compute_gaussian_covariance_flat(cw,pol_a1,pol_a2,pol_b1,pol_b2,wa,wb,
+				       nell3,weights,c11p,c12p,c21p,c22p,dout);
+  free(c11p); free(c12p); free(c21p); free(c22p);
 }
 
 void comp_pspec_coupled(nmt_field *fl1,nmt_field *fl2,

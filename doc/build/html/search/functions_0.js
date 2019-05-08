@@ -1,6 +1,4 @@
 var searchData=
 [
-  ['dftw_5ffree',['dftw_free',['../utils_8h.html#af781c19a27d9d7fea7f81b0139ae3ccc',1,'utils.h']]],
-  ['dftw_5fmalloc',['dftw_malloc',['../utils_8h.html#a2a7f97ae96cd6d88458018d3bfec83cf',1,'utils.h']]],
-  ['drc3jj',['drc3jj',['../utils_8h.html#a27bb5407345f7a9c04d05739e9f6aa2e',1,'utils.h']]]
+  ['cov_5fget_5fcoupling_5fpair_5findex',['cov_get_coupling_pair_index',['../utils_8h.html#a437b4a8f7a1592f560fa102f67073f23',1,'utils.h']]]
 ];

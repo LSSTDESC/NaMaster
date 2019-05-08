@@ -15,7 +15,8 @@ and a number of functions
 - :func:`pymaster.utils.mask_apodization`
 - :func:`pymaster.utils.synfast_spherical`
 
-:mod:`pymaster` also comes with a flat-sky version with most of the same functionality:
+:mod:`pymaster` also comes with a flat-sky version with \
+    most of the same functionality:
 
 - :class:`pymaster.field.NmtFieldFlat`
 - :class:`pymaster.bins.NmtBinFlat`
@@ -28,14 +29,22 @@ and a number of functions
 - :func:`pymaster.utils.mask_apodization_flat`
 - :func:`pymaster.utils.synfast_flat`
 
-Many of these function accept or return sets of power spectra (arrays with one element per angular multipole) or bandpowers (binned versions of power spectra). In all cases, these are returned and provided as 2D arrays with shape [n_cls][nl], where n_cls is the number of power spectra and nl is either the number of multipoles or bandpowers. In all cases, n_cls should correspond with the spins of the two fields being correlated, and the ordering is as follows:
+Many of these function accept or return sets of power \
+spectra (arrays with one element per angular multipole) \
+or bandpowers (binned versions of power spectra). In \
+all cases, these are returned and provided as 2D arrays \
+with shape [n_cls][nl], where n_cls is the number of \
+power spectra and nl is either the number of multipoles \
+or bandpowers. In all cases, n_cls should correspond \
+with the spins of the two fields being correlated, and \
+the ordering is as follows:
 
 - Two spin-0 fields: n_cls=1, [C_T1T2]
 - One spin-0 field and one spin-2 field: n_cls=2, [C_TE,C_TB]
 - Two spin-2 fields: n_cls=4, [C_E1E2,C_E1B2,C_E2B1,C_B1B2]
 
-All sky maps accepted and returned by these functions are in the form of HEALPix maps exclusively with RING ordering.
-
+All sky maps accepted and returned by these functions are \
+in the form of HEALPix maps exclusively with RING ordering.
 """
 from pymaster import nmtlib as lib
 import numpy as np
