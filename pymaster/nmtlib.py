@@ -829,6 +829,10 @@ def decouple_cl_l(w, cl_in, cl_noise_in, cl_bias, cl_out):
     return _nmtlib.decouple_cl_l(w, cl_in, cl_noise_in, cl_bias, cl_out)
 decouple_cl_l = _nmtlib.decouple_cl_l
 
+def compute_bandpower_windows(w, bpw_win_out):
+    return _nmtlib.compute_bandpower_windows(w, bpw_win_out)
+compute_bandpower_windows = _nmtlib.compute_bandpower_windows
+
 def compute_coupled_cell(fl1, fl2, cl_out):
     return _nmtlib.compute_coupled_cell(fl1, fl2, cl_out)
 compute_coupled_cell = _nmtlib.compute_coupled_cell
@@ -1024,6 +1028,10 @@ bins_create_py = _nmtlib.bins_create_py
 def update_mcm(w, n_rows, nell3):
     return _nmtlib.update_mcm(w, n_rows, nell3)
 update_mcm = _nmtlib.update_mcm
+
+def get_bandpower_windows(w, dout):
+    return _nmtlib.get_bandpower_windows(w, dout)
+get_bandpower_windows = _nmtlib.get_bandpower_windows
 
 def get_mcm(w, dout):
     return _nmtlib.get_mcm(w, dout)

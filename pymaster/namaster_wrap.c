@@ -3418,6 +3418,12 @@ void update_mcm(nmt_workspace *w,int n_rows,int nell3,double *weights)
   nmt_update_coupling_matrix(w,n_rows,weights);
 }
 
+void get_bandpower_windows(nmt_workspace *w,double *dout,int ndout)
+{
+  asserting(ndout==w->ncls*w->bin->n_bands*w->ncls*(w->lmax+1));
+  nmt_compute_bandpower_windows(w,dout);
+}
+
 void get_mcm(nmt_workspace *w,double *dout,int ndout)
 {
   int ii,nrows=(w->lmax+1)*w->ncls;
@@ -12884,6 +12890,36 @@ fail:
 }
 
 
+SWIGINTERN PyObject *_wrap_compute_bandpower_windows(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_workspace *arg1 = (nmt_workspace *) 0 ;
+  double *arg2 = (double *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  void *argp2 = 0 ;
+  int res2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:compute_bandpower_windows",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_workspace, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "compute_bandpower_windows" "', argument " "1"" of type '" "nmt_workspace *""'"); 
+  }
+  arg1 = (nmt_workspace *)(argp1);
+  res2 = SWIG_ConvertPtr(obj1, &argp2,SWIGTYPE_p_double, 0 |  0 );
+  if (!SWIG_IsOK(res2)) {
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "compute_bandpower_windows" "', argument " "2"" of type '" "double *""'"); 
+  }
+  arg2 = (double *)(argp2);
+  nmt_compute_bandpower_windows(arg1,arg2);
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
 SWIGINTERN PyObject *_wrap_compute_coupled_cell(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   nmt_field *arg1 = (nmt_field *) 0 ;
@@ -15243,6 +15279,57 @@ fail:
       Py_DECREF(array3); 
     }
   }
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_get_bandpower_windows(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_workspace *arg1 = (nmt_workspace *) 0 ;
+  double *arg2 = (double *) 0 ;
+  int arg3 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject *array2 = NULL ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:get_bandpower_windows",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_workspace, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "get_bandpower_windows" "', argument " "1"" of type '" "nmt_workspace *""'"); 
+  }
+  arg1 = (nmt_workspace *)(argp1);
+  {
+    npy_intp dims[1];
+    if (!PyInt_Check(obj1))
+    {
+      const char* typestring = pytype_string(obj1);
+      PyErr_Format(PyExc_TypeError,
+        "Int dimension expected.  '%s' given.",
+        typestring);
+      SWIG_fail;
+    }
+    arg3 = (int) PyInt_AsLong(obj1);
+    dims[0] = (npy_intp) arg3;
+    array2 = PyArray_SimpleNew(1, dims, NPY_DOUBLE);
+    if (!array2) SWIG_fail;
+    arg2 = (double*) array_data(array2);
+  }
+  {
+    try {
+      get_bandpower_windows(arg1,arg2,arg3);
+    }
+    finally {
+      SWIG_exception(SWIG_RuntimeError,nmt_error_message);
+    }
+  }
+  resultobj = SWIG_Py_Void();
+  {
+    resultobj = SWIG_Python_AppendOutput(resultobj,(PyObject*)array2);
+  }
+  return resultobj;
+fail:
   return NULL;
 }
 
@@ -20176,6 +20263,7 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"compute_uncorr_noise_deprojection_bias", _wrap_compute_uncorr_noise_deprojection_bias, METH_VARARGS, NULL},
 	 { (char *)"couple_cl_l", _wrap_couple_cl_l, METH_VARARGS, NULL},
 	 { (char *)"decouple_cl_l", _wrap_decouple_cl_l, METH_VARARGS, NULL},
+	 { (char *)"compute_bandpower_windows", _wrap_compute_bandpower_windows, METH_VARARGS, NULL},
 	 { (char *)"compute_coupled_cell", _wrap_compute_coupled_cell, METH_VARARGS, NULL},
 	 { (char *)"compute_power_spectra", _wrap_compute_power_spectra, METH_VARARGS, NULL},
 	 { (char *)"covar_workspace_flat_bin_set", _wrap_covar_workspace_flat_bin_set, METH_VARARGS, NULL},
@@ -20240,6 +20328,7 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"get_ell_eff_flat", _wrap_get_ell_eff_flat, METH_VARARGS, NULL},
 	 { (char *)"bins_create_py", _wrap_bins_create_py, METH_VARARGS, NULL},
 	 { (char *)"update_mcm", _wrap_update_mcm, METH_VARARGS, NULL},
+	 { (char *)"get_bandpower_windows", _wrap_get_bandpower_windows, METH_VARARGS, NULL},
 	 { (char *)"get_mcm", _wrap_get_mcm, METH_VARARGS, NULL},
 	 { (char *)"bins_flat_create_py", _wrap_bins_flat_create_py, METH_VARARGS, NULL},
 	 { (char *)"bin_cl", _wrap_bin_cl, METH_VARARGS, NULL},
