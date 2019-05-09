@@ -24,3 +24,5 @@ cd ..
 
 wget ftp://ftp.gnu.org/gnu/gsl/gsl-2.5.tar.gz --passive-ftp && tar xzf gsl-2.5.tar.gz && cd gsl-2.5 &&  ./configure --enable-shared && make && sudo make install && cd ..
 
+#### Install SWIG ####
+wget https://sourceforge.net/projects/swig/files/swig/swig-4.0.0/swig-4.0.0.tar.gz && cd swig-4.0.0 && ./configure --enable-shared && make && sudo make install && cd ..
