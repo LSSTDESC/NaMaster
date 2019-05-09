@@ -598,6 +598,60 @@ CTEST(nmt,master_00_f_ell) {
   free(ell_eff);
 }
 
+CTEST(nmt,bandpower_windows) {
+  nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(1,1,-1,-1,-1,-1,-1,-1);
+  double *mpt=he_read_map("test/benchmarks/mps.fits",cs,0);
+  double *msk=he_read_map("test/benchmarks/msk.fits",cs,0);
+  long lmax=he_get_lmax(cs);
+  nmt_binning_scheme *bin=nmt_bins_constant(20,lmax,0);
+  nmt_field *f0=nmt_field_alloc_sph(cs,msk,0,&mpt,0,NULL,NULL,0,0,3,1E-10,HE_NITER_DEFAULT);
+  nmt_workspace *w=nmt_compute_coupling_matrix(f0,f0,bin,0,HE_NITER_DEFAULT);
+
+  double *cls_in=malloc((lmax+1)*sizeof(double));
+  double *cls_zero=calloc(lmax+1,sizeof(double));
+  double *cls_coupled=malloc((lmax+1)*sizeof(double));
+  double *cls_out_a=malloc(bin->n_bands*sizeof(double));
+  double *cls_out_b=malloc(bin->n_bands*sizeof(double));
+  double *bpw_windows=malloc(bin->n_bands*(lmax+1)*sizeof(double));
+
+  // Input power spectra
+  int ii;
+  for(ii=0;ii<=lmax;ii++)
+    cls_in[ii]=pow((ii+1.),-0.8);
+
+  //Couple-decouple
+  nmt_couple_cl_l(w,&cls_in,&cls_coupled);
+  nmt_decouple_cl_l(w,&cls_coupled,&cls_zero,&cls_zero,&cls_out_a);
+
+  nmt_compute_bandpower_windows(w,bpw_windows);
+
+  for(ii=0;ii<bin->n_bands;ii++) {
+    int jj;
+    cls_out_b[ii]=0;
+    for(jj=0;jj<=lmax;jj++)
+      cls_out_b[ii]+=bpw_windows[ii*(lmax+1)+jj]*cls_in[jj];
+  }
+
+  for(ii=0;ii<bin->n_bands;ii++) {
+    ASSERT_DBL_NEAR_TOL(cls_out_a[ii],
+			cls_out_b[ii],
+			1E-5*fabs(cls_out_a[ii]));
+  }
+
+  free(cls_in);
+  free(cls_zero);
+  free(cls_coupled);
+  free(cls_out_a);
+  free(cls_out_b);
+  free(bpw_windows);
+  nmt_workspace_free(w);
+  nmt_field_free(f0);
+  nmt_bins_free(bin);
+  free(mpt);
+  free(msk);
+  free(cs);
+}  
+
 CTEST(nmt,master_errors) {
   nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(1,1,-1,-1,-1,-1,-1,-1);
   double *mpt=he_read_map("test/benchmarks/mps.fits",cs,0);

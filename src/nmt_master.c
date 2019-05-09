@@ -675,6 +675,71 @@ void nmt_couple_cl_l(nmt_workspace *w,flouble **cl_in,flouble **cl_out)
   }
 }
 
+void nmt_compute_bandpower_windows(nmt_workspace *w,double *bpw_win_out)
+{
+  // Bin mode-coupling matrix
+  gsl_matrix *mat_coupled_bin=gsl_matrix_calloc(w->ncls*w->bin->n_bands,
+						w->ncls*(w->lmax+1));
+  double *bpws=my_malloc(w->ncls*w->bin->n_bands*w->ncls*(w->lmax+1));
+
+  int icl1;
+  for(icl1=0;icl1<w->ncls;icl1++) {
+    int ib1;
+    for(ib1=0;ib1<w->bin->n_bands;ib1++) {
+      int i1;
+      int index_b1=w->ncls*ib1+icl1;
+      for(i1=0;i1<w->bin->nell_list[ib1];i1++) {
+	int icl2;
+	int l1=w->bin->ell_list[ib1][i1];
+	int index_1=w->ncls*l1+icl1;
+	double wf=w->bin->f_ell[ib1][i1]*w->bin->w_list[ib1][i1];
+	double *matrix_row=w->coupling_matrix_unbinned[index_1];
+	for(icl2=0;icl2<w->ncls;icl2++) {
+	  int l2;
+	  for(l2=0;l2<=w->lmax;l2++) {
+	    int index_2=w->ncls*l2+icl2;
+	    double m0=gsl_matrix_get(mat_coupled_bin,
+				     index_b1,index_2);
+	    gsl_matrix_set(mat_coupled_bin,index_b1,index_2,
+			   m0+matrix_row[index_2]*wf);
+	  }
+	}
+      }
+    }
+  }
+
+  gsl_matrix *inv_mcm=gsl_matrix_alloc(w->ncls*w->bin->n_bands,
+				       w->ncls*w->bin->n_bands);
+  gsl_matrix *bpw_win=gsl_matrix_calloc(w->ncls*w->bin->n_bands,
+					w->ncls*(w->lmax+1));
+  //Inverse binned MCM
+  gsl_linalg_LU_invert(w->coupling_matrix_binned,
+		       w->coupling_matrix_perm,
+		       inv_mcm);
+  //M^-1 * M
+  gsl_blas_dgemm(CblasNoTrans,CblasNoTrans,1,inv_mcm,mat_coupled_bin,0,bpw_win);
+
+  for(icl1=0;icl1<w->ncls;icl1++) {
+    int ib1;
+    for(ib1=0;ib1<w->bin->n_bands;ib1++) {
+      int icl2;
+      int index_1=w->ncls*ib1+icl1;
+      for(icl2=0;icl2<w->ncls;icl2++) {
+	int l2;
+	for(l2=0;l2<=w->lmax;l2++) {
+	  int index_2=w->ncls*l2+icl2;
+	  int index=index_1*w->ncls*(w->lmax+1)+index_2;
+	  bpw_win_out[index]=gsl_matrix_get(bpw_win,index_1,index_2);
+	}
+      }
+    }
+  }
+
+  gsl_matrix_free(bpw_win);
+  gsl_matrix_free(inv_mcm);
+  gsl_matrix_free(mat_coupled_bin);
+}
+
 void nmt_decouple_cl_l(nmt_workspace *w,flouble **cl_in,flouble **cl_noise_in,
 		       flouble **cl_bias,flouble **cl_out)
 {

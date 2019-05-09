@@ -132,6 +132,12 @@ void update_mcm(nmt_workspace *w,int n_rows,int nell3,double *weights)
   nmt_update_coupling_matrix(w,n_rows,weights);
 }
 
+void get_bandpower_windows(nmt_workspace *w,double *dout,int ndout)
+{
+  asserting(ndout==w->ncls*w->bin->n_bands*w->ncls*(w->lmax+1));
+  nmt_compute_bandpower_windows(w,dout);
+}
+
 void get_mcm(nmt_workspace *w,double *dout,int ndout)
 {
   int ii,nrows=(w->lmax+1)*w->ncls;

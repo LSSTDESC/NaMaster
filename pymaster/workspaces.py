@@ -164,6 +164,21 @@ class NmtWorkspace(object):
 
         return clout
 
+    def get_bandpower_windows(self):
+        """
+        Get bandpower window functions. Convolve the theory power spectra with \
+        these as an alternative to the combination `decouple_cell(couple_cell(`.
+
+        :return: bandpower windows with shape [n_cls, n_bpws, n_cls, lmax+1]
+        """
+        d = lib.get_bandpower_windows(self.wsp,
+                                      self.wsp.ncls * self.wsp.bin.n_bands * \
+                                      self.wsp.ncls * (self.wsp.lmax+1))
+        return np.transpose(d.reshape([self.wsp.bin.n_bands,
+                                       self.wsp.ncls,
+                                       self.wsp.lmax+1,
+                                       self.wsp.ncls]),
+                            axes=[1,0,3,2])
 
 class NmtWorkspaceFlat(object):
     """

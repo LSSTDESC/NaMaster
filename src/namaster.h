@@ -1064,6 +1064,17 @@ void nmt_decouple_cl_l(nmt_workspace *w,flouble **cl_in,flouble **cl_noise_in,
 		       flouble **cl_bias,flouble **cl_out);
 
 /**
+ * @brief Returns the bandpower window functions for this workspace.
+ *
+ * This function returns, in a flattened array, the bandpower window functions associated with the
+ * mode-coupling matrix stored in this workspace. The effect of the PCL estimator on the unbinned
+ * theory prediction can be fully accounted for by convolving it with these window functions.
+ * @param w nmt_workspace containing the mode-coupling matrix.
+ * @param bpw_win_out output 1D array allocated to the right size (n_cls * n_bpw * n_cls * (lmax+1)).
+ */
+void nmt_compute_bandpower_windows(nmt_workspace *w,double *bpw_win_out);
+
+/**
  * @brief Coupled pseudo-CL
  *
  * Computes the pseudo-CL power spectrum of two fields without accounting for the mode-coupling
