@@ -44,10 +44,25 @@ _nmtlib = Extension("_nmtlib",
                     extra_compile_args=extra,
                     )
 
+with open("README.md", "r") as fh:
+    long_description = fh.read()
+
 setup(name="pymaster",
-      description="Library for pseudo-Cl computation",
-      author="David Alonso",
       version="0.9",
+      author="David Alonso",
+      author_email="david.alonso@physics.ox.ac.uk",
+      description="Library for pseudo-Cl computation",
+      long_description=long_description,
+      long_description_content_type="text/markdown",
+      url="https://github.com/LSSTDESC/NaMaster",
+      classifiers=[
+          'License :: OSI Approved :: BSD License',
+          'Programming Language :: Python :: 2',
+          'Programming Language :: Python :: 2.7',
+          'Programming Language :: Python :: 3',
+          'Programming Language :: Python :: 3.6',
+          'Operating System :: Unix',
+          'Operating System :: MacOS'],
       packages=['pymaster'],
       ext_modules=[_nmtlib],
       )
