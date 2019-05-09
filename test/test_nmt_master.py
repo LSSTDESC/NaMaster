@@ -9,7 +9,7 @@ import os
 
 #Unit tests associated with the NmtWorkspace and NmtWorkspaceFlat classes
 
-@unittest.skipIf(os.environ.get('TRAVIS')=='true',"Skipped in Travis")
+@unittest.skip('slow')#If(os.environ.get('TRAVIS')=='true',"Skipped in Travis")
 class TestWorkspaceCAR(unittest.TestCase) :
     def setUp(self) :
         from astropy.io import fits
@@ -132,6 +132,7 @@ class TestWorkspaceHPX(unittest.TestCase) :
         self.tmp=np.array(hp.read_map("test/benchmarks/tmp.fits",verbose=False,field=[0,1,2]))
         self.b=nmt.NmtBin(self.nside,nlb=self.nlb)
         self.f0=nmt.NmtField(self.msk,[self.mps[0]]) #Original nside
+        self.f2=nmt.NmtField(self.msk,[self.mps[1],self.mps[2]])
         self.f0_half=nmt.NmtField(self.msk[:self.npix//4],[self.mps[0,:self.npix//4]]) #Half nside
         self.b_half=nmt.NmtBin(self.nside//2,nlb=self.nlb) #Small-nside bandpowers
         self.b_doub=nmt.NmtBin(2*self.nside,nlb=self.nlb) #Large-nside bandposers
@@ -242,6 +243,37 @@ class TestWorkspaceHPX(unittest.TestCase) :
             w.write_to("tests/wspc.dat")
         with self.assertRaises(RuntimeError) : #File doesn't exist
             w.read_from("none")
+
+    def test_workspace_bandpower_windows(self):
+        # This tests the bandpower window functions returned by NaMaster
+        # Compute MCMs
+        w00=nmt.NmtWorkspace()
+        w00.compute_coupling_matrix(self.f0,self.f0,self.b)
+        w02=nmt.NmtWorkspace()
+        w02.compute_coupling_matrix(self.f0,self.f2,self.b)
+        w22=nmt.NmtWorkspace()
+        w22.compute_coupling_matrix(self.f2,self.f2,self.b)
+
+        # Create some random theory power spectra
+        larr=np.arange(3*self.nside)
+        cltt=(larr+1.)**-0.8
+        clee=cltt.copy()
+        clbb=0.1*clee
+        clte=np.sqrt(cltt)*0.01
+        cltb=0.1*clte
+        cleb=0.01*clbb
+
+        # For each spin combination, test that decouple-couple is the
+        # same as bandpass-convolutions.
+        def compare_bpw_convolution(cl_th,w):
+            cl_dec_a=w.decouple_cell(w.couple_cell(cl_th))
+            bpws=w.get_bandpower_windows()
+            cl_dec_b=np.einsum('ijkl,kl',bpws,cl_th)
+            self.assertTrue(np.amax(np.fabs(cl_dec_a-cl_dec_b))<=1E-10)
+        # 00
+        compare_bpw_convolution(np.array([cltt]), w00)
+        compare_bpw_convolution(np.array([clte,cltb]), w02)
+        compare_bpw_convolution(np.array([clee,cleb,cleb,clbb]), w22)
 
     def test_workspace_methods(self) :
         w=nmt.NmtWorkspace()

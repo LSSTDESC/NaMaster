@@ -175,9 +175,9 @@ class NmtWorkspace(object):
                                       self.wsp.ncls * self.wsp.bin.n_bands * \
                                       self.wsp.ncls * (self.wsp.lmax+1))
         return np.transpose(d.reshape([self.wsp.bin.n_bands,
-                                       self.ncls,
+                                       self.wsp.ncls,
                                        self.wsp.lmax+1,
-                                       self.ncls]),
+                                       self.wsp.ncls]),
                             axes=[1,0,3,2])
 
 class NmtWorkspaceFlat(object):
