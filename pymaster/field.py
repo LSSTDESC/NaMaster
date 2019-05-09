@@ -15,7 +15,17 @@ class NmtField(object):
         at least 2-dimensional. The first dimension corresponds to the number \
         of maps, which should be 1 for a spin-0 field and 2 for a spin-2 \
         field. The other dimensions should be [npix] for HEALPix maps or \
-        [ny,nx] for maps with rectangular pixels.
+        [ny,nx] for maps with rectangular pixels. For a spin-2 field, the two \
+        maps to pass should be the usual Q/U Stokes parameters for \
+        polarization, or e1/e2 (gamma1/gamma2 etc.) in the case of cosmic \
+        shear. It is important to note that NaMaster uses the same \
+        polarization convention as HEALPix (i.e. with the x-coordinate \
+        growing with increasing colatitude theta). It is however more common \
+        for galaxy ellipticities to be provided using the IAU convention \
+        (i.e. x grows with declination). In this case, the sign of the \
+        e2/gamma2 map should be swapped before using it to create an \
+        NmtField. See more \
+        `here <https://healpix.jpl.nasa.gov/html/intronode12.htm>`_ .
     :param templates: array containing a set of contaminant templates for \
         this field. This array should have shape [ntemp][nmap]..., where \
         ntemp is the number of templates, nmap should be 1 for spin-0 fields \

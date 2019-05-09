@@ -483,22 +483,22 @@ Functions</h2></td></tr>
 
 <p>Wigner 3-j symbols. </p>
 <p>Returns all non-zero wigner-3j symbols </p><p class="formulaDsp">
-<img class="formulaDsp" alt="\[ \left( \begin{array}{ccc} \ell_1 &amp; \ell_2 &amp; \ell_3 \\ m_1 &amp; m_2 &amp; m_3 \end{array} \right), \]" src="form_8.png"/>
+<img class="formulaDsp" alt="\[ \left( \begin{array}{ccc} \ell_1 &amp; \ell_2 &amp; \ell_3 \\ m_1 &amp; m_2 &amp; m_3 \end{array} \right), \]" src="form_9.png"/>
 </p>
 <p> for </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">il2</td><td>= <img class="formulaInl" alt="$\ell_2$" src="form_9.png"/> </td></tr>
-    <tr><td class="paramname">im2</td><td>= <img class="formulaInl" alt="$m_2$" src="form_10.png"/> </td></tr>
-    <tr><td class="paramname">il3</td><td>= <img class="formulaInl" alt="$\ell_3$" src="form_11.png"/> </td></tr>
-    <tr><td class="paramname">im3</td><td>= <img class="formulaInl" alt="$m_3$" src="form_12.png"/> </td></tr>
-    <tr><td class="paramname">l1min_out</td><td>Minimum value of <img class="formulaInl" alt="$\ell_1$" src="form_13.png"/> allowed by selection rules (output). </td></tr>
-    <tr><td class="paramname">l1max_out</td><td>Maximum value of <img class="formulaInl" alt="$\ell_1$" src="form_13.png"/> allowed by selection rules (output). </td></tr>
-    <tr><td class="paramname">thrcof</td><td>Output array that will contain the values of the wigner-3j symbols for <code>l1min_out</code> <img class="formulaInl" alt="$\leq\ell_1\leq$" src="form_14.png"/> <code>l1max_out</code>. </td></tr>
+    <tr><td class="paramname">il2</td><td>= <img class="formulaInl" alt="$\ell_2$" src="form_10.png"/> </td></tr>
+    <tr><td class="paramname">im2</td><td>= <img class="formulaInl" alt="$m_2$" src="form_11.png"/> </td></tr>
+    <tr><td class="paramname">il3</td><td>= <img class="formulaInl" alt="$\ell_3$" src="form_12.png"/> </td></tr>
+    <tr><td class="paramname">im3</td><td>= <img class="formulaInl" alt="$m_3$" src="form_13.png"/> </td></tr>
+    <tr><td class="paramname">l1min_out</td><td>Minimum value of <img class="formulaInl" alt="$\ell_1$" src="form_14.png"/> allowed by selection rules (output). </td></tr>
+    <tr><td class="paramname">l1max_out</td><td>Maximum value of <img class="formulaInl" alt="$\ell_1$" src="form_14.png"/> allowed by selection rules (output). </td></tr>
+    <tr><td class="paramname">thrcof</td><td>Output array that will contain the values of the wigner-3j symbols for <code>l1min_out</code> <img class="formulaInl" alt="$\leq\ell_1\leq$" src="form_15.png"/> <code>l1max_out</code>. </td></tr>
     <tr><td class="paramname">size</td><td>Number of elements allocated for thrcof.</td></tr>
   </table>
   </dd>
 </dl>
-<p>Note that the selection rule <img class="formulaInl" alt="$m_1+m_2+m_3=0$" src="form_15.png"/> completely fix <img class="formulaInl" alt="$m_3$" src="form_12.png"/>. </p>
+<p>Note that the selection rule <img class="formulaInl" alt="$m_1+m_2+m_3=0$" src="form_16.png"/> completely fix <img class="formulaInl" alt="$m_3$" src="form_13.png"/>. </p>
 
 </div>
 </div>
@@ -920,9 +920,9 @@ Functions</h2></td></tr>
 
 <p>Dot product of flat-sky maps. </p>
 <p>Computes the integral over the patch of the product of two maps: </p><p class="formulaDsp">
-<img class="formulaDsp" alt="\[ \int_\Omega d\Omega\, m_1(\hat{\bf n})\,m_2(\hat{\bf n}), \]" src="form_16.png"/>
+<img class="formulaDsp" alt="\[ \int_\Omega d\Omega\, m_1(\hat{\bf n})\,m_2(\hat{\bf n}), \]" src="form_17.png"/>
 </p>
-<p> where <img class="formulaInl" alt="$\Omega$" src="form_17.png"/> is the flat-sky patch defined by <code>fs</code>. The integral is computed as a Riemann sum over all pixels in the map. </p><dl class="params"><dt>Parameters</dt><dd>
+<p> where <img class="formulaInl" alt="$\Omega$" src="form_18.png"/> is the flat-sky patch defined by <code>fs</code>. The integral is computed as a Riemann sum over all pixels in the map. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">fs</td><td><a class="el" href="structnmt__flatsky__info.html" title="Flat-sky information. ">nmt_flatsky_info</a> structure describing the flat-sky patch. </td></tr>
     <tr><td class="paramname">mp1</td><td>First map to multiply. </td></tr>
@@ -1460,7 +1460,7 @@ Functions</h2></td></tr>
 <p>Returns pixel containing a given point in the sphere. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">nside</td><td>HEALPix resolution parameter </td></tr>
-    <tr><td class="paramname">phi</td><td>Azimuth spherical coordinate <img class="formulaInl" alt="$\varphi$" src="form_18.png"/> (in radians). </td></tr>
+    <tr><td class="paramname">phi</td><td>Azimuth spherical coordinate <img class="formulaInl" alt="$\varphi$" src="form_19.png"/> (in radians). </td></tr>
     <tr><td class="paramname">cth</td><td>Cosine of inclination spherical coordinate <img class="formulaInl" alt="$\theta$" src="form_4.png"/>. </td></tr>
   </table>
   </dd>
@@ -1712,13 +1712,13 @@ Functions</h2></td></tr>
 <p>Harmonic coefficient ordering. </p>
 <p>Returns the position of a given harmonic coefficient. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">l</td><td><img class="formulaInl" alt="$\ell$" src="form_19.png"/> index </td></tr>
-    <tr><td class="paramname">m</td><td><img class="formulaInl" alt="$m$" src="form_20.png"/> index </td></tr>
+    <tr><td class="paramname">l</td><td><img class="formulaInl" alt="$\ell$" src="form_20.png"/> index </td></tr>
+    <tr><td class="paramname">m</td><td><img class="formulaInl" alt="$m$" src="form_21.png"/> index </td></tr>
     <tr><td class="paramname">lmax</td><td>maximum multipole order. </td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>Index holding the value of <img class="formulaInl" alt="$a_{\ell m}$" src="form_21.png"/>. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>Index holding the value of <img class="formulaInl" alt="$a_{\ell m}$" src="form_22.png"/>. </dd></dl>
 
 </div>
 </div>
@@ -1824,7 +1824,7 @@ Functions</h2></td></tr>
 
 <p>Dot product of full-sky maps. </p>
 <p>Computes the integral over the full sphere of the product of two maps: </p><p class="formulaDsp">
-<img class="formulaDsp" alt="\[ \int d\Omega\, m_1(\hat{\bf n})\,m_2(\hat{\bf n}), \]" src="form_23.png"/>
+<img class="formulaDsp" alt="\[ \int d\Omega\, m_1(\hat{\bf n})\,m_2(\hat{\bf n}), \]" src="form_24.png"/>
 </p>
 <p> The integral is computed as a Riemann sum over all pixels in the map. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
@@ -2072,7 +2072,7 @@ Functions</h2></td></tr>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">nside</td><td>HEALPix resolution parameter </td></tr>
-    <tr><td class="paramname">cth0</td><td><img class="formulaInl" alt="$\cos(\theta)$" src="form_22.png"/> for the disc centre. </td></tr>
+    <tr><td class="paramname">cth0</td><td><img class="formulaInl" alt="$\cos(\theta)$" src="form_23.png"/> for the disc centre. </td></tr>
     <tr><td class="paramname">phi</td><td>Azimuth for the disc centre. </td></tr>
     <tr><td class="paramname">radius</td><td>Disc radius in radians. </td></tr>
     <tr><td class="paramname">listtot</td><td>Output list of pixels </td></tr>
