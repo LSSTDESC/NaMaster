@@ -307,6 +307,9 @@ Functions</h2></td></tr>
 <tr class="memitem:a05ef1535466acb450266593fc1b9a5c7"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namaster_8h.html#a05ef1535466acb450266593fc1b9a5c7">nmt_decouple_cl_l</a> (<a class="el" href="structnmt__workspace.html">nmt_workspace</a> *w, <a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> **cl_in, <a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> **cl_noise_in, <a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> **cl_bias, <a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> **cl_out)</td></tr>
 <tr class="memdesc:a05ef1535466acb450266593fc1b9a5c7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Inverts mode-coupling matrix.  <a href="#a05ef1535466acb450266593fc1b9a5c7">More...</a><br /></td></tr>
 <tr class="separator:a05ef1535466acb450266593fc1b9a5c7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a36fa63bda4a468e383d9e60543071239"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namaster_8h.html#a36fa63bda4a468e383d9e60543071239">nmt_compute_bandpower_windows</a> (<a class="el" href="structnmt__workspace.html">nmt_workspace</a> *w, double *bpw_win_out)</td></tr>
+<tr class="memdesc:a36fa63bda4a468e383d9e60543071239"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the bandpower window functions for this workspace.  <a href="#a36fa63bda4a468e383d9e60543071239">More...</a><br /></td></tr>
+<tr class="separator:a36fa63bda4a468e383d9e60543071239"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a77290fac5184833c9c140af37eff2f9f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namaster_8h.html#a77290fac5184833c9c140af37eff2f9f">nmt_compute_coupled_cell</a> (<a class="el" href="structnmt__field.html">nmt_field</a> *fl1, <a class="el" href="structnmt__field.html">nmt_field</a> *fl2, <a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> **cl_out)</td></tr>
 <tr class="memdesc:a77290fac5184833c9c140af37eff2f9f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Coupled pseudo-CL.  <a href="#a77290fac5184833c9c140af37eff2f9f">More...</a><br /></td></tr>
 <tr class="separator:a77290fac5184833c9c140af37eff2f9f"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -982,6 +985,41 @@ Functions</h2></td></tr>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Allocated binning structure. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a36fa63bda4a468e383d9e60543071239"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void nmt_compute_bandpower_windows </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structnmt__workspace.html">nmt_workspace</a> *&#160;</td>
+          <td class="paramname"><em>w</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double *&#160;</td>
+          <td class="paramname"><em>bpw_win_out</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Returns the bandpower window functions for this workspace. </p>
+<p>This function returns, in a flattened array, the bandpower window functions associated with the mode-coupling matrix stored in this workspace. The effect of the PCL estimator on the unbinned theory prediction can be fully accounted for by convolving it with these window functions. </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">w</td><td><a class="el" href="structnmt__workspace.html" title="Full-sky mode-coupling matrix. ">nmt_workspace</a> containing the mode-coupling matrix. </td></tr>
+    <tr><td class="paramname">bpw_win_out</td><td>output 1D array allocated to the right size (n_cls * n_bpw * n_cls * (lmax+1)). </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -3657,7 +3695,7 @@ Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Updates the mode coupling matrix with a new one.Saves <a class="el" href="structnmt__workspace.html" title="Full-sky mode-coupling matrix. ">nmt_workspace</a> structure to file. </p>
-<p>The new matrix must be provided as a single 1D array of size n_rows <img class="formulaInl" alt="$^2$" src="form_24.png"/>. Here n_rows=n_cls * n_ell is the size of the flattened power spectra, where n_cls is the number of power spectra (1, 2 or 4 for spin0-0, spin0-2 and spin2-2 correlations) and n_ells=lmax+1 (by default lmax=3*nside-1 for HEALPix, and pi/dx for CAR (where dx is the minimum angular pixel size)). The ordering of the power spectra should be such that the l-th element of the i-th power spectrum is stored with index l * n_cls + i. </p><dl class="params"><dt>Parameters</dt><dd>
+<p>The new matrix must be provided as a single 1D array of size n_rows <img class="formulaInl" alt="$^2$" src="form_8.png"/>. Here n_rows=n_cls * n_ell is the size of the flattened power spectra, where n_cls is the number of power spectra (1, 2 or 4 for spin0-0, spin0-2 and spin2-2 correlations) and n_ells=lmax+1 (by default lmax=3*nside-1 for HEALPix, and pi/dx for CAR (where dx is the minimum angular pixel size)). The ordering of the power spectra should be such that the l-th element of the i-th power spectrum is stored with index l * n_cls + i. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">w</td><td><a class="el" href="structnmt__workspace.html" title="Full-sky mode-coupling matrix. ">nmt_workspace</a> to be updated. </td></tr>
     <tr><td class="paramname">n_rows</td><td>size of the flattened power spectra. </td></tr>

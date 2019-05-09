@@ -214,7 +214,7 @@ correlate, including their observed maps, masks and contaminant templates.</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>mask</strong> – array containing a map corresponding to the field’s mask.         Should be 1-dimensional for a HEALPix map or 2-dimensional for a map         with rectangular pixelization.</li>
-<li><strong>maps</strong> – array containing the observed maps for this field. Should be         at least 2-dimensional. The first dimension corresponds to the number         of maps, which should be 1 for a spin-0 field and 2 for a spin-2         field. The other dimensions should be [npix] for HEALPix maps or         [ny,nx] for maps with rectangular pixels.</li>
+<li><strong>maps</strong> – array containing the observed maps for this field. Should be         at least 2-dimensional. The first dimension corresponds to the number         of maps, which should be 1 for a spin-0 field and 2 for a spin-2         field. The other dimensions should be [npix] for HEALPix maps or         [ny,nx] for maps with rectangular pixels. For a spin-2 field, the two         maps to pass should be the usual Q/U Stokes parameters for         polarization, or e1/e2 (gamma1/gamma2 etc.) in the case of cosmic         shear. It is important to note that NaMaster uses the same         polarization convention as HEALPix (i.e. with the x-coordinate         growing with increasing colatitude theta). It is however more common         for galaxy ellipticities to be provided using the IAU convention         (i.e. x grows with declination). In this case, the sign of the         e2/gamma2 map should be swapped before using it to create an         NmtField. See more         <a class="reference external" href="https://healpix.jpl.nasa.gov/html/intronode12.htm">here</a> .</li>
 <li><strong>templates</strong> – array containing a set of contaminant templates for         this field. This array should have shape [ntemp][nmap]…, where         ntemp is the number of templates, nmap should be 1 for spin-0 fields         and 2 for spin-2 fields. The other dimensions should be [npix] for         HEALPix maps or [ny,nx] for maps with rectangular pixels. The         best-fit contribution from each contaminant is automatically removed         from the maps unless templates=None.</li>
 <li><strong>beam</strong> – spherical harmonic transform of the instrumental beam         (assumed to be rotationally symmetric - i.e. no m dependence). If         None, no beam will be corrected for. Otherwise, this array should         have at least as many elements as the maximum multipole sampled by         the maps + 1 (e.g. if a HEALPix map, it should contain 3*nside         elements, corresponding to multipoles from 0 to 3*nside-1).</li>
 <li><strong>purify_e</strong> – use pure E-modes?</li>
@@ -585,6 +585,20 @@ correlate, including their observed maps, masks and contaminant templates.</p>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">set of decoupled bandpowers</p>
 </td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pymaster.workspaces.NmtWorkspace.get_bandpower_windows">
+<code class="descname">get_bandpower_windows</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pymaster.workspaces.NmtWorkspace.get_bandpower_windows" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get bandpower window functions. Convolve the theory power spectra         with these as an alternative to the combination         <cite>decouple_cell(couple_cell(</cite>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">bandpower windows with shape             <cite>[n_cls, n_bpws, n_cls, lmax+1]</cite>.</td>
 </tr>
 </tbody>
 </table>
@@ -1051,6 +1065,7 @@ correlate, including their observed maps, masks and contaminant templates.</p>
 <dt id="pymaster.covariance.gaussian_covariance_flat">
 <code class="descclassname">pymaster.covariance.</code><code class="descname">gaussian_covariance_flat</code><span class="sig-paren">(</span><em>cw</em>, <em>spin_a1</em>, <em>spin_a2</em>, <em>spin_b1</em>, <em>spin_b2</em>, <em>larr</em>, <em>cla1b1</em>, <em>cla1b2</em>, <em>cla2b1</em>, <em>cla2b2</em>, <em>wa</em>, <em>wb=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pymaster.covariance.gaussian_covariance_flat" title="Permalink to this definition">¶</a></dt>
 <dd><p>Computes Gaussian covariance matrix for flat-sky power spectra using     the information precomputed in cw (a NmtCovarianceWorkspaceFlat object).     cw should have been initialized using four NmtFieldFlat objects (let’s     call them a1, a2, b1 and b2), corresponding to the two pairs of fields     whose power spectra we want the covariance of. These power spectra should     have been computed using two NmtWorkspaceFlat objects, wa and wb, which     must be passed as arguments of this function (the power spectrum for     fields a1 and a2 was computed with wa, and that of b1 and b2 with wb).     Using the same notation, clXnYm should be a prediction for the power     spectrum between fields Xn and Ym. These predicted input power spectra     should be defined in a sufficiently well sampled range of ells given the     map properties from which the power spectra were computed. The values of     ell at which they are sampled are given by larr.</p>
+<p>Please note that, while the method used to estimate these covariance     is sufficiently accurate in a large number of scenarios, it is based on     a numerical approximation, and its accuracy should be assessed if in     doubt. In particular, we discourage users from using it to compute any     covariance matrix involving B-mode components.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />

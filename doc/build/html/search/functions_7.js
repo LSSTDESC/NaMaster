@@ -12,6 +12,7 @@ var searchData=
   ['nmt_5fbins_5fflat_5fsearch_5ffast',['nmt_bins_flat_search_fast',['../namaster_8h.html#a6d4053b5c1707085ac338135d0ab941a',1,'namaster.h']]],
   ['nmt_5fbins_5ffree',['nmt_bins_free',['../namaster_8h.html#a5ff0f70de8e7df74ac59786b6d824f7c',1,'namaster.h']]],
   ['nmt_5fbins_5fread',['nmt_bins_read',['../namaster_8h.html#a07c21bc557e0512d727c508689ad810c',1,'namaster.h']]],
+  ['nmt_5fcompute_5fbandpower_5fwindows',['nmt_compute_bandpower_windows',['../namaster_8h.html#a36fa63bda4a468e383d9e60543071239',1,'namaster.h']]],
   ['nmt_5fcompute_5fcoupled_5fcell',['nmt_compute_coupled_cell',['../namaster_8h.html#a77290fac5184833c9c140af37eff2f9f',1,'namaster.h']]],
   ['nmt_5fcompute_5fcoupled_5fcell_5fflat',['nmt_compute_coupled_cell_flat',['../namaster_8h.html#ac4d37dcb6620b81ff8dc66b085efc703',1,'namaster.h']]],
   ['nmt_5fcompute_5fcoupling_5fmatrix',['nmt_compute_coupling_matrix',['../namaster_8h.html#af5bd27cdd2fcf472ed250a19688ed4d5',1,'namaster.h']]],
