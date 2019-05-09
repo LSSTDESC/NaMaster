@@ -38,11 +38,10 @@ else:
         extra += ['-fopenmp']
 
 _nmtlib = Extension("_nmtlib",
-                    ["pymaster/namaster_wrap.c"],
+                    ['pymaster/namaster.i'],
                     libraries=libs,
-                    include_dirs=[numpy_include, "../src/"],
-                    extra_compile_args=extra,
-                    )
+                    include_irs=[numpy_include, "../src/"],
+                    extra_compile_args=extra,)
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
