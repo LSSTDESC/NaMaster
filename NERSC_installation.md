@@ -28,6 +28,7 @@ This makes sure that the OS will be able to find GSL and all the other libraries
 
 I'd also advice to add the following lines to your `.bashrc.ext` file (in your home directory), so python will always be able to find NaMaster.
 ```
+module load gsl/2.5
 export CC=cc
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$GSL_DIR/lib:$HOME/lib
 ```
