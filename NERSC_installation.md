@@ -48,6 +48,14 @@ libsharp is a C library for spherical harmonic transforms. Follow these steps to
 2. Run `./configure --prefix=$HOME` (as I said above, I'm assuming that you'll install everything into your home directory).
 3. Run `make; make install`.
 
+## 4 Install FFTW
+Doing `module load cray-fftw` should be enough to get FFTW to work with NaMaster. If you still get FFTW-related errors, you may have to install it from source (again, into your home directory preferably). To do so, download the latest tarball from http://www.fftw.org/, untar and do:
+```
+./configure --prefix=$HOME --with-openmp
+make
+make install
+```
+
 ## 4 Install HEALPix
 1. Download the latest version of HEALPix from its website https://healpix.jpl.nasa.gov/, untar and go into the root directory.
 2. Run `./configure` and follow the instructions to install the C package (option 2). Make sure to mark `cc` as your preferred compiler. You don't need the shared library or the suggested modifications to your shell profile.
