@@ -1,6 +1,6 @@
 # Installing NaMaster at NERSC
 
-The following steps should be followed to install NaMaster at NERSC:
+The following steps should be followed to install NaMaster at NERSC (see also [this issue](https://github.com/LSSTDESC/NaMaster/issues/62) for additional instructions):
 
 ## 0 Python settings
 First, pick your favourite python module at NERSC. NaMaster has been tested on both 2.7 and 3.6, so do either
