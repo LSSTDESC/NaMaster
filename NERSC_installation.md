@@ -56,13 +56,13 @@ make
 make install
 ```
 
-## 4 Install HEALPix
+## 5 Install HEALPix
 1. Download the latest version of HEALPix from its website https://healpix.jpl.nasa.gov/, untar and go into the root directory.
 2. Run `./configure` and follow the instructions to install the C package (option 2). Make sure to mark `cc` as your preferred compiler. You don't need the shared library or the suggested modifications to your shell profile.
 3. Run `make c-all`
 4. Move (by hand!) the contents of `./lib/` and `./include/` to their corresponding equivalents in your `$HOME`.
 
-## 5 Install NaMaster
+## 6 Install NaMaster
 Once all the above has been installed, download or clone NaMaster from its [github repository](https://github.com/damonge/NaMaster) and follow these steps:
 1. Before anything else, run the following commands to avoid static linking of the final NaMaster library. Doing so just once would be enough (i.e. no need to include this in your .bashrc.ext):
 ```
