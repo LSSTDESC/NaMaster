@@ -171,6 +171,8 @@ void  nmt_compute_gaussian_covariance(nmt_covar_workspace *cw,
 	      int ila;
 	      int icl_b=id+nmaps_d*ic;
 	      double cbinned=0;
+
+#pragma omp parallel for reduction(+:cbinned)
 	      for(ila=0;ila<wa->bin->nell_list[band_a];ila++) {
 		int ilb;
 		int la=wa->bin->ell_list[band_a][ila];
