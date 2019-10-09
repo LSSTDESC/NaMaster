@@ -155,8 +155,10 @@ void  nmt_compute_gaussian_covariance(nmt_covar_workspace *cw,
     report_error(NMT_ERROR_COVAR,"Input spins don't match input workspaces\n");
 
   gsl_matrix *covar_binned=gsl_matrix_alloc(wa->ncls*wa->bin->n_bands,wb->ncls*wb->bin->n_bands);
-  int band_a;
-  for(band_a=0;band_a<wa->bin->n_bands;band_a++) {
+
+  //int band_a;
+  #pragma omp parallel for
+  for(int band_a=0;band_a<wa->bin->n_bands;band_a++) {
     int band_b;
     for(band_b=0;band_b<wb->bin->n_bands;band_b++) {
       int ia;
@@ -172,7 +174,7 @@ void  nmt_compute_gaussian_covariance(nmt_covar_workspace *cw,
 	      int icl_b=id+nmaps_d*ic;
 	      double cbinned=0;
 
-#pragma omp parallel for reduction(+:cbinned)
+
 	      for(ila=0;ila<wa->bin->nell_list[band_a];ila++) {
 		int ilb;
 		int la=wa->bin->ell_list[band_a][ila];
