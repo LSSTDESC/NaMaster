@@ -45,7 +45,7 @@ libsharp is a C library for spherical harmonic transforms. Follow these steps to
 
 ## 3 Install cfitsio
 1. Go to https://heasarc.gsfc.nasa.gov/fitsio/ and download the latest tarball. Untar it and go into its root directory.
-2. Run `./configure --prefix=$HOME` (as I said above, I'm assuming that you'll install everything into your home directory).
+2. Run `./configure CFLAGS=-fPIC --prefix=$HOME` (as I said above, I'm assuming that you'll install everything into your home directory).
 3. Run `make; make install`.
 
 ## 4 Install FFTW
