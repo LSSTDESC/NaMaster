@@ -20,7 +20,7 @@ class TestWorkspaceCAR(unittest.TestCase) :
         self.msk=hdul[0].data
         #Set up coordinates
         self.wcs=WCS(hdul[0].header)
-        self.ny,self.nx=self.wcs._naxis2,self.wcs._naxis1
+        self.nx,self.ny=self.wcs.pixel_shape
         hdul.close()
         #Read maps
         hdul=fits.open("test/benchmarks/mps_car.fits")
@@ -580,7 +580,6 @@ class TestWorkspaceFsk(unittest.TestCase) :
         self.assertEqual(c.shape,(1,self.b.bin.n_bands))
         with self.assertRaises(ValueError) : #Different resolutions
             c=nmt.compute_coupled_cell_flat(self.f0,self.f0_half,self.b)
-
         
 if __name__ == '__main__':
     unittest.main()
