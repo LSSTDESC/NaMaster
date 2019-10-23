@@ -27,8 +27,8 @@ CTEST(nmt,bins_f_ell) {
   for(i=0;i<499;i++) {
     for(j=0;j<4;j++) {
       int ell=2+4*i+j;
-      ASSERT_DBL_NEAR_TOL(bin_c->f_ell[i][j],ell*(ell+1)/(2*M_PI),1E-10);
-      ASSERT_DBL_NEAR_TOL(bin_c->f_ell[i][j],bin_nc->f_ell[i][j],1E-10);
+      ASSERT_DBL_NEAR_TOL(bin_c->f_ell[i][j],ell*(ell+1)/(2*M_PI),1E-5);
+      ASSERT_DBL_NEAR_TOL(bin_c->f_ell[i][j],bin_nc->f_ell[i][j],1E-5);
     }
   }
 
@@ -108,10 +108,10 @@ CTEST(nmt,bins_binning) {
 
   for(i=0;i<bin->n_bands;i++) {
     int j;
-    ASSERT_DBL_NEAR_TOL(2+4*i+1.5,cls_binned[i],1E-10);
-    ASSERT_DBL_NEAR_TOL(leff[i],cls_binned[i],1E-10);
+    ASSERT_DBL_NEAR_TOL(2+4*i+1.5,cls_binned[i],1E-5);
+    ASSERT_DBL_NEAR_TOL(leff[i],cls_binned[i],1E-5);
     for(j=0;j<4;j++)
-      ASSERT_DBL_NEAR_TOL(2+4*i+1.5,cls_back[2+4*i+j],1E-10);
+      ASSERT_DBL_NEAR_TOL(2+4*i+1.5,cls_back[2+4*i+j],1E-5);
   }
 
   nmt_bins_free(bin);
