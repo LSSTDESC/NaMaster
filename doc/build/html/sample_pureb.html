@@ -169,6 +169,10 @@
   <div class="section" id="example-6-pure-e-and-b">
 <h1>Example 6: Pure E and B<a class="headerlink" href="#example-6-pure-e-and-b" title="Permalink to this headline">¶</a></h1>
 <p>This sample script showcases the computation of power spectra using the pure-E and B approach.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">If you have HEALPix UNSEEN values in your map, set those pixels to zero in both the mask and map in order to use B-mode purification.</p>
+</div>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">healpy</span> <span class="kn">as</span> <span class="nn">hp</span>
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="kn">as</span> <span class="nn">plt</span>
