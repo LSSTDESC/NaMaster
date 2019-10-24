@@ -155,66 +155,75 @@ void  nmt_compute_gaussian_covariance(nmt_covar_workspace *cw,
     report_error(NMT_ERROR_COVAR,"Input spins don't match input workspaces\n");
 
   gsl_matrix *covar_binned=gsl_matrix_alloc(wa->ncls*wa->bin->n_bands,wb->ncls*wb->bin->n_bands);
-  int band_a;
-  for(band_a=0;band_a<wa->bin->n_bands;band_a++) {
-    int band_b;
-    for(band_b=0;band_b<wb->bin->n_bands;band_b++) {
-      int ia;
-      for(ia=0;ia<nmaps_a;ia++) {
-	int ib;
-	for(ib=0;ib<nmaps_b;ib++) {
-	  int ic;
-	  int icl_a=ib+nmaps_b*ia;
-	  for(ic=0;ic<nmaps_c;ic++) {
-	    int id;
-	    for(id=0;id<nmaps_d;id++) {
-	      int ila;
-	      int icl_b=id+nmaps_d*ic;
-	      double cbinned=0;
-	      for(ila=0;ila<wa->bin->nell_list[band_a];ila++) {
-		int ilb;
-		int la=wa->bin->ell_list[band_a][ila];
-		for(ilb=0;ilb<wb->bin->nell_list[band_b];ilb++) {
-		  int iap;
-		  int lb=wb->bin->ell_list[band_b][ilb];
-		  double xis_1122[6]={cw->xi00_1122[la][lb],cw->xi02_1122[la][lb],cw->xi22p_1122[la][lb],
-				      cw->xi22m_1122[la][lb],-cw->xi22m_1122[la][lb],0};
-		  double xis_1221[6]={cw->xi00_1221[la][lb],cw->xi02_1221[la][lb],cw->xi22p_1221[la][lb],
-				      cw->xi22m_1221[la][lb],-cw->xi22m_1221[la][lb],0};
-		  double prefac_ell=wa->bin->w_list[band_a][ila]*wa->bin->f_ell[band_a][ila]*
-		    wb->bin->w_list[band_b][ilb]*wb->bin->f_ell[band_b][ilb];
-		  for(iap=0;iap<nmaps_a;iap++) {
-		    int ibp;
-		    for(ibp=0;ibp<nmaps_b;ibp++) {
-		      int icp;
-		      for(icp=0;icp<nmaps_c;icp++) {
-			int idp;
-			for(idp=0;idp<nmaps_d;idp++) {
-			  double *cl_ac=clac[icp+nmaps_c*iap];
-			  double *cl_ad=clad[idp+nmaps_d*iap];
-			  double *cl_bc=clbc[icp+nmaps_c*ibp];
-			  double *cl_bd=clbd[idp+nmaps_d*ibp];
-			  double fac_1122=0.5*(cl_ac[la]*cl_bd[lb]+cl_ac[lb]*cl_bd[la]);
-			  double fac_1221=0.5*(cl_ad[la]*cl_bc[lb]+cl_ad[lb]*cl_bc[la]);
-			  int ind_1122=cov_get_coupling_pair_index(nmaps_a,nmaps_c,nmaps_b,nmaps_d,
-								   ia,iap,ic,icp,ib,ibp,id,idp);
-			  int ind_1221=cov_get_coupling_pair_index(nmaps_a,nmaps_d,nmaps_b,nmaps_c,
-								   ia,iap,id,idp,ib,ibp,ic,icp);
 
-			  cbinned+=(xis_1122[ind_1122]*fac_1122+xis_1221[ind_1221]*fac_1221)*prefac_ell;
+#pragma omp parallel default(none)			\
+  shared(cw,pol_a,pol_b,pol_c,pol_d)			\
+  shared(wa,wb,clac,clad,clbc,clbd)			\
+  shared(nmaps_a,nmaps_b,nmaps_c,nmaps_d,covar_binned)
+  {
+    int band_a;
+
+#pragma omp for
+    for(band_a=0;band_a<wa->bin->n_bands;band_a++) {
+      int band_b;
+      for(band_b=0;band_b<wb->bin->n_bands;band_b++) {
+	int ia;
+	for(ia=0;ia<nmaps_a;ia++) {
+	  int ib;
+	  for(ib=0;ib<nmaps_b;ib++) {
+	    int ic;
+	    int icl_a=ib+nmaps_b*ia;
+	    for(ic=0;ic<nmaps_c;ic++) {
+	      int id;
+	      for(id=0;id<nmaps_d;id++) {
+		int ila;
+		int icl_b=id+nmaps_d*ic;
+		double cbinned=0;
+		for(ila=0;ila<wa->bin->nell_list[band_a];ila++) {
+		  int ilb;
+		  int la=wa->bin->ell_list[band_a][ila];
+		  for(ilb=0;ilb<wb->bin->nell_list[band_b];ilb++) {
+		    int iap;
+		    int lb=wb->bin->ell_list[band_b][ilb];
+		    double xis_1122[6]={cw->xi00_1122[la][lb],cw->xi02_1122[la][lb],cw->xi22p_1122[la][lb],
+					cw->xi22m_1122[la][lb],-cw->xi22m_1122[la][lb],0};
+		    double xis_1221[6]={cw->xi00_1221[la][lb],cw->xi02_1221[la][lb],cw->xi22p_1221[la][lb],
+					cw->xi22m_1221[la][lb],-cw->xi22m_1221[la][lb],0};
+		    double prefac_ell=wa->bin->w_list[band_a][ila]*wa->bin->f_ell[band_a][ila]*
+		      wb->bin->w_list[band_b][ilb]*wb->bin->f_ell[band_b][ilb];
+		    for(iap=0;iap<nmaps_a;iap++) {
+		      int ibp;
+		      for(ibp=0;ibp<nmaps_b;ibp++) {
+			int icp;
+			for(icp=0;icp<nmaps_c;icp++) {
+			  int idp;
+			  for(idp=0;idp<nmaps_d;idp++) {
+			    double *cl_ac=clac[icp+nmaps_c*iap];
+			    double *cl_ad=clad[idp+nmaps_d*iap];
+			    double *cl_bc=clbc[icp+nmaps_c*ibp];
+			    double *cl_bd=clbd[idp+nmaps_d*ibp];
+			    double fac_1122=0.5*(cl_ac[la]*cl_bd[lb]+cl_ac[lb]*cl_bd[la]);
+			    double fac_1221=0.5*(cl_ad[la]*cl_bc[lb]+cl_ad[lb]*cl_bc[la]);
+			    int ind_1122=cov_get_coupling_pair_index(nmaps_a,nmaps_c,nmaps_b,nmaps_d,
+								     ia,iap,ic,icp,ib,ibp,id,idp);
+			    int ind_1221=cov_get_coupling_pair_index(nmaps_a,nmaps_d,nmaps_b,nmaps_c,
+								     ia,iap,id,idp,ib,ibp,ic,icp);
+			    
+			    cbinned+=(xis_1122[ind_1122]*fac_1122+xis_1221[ind_1221]*fac_1221)*prefac_ell;
+			  }
 			}
 		      }
 		    }
 		  }
 		}
+		gsl_matrix_set(covar_binned,wa->ncls*band_a+icl_a,wb->ncls*band_b+icl_b,cbinned);
 	      }
-	      gsl_matrix_set(covar_binned,wa->ncls*band_a+icl_a,wb->ncls*band_b+icl_b,cbinned);
 	    }
 	  }
 	}
       }
-    }
-  }
+    } //end omp for
+  } //end omp parallel
 
   //Sandwich with inverse MCM
   gsl_matrix *covar_out_g =gsl_matrix_alloc(wa->ncls*wa->bin->n_bands,wb->ncls*wb->bin->n_bands);
