@@ -349,59 +349,68 @@ void nmt_compute_gaussian_covariance_flat(nmt_covar_workspace_flat *cw,
 
   //Convolve with Xi
   gsl_matrix *covar_binned=gsl_matrix_alloc(wa->ncls*cw->bin->n_bands,wb->ncls*cw->bin->n_bands);
-  int band_a;
-  for(band_a=0;band_a<cw->bin->n_bands;band_a++) {
-    int band_b;
-    for(band_b=0;band_b<cw->bin->n_bands;band_b++) {
-      int ia;
-      double xis_1122[6]={cw->xi00_1122[band_a][band_b],cw->xi02_1122[band_a][band_b],
-			  cw->xi22p_1122[band_a][band_b],cw->xi22m_1122[band_a][band_b],
-			  -cw->xi22m_1122[band_a][band_b],0};
-      double xis_1221[6]={cw->xi00_1221[band_a][band_b],cw->xi02_1221[band_a][band_b],
-			  cw->xi22p_1221[band_a][band_b],cw->xi22m_1221[band_a][band_b],
-			  -cw->xi22m_1221[band_a][band_b],0};
-      for(ia=0;ia<nmaps_a;ia++) {
-	int ib;
-	for(ib=0;ib<nmaps_b;ib++) {
-	  int ic;
-	  int icl_a=ib+nmaps_b*ia;
-	  int index_a=wa->ncls*band_a+icl_a;
-	  for(ic=0;ic<nmaps_c;ic++) {
-	    int id;
-	    for(id=0;id<nmaps_d;id++) {
-	      int iap;
-	      int icl_b=id+nmaps_d*ic;
-	      int index_b=wb->ncls*band_b+icl_b;
-	      double cbinned=0;
-	      for(iap=0;iap<nmaps_a;iap++) {
-		int ibp;
-		for(ibp=0;ibp<nmaps_b;ibp++) {
-		  int icp;
-		  for(icp=0;icp<nmaps_c;icp++) {
-		    int idp;
-		    for(idp=0;idp<nmaps_d;idp++) {
-		      double *cl_ac=cblac[icp+nmaps_c*iap];
-		      double *cl_ad=cblad[idp+nmaps_d*iap];
-		      double *cl_bc=cblbc[icp+nmaps_c*ibp];
-		      double *cl_bd=cblbd[idp+nmaps_d*ibp];
-		      double fac_1122=0.5*(cl_ac[band_a]*cl_bd[band_b]+cl_ac[band_b]*cl_bd[band_a]);
-		      double fac_1221=0.5*(cl_ad[band_a]*cl_bc[band_b]+cl_ad[band_b]*cl_bc[band_a]);
-		      int ind_1122=cov_get_coupling_pair_index(nmaps_a,nmaps_c,nmaps_b,nmaps_d,
-							       ia,iap,ic,icp,ib,ibp,id,idp);
-		      int ind_1221=cov_get_coupling_pair_index(nmaps_a,nmaps_d,nmaps_b,nmaps_c,
-							       ia,iap,id,idp,ib,ibp,ic,icp);
-		      cbinned+=xis_1122[ind_1122]*fac_1122+xis_1221[ind_1221]*fac_1221;
+#pragma omp parallel default(none)		\
+  shared(cw,pol_a,pol_b,pol_c,pol_d)		\
+  shared(wa,wb,nl,larr,covar_binned)		\
+  shared(nmaps_a,nmaps_b,nmaps_c,nmaps_d)	\
+  shared(cblac,cblad,cblbc,cblbd)
+  {
+    int band_a;
+
+#pragma omp for
+    for(band_a=0;band_a<cw->bin->n_bands;band_a++) {
+      int band_b;
+      for(band_b=0;band_b<cw->bin->n_bands;band_b++) {
+	int ia;
+	double xis_1122[6]={cw->xi00_1122[band_a][band_b],cw->xi02_1122[band_a][band_b],
+			    cw->xi22p_1122[band_a][band_b],cw->xi22m_1122[band_a][band_b],
+			    -cw->xi22m_1122[band_a][band_b],0};
+	double xis_1221[6]={cw->xi00_1221[band_a][band_b],cw->xi02_1221[band_a][band_b],
+			    cw->xi22p_1221[band_a][band_b],cw->xi22m_1221[band_a][band_b],
+			    -cw->xi22m_1221[band_a][band_b],0};
+	for(ia=0;ia<nmaps_a;ia++) {
+	  int ib;
+	  for(ib=0;ib<nmaps_b;ib++) {
+	    int ic;
+	    int icl_a=ib+nmaps_b*ia;
+	    int index_a=wa->ncls*band_a+icl_a;
+	    for(ic=0;ic<nmaps_c;ic++) {
+	      int id;
+	      for(id=0;id<nmaps_d;id++) {
+		int iap;
+		int icl_b=id+nmaps_d*ic;
+		int index_b=wb->ncls*band_b+icl_b;
+		double cbinned=0;
+		for(iap=0;iap<nmaps_a;iap++) {
+		  int ibp;
+		  for(ibp=0;ibp<nmaps_b;ibp++) {
+		    int icp;
+		    for(icp=0;icp<nmaps_c;icp++) {
+		      int idp;
+		      for(idp=0;idp<nmaps_d;idp++) {
+			double *cl_ac=cblac[icp+nmaps_c*iap];
+			double *cl_ad=cblad[idp+nmaps_d*iap];
+			double *cl_bc=cblbc[icp+nmaps_c*ibp];
+			double *cl_bd=cblbd[idp+nmaps_d*ibp];
+			double fac_1122=0.5*(cl_ac[band_a]*cl_bd[band_b]+cl_ac[band_b]*cl_bd[band_a]);
+			double fac_1221=0.5*(cl_ad[band_a]*cl_bc[band_b]+cl_ad[band_b]*cl_bc[band_a]);
+			int ind_1122=cov_get_coupling_pair_index(nmaps_a,nmaps_c,nmaps_b,nmaps_d,
+								 ia,iap,ic,icp,ib,ibp,id,idp);
+			int ind_1221=cov_get_coupling_pair_index(nmaps_a,nmaps_d,nmaps_b,nmaps_c,
+								 ia,iap,id,idp,ib,ibp,ic,icp);
+			cbinned+=xis_1122[ind_1122]*fac_1122+xis_1221[ind_1221]*fac_1221;
+		      }
 		    }
 		  }
 		}
+		gsl_matrix_set(covar_binned,index_a,index_b,cbinned);
 	      }
-	      gsl_matrix_set(covar_binned,index_a,index_b,cbinned);
 	    }
 	  }
 	}
       }
-    }
-  }
+    } //end omp for
+  } //end omp parallel
 
   //Sandwich with inverse MCM
   gsl_matrix *covar_out_g =gsl_matrix_alloc(wa->ncls*cw->bin->n_bands,wb->ncls*cw->bin->n_bands);
