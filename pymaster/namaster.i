@@ -88,7 +88,7 @@ void get_weight_list(nmt_binning_scheme *bins,int ibin,double *dout,int ndout)
 int get_lmax_py(int is_healpix,int nside,int nx,int ny,
 		double delta_phi,double delta_theta,double phi0,double theta0)
 {
-  nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(is_healpix,(long)nside,nx,ny,
+  nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(is_healpix,(long)nside,-1,nx,ny,
 						  delta_theta,delta_phi,phi0,theta0);
   int lmax=he_get_lmax(cs);
   free(cs);
@@ -238,7 +238,7 @@ void unbin_cl_flat(nmt_binning_scheme_flat *bins,
   free(cls_out);
 }
 
-nmt_field *field_alloc_new(int is_healpix,int nside,int nx,int ny,double delta_phi,
+nmt_field *field_alloc_new(int is_healpix,int nside,int lmax_sht,int nx,int ny,double delta_phi,
 			   double delta_theta,double phi0,double theta0,
 			   int npix_1,double *mask,
 			   int nmap_2,int npix_2,double *mps,
@@ -263,7 +263,7 @@ nmt_field *field_alloc_new(int is_healpix,int nside,int nx,int ny,double delta_p
   else
     asserting(npix_1==nx*ny);
 
-  nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(is_healpix,nside_l,nx,ny,
+  nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(is_healpix,nside_l,lmax_sht,nx,ny,
 						  delta_theta,delta_phi,phi0,theta0);
   asserting(nell3>he_get_lmax(cs));
 
@@ -297,7 +297,7 @@ nmt_field *field_alloc_new(int is_healpix,int nside,int nx,int ny,double delta_p
   return fl;
 }
 
-nmt_field *field_alloc_new_notemp(int is_healpix,int nside,int nx,int ny,double delta_phi,
+nmt_field *field_alloc_new_notemp(int is_healpix,int nside,int lmax_sht,int nx,int ny,double delta_phi,
 				  double delta_theta,double phi0,double theta0,
 				  int npix_1,double *mask,
 				  int nmap_2,int npix_2,double *mps,
@@ -317,7 +317,7 @@ nmt_field *field_alloc_new_notemp(int is_healpix,int nside,int nx,int ny,double 
   else
     asserting(npix_1==nx*ny);
 
-  nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(is_healpix,nside_l,nx,ny,
+  nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(is_healpix,nside_l,lmax_sht,nx,ny,
 						  delta_theta,delta_phi,phi0,theta0);
   asserting(nell3>he_get_lmax(cs));
 
@@ -488,7 +488,7 @@ void synfast_new(int is_healpix,int nside,int nx,int ny,double delta_phi,
       nmaps+=2;
   }
 
-  nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(is_healpix,nside_l,nx,ny,
+  nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(is_healpix,nside_l,-1,nx,ny,
 						  delta_theta,delta_phi,phi0,theta0);
   asserting(ncl2==nfields);
   asserting(ncl1==(nmaps*(nmaps+1))/2);

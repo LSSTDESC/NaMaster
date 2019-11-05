@@ -126,6 +126,7 @@ flouble *he_read_map(char *fname,nmt_curvedsky_info *sky_info,int nfield) //DONE
   if(sky_info->is_healpix) {
     mp=he_read_HPX_map(fname,&(sky_info->n_eq),nfield);
     sky_info->npix=12*sky_info->n_eq*sky_info->n_eq;
+    sky_info->lmax_sht=he_get_largest_possible_lmax(sky_info);
   }
   else
     report_error(NMT_ERROR_NOT_IMPLEMENTED,"No IO functions for non-HEALPix pixelizations\n");
@@ -927,7 +928,7 @@ void he_alm2cl(fcomplex **alms_1,fcomplex **alms_2,int pol_1,int pol_2,flouble *
   }
 }
 
-int he_get_lmax(nmt_curvedsky_info *cs)
+int he_get_largest_possible_lmax(nmt_curvedsky_info *cs)
 {
   if(cs->is_healpix)
     return 3*cs->n_eq-1;
@@ -935,6 +936,11 @@ int he_get_lmax(nmt_curvedsky_info *cs)
     double dxmin=NMT_MIN(cs->Delta_phi,cs->Delta_theta);
     return (int)(M_PI/dxmin);
   }
+}
+
+int he_get_lmax(nmt_curvedsky_info *cs)
+{
+  return cs->lmax_sht;
 }
 
 void he_anafast(flouble **maps_1,flouble **maps_2,

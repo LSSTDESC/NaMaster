@@ -54,7 +54,7 @@ class NmtField(object):
     """
     def __init__(self, mask, maps, templates=None, beam=None,
                  purify_e=False, purify_b=False, n_iter_mask_purify=3,
-                 tol_pinv=1E-10, wcs=None, n_iter=3):
+                 tol_pinv=1E-10, wcs=None, n_iter=3, lmax_sht=-1):
         self.fl = None
 
         pure_e = 0
@@ -112,7 +112,10 @@ class NmtField(object):
                 raise ValueError("Input templates can only be an array "
                                  "or None\n")
 
-        lmax = wt.get_lmax()
+        if lmax_sht is not -1:
+            lmax = lmax_sht
+        else:
+            lmax = wt.get_lmax()
 
         if isinstance(beam, (list, tuple, np.ndarray)):
             if len(beam) <= lmax:
@@ -126,7 +129,7 @@ class NmtField(object):
                 raise ValueError("Input beam can only be an array or None\n")
 
         if isinstance(templates, (list, tuple, np.ndarray)):
-            self.fl = lib.field_alloc_new(wt.is_healpix, wt.nside,
+            self.fl = lib.field_alloc_new(wt.is_healpix, wt.nside, lmax_sht,
                                           wt.nx, wt.ny,
                                           wt.d_phi, wt.d_theta,
                                           wt.phi0, wt.theta_max,
@@ -135,7 +138,7 @@ class NmtField(object):
                                           tol_pinv, n_iter)
         else:
             self.fl = lib.field_alloc_new_notemp(
-                wt.is_healpix, wt.nside, wt.nx, wt.ny, wt.d_phi,
+                wt.is_healpix, wt.nside, lmax_sht, wt.nx, wt.ny, wt.d_phi,
                 wt.d_theta, wt.phi0, wt.theta_max,
                 mask, maps, beam_use, pure_e, pure_b, n_iter_mask_purify,
                 n_iter)

@@ -10,36 +10,36 @@ CTEST(nmt,curvedsky_errors)
   long nside=128;
   int nx=128,ny=128;
   double dth=M_PI/(3*nside),dph=M_PI/(3*nside);
-  nmt_curvedsky_info *cs_hpx_ref=nmt_curvedsky_info_alloc(1,nside,-1,-1,-1,-1,-1,-1);
-  nmt_curvedsky_info *cs_car_ref=nmt_curvedsky_info_alloc(0,-1,nx,ny,dth,dph,0,M_PI);
+  nmt_curvedsky_info *cs_hpx_ref=nmt_curvedsky_info_alloc(1,nside,-1,-1,-1,-1,-1,-1,-1);
+  nmt_curvedsky_info *cs_car_ref=nmt_curvedsky_info_alloc(0,-1,-1,nx,ny,dth,dph,0,M_PI);
 
   set_error_policy(THROW_ON_ERROR);
   cs=NULL;
-  try { cs=nmt_curvedsky_info_alloc(1,nside-1,-1,-1,-1,-1,-1,-1); } //Passing incorrect nside
+  try { cs=nmt_curvedsky_info_alloc(1,nside-1,-1,-1,-1,-1,-1,-1,-1); } //Passing incorrect nside
   ASSERT_NOT_EQUAL(0,nmt_exception_status);
   ASSERT_NULL(cs);
-  try { cs=nmt_curvedsky_info_alloc(0,-1,-nx,ny,dth,dph,0,M_PI/2); } //Passing incorrect CAR dimensions
+  try { cs=nmt_curvedsky_info_alloc(0,-1,-1,-nx,ny,dth,dph,0,M_PI/2); } //Passing incorrect CAR dimensions
   ASSERT_NOT_EQUAL(0,nmt_exception_status);
   ASSERT_NULL(cs);
-  try { cs=nmt_curvedsky_info_alloc(0,-1,nx,-ny,dth,dph,0,M_PI/2); }
+  try { cs=nmt_curvedsky_info_alloc(0,-1,-1,nx,-ny,dth,dph,0,M_PI/2); }
   ASSERT_NOT_EQUAL(0,nmt_exception_status);
   ASSERT_NULL(cs);
-  try { cs=nmt_curvedsky_info_alloc(0,-1,nx,ny,-dth,dph,0,M_PI/2); } //Wrong pixel sizes
+  try { cs=nmt_curvedsky_info_alloc(0,-1,-1,nx,ny,-dth,dph,0,M_PI/2); } //Wrong pixel sizes
   ASSERT_NOT_EQUAL(0,nmt_exception_status);
   ASSERT_NULL(cs);
-  try { cs=nmt_curvedsky_info_alloc(0,-1,nx,ny,dth,-dph,0,M_PI/2); } //Wrong pixel sizes
+  try { cs=nmt_curvedsky_info_alloc(0,-1,-1,nx,ny,dth,-dph,0,M_PI/2); } //Wrong pixel sizes
   ASSERT_NOT_EQUAL(0,nmt_exception_status);
   ASSERT_NULL(cs);
-  try { cs=nmt_curvedsky_info_alloc(0,-1,nx,ny,dth,dph,4*M_PI,M_PI/2); } //Wrong dimensions
+  try { cs=nmt_curvedsky_info_alloc(0,-1,-1,nx,ny,dth,dph,4*M_PI,M_PI/2); } //Wrong dimensions
   ASSERT_NOT_EQUAL(0,nmt_exception_status);
   ASSERT_NULL(cs);
-  try { cs=nmt_curvedsky_info_alloc(0,-1,nx,ny,dth,dph,0,-0.1); }
+  try { cs=nmt_curvedsky_info_alloc(0,-1,-1,nx,ny,dth,dph,0,-0.1); }
   ASSERT_NOT_EQUAL(0,nmt_exception_status);
   ASSERT_NULL(cs);
-  try { nmt_curvedsky_info_alloc(0,-1,nx,ny,dth,2*M_PI/(6*nside+0.5),0,M_PI); } //Pixel size is not CC-compliant
+  try { nmt_curvedsky_info_alloc(0,-1,-1,nx,ny,dth,2*M_PI/(6*nside+0.5),0,M_PI); } //Pixel size is not CC-compliant
   ASSERT_NOT_EQUAL(0,nmt_exception_status);
   ASSERT_NULL(cs);
-  try { nmt_curvedsky_info_alloc(0,-1,nx,ny,M_PI/(3*nside+0.5),dph,0,M_PI); }
+  try { nmt_curvedsky_info_alloc(0,-1,-1,nx,ny,M_PI/(3*nside+0.5),dph,0,M_PI); }
   ASSERT_NOT_EQUAL(0,nmt_exception_status);
   ASSERT_NULL(cs);
   set_error_policy(EXIT_ON_ERROR);
@@ -49,10 +49,10 @@ CTEST(nmt,curvedsky_errors)
 
   //Compare infos
   ASSERT_FALSE(nmt_diff_curvedsky_info(cs_hpx_ref,cs_car_ref)); //HPX vs CAR
-  cs=nmt_curvedsky_info_alloc(0,-1,nx,ny,dth,dph*2,0,M_PI/2);
+  cs=nmt_curvedsky_info_alloc(0,-1,-1,nx,ny,dth,dph*2,0,M_PI/2);
   ASSERT_FALSE(nmt_diff_curvedsky_info(cs,cs_car_ref)); //Different pixel sizes
   free(cs);
-  cs=nmt_curvedsky_info_alloc(0,-1,nx,ny,dth,dph*(1+5E-10),0,M_PI); //Very similar pixel sizes
+  cs=nmt_curvedsky_info_alloc(0,-1,-1,nx,ny,dth,dph*(1+5E-10),0,M_PI); //Very similar pixel sizes
   ASSERT_TRUE(nmt_diff_curvedsky_info(cs,cs_car_ref));
   free(cs);
 
@@ -87,7 +87,7 @@ CTEST(nmt,field_car_alloc) {
   double ntemp=5;
   int ny=384,nx=2*(ny-1);
   double dtheta=M_PI/(ny-1),dphi=dtheta;
-  nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(0,-1,nx,ny,dtheta,dphi,0.,M_PI);
+  nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(0,-1,-1,nx,ny,dtheta,dphi,0.,M_PI);
   long lmax=he_get_lmax(cs);
   long npix_short=nx*ny;
   double **maps;
@@ -266,7 +266,7 @@ CTEST(nmt,field_car_synfast) {
   int ii,im1,im2,l,if1,if2;
   int ny=384,nx=2*(ny-1);
   double dtheta=M_PI/(ny-1),dphi=dtheta;
-  nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(0,-1,nx,ny,dtheta,dphi,0.,M_PI);
+  nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(0,-1,-1,nx,ny,dtheta,dphi,0.,M_PI);
   long lmax=he_get_lmax(cs);
   int nfields=3;
   int field_spins[3]={0,2,0};

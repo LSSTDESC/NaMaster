@@ -86,7 +86,7 @@ static void apodize_mask_CX(long nside,flouble *mask_in,flouble *mask_out,floubl
 static void apodize_mask_smooth(long nside,flouble *mask_in,flouble *mask_out,flouble aposize)
 {
   long npix=he_nside2npix(nside);
-  nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(1,nside,-1,-1,-1,-1,-1,-1);
+  nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(1,nside,-1,-1,-1,-1,-1,-1,-1);
   double aporad=aposize*M_PI/180;
   flouble *mask_dum=my_malloc(npix*sizeof(flouble));
   fcomplex *alms_dum=my_malloc(he_nalms(3*nside-1)*sizeof(fcomplex));

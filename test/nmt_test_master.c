@@ -9,7 +9,7 @@ CTEST(nmt,master_bias_uncorr) {
   double prefac,f_fac;
   long ipix,npix;
   nmt_field *f0,*f2;
-  nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(1,1,-1,-1,-1,-1,-1,-1);
+  nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(1,1,-1,-1,-1,-1,-1,-1,-1);
   double **mps0=my_malloc(sizeof(double *));
   double **mps2=my_malloc(2*sizeof(double *));
   double **tmp0=my_malloc(sizeof(double *));
@@ -119,7 +119,7 @@ CTEST(nmt,master_teb_full) {
   long ipix;
   nmt_field *f0,*f2;
   nmt_workspace *w_teb,*w00,*w02,*w22;
-  nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(1,1,-1,-1,-1,-1,-1,-1);
+  nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(1,1,-1,-1,-1,-1,-1,-1,-1);
   double **mps0=my_malloc(sizeof(double *));
   double **mps2=my_malloc(2*sizeof(double *));
   double *msk=he_read_map("test/benchmarks/msk.fits",cs,0);
@@ -213,7 +213,7 @@ CTEST(nmt,master_22_full) {
   long ipix;
   nmt_field *f2;
   nmt_workspace *w22;
-  nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(1,1,-1,-1,-1,-1,-1,-1);
+  nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(1,1,-1,-1,-1,-1,-1,-1,-1);
   double **mps2=my_malloc(2*sizeof(double *));
   double **tmp2=my_malloc(2*sizeof(double *));
   double *msk=he_read_map("test/benchmarks/msk.fits",cs,0);
@@ -325,7 +325,7 @@ CTEST(nmt,master_02_full) {
   long ipix;
   nmt_field *f0,*f2;
   nmt_workspace *w02;
-  nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(1,1,-1,-1,-1,-1,-1,-1);
+  nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(1,1,-1,-1,-1,-1,-1,-1,-1);
   double **mps0=my_malloc(sizeof(double *));
   double **mps2=my_malloc(2*sizeof(double *));
   double **tmp0=my_malloc(sizeof(double *));
@@ -453,7 +453,7 @@ CTEST(nmt,master_00_full) {
   long ipix;
   nmt_field *f0;
   nmt_workspace *w00;
-  nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(1,1,-1,-1,-1,-1,-1,-1);
+  nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(1,1,-1,-1,-1,-1,-1,-1,-1);
   double *mps=he_read_map("test/benchmarks/mps.fits",cs,0);
   double **tmp=my_malloc(sizeof(double *));
   double *msk=he_read_map("test/benchmarks/msk.fits",cs,0);
@@ -536,7 +536,7 @@ CTEST(nmt,master_00_f_ell) {
   long ipix;
   nmt_field *f0;
   nmt_workspace *w00;
-  nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(1,1,-1,-1,-1,-1,-1,-1);
+  nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(1,1,-1,-1,-1,-1,-1,-1,-1);
   double *mps=he_read_map("test/benchmarks/mps.fits",cs,0);
   double *msk=he_read_map("test/benchmarks/msk.fits",cs,0);
   long lmax=he_get_lmax(cs);
@@ -599,7 +599,7 @@ CTEST(nmt,master_00_f_ell) {
 }
 
 CTEST(nmt,bandpower_windows) {
-  nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(1,1,-1,-1,-1,-1,-1,-1);
+  nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(1,1,-1,-1,-1,-1,-1,-1,-1);
   double *mpt=he_read_map("test/benchmarks/mps.fits",cs,0);
   double *msk=he_read_map("test/benchmarks/msk.fits",cs,0);
   long lmax=he_get_lmax(cs);
@@ -653,13 +653,14 @@ CTEST(nmt,bandpower_windows) {
 }  
 
 CTEST(nmt,master_errors) {
-  nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(1,1,-1,-1,-1,-1,-1,-1);
+  nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(1,1,-1,-1,-1,-1,-1,-1,-1);
   double *mpt=he_read_map("test/benchmarks/mps.fits",cs,0);
   double *msk=he_read_map("test/benchmarks/msk.fits",cs,0);
   long lmax=he_get_lmax(cs);
+  
   nmt_binning_scheme *bin;
   nmt_workspace *w=NULL,*wb=NULL;
-  nmt_curvedsky_info *cs_half=nmt_curvedsky_info_alloc(1,cs->n_eq/2,-1,-1,-1,-1,-1,-1);
+  nmt_curvedsky_info *cs_half=nmt_curvedsky_info_alloc(1,cs->n_eq/2,-1,-1,-1,-1,-1,-1,-1);
 
   nmt_field *f0=nmt_field_alloc_sph(cs,msk,0,&mpt,0,NULL,NULL,0,0,3,1E-10,HE_NITER_DEFAULT);
   nmt_field *f0b=nmt_field_alloc_sph(cs_half,msk,0,&mpt,0,NULL,NULL,0,0,3,1E-10,HE_NITER_DEFAULT);

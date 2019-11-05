@@ -460,6 +460,7 @@ void nmt_purify_flat(nmt_field_flat *fl,flouble *mask,fcomplex **walm0,
 typedef struct {
   int is_healpix; //!< is this HEALPix pixelization?
   long n_eq; //!< equivalent of nside, number of pixels in the equatorial ring
+  int lmax_sht; //!< Maximum multipole to compute spherical harmonic transform
   int nx_short; //!< Number of grid points in the x dimension before completing the circle
   int nx; //!< Number of grid points in the phi dimension
   int ny; //!< Number of grid points in the theta dimension
@@ -496,6 +497,7 @@ nmt_curvedsky_info *nmt_curvedsky_info_copy(nmt_curvedsky_info *cs_in);
  * @return nmt_curvedsky_info struct.
  */
 nmt_curvedsky_info *nmt_curvedsky_info_alloc(int is_healpix,long nside,
+               int lmax_sht,
 					     int nx0,int ny0,flouble Dtheta,flouble Dphi,
 					     flouble phi0,flouble theta0);
 
