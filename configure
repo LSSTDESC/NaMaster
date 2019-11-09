@@ -637,6 +637,7 @@ am__EXEEXT_TRUE
 LTLIBOBJS
 LIBOBJS
 fftw_thread_type
+libsharp_fft_type
 OPENMP_CFLAGS
 MAINT
 MAINTAINER_MODE_FALSE
@@ -771,6 +772,8 @@ enable_libtool_lock
 enable_maintainer_mode
 enable_openmp
 enable_fftw_pthreads
+enable_libsharp_healpix
+enable_libsharp_gitlab
 '
       ac_precious_vars='build_alias
 host_alias
@@ -13342,6 +13345,28 @@ elif test "x$enable_fftw_pthreads" != "xyes"; then :
   fftw_thread_type="-lfftw3_omp"
 
 fi
+####GF ADDED
+# Deal with libsharp fft lib dependency
+# Check whether --enable-libsharp_healpix was given.
+if test "${enable_libsharp_healpix+set}" = set; then :
+  enableval=$enable_libsharp_healpix;
+fi
+# Check whether --enable-libsharp_gitlab was given.
+if test "${enable_libsharp_gitlab+set}" = set; then :
+  enableval=$enable_libsharp_gitlab;
+fi
+
+
+if test "x$enable_libsharp_healpix" = "xyes"; then :
+  libsharp_fft_type="-lpocketfft"
+elif test "x$enable_libsharp_gitlab" = "xyes"; then :
+    libsharp_fft_type="-lgomp "
+    CFLAGS="${CFLAGS} -DLIBSHARP_GITLAB"
+#elif test "x$enable_libsharp_healpix" != "xyes"; then :
+else :
+  libsharp_fft_type="-lfftpack"
+  CFLAGS="${CFLAGS} -DLIBSHARP_GITHUB"
+fi
 
 # Checks for libraries.
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing pow" >&5
@@ -13605,7 +13630,9 @@ for ac_lib in '' sharp; do
     ac_res="none required"
   else
     ac_res=-l$ac_lib
-    LIBS="-l$ac_lib -lfftpack -lc_utils $ac_func_search_save_LIBS"
+    #GF EDIT
+    #LIBS="-l$ac_lib -lfftpack -lc_utils $ac_func_search_save_LIBS"
+    LIBS="-l$ac_lib $libsharp_fft_type -lc_utils $ac_func_search_save_LIBS"
   fi
   if ac_fn_c_try_link "$LINENO"; then :
   ac_cv_search_sharp_Ylmgen_destroy=$ac_res

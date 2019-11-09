@@ -29,12 +29,26 @@ AS_IF(
     [test "x$enable_fftw_pthreads" = "xyes"], [AC_SUBST([fftw_thread_type], "-lfftw3_threads -lpthread")],
     [test "x$enable_fftw_pthreads" != "xyes"], [AC_SUBST([fftw_thread_type], "-lfftw3_omp")])
 
+AC_ARG_ENABLE([libsharp_fft_type],
+    AS_HELP_STRING([--enable-libsharp_healpix], [Enable Healpix or libsharp new fft]))
+AS_IF(
+    [test "x$enable_libsharp_healpix" = "xyes"], [AC_SUBST([libsharp_fft_type], "-lgomp")],
+    [test "x$enable_libsharp_gitlab" = "xyes"], [AC_SUBST([libsharp_fft_type], "-lpocketfft ")],
+    [AC_SUBST([libsharp_fft_type], "-lfftpack")])
+
+
 # Checks for libraries.
 AC_SEARCH_LIBS([pow],[m],[],AC_MSG_ERROR(Couldn't find libm. Required.))
 AC_SEARCH_LIBS([cblas_dgemm],[gslcblas],[],AC_MSG_ERROR(Couldn't find libgslcblas.))
 AC_SEARCH_LIBS([gsl_spline2d_eval_e],[gsl],[],AC_MSG_ERROR(Couldn't find libgsl. GSL V2+ required.))
 AC_SEARCH_LIBS([ffopen],[cfitsio],[],AC_MSG_ERROR(Couldn't find cfitsio))
-AC_SEARCH_LIBS([sharp_Ylmgen_destroy],[sharp],[],AC_MSG_ERROR(Couldn't find libsharp),[-lfftpack -lc_utils])
+if test "x$enable_libsharp_gitlab" = "xyes"; then :
+	AC_SEARCH_LIBS([sharp_Ylmgen_destroy],[sharp],[],AC_MSG_ERROR(Couldn't find libsharp gitlab),[-lgomp -lc_utils])
+elif test "x$enable_libsharp_healpix" = "xyes"; then :	#else
+	AC_SEARCH_LIBS([sharp_Ylmgen_destroy],[sharp],[],AC_MSG_ERROR(Couldn't find libsharp healpix),[-lpocketfft -lc_utils])
+else
+	AC_SEARCH_LIBS([sharp_Ylmgen_destroy],[sharp],[],AC_MSG_ERROR(Couldn't find libsharp),[-lfftpack -lc_utils])
+fi
 AC_SEARCH_LIBS([ring2nest],[chealpix],[],AC_MSG_ERROR(Couldn't find libchealpix))
 AC_SEARCH_LIBS([fftw_execute],[fftw3],[],AC_MSG_ERROR(Couldn't find libfftw3))
 
