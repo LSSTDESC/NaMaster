@@ -2,12 +2,22 @@
 #include <fitsio.h>
 #include <chealpix.h>
 #include <c_utils.h>
+#ifdef LIBSHARP_GITHUB
 #include <ls_fft.h>
+#else
+#include <pocketfft.h>
+#endif
+#ifdef LIBSHARP_GITLAB
+#include <libsharp/sharp_almhelpers.h>
+#include <libsharp/sharp_geomhelpers.h>
+#include <libsharp/sharp.h>
+#define MAX_SHT 1
+#else
 #include <sharp_almhelpers.h>
 #include <sharp_geomhelpers.h>
 #include <sharp.h>
-
 #define MAX_SHT 32
+#endif
 
 void he_write_healpix_map(flouble **tmap,int nfields,long nside,char *fname)
 {
@@ -669,7 +679,11 @@ void he_query_disc(int nside,double cth0,double phi,flouble radius,
   *nlist=ilist;
 }
 
-#define MAX_SHT 32
+#ifdef LIBSHARP_GITLAB
+  #define MAX_SHT 1
+#else
+  #define MAX_SHT 32
+#endif
 long he_nalms(int lmax)
 {
   return ((lmax+1)*(lmax+2))/2;
@@ -705,9 +719,21 @@ static void sharp_make_cc_geom_info_stripe (int nrings, int ppring, double phi0,
   for (int k=1; k<=(n/2-1); ++k)
     weight[2*k-1]=2./(1.-4.*k*k) + dw;
   weight[2*(n/2)-1]=(n-3.)/(2*(n/2)-1) -1. -dw*((2-(n&1))*n-1);
-  real_plan plan = make_real_plan(n);
-  real_plan_backward_fftpack(plan,weight);
-  kill_real_plan(plan);
+  #ifdef LIBSHARP_GITHUB
+    real_plan plan = make_real_plan(n);
+    real_plan_backward_fftpack(plan,weight);
+    kill_real_plan(plan);
+  #else
+    #ifdef LIBSHARP_GITLAB
+      pocketfft_plan_r plan = pocketfft_make_plan_r(n);
+      pocketfft_backward_r(plan,weight,1.);
+      pocketfft_delete_plan_r(plan);
+    #else
+      rfft_plan plan = make_rfft_plan(n);
+      rfft_backward(plan,weight,1.);
+      destroy_rfft_plan(plan);
+    #endif
+  #endif
   weight[n]=weight[0];
 
   for (int m=0; m<(nrings+1)/2; ++m) {
@@ -798,7 +824,11 @@ static void sht_wrapper(int spin,int lmax,nmt_curvedsky_info *cs,
 #ifdef _NEW_SHARP
   sharp_execute(alm2map,spin,0,alm,map,geom_info,alm_info,ntrans,flags,0,&time,NULL);
 #else //_NEW_SHARP
-  sharp_execute(alm2map,spin,alms,maps,geom_info,alm_info,ntrans,flags,&time,NULL);
+  #ifdef LIBSHARP_GITLAB
+    sharp_execute(alm2map,spin,alms,maps,geom_info,alm_info,flags,&time,NULL);
+  #else
+    sharp_execute(alm2map,spin,alms,maps,geom_info,alm_info,ntrans,flags,&time,NULL);
+  #endif
 #endif //_NEW_SHARP
   sharp_destroy_geom_info(geom_info);
   sharp_destroy_alm_info(alm_info);
