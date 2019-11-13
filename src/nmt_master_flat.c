@@ -1,3 +1,4 @@
+#include "config.h"
 #include "utils.h"
 
 static void purify_generic_flat(nmt_field_flat *fl,flouble *mask,fcomplex **walm0,flouble **maps_in,fcomplex **alms_out)

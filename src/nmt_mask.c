@@ -1,3 +1,4 @@
+#include "config.h"
 #include "utils.h"
 
 static void apodize_mask_CX(long nside,flouble *mask_in,flouble *mask_out,flouble aposize,char *apotype)

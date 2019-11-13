@@ -1,3 +1,4 @@
+#include "config.h"
 #include "utils.h"
 
 static fcomplex *product_and_transform(nmt_flatsky_info *fs,flouble *m1,flouble *m2)

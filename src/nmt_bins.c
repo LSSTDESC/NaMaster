@@ -1,3 +1,4 @@
+#include "config.h"
 #include "utils.h"
 
 void nmt_bins_free(nmt_binning_scheme *bins)

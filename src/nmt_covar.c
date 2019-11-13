@@ -1,3 +1,4 @@
+#include "config.h"
 #include "utils.h"
 
 nmt_covar_workspace *nmt_covar_workspace_init(nmt_field *fla1,nmt_field *fla2,

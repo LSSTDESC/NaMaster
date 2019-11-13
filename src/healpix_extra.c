@@ -1,7 +1,7 @@
+#include "config.h"
 #include "utils.h"
 #include <fitsio.h>
 #include <chealpix.h>
-#include <c_utils.h>
 #ifdef LIBSHARP_GITHUB
 #include <ls_fft.h>
 #else
@@ -18,6 +18,23 @@
 #include <sharp.h>
 #define MAX_SHT 32
 #endif
+
+// This is copied from libsharp's c_utils.h to
+// avoid having that as a dependency.
+#define RALLOC(type,num)			\
+  ((type *)my_malloc((num)*sizeof(type)))
+
+void util_free_ (void *ptr)
+{ if ((ptr)!=NULL) free(ptr); }
+
+#define DEALLOC(ptr)				\
+  do { util_free_(ptr); (ptr)=NULL; } while(0)
+
+#define SET_ARRAY(ptr,i1,i2,val)			\
+  do {							\
+    ptrdiff_t cnt_;					\
+    for (cnt_=(i1);cnt_<(i2);++cnt_) (ptr)[cnt_]=(val); \
+  } while(0)
 
 void he_write_healpix_map(flouble **tmap,int nfields,long nside,char *fname)
 {

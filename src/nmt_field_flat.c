@@ -1,3 +1,4 @@
+#include "config.h"
 #include "utils.h"
 
 nmt_k_function *nmt_k_function_alloc(int nk,flouble *karr,flouble *farr,flouble y0,flouble yf,int is_const)
