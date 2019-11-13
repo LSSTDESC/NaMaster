@@ -53,10 +53,9 @@ We provide instructions for each of these here:
 ### 2.2 The gitlab version
 1. Download libsharp from its github repository and unzip the file.
 2. From the libsharp folder run `autoreconf -i`, which will generate a `configure` file.
-3. Follow the instruction on the `COMPILE` file to run `configure`. We suggest using the NERSC GNU programming environment and the `GCC, OpenMP, portable binary` option presented in the `COMPILE` file.
-4. When you run configure as suggestedin `COMPILE`, add `--prefix=$HOME`, so the libraries and headers get installed correctly.
-5. After running the `configure` script, type `make` and `make install`.
-6. Finally, move the header file in `pocketfft/pocketfft.h` to `$HOME/include` by hand, since NaMaster needs to use it.
+3. Follow the instruction on the `COMPILE` file to run `configure`. The command `CC=cc CFLAGS="-std=c99 -O3 -ffast-math" ./configure --prefix=$HOME` should work.
+4. After running the `configure` script, type `make` and `make install`.
+5. Finally, copy the header file in `pocketfft/pocketfft.h` to `$HOME/include` by hand, since NaMaster needs to use it.
 
 ### 2.3 The version shipped with HEALPix
 Instructions provided in section 5 below.
@@ -100,5 +99,5 @@ export CRAYPE_LINK_TYPE=dynamic
 export XTPE_LINK_TYPE=dynamic
 ```
 2. Run `./configure --prefix=$HOME`, `make` and `make install`. If you want to link NaMaster to the libsharp library distributed with HEALPix then run `./configure` adding the `--enable-libsharp_healpix` flag. If you want to link NaMaster to its gitlab version, add the `--enable-libsharp_gitlab` flag instead. If none of these are passed, it will be assumed that you have installed the github version of libsharp.
-3. Run `python setup.py install --user`. This will install the python module, `pymaster`.
+3. Run `python setup.py install --user`. This will install the python module, `pymaster`. As before, if you're linking with the healpix or gitlab versions of libsharp, then add `--enable-libsharp_healpix` or `--enable-libsharp_gitlab` to the `setup.py` command.
 4. To check that the installation worked, go to the `test` directory and run `python check.py`. If you see a bunch of small numbers and plots coming up after a while (and no errors occurred), you can congratulate yourself: you have a working version of NaMaster on NERSC!
