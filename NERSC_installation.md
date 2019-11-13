@@ -54,7 +54,12 @@ We provide instructions for each of these here:
 1. Download libsharp from its github repository and unzip the file.
 2. From the libsharp folder run `autoreconf -i`, which will generate a `configure` file.
 3. Follow the instruction on the `COMPILE` file to run `configure`. The command `CC=cc CFLAGS="-std=c99 -O3 -ffast-math" ./configure --prefix=$HOME` should work.
-4. After running the `configure` script, type `make` and `make install`.
+4. After running the `configure` script, type `make` and `make install`. To check that the installation worked run the test suite typing
+```
+export CRAYPE_LINK_TYPE=dynamic
+export XTPE_LINK_TYPE=dynamic
+make check
+```
 5. Finally, copy the header file in `pocketfft/pocketfft.h` to `$HOME/include` by hand, since NaMaster needs to use it.
 
 ### 2.3 The version shipped with HEALPix
@@ -79,7 +84,7 @@ make install
 3. Run `make c-all`
 4. Move (by hand!) the contents of `./lib/` and `./include/` to their corresponding equivalents in your `$HOME`.
 5. If you want to use the libsharp version distributed with HEALPix with NaMaster you need to
-download HEALPix version >3.50 and configure the C++ package. For this purpose we suggest to use the GNU programming environment
+download HEALPix version >=3.50 and configure the C++ package. For this purpose we suggest to use the GNU programming environment
 ```
 module swap PrgEnv-intel PrgEnv-gnu
 ```
