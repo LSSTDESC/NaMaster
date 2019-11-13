@@ -21,9 +21,20 @@ if '--disable-openmp' in sys.argv:
 else:
     USE_OPENMP = True
 
-libs = [
-    'nmt', 'sharp', 'fftpack', 'c_utils', 'chealpix', 'cfitsio', 'gsl',
-    'gslcblas', 'm'] + FFTW_LIBS
+if '--enable-libsharp_healpix' in sys.argv:
+    sys.argv.pop(sys.argv.index('--enable-libsharp_healpix'))
+    libs = [
+        'nmt', 'sharp', 'pocketfft', 'c_utils', 'chealpix', 'cfitsio',
+        'gsl', 'gslcblas', 'm'] + FFTW_LIBS
+elif '--enable-libsharp_gitlab' in sys.argv:
+    sys.argv.pop(sys.argv.index('--enable-libsharp_gitlab'))
+    libs = [
+        'nmt', 'sharp', 'chealpix', 'cfitsio',
+        'gsl', 'gslcblas', 'm'] + FFTW_LIBS
+else:
+    libs = [
+        'nmt', 'sharp', 'fftpack', 'c_utils', 'chealpix', 'cfitsio',
+        'gsl', 'gslcblas', 'm'] + FFTW_LIBS
 
 use_icc = False  # Set to True if you compiled libsharp with icc
 if use_icc:
