@@ -41,10 +41,8 @@ There are three different versions of libsharp you may want to install:
 1. The github version from [its github repository](https://github.com/dagss/libsharp).
 2. The gitlab version (latest) from [gitlab](https://gitlab.mpcdf.mpg.de/mtr/libsharp).
 3. The version shipped with HEALPix.
-
- You can obtain libsharp also from the HEALPix suite version or from libsharp latest development repository on [gitlab][https://gitlab.mpcdf.mpg.de/mtr/libsharp]. If you want to use libsharp distributed with HEALPIx, skip this section and use the instructions in section 5. If you want to use the gitlab version jump to point 6 of this list.
-
 We provide instructions for each of these here:
+
 ### 2.1 The github version (default)
 1. Download libsharp from its github repository and unzip the file.
 2. From the libsharp folder run `autoreconf -i`, which will generate a `configure` file.
