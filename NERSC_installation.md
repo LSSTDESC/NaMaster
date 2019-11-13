@@ -36,21 +36,32 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$GSL_DIR/lib:$HOME/lib
 Note that the above assumes you'll install all C dependencies below into `$HOME/include` and `$HOME/lib`. I find this a convenient way to keep things tidy at NERSC.
 
 ## 2 Install libsharp
-libsharp is a C library for spherical harmonic transforms. Follow these steps to install it before moving on to NaMaster:
-1. Download libsharp from [its github repository](https://github.com/dagss/libsharp) and unzip the file. You can obtain libsharp also from the HEALPix suite version or from libsharp latest development repository on [gitlab][https://gitlab.mpcdf.mpg.de/mtr/libsharp]. If you want to use libsharp distributed with HEALPIx, go to section 5. If you want to use the gitlab version jump to point 6.
+libsharp is a C library for spherical harmonic transforms. Follow these steps to install it before moving on to NaMaster.
+There are three different versions of libsharp you may want to install:
+1. The github version from [its github repository](https://github.com/dagss/libsharp).
+2. The gitlab version (latest) from [gitlab](https://gitlab.mpcdf.mpg.de/mtr/libsharp).
+3. The version shipped with HEALPix.
+
+ You can obtain libsharp also from the HEALPix suite version or from libsharp latest development repository on [gitlab][https://gitlab.mpcdf.mpg.de/mtr/libsharp]. If you want to use libsharp distributed with HEALPIx, skip this section and use the instructions in section 5. If you want to use the gitlab version jump to point 6 of this list.
+
+We provide instructions for each of these here:
+### 2.1 The github version (default)
+1. Download libsharp from its github repository and unzip the file.
 2. From the libsharp folder run `autoreconf -i`, which will generate a `configure` file.
 3. Run `./configure --enable-pic` and `make`
 4. Create three directories: `bin`, `lib` and `include` in your home directory (unless they're already there). E.g. `mkdir $HOME/bin` etc.
-5. Move the contents of `auto/bin`, `auto/lib` and `auto/include` to the corresponding folders you just created in your home directory.
-6. To compile libsharp from a fresh gitlab checkout, follow the instruction on the `COMPILE` file. We suggest using the NERSC GNU programming environment and the `GCC, OpenMP, portable binary` option presented in the `COMPILE` file. Once you compiled the library and run the tests, add
+5. Move the contents of `auto/bin`, `auto/lib` and `auto/include` to the corresponding folders you just created in your home directory by hand.
 
-```
-export LDFLAGS+=" -L$YOUR_PATH_TO_LIBSHARP/lib"
-export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:$YOUR_PATH_TO_LIBSHARP/lib:
-export CPPFLAGS+=" -I$PATH_TO_LIBSHARP/include/ -I$PATH_TO_LIBSHARP/pocketfft"
-```
-to your environment, where YOUR_PATH_TO_LIBSHARP is the path to your gitlab checkout directory. Note that for the moment you would still need to compile the `c_utils` library distributed and automatically compiled with the github libsharp version separately.
+### 2.2 The gitlab version
+1. Download libsharp from its github repository and unzip the file.
+2. From the libsharp folder run `autoreconf -i`, which will generate a `configure` file.
+3. Follow the instruction on the `COMPILE` file to run `configure`. We suggest using the NERSC GNU programming environment and the `GCC, OpenMP, portable binary` option presented in the `COMPILE` file.
+4. When you run configure as suggestedin `COMPILE`, add `--prefix=$HOME`, so the libraries and headers get installed correctly.
+5. After running the `configure` script, type `make` and `make install`.
+6. Finally, move the header file in `pocketfft/pocketfft.h` to `$HOME/include` by hand, since NaMaster needs to use it.
 
+### 2.3 The version shipped with HEALPix
+Instructions provided in section 5 below.
 
 ## 3 Install cfitsio
 1. Go to https://heasarc.gsfc.nasa.gov/fitsio/ and download the latest tarball. Untar it and go into its root directory.
@@ -81,7 +92,7 @@ export LDFLAGS+=" -L$HEALPIX/src/cxx/optimized_gcc/lib/"
 export CPPFLAGS+=" -I$HEALPIX/src/cxx/optimized_gcc/include/"
 export LD_LIBRARY_PATH+=${LD_LIBRARY_PATH}:$HEALPIX/src/cxx/optimized_gcc/lib/
 ```
-or move the contents of these paths to their corresponding equivalents in your `$HOME`. Note that the `c_utils`library used by NaMaster and libsharp is automatically compiled with HEALPix C++ and stored int he same directory as the libsharp library.
+or move the contents of these paths to their corresponding equivalents in your `$HOME`.
 
 ## 6 Install NaMaster
 Once all the above has been installed, download or clone NaMaster from its [github repository](https://github.com/damonge/NaMaster) and follow these steps:
@@ -90,6 +101,6 @@ Once all the above has been installed, download or clone NaMaster from its [gith
 export CRAYPE_LINK_TYPE=dynamic
 export XTPE_LINK_TYPE=dynamic
 ```
-2. Run `./configure --prefix=$HOME`, `make` and `make install`. If you want to link NaMaster to the libsharp library distributed with HEALPix then run `./configure` adding the `--enable-libsharp_healpix` flag. If you want to link NaMaster to its gitlab version, add the `--enable-libsharp_gitlab` flag instead.
+2. Run `./configure --prefix=$HOME`, `make` and `make install`. If you want to link NaMaster to the libsharp library distributed with HEALPix then run `./configure` adding the `--enable-libsharp_healpix` flag. If you want to link NaMaster to its gitlab version, add the `--enable-libsharp_gitlab` flag instead. If none of these are passed, it will be assumed that you have installed the github version of libsharp.
 3. Run `python setup.py install --user`. This will install the python module, `pymaster`.
 4. To check that the installation worked, go to the `test` directory and run `python check.py`. If you see a bunch of small numbers and plots coming up after a while (and no errors occurred), you can congratulate yourself: you have a working version of NaMaster on NERSC!
