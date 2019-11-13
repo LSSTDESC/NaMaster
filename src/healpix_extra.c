@@ -21,16 +21,16 @@
 
 // This is copied from libsharp's c_utils.h to
 // avoid having that as a dependency.
-#define RALLOC(type,num)			\
+#define MY_ALLOC(type,num)			\
   ((type *)my_malloc((num)*sizeof(type)))
 
-void util_free_ (void *ptr)
+void he_free_ (void *ptr)
 { if ((ptr)!=NULL) free(ptr); }
 
-#define DEALLOC(ptr)				\
-  do { util_free_(ptr); (ptr)=NULL; } while(0)
+#define MY_DEALLOC(ptr)				\
+  do { he_free_(ptr); (ptr)=NULL; } while(0)
 
-#define SET_ARRAY(ptr,i1,i2,val)			\
+#define ARRAY_SET(ptr,i1,i2,val)			\
   do {							\
     ptrdiff_t cnt_;					\
     for (cnt_=(i1);cnt_<(i2);++cnt_) (ptr)[cnt_]=(val); \
@@ -722,15 +722,15 @@ static void sharp_make_cc_geom_info_stripe (int nrings, int ppring, double phi0,
 {
   const double pi=3.141592653589793238462643383279502884197;
 
-  double *theta=RALLOC(double,nrings);
-  double *weight=RALLOC(double,nrings);
-  int *nph=RALLOC(int,nrings);
-  double *phi0_=RALLOC(double,nrings);
-  ptrdiff_t *ofs=RALLOC(ptrdiff_t,nrings);
-  int *stride_=RALLOC(int,nrings);
+  double *theta=MY_ALLOC(double,nrings);
+  double *weight=MY_ALLOC(double,nrings);
+  int *nph=MY_ALLOC(int,nrings);
+  double *phi0_=MY_ALLOC(double,nrings);
+  ptrdiff_t *ofs=MY_ALLOC(ptrdiff_t,nrings);
+  int *stride_=MY_ALLOC(int,nrings);
 
   int n=nrings-1;
-  SET_ARRAY(weight,0,nrings,0.);
+  ARRAY_SET(weight,0,nrings,0.);
   double dw=-1./(n*n-1.+(n&1));
   weight[0]=2.+dw;
   for (int k=1; k<=(n/2-1); ++k)
@@ -766,12 +766,12 @@ static void sharp_make_cc_geom_info_stripe (int nrings, int ppring, double phi0,
   }
 
   // remove subrings which are not in the map
-  double *subtheta=RALLOC(double,nsubrings);
-  double *subweight=RALLOC(double,nsubrings);
-  int *subnph=RALLOC(int,nsubrings);
-  double *subphi0_=RALLOC(double,nsubrings);
-  ptrdiff_t *subofs=RALLOC(ptrdiff_t,nsubrings);
-  int *substride_=RALLOC(int,nsubrings);
+  double *subtheta=MY_ALLOC(double,nsubrings);
+  double *subweight=MY_ALLOC(double,nsubrings);
+  int *subnph=MY_ALLOC(int,nsubrings);
+  double *subphi0_=MY_ALLOC(double,nsubrings);
+  ptrdiff_t *subofs=MY_ALLOC(ptrdiff_t,nsubrings);
+  int *substride_=MY_ALLOC(int,nsubrings);
   for (int m=0; m<nsubrings; ++m) {
     subtheta[m]=theta[(m+i0)];
     subweight[m]=weight[(m+i0)];
@@ -783,19 +783,19 @@ static void sharp_make_cc_geom_info_stripe (int nrings, int ppring, double phi0,
   sharp_make_geom_info (nsubrings, subnph, subofs, substride_,
 			subphi0_, subtheta, subweight, geom_info);
 
-  DEALLOC(theta);
-  DEALLOC(weight);
-  DEALLOC(nph);
-  DEALLOC(phi0_);
-  DEALLOC(ofs);
-  DEALLOC(stride_);
+  MY_DEALLOC(theta);
+  MY_DEALLOC(weight);
+  MY_DEALLOC(nph);
+  MY_DEALLOC(phi0_);
+  MY_DEALLOC(ofs);
+  MY_DEALLOC(stride_);
 
-  DEALLOC(subtheta);
-  DEALLOC(subweight);
-  DEALLOC(subnph);
-  DEALLOC(subphi0_);
-  DEALLOC(subofs);
-  DEALLOC(substride_);
+  MY_DEALLOC(subtheta);
+  MY_DEALLOC(subweight);
+  MY_DEALLOC(subnph);
+  MY_DEALLOC(subphi0_);
+  MY_DEALLOC(subofs);
+  MY_DEALLOC(substride_);
 }
 
 static void sht_wrapper(int spin,int lmax,nmt_curvedsky_info *cs,
