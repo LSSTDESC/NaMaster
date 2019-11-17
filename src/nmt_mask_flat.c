@@ -1,3 +1,4 @@
+#include "config.h"
 #include "utils.h"
 
 static void apodize_mask_CX(nmt_flatsky_info *fs,flouble *mask_in,flouble *mask_out,

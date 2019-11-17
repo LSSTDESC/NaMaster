@@ -1,3 +1,4 @@
+#include "config.h"
 #include "utils.h"
 #include <fitsio.h>
 

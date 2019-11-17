@@ -1,3 +1,4 @@
+#include "config.h"
 #include "utils.h"
 
 int nmt_bins_flat_search_fast(nmt_binning_scheme_flat *bin,flouble l,int il)
