@@ -18,6 +18,8 @@ pip install --user healpy
 ```
 
 ## 1 Prepare to compile the C libraries
+All the instructions below assume that you're using the Intel compilers on NERSC.
+
 You'll want to run the following in order to prepare your environment to install NaMaster:
 ```
 module load gsl/2.5
@@ -61,10 +63,6 @@ make install
 2. Run `./configure` and follow the instructions to install the C package (option 2). Make sure to mark `cc` as your preferred compiler. You don't need the shared library or the suggested modifications to your shell profile.
 3. Run `make c-all`
 4. Move (by hand!) the contents of `./lib/` and `./include/` to their corresponding equivalents in your `$HOME`.
-download HEALPix version >=3.50 and configure the C++ package. For this purpose we suggest to use the GNU programming environment
-```
-module swap PrgEnv-intel PrgEnv-gnu
-```
  Run `./configure` and follow the instructions to install the C++ package. We suggest to use the `optimized_gcc`option. Do not forget to add to your environment the HEALPix C++ related paths. If you used the optimized_gcc configuration these would be
 ```
 export LDFLAGS+=" -L$HEALPIX/src/cxx/optimized_gcc/lib/"
