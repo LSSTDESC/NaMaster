@@ -207,8 +207,11 @@ Functions</h2></td></tr>
 <tr class="memitem:a278c158167ba6b6da1458a8b0e73f3cd"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="utils_8h.html#a278c158167ba6b6da1458a8b0e73f3cd">he_alm2cl</a> (<a class="el" href="namaster_8h.html#a8f59ea55fc4d564945b2e8712a6ef482">fcomplex</a> **alms_1, <a class="el" href="namaster_8h.html#a8f59ea55fc4d564945b2e8712a6ef482">fcomplex</a> **alms_2, int pol_1, int pol_2, <a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> **cls, int lmax)</td></tr>
 <tr class="memdesc:a278c158167ba6b6da1458a8b0e73f3cd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Computes Full-sky power spectrum from harmonic coefficients.  <a href="#a278c158167ba6b6da1458a8b0e73f3cd">More...</a><br /></td></tr>
 <tr class="separator:a278c158167ba6b6da1458a8b0e73f3cd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8f51253b4561522fb7b898e308774849"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="utils_8h.html#a8f51253b4561522fb7b898e308774849">he_get_largest_possible_lmax</a> (<a class="el" href="structnmt__curvedsky__info.html">nmt_curvedsky_info</a> *cs)</td></tr>
+<tr class="memdesc:a8f51253b4561522fb7b898e308774849"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the multipole approximately corresponding to the Nyquist frequency.  <a href="#a8f51253b4561522fb7b898e308774849">More...</a><br /></td></tr>
+<tr class="separator:a8f51253b4561522fb7b898e308774849"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac1baa0c83f6ccff768d9ad6066ce5a39"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="utils_8h.html#ac1baa0c83f6ccff768d9ad6066ce5a39">he_get_lmax</a> (<a class="el" href="structnmt__curvedsky__info.html">nmt_curvedsky_info</a> *cs)</td></tr>
-<tr class="memdesc:ac1baa0c83f6ccff768d9ad6066ce5a39"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get maximum multipole.  <a href="#ac1baa0c83f6ccff768d9ad6066ce5a39">More...</a><br /></td></tr>
+<tr class="memdesc:ac1baa0c83f6ccff768d9ad6066ce5a39"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get maximum multipole allowed by sky geometry configuration.  <a href="#ac1baa0c83f6ccff768d9ad6066ce5a39">More...</a><br /></td></tr>
 <tr class="separator:ac1baa0c83f6ccff768d9ad6066ce5a39"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a30f08e012853472107054d831a649b05"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="utils_8h.html#a30f08e012853472107054d831a649b05">he_anafast</a> (<a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> **maps_1, <a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> **maps_2, int pol_1, int pol_2, <a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> **cls, <a class="el" href="structnmt__curvedsky__info.html">nmt_curvedsky_info</a> *cs, int lmax, int iter)</td></tr>
 <tr class="memdesc:a30f08e012853472107054d831a649b05"><td class="mdescLeft">&#160;</td><td class="mdescRight">Computes Full-sky power spectrum from maps.  <a href="#a30f08e012853472107054d831a649b05">More...</a><br /></td></tr>
@@ -1555,6 +1558,31 @@ Functions</h2></td></tr>
 
 </div>
 </div>
+<a class="anchor" id="a8f51253b4561522fb7b898e308774849"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int he_get_largest_possible_lmax </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structnmt__curvedsky__info.html">nmt_curvedsky_info</a> *&#160;</td>
+          <td class="paramname"><em>cs</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Gets the multipole approximately corresponding to the Nyquist frequency. </p>
+<p>Computes the maximum multipole probed by a map. </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">cs</td><td>curved sky geometry info. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>maximum multipole. </dd></dl>
+
+</div>
+</div>
 <a class="anchor" id="ac1baa0c83f6ccff768d9ad6066ce5a39"></a>
 <div class="memitem">
 <div class="memproto">
@@ -1569,8 +1597,8 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Get maximum multipole. </p>
-<p>Computes the maximum multipole probed by a map. </p><dl class="params"><dt>Parameters</dt><dd>
+<p>Get maximum multipole allowed by sky geometry configuration. </p>
+<p>Returns the maximum multipole for a <a class="el" href="structnmt__curvedsky__info.html" title="Curved-sky information. ">nmt_curvedsky_info</a>. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">cs</td><td>curved sky geometry info. </td></tr>
   </table>

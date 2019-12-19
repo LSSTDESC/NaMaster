@@ -7,7 +7,10 @@ class NmtBin(object):
     An NmtBin object defines the set of bandpowers used in the \
     computation of the pseudo-Cl estimator. The definition of \
     bandpowers is described in Section 3.6 of the scientific \
-    documentation.
+    documentation. We provide several convenience constructors
+    that cover a range of common use cases requiring fewer
+    parameters (see :meth:`NmtBin.from_nside_linear`,
+    :meth:`NmtBin.from_lmax_linear` and :meth:`Nmt.from_edges`).
 
     :param int nside: HEALPix nside resolution parameter of the \
         maps you intend to correlate. The maximum multipole \
