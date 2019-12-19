@@ -797,8 +797,8 @@ workspace_swigregister = _nmtlib.workspace_swigregister
 workspace_swigregister(workspace)
 
 
-def compute_coupling_matrix(fl1, fl2, bin, is_teb, niter):
-    return _nmtlib.compute_coupling_matrix(fl1, fl2, bin, is_teb, niter)
+def compute_coupling_matrix(fl1, fl2, bin, is_teb, niter, lmax_mask):
+    return _nmtlib.compute_coupling_matrix(fl1, fl2, bin, is_teb, niter, lmax_mask)
 compute_coupling_matrix = _nmtlib.compute_coupling_matrix
 
 def update_coupling_matrix(w, n_rows, new_matrix):
@@ -841,8 +841,8 @@ def compute_coupled_cell(fl1, fl2, cl_out):
     return _nmtlib.compute_coupled_cell(fl1, fl2, cl_out)
 compute_coupled_cell = _nmtlib.compute_coupled_cell
 
-def compute_power_spectra(fl1, fl2, bin, w0, cl_noise, cl_proposal, cl_out, niter):
-    return _nmtlib.compute_power_spectra(fl1, fl2, bin, w0, cl_noise, cl_proposal, cl_out, niter)
+def compute_power_spectra(fl1, fl2, bin, w0, cl_noise, cl_proposal, cl_out, niter, lmax_mask):
+    return _nmtlib.compute_power_spectra(fl1, fl2, bin, w0, cl_noise, cl_proposal, cl_out, niter, lmax_mask)
 compute_power_spectra = _nmtlib.compute_power_spectra
 class covar_workspace_flat(_object):
     __swig_setmethods__ = {}
@@ -1109,8 +1109,8 @@ def synfast_new_flat(nx, ny, lx, ly, nfields, seed, ncl1, ncl2, dout):
     return _nmtlib.synfast_new_flat(nx, ny, lx, ly, nfields, seed, ncl1, ncl2, dout)
 synfast_new_flat = _nmtlib.synfast_new_flat
 
-def comp_coupling_matrix(fl1, fl2, bin, is_teb, n_iter):
-    return _nmtlib.comp_coupling_matrix(fl1, fl2, bin, is_teb, n_iter)
+def comp_coupling_matrix(fl1, fl2, bin, is_teb, n_iter, lmax_mask):
+    return _nmtlib.comp_coupling_matrix(fl1, fl2, bin, is_teb, n_iter, lmax_mask)
 comp_coupling_matrix = _nmtlib.comp_coupling_matrix
 
 def comp_coupling_matrix_flat(fl1, fl2, bin, lmn_x, lmx_x, lmn_y, lmx_y, is_teb):
@@ -1201,8 +1201,8 @@ def couple_cell_py_flat(w, nell3, ncl1, dout):
     return _nmtlib.couple_cell_py_flat(w, nell3, ncl1, dout)
 couple_cell_py_flat = _nmtlib.couple_cell_py_flat
 
-def comp_pspec(fl1, fl2, bin, w0, ncl1, ncl2, dout, n_iter):
-    return _nmtlib.comp_pspec(fl1, fl2, bin, w0, ncl1, ncl2, dout, n_iter)
+def comp_pspec(fl1, fl2, bin, w0, ncl1, ncl2, dout, n_iter, lmax_mask):
+    return _nmtlib.comp_pspec(fl1, fl2, bin, w0, ncl1, ncl2, dout, n_iter, lmax_mask)
 comp_pspec = _nmtlib.comp_pspec
 
 def comp_pspec_flat(fl1, fl2, bin, w0, ncl1, nell3, ncl2, dout, lmn_x, lmx_x, lmn_y, lmx_y):

@@ -3852,9 +3852,9 @@ void synfast_new_flat(int nx,int ny,double lx,double ly,
 }
 
  nmt_workspace *comp_coupling_matrix(nmt_field *fl1,nmt_field *fl2,nmt_binning_scheme *bin,
-				     int is_teb,int n_iter)
+				     int is_teb,int n_iter,int lmax_mask)
 {
-  return nmt_compute_coupling_matrix(fl1,fl2,bin,is_teb,n_iter);
+  return nmt_compute_coupling_matrix(fl1,fl2,bin,is_teb,n_iter,lmax_mask);
 }
 
 nmt_workspace_flat *comp_coupling_matrix_flat(nmt_field_flat *fl1,nmt_field_flat *fl2,
@@ -4197,7 +4197,8 @@ void comp_pspec(nmt_field *fl1,nmt_field *fl2,
 		nmt_binning_scheme *bin,nmt_workspace *w0,
 		int ncl1,int nell1,double *cls1,
 		int ncl2,int nell2,double *cls2,
-		double *dout,int ndout,int n_iter)
+		double *dout,int ndout,int n_iter,
+		int lmax_mask)
 {
   int i;
   double **cl_noise,**cl_guess,**cl_out;
@@ -4217,7 +4218,7 @@ void comp_pspec(nmt_field *fl1,nmt_field *fl2,
     cl_out[i]=&(dout[i*bin->n_bands]);
   }
 
-  w=nmt_compute_power_spectra(fl1,fl2,bin,w0,cl_noise,cl_guess,cl_out,n_iter);
+  w=nmt_compute_power_spectra(fl1,fl2,bin,w0,cl_noise,cl_guess,cl_out,n_iter,lmax_mask);
 
   free(cl_out);
   free(cl_guess);
@@ -12581,6 +12582,7 @@ SWIGINTERN PyObject *_wrap_compute_coupling_matrix(PyObject *SWIGUNUSEDPARM(self
   nmt_binning_scheme *arg3 = (nmt_binning_scheme *) 0 ;
   int arg4 ;
   int arg5 ;
+  int arg6 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   void *argp2 = 0 ;
@@ -12591,14 +12593,17 @@ SWIGINTERN PyObject *_wrap_compute_coupling_matrix(PyObject *SWIGUNUSEDPARM(self
   int ecode4 = 0 ;
   int val5 ;
   int ecode5 = 0 ;
+  int val6 ;
+  int ecode6 = 0 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   PyObject * obj2 = 0 ;
   PyObject * obj3 = 0 ;
   PyObject * obj4 = 0 ;
+  PyObject * obj5 = 0 ;
   nmt_workspace *result = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"OOOOO:compute_coupling_matrix",&obj0,&obj1,&obj2,&obj3,&obj4)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOOOOO:compute_coupling_matrix",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_field, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "compute_coupling_matrix" "', argument " "1"" of type '" "nmt_field *""'"); 
@@ -12624,7 +12629,12 @@ SWIGINTERN PyObject *_wrap_compute_coupling_matrix(PyObject *SWIGUNUSEDPARM(self
     SWIG_exception_fail(SWIG_ArgError(ecode5), "in method '" "compute_coupling_matrix" "', argument " "5"" of type '" "int""'");
   } 
   arg5 = (int)(val5);
-  result = (nmt_workspace *)nmt_compute_coupling_matrix(arg1,arg2,arg3,arg4,arg5);
+  ecode6 = SWIG_AsVal_int(obj5, &val6);
+  if (!SWIG_IsOK(ecode6)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode6), "in method '" "compute_coupling_matrix" "', argument " "6"" of type '" "int""'");
+  } 
+  arg6 = (int)(val6);
+  result = (nmt_workspace *)nmt_compute_coupling_matrix(arg1,arg2,arg3,arg4,arg5,arg6);
   resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_nmt_workspace, 0 |  0 );
   return resultobj;
 fail:
@@ -13030,6 +13040,7 @@ SWIGINTERN PyObject *_wrap_compute_power_spectra(PyObject *SWIGUNUSEDPARM(self),
   flouble **arg6 = (flouble **) 0 ;
   flouble **arg7 = (flouble **) 0 ;
   int arg8 ;
+  int arg9 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   void *argp2 = 0 ;
@@ -13046,6 +13057,8 @@ SWIGINTERN PyObject *_wrap_compute_power_spectra(PyObject *SWIGUNUSEDPARM(self),
   int res7 = 0 ;
   int val8 ;
   int ecode8 = 0 ;
+  int val9 ;
+  int ecode9 = 0 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   PyObject * obj2 = 0 ;
@@ -13054,9 +13067,10 @@ SWIGINTERN PyObject *_wrap_compute_power_spectra(PyObject *SWIGUNUSEDPARM(self),
   PyObject * obj5 = 0 ;
   PyObject * obj6 = 0 ;
   PyObject * obj7 = 0 ;
+  PyObject * obj8 = 0 ;
   nmt_workspace *result = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"OOOOOOOO:compute_power_spectra",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6,&obj7)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOOOOOOOO:compute_power_spectra",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6,&obj7,&obj8)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_field, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "compute_power_spectra" "', argument " "1"" of type '" "nmt_field *""'"); 
@@ -13097,7 +13111,12 @@ SWIGINTERN PyObject *_wrap_compute_power_spectra(PyObject *SWIGUNUSEDPARM(self),
     SWIG_exception_fail(SWIG_ArgError(ecode8), "in method '" "compute_power_spectra" "', argument " "8"" of type '" "int""'");
   } 
   arg8 = (int)(val8);
-  result = (nmt_workspace *)nmt_compute_power_spectra(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8);
+  ecode9 = SWIG_AsVal_int(obj8, &val9);
+  if (!SWIG_IsOK(ecode9)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode9), "in method '" "compute_power_spectra" "', argument " "9"" of type '" "int""'");
+  } 
+  arg9 = (int)(val9);
+  result = (nmt_workspace *)nmt_compute_power_spectra(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9);
   resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_nmt_workspace, 0 |  0 );
   return resultobj;
 fail:
@@ -17651,6 +17670,7 @@ SWIGINTERN PyObject *_wrap_comp_coupling_matrix(PyObject *SWIGUNUSEDPARM(self), 
   nmt_binning_scheme *arg3 = (nmt_binning_scheme *) 0 ;
   int arg4 ;
   int arg5 ;
+  int arg6 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   void *argp2 = 0 ;
@@ -17661,14 +17681,17 @@ SWIGINTERN PyObject *_wrap_comp_coupling_matrix(PyObject *SWIGUNUSEDPARM(self), 
   int ecode4 = 0 ;
   int val5 ;
   int ecode5 = 0 ;
+  int val6 ;
+  int ecode6 = 0 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   PyObject * obj2 = 0 ;
   PyObject * obj3 = 0 ;
   PyObject * obj4 = 0 ;
+  PyObject * obj5 = 0 ;
   nmt_workspace *result = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"OOOOO:comp_coupling_matrix",&obj0,&obj1,&obj2,&obj3,&obj4)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOOOOO:comp_coupling_matrix",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_field, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "comp_coupling_matrix" "', argument " "1"" of type '" "nmt_field *""'"); 
@@ -17694,9 +17717,14 @@ SWIGINTERN PyObject *_wrap_comp_coupling_matrix(PyObject *SWIGUNUSEDPARM(self), 
     SWIG_exception_fail(SWIG_ArgError(ecode5), "in method '" "comp_coupling_matrix" "', argument " "5"" of type '" "int""'");
   } 
   arg5 = (int)(val5);
+  ecode6 = SWIG_AsVal_int(obj5, &val6);
+  if (!SWIG_IsOK(ecode6)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode6), "in method '" "comp_coupling_matrix" "', argument " "6"" of type '" "int""'");
+  } 
+  arg6 = (int)(val6);
   {
     try {
-      result = (nmt_workspace *)comp_coupling_matrix(arg1,arg2,arg3,arg4,arg5);
+      result = (nmt_workspace *)comp_coupling_matrix(arg1,arg2,arg3,arg4,arg5,arg6);
     }
     finally {
       SWIG_exception(SWIG_RuntimeError,nmt_error_message);
@@ -19739,6 +19767,7 @@ SWIGINTERN PyObject *_wrap_comp_pspec(PyObject *SWIGUNUSEDPARM(self), PyObject *
   double *arg11 = (double *) 0 ;
   int arg12 ;
   int arg13 ;
+  int arg14 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   void *argp2 = 0 ;
@@ -19754,6 +19783,8 @@ SWIGINTERN PyObject *_wrap_comp_pspec(PyObject *SWIGUNUSEDPARM(self), PyObject *
   PyObject *array11 = NULL ;
   int val13 ;
   int ecode13 = 0 ;
+  int val14 ;
+  int ecode14 = 0 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   PyObject * obj2 = 0 ;
@@ -19762,8 +19793,9 @@ SWIGINTERN PyObject *_wrap_comp_pspec(PyObject *SWIGUNUSEDPARM(self), PyObject *
   PyObject * obj5 = 0 ;
   PyObject * obj6 = 0 ;
   PyObject * obj7 = 0 ;
+  PyObject * obj8 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"OOOOOOOO:comp_pspec",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6,&obj7)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOOOOOOOO:comp_pspec",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6,&obj7,&obj8)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_field, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "comp_pspec" "', argument " "1"" of type '" "nmt_field *""'"); 
@@ -19831,9 +19863,14 @@ SWIGINTERN PyObject *_wrap_comp_pspec(PyObject *SWIGUNUSEDPARM(self), PyObject *
     SWIG_exception_fail(SWIG_ArgError(ecode13), "in method '" "comp_pspec" "', argument " "13"" of type '" "int""'");
   } 
   arg13 = (int)(val13);
+  ecode14 = SWIG_AsVal_int(obj8, &val14);
+  if (!SWIG_IsOK(ecode14)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode14), "in method '" "comp_pspec" "', argument " "14"" of type '" "int""'");
+  } 
+  arg14 = (int)(val14);
   {
     try {
-      comp_pspec(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13);
+      comp_pspec(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13,arg14);
     }
     finally {
       SWIG_exception(SWIG_RuntimeError,nmt_error_message);

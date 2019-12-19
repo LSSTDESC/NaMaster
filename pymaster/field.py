@@ -51,6 +51,9 @@ class NmtField(object):
     :param wcs: a WCS object if using rectangular pixels (see \
         http://docs.astropy.org/en/stable/wcs/index.html).
     :param n_iter: number of iterations when computing a_lms.
+    :param lmax_sht: maximum multipole up to which map power spectra will be
+        computed. If negative or zero, the maximum multipole given the map
+        resolution will be used (e.g. 3 * nside - 1 for HEALPix maps).
     """
     def __init__(self, mask, maps, templates=None, beam=None,
                  purify_e=False, purify_b=False, n_iter_mask_purify=3,
@@ -112,7 +115,7 @@ class NmtField(object):
                 raise ValueError("Input templates can only be an array "
                                  "or None\n")
 
-        if lmax_sht is not -1:
+        if lmax_sht > 0:
             lmax = lmax_sht
         else:
             lmax = wt.get_lmax()

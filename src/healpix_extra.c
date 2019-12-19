@@ -172,6 +172,7 @@ nmt_curvedsky_info *he_get_file_params(char *fname,int is_healpix,int *nfields,i
   if(cs->is_healpix) {
     he_get_HPX_file_params(fname,&(cs->n_eq),nfields,isnest);
     cs->npix=12*cs->n_eq*cs->n_eq;
+    cs->lmax_sht=3*cs->n_eq-1;
   }
   else
     report_error(NMT_ERROR_NOT_IMPLEMENTED,"No IO functions for non-HEALPix pixelizations\n");

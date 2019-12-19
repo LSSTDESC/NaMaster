@@ -187,9 +187,10 @@ void nmt_update_coupling_matrix(nmt_workspace *w,int n_rows,double *new_matrix)
 // fl1,fl2 (in) : fields we're correlating
 // coupling_matrix_out (out) : unbinned coupling matrix
 nmt_workspace *nmt_compute_coupling_matrix(nmt_field *fl1,nmt_field *fl2,
-					   nmt_binning_scheme *bin,int is_teb,int niter)
+					   nmt_binning_scheme *bin,int is_teb,
+					   int niter,int lmax_mask)
 {
-  int l2,lmax_large;
+  int l2,lmax_large,lmax_fields;
   nmt_workspace *w;
   flouble *beam_prod;
   int n_cl=fl1->nmaps*fl2->nmaps;
@@ -200,17 +201,26 @@ nmt_workspace *nmt_compute_coupling_matrix(nmt_field *fl1,nmt_field *fl2,
   }
 
   if(!(nmt_diff_curvedsky_info(fl1->cs,fl2->cs)))
-    report_error(NMT_ERROR_CONSISTENT_RESO,"Can't correlate fields with different pixelizations\n");
+    report_error(NMT_ERROR_CONSISTENT_RESO,
+		 "Can't correlate fields with different pixelizations"
+		 " or resolutions\n");
   if(bin->ell_max>he_get_lmax(fl1->cs))
-    report_error(NMT_ERROR_CONSISTENT_RESO,"Requesting bandpowers for too high a multipole given map resolution\n");
+    report_error(NMT_ERROR_CONSISTENT_RESO,
+		 "Requesting bandpowers for too high a "
+		 "multipole given map resolution\n");
   w=nmt_workspace_new(fl1->cs,n_cl,bin,is_teb);
-  lmax_large=he_get_lmax(w->cs);
-  beam_prod=my_malloc((lmax_large+1)*sizeof(flouble));
-  he_anafast(&(fl1->mask),&(fl2->mask),0,0,&(w->pcl_masks),fl1->cs,lmax_large,niter);
-  for(l2=0;l2<=lmax_large;l2++) {
-    w->pcl_masks[l2]*=(2*l2+1.);
+  lmax_fields=fl1->lmax; // ell_max for the maps
+  lmax_large=lmax_fields; // ell_max for the masks
+  if(lmax_mask>lmax_large)
+    lmax_large=lmax_mask;
+
+  beam_prod=my_malloc((lmax_fields+1)*sizeof(flouble));
+  for(l2=0;l2<=lmax_fields;l2++)
     beam_prod[l2]=fl1->beam[l2]*fl2->beam[l2];
-  }
+
+  he_anafast(&(fl1->mask),&(fl2->mask),0,0,&(w->pcl_masks),fl1->cs,lmax_large,niter);
+  for(l2=0;l2<=lmax_large;l2++)
+    w->pcl_masks[l2]*=(2*l2+1.);
 
 #pragma omp parallel default(none)		\
   shared(w,beam_prod,fl1,fl2,lmax_large)
@@ -781,14 +791,14 @@ void nmt_compute_coupled_cell(nmt_field *fl1,nmt_field *fl2,flouble **cl_out)
 nmt_workspace *nmt_compute_power_spectra(nmt_field *fl1,nmt_field *fl2,
 					 nmt_binning_scheme *bin,nmt_workspace *w0,
 					 flouble **cl_noise,flouble **cl_proposal,flouble **cl_out,
-					 int niter)
+					 int niter,int lmax_mask)
 {
   int ii;
   flouble **cl_bias,**cl_data;
   nmt_workspace *w;
 
   if(w0==NULL)
-    w=nmt_compute_coupling_matrix(fl1,fl2,bin,0,niter);
+    w=nmt_compute_coupling_matrix(fl1,fl2,bin,0,niter,lmax_mask);
   else {
     w=w0;
     if(w->lmax>fl1->lmax)

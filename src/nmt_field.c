@@ -19,7 +19,7 @@ nmt_curvedsky_info *nmt_curvedsky_info_copy(nmt_curvedsky_info *cs_in)
 }
 
 nmt_curvedsky_info *nmt_curvedsky_info_alloc(int is_healpix,long nside,
-               int lmax_sht,
+					     int lmax_sht,
 					     int nx0,int ny0,flouble Dtheta,flouble Dphi,
 					     flouble phi0,flouble theta0)
 {
@@ -71,7 +71,7 @@ nmt_curvedsky_info *nmt_curvedsky_info_alloc(int is_healpix,long nside,
   }
 
   // set lmax values, affects calls to he_get_lmax
-  if (lmax_sht == -1)
+  if (lmax_sht <= 0)
     cs->lmax_sht=he_get_largest_possible_lmax(cs);
   else
     cs->lmax_sht=lmax_sht;
@@ -101,12 +101,13 @@ flouble *nmt_extend_CAR_map(nmt_curvedsky_info *cs,flouble *map_in)
 int nmt_diff_curvedsky_info(nmt_curvedsky_info *c1, nmt_curvedsky_info *c2)
 {
   if(c1->is_healpix)
-    return (c2->is_healpix && (c1->n_eq==c2->n_eq));
+    return (c2->is_healpix && (c1->n_eq==c2->n_eq) && (c1->lmax_sht==c2->lmax_sht));
   else
     return ((!(c2->is_healpix)) && (c1->nx_short==c2->nx_short) && (c1->nx==c2->nx) && (c1->ny==c2->ny)
 	    && (fabs(c1->phi0-c2->phi0)<1e-6) && (fabs(c1->theta0-c2->theta0)<1e-6)
 	    && (fabs(c1->Delta_theta-c2->Delta_theta)<1e-6)
-	    && (fabs(c1->Delta_phi-c2->Delta_phi)<1e-6));
+	    && (fabs(c1->Delta_phi-c2->Delta_phi)<1e-6)
+	    && (c1->lmax_sht==c2->lmax_sht));
 }
   
 void nmt_field_free(nmt_field *fl)

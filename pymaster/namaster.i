@@ -566,9 +566,9 @@ void synfast_new_flat(int nx,int ny,double lx,double ly,
 }
 
  nmt_workspace *comp_coupling_matrix(nmt_field *fl1,nmt_field *fl2,nmt_binning_scheme *bin,
-				     int is_teb,int n_iter)
+				     int is_teb,int n_iter,int lmax_mask)
 {
-  return nmt_compute_coupling_matrix(fl1,fl2,bin,is_teb,n_iter);
+  return nmt_compute_coupling_matrix(fl1,fl2,bin,is_teb,n_iter,lmax_mask);
 }
 
 nmt_workspace_flat *comp_coupling_matrix_flat(nmt_field_flat *fl1,nmt_field_flat *fl2,
@@ -911,7 +911,8 @@ void comp_pspec(nmt_field *fl1,nmt_field *fl2,
 		nmt_binning_scheme *bin,nmt_workspace *w0,
 		int ncl1,int nell1,double *cls1,
 		int ncl2,int nell2,double *cls2,
-		double *dout,int ndout,int n_iter)
+		double *dout,int ndout,int n_iter,
+		int lmax_mask)
 {
   int i;
   double **cl_noise,**cl_guess,**cl_out;
@@ -931,7 +932,7 @@ void comp_pspec(nmt_field *fl1,nmt_field *fl2,
     cl_out[i]=&(dout[i*bin->n_bands]);
   }
 
-  w=nmt_compute_power_spectra(fl1,fl2,bin,w0,cl_noise,cl_guess,cl_out,n_iter);
+  w=nmt_compute_power_spectra(fl1,fl2,bin,w0,cl_noise,cl_guess,cl_out,n_iter,lmax_mask);
 
   free(cl_out);
   free(cl_guess);
