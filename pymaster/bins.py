@@ -16,7 +16,8 @@ class NmtBin(object):
     :param array-like ells: array of integers corresponding to \
         different multipoles
     :param array-like bpws: array of integers that assign the \
-        multipoles in ells to different bandpowers
+        multipoles in ells to different bandpowers. All negative \
+        values will be ignored.
     :param array-like weights: array of floats corresponding to \
         the weights associated to each multipole in ells. The sum \
         of weights within each bandpower is normalized to 1.
@@ -42,7 +43,7 @@ class NmtBin(object):
         pseudo-Cl computations carried out using this bandpower scheme. \
         If not `None`, the value of `is_Dell` is ignored.
     """
-    def __init__(self, nside, bpws=None, ells=None, weights=None,
+    def __init__(self, nside=None, bpws=None, ells=None, weights=None,
                  nlb=None, lmax=None, is_Dell=False, f_ell=None):
         self.bin = None
 
@@ -52,7 +53,14 @@ class NmtBin(object):
                            "bandpower width")
 
         if lmax is None:
-            lmax_in = 3 * nside - 1
+            if nside is None:
+                if ells is None:
+                    raise ValueError("Must provide either `lmax`, `nside` "
+                                     "or `ells`.")
+                else:
+                    lmax_in = np.amax(ells)
+            else:
+                lmax_in = 3 * nside - 1
         else:
             lmax_in = lmax
 
@@ -64,14 +72,84 @@ class NmtBin(object):
                     f_ell = ells * (ells + 1.) / (2 * np.pi)
                 else:
                     f_ell = np.ones(len(ells))
-            ell_max = min(3 * nside - 1, lmax_in)
             self.bin = lib.bins_create_py(bpws.astype(np.int32),
                                           ells.astype(np.int32),
-                                          weights, f_ell, int(ell_max))
+                                          weights, f_ell, int(lmax_in))
         else:
-            ell_max = min(3 * nside - 1, lmax_in)
-            self.bin = lib.bins_constant(nlb, ell_max, int(is_Dell))
-        self.lmax = ell_max
+            self.bin = lib.bins_constant(nlb, lmax_in, int(is_Dell))
+        self.lmax = lmax_in
+
+    @classmethod
+    def from_nside_linear(NmtBin, nside, nlb, is_Dell=False):
+        """
+        Convenience constructor for HEALPix maps with linear binning.
+
+        :param int nside: HEALPix nside resolution parameter of the \
+            maps you intend to correlate. The maximum multipole \
+            considered for bandpowers will be 3*nside-1.
+        :param int nlb: integer value corresponding to a constant \
+            bandpower width. I.e. the bandpowers will be defined as \
+            consecutive sets of nlb multipoles from l=2 to l=lmax \
+            with equal weights.
+        :param boolean is_Dell: if True, the output of all pseudo-Cl \
+            computations carried out using this bandpower scheme (e.g. \
+            from :py:meth:`pymaster.workspaces.NmtWorkspace.decouple_cell`) \
+            will be multiplied by `ell * (ell + 1) / 2 * PI`, where `ell` \
+            is the multipole order (no prefactor otherwise).
+        """
+        return NmtBin(nside=nside, nlb=nlb, is_Dell=is_Dell)
+
+    @classmethod
+    def from_lmax_linear(NmtBin, lmax, nlb, is_Dell=False):
+        """
+        Convenience constructor for generic linear binning.
+
+        :param int lmax: integer value corresponding to the maximum \
+            multipole used by these bandpowers. 
+        :param int nlb: integer value corresponding to a constant \
+            bandpower width. I.e. the bandpowers will be defined as \
+            consecutive sets of nlb multipoles from l=2 to l=lmax \
+            with equal weights.
+        :param boolean is_Dell: if True, the output of all pseudo-Cl \
+            computations carried out using this bandpower scheme (e.g. \
+            from :py:meth:`pymaster.workspaces.NmtWorkspace.decouple_cell`) \
+            will be multiplied by `ell * (ell + 1) / 2 * PI`, where `ell` \
+            is the multipole order (no prefactor otherwise).
+        """
+        return NmtBin(lmax=lmax, nlb=nlb, is_Dell=is_Dell)
+
+    @classmethod
+    def from_edges(NmtBin, ell_ini, ell_end, is_Dell=False):
+        """
+        Convenience constructor for general equal-weight bands.
+        All ells in the interval [ell_ini, ell_end) will be
+        binned with equal weights across the band.
+
+        :param int ell_ini: array containing the lower edges of each
+            bandpower.
+        :param int ell_end: array containing the upper edges of each
+            bandpower.
+        :param boolean is_Dell: if True, the output of all pseudo-Cl \
+            computations carried out using this bandpower scheme (e.g. \
+            from :py:meth:`pymaster.workspaces.NmtWorkspace.decouple_cell`) \
+            will be multiplied by `ell * (ell + 1) / 2 * PI`, where `ell` \
+            is the multipole order (no prefactor otherwise).
+        """
+        nls = np.amax(ell_end)
+        ells, bpws, weights = [], [], []
+        for ib, (li, le) in enumerate(zip(ell_ini, ell_end)):
+            nlb = int(le - li)
+            ells += list(range(li, le))
+            bpws += [ib] * nlb
+            weights += [1./nlb] * nlb
+        ells = np.array(ells)
+        bpws = np.array(bpws)
+        weights = np.array(weights)
+        return NmtBin(bpws=bpws,
+                      ells=ells,
+                      weights=weights,
+                      lmax=nls-1,
+                      is_Dell=is_Dell)
 
     def __del__(self):
         if self.bin is not None:

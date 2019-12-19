@@ -34,14 +34,14 @@ class TestWorkspaceCAR(unittest.TestCase) :
         self.lmax=self.wt.get_lmax()
         self.nlb=50
         self.npix=self.wt.npix
-        self.b=nmt.NmtBin(100000,nlb=self.nlb,lmax=self.lmax)
+        self.b=nmt.NmtBin(nlb=self.nlb,lmax=self.lmax)
         self.l,self.cltt,self.clte,self.clee,self.clbb,self.cltb,self.cleb=np.loadtxt("test/benchmarks/pspy_cls.txt",unpack=True)
         self.f0=nmt.NmtField(self.msk,[self.mps[0]],wcs=self.wcs,n_iter=0)
         self.f0_half=nmt.NmtField(self.msk[:self.ny//2,:self.nx//2],
                                   [self.mps[0][:self.ny//2,:self.nx//2]],
                                   wcs=self.wcs,n_iter=0) 
-        self.b_half=nmt.NmtBin(100000,nlb=self.nlb,lmax=self.lmax//2)
-        self.b_doub=nmt.NmtBin(100000,nlb=self.nlb,lmax=self.lmax*2)
+        self.b_half=nmt.NmtBin(nlb=self.nlb,lmax=self.lmax//2)
+        self.b_doub=nmt.NmtBin(nlb=self.nlb,lmax=self.lmax*2)
         self.n_good=np.zeros([1,(self.lmax+1)])
         self.n_bad=np.zeros([2,(self.lmax+1)])
         self.n_half=np.zeros([1,(self.lmax//2+1)])
