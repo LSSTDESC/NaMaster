@@ -16,10 +16,15 @@ class TestBinsSph(unittest.TestCase) :
         bpws=(ells-2)//4
         weights=0.25*np.ones(self.lmax-4)
         fell=ells*(ells+1.)/(2*np.pi)
-        self.bv=nmt.NmtBin(self.nside,bpws=bpws,ells=ells,weights=weights,lmax=self.lmax)
-        self.bcf=nmt.NmtBin(self.nside,nlb=4,lmax=self.lmax,is_Dell=True)
-        self.bvf1=nmt.NmtBin(self.nside,bpws=bpws,ells=ells,weights=weights,lmax=self.lmax,is_Dell=True)
-        self.bvf2=nmt.NmtBin(self.nside,bpws=bpws,ells=ells,weights=weights,lmax=self.lmax,f_ell=fell)
+        self.bv=nmt.NmtBin(nside=self.nside,bpws=bpws,ells=ells,weights=weights,
+                           lmax=self.lmax)
+        self.bcf=nmt.NmtBin(nside=self.nside,nlb=4,lmax=self.lmax,is_Dell=True)
+        self.bvf1=nmt.NmtBin(nside=self.nside,bpws=bpws,ells=ells,weights=weights,
+                             lmax=self.lmax,is_Dell=True)
+        self.bvf2=nmt.NmtBin(nside=self.nside,bpws=bpws,ells=ells,weights=weights,
+                             lmax=self.lmax,f_ell=fell)
+        l_edges = np.arange(2, self.lmax+2, 4, dtype=int)
+        self.be=nmt.NmtBin.from_edges(l_edges[:-1],l_edges[1:])
         
     def test_bins_errors(self) :
         #Tests raised exceptions
@@ -28,17 +33,24 @@ class TestBinsSph(unittest.TestCase) :
         weights=0.25*np.ones(self.lmax-4)
         weights[16:20]=0
         with self.assertRaises(RuntimeError):
-            b=nmt.NmtBin(self.nside,bpws=bpws,ells=ells,weights=weights,lmax=self.lmax)
+            b=nmt.NmtBin(nside=self.nside,bpws=bpws,ells=ells,weights=weights,lmax=self.lmax)
         with self.assertRaises(ValueError):
             self.bv.bin_cell(np.random.randn(3,3,3))
         with self.assertRaises(ValueError):
             self.bv.unbin_cell(np.random.randn(3,3,3))
 
+    def test_bins_edges(self):
+        #Tests bandpowers generated from edges
+        self.assertEqual(self.bc.get_n_bands(),
+                         self.be.get_n_bands())
+        self.assertTrue(np.sum(np.fabs(self.bc.get_effective_ells()-
+                                       self.be.get_effective_ells()))<1E-10)
+
     def test_bins_constant(self) :
         #Tests constant bandpower initialization
         self.assertEqual(self.bc.get_n_bands(),(self.lmax-2)//self.nlb)
         self.assertEqual(self.bc.get_ell_list(5)[2],2+self.nlb*5+2)
-        b=nmt.NmtBin(1024,nlb=4,lmax=2000)
+        b=nmt.NmtBin(nside=1024,nlb=4,lmax=2000)
         self.assertEqual(b.bin.ell_max,2000)
 
     def test_bins_variable(self) :

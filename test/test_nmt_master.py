@@ -34,14 +34,14 @@ class TestWorkspaceCAR(unittest.TestCase) :
         self.lmax=self.wt.get_lmax()
         self.nlb=50
         self.npix=self.wt.npix
-        self.b=nmt.NmtBin(nlb=self.nlb,lmax=self.lmax)
+        self.b=nmt.NmtBin.from_lmax_linear(self.lmax,self.nlb)
         self.l,self.cltt,self.clte,self.clee,self.clbb,self.cltb,self.cleb=np.loadtxt("test/benchmarks/pspy_cls.txt",unpack=True)
         self.f0=nmt.NmtField(self.msk,[self.mps[0]],wcs=self.wcs,n_iter=0)
         self.f0_half=nmt.NmtField(self.msk[:self.ny//2,:self.nx//2],
                                   [self.mps[0][:self.ny//2,:self.nx//2]],
                                   wcs=self.wcs,n_iter=0) 
-        self.b_half=nmt.NmtBin(nlb=self.nlb,lmax=self.lmax//2)
-        self.b_doub=nmt.NmtBin(nlb=self.nlb,lmax=self.lmax*2)
+        self.b_half=nmt.NmtBin.from_lmax_linear(self.lmax//2,self.nlb)
+        self.b_doub=nmt.NmtBin.from_lmax_linear(self.lmax*2,self.nlb)
         self.n_good=np.zeros([1,(self.lmax+1)])
         self.n_bad=np.zeros([2,(self.lmax+1)])
         self.n_half=np.zeros([1,(self.lmax//2+1)])
@@ -130,12 +130,12 @@ class TestWorkspaceHPX(unittest.TestCase) :
         self.msk=hp.read_map("test/benchmarks/msk.fits",verbose=False)
         self.mps=np.array(hp.read_map("test/benchmarks/mps.fits",verbose=False,field=[0,1,2]))
         self.tmp=np.array(hp.read_map("test/benchmarks/tmp.fits",verbose=False,field=[0,1,2]))
-        self.b=nmt.NmtBin(self.nside,nlb=self.nlb)
+        self.b=nmt.NmtBin.from_nside_linear(self.nside,self.nlb)
         self.f0=nmt.NmtField(self.msk,[self.mps[0]]) #Original nside
         self.f2=nmt.NmtField(self.msk,[self.mps[1],self.mps[2]])
         self.f0_half=nmt.NmtField(self.msk[:self.npix//4],[self.mps[0,:self.npix//4]]) #Half nside
-        self.b_half=nmt.NmtBin(self.nside//2,nlb=self.nlb) #Small-nside bandpowers
-        self.b_doub=nmt.NmtBin(2*self.nside,nlb=self.nlb) #Large-nside bandposers
+        self.b_half=nmt.NmtBin.from_nside_linear(self.nside//2,self.nlb) #Small-nside bandpowers
+        self.b_doub=nmt.NmtBin.from_nside_linear(2*self.nside,self.nlb) #Large-nside bandposers
         self.n_good=np.zeros([1,3*self.nside])
         self.n_bad=np.zeros([2,3*self.nside])
         self.n_half=np.zeros([1,3*(self.nside//2)])

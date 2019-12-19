@@ -24,7 +24,7 @@ msk[np.where((th < 2.63) & (th > 1.86) &
 msk_apo = nmt.mask_apodization(msk, 10.0, apotype='C1')
 
 # Select a binning scheme
-b = nmt.NmtBin(nside, nlb=16)
+b = nmt.NmtBin.from_nside_linear(nside, 16)
 leff = b.get_effective_ells()
 
 # Read power spectrum and provide function to generate simulated skies

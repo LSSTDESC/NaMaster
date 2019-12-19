@@ -9,7 +9,7 @@ nside = 256
 
 # Initialize binning scheme with bandpowers of constant width
 # (4 multipoles per bin)
-bin1 = nmt.NmtBin(nside, nlb=4)
+bin1 = nmt.NmtBin.from_nside_linear(nside, 4)
 
 # Initialize binning scheme with custom-made bandpowers.
 # In this case we simply manually choose these bandpowers to also have
@@ -21,12 +21,12 @@ i = 0
 while 4 * (i + 1) + 2 < 3 * nside:
     bpws[4 * i + 2:4 * (i + 1) + 2] = i
     i += 1
-bin2 = nmt.NmtBin(nside, bpws=bpws, ells=ells, weights=weights)
+bin2 = nmt.NmtBin(nside=nside, bpws=bpws, ells=ells, weights=weights)
 
 # You can also control ell-weighting through NmtBins.
 # E.g. to compute the usual D_ell = ell * (ell + 1) * C_ell/2/pi,
 # you can use is_Dell=True
-bin3 = nmt.NmtBin(nside, nlb=4, is_Dell=True)
+bin3 = nmt.NmtBin.from_nside_linear(nside, 4, is_Dell=True)
 
 # At this stage bin1 and bin2 should be identical
 print(np.sum(bin1.get_effective_ells()-bin2.get_effective_ells()))
