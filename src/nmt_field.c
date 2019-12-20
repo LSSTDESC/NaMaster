@@ -6,6 +6,7 @@ nmt_curvedsky_info *nmt_curvedsky_info_copy(nmt_curvedsky_info *cs_in)
   nmt_curvedsky_info *cs_out=my_malloc(sizeof(nmt_curvedsky_info));
   cs_out->is_healpix=cs_in->is_healpix;
   cs_out->n_eq=cs_in->n_eq;
+  cs_out->lmax_sht=cs_in->lmax_sht;
   cs_out->nx_short=cs_in->nx_short;
   cs_out->nx=cs_in->nx;
   cs_out->ny=cs_in->ny;
@@ -19,6 +20,7 @@ nmt_curvedsky_info *nmt_curvedsky_info_copy(nmt_curvedsky_info *cs_in)
 }
 
 nmt_curvedsky_info *nmt_curvedsky_info_alloc(int is_healpix,long nside,
+					     int lmax_sht,
 					     int nx0,int ny0,flouble Dtheta,flouble Dphi,
 					     flouble phi0,flouble theta0)
 {
@@ -68,6 +70,12 @@ nmt_curvedsky_info *nmt_curvedsky_info_alloc(int is_healpix,long nside,
     cs->phi0=phi0;
     cs->theta0=theta0;
   }
+
+  // set lmax values, affects calls to he_get_lmax
+  if (lmax_sht <= 0)
+    cs->lmax_sht=he_get_largest_possible_lmax(cs);
+  else
+    cs->lmax_sht=lmax_sht;
   
   return cs;
 }
@@ -94,12 +102,13 @@ flouble *nmt_extend_CAR_map(nmt_curvedsky_info *cs,flouble *map_in)
 int nmt_diff_curvedsky_info(nmt_curvedsky_info *c1, nmt_curvedsky_info *c2)
 {
   if(c1->is_healpix)
-    return (c2->is_healpix && (c1->n_eq==c2->n_eq));
+    return (c2->is_healpix && (c1->n_eq==c2->n_eq) && (c1->lmax_sht==c2->lmax_sht));
   else
     return ((!(c2->is_healpix)) && (c1->nx_short==c2->nx_short) && (c1->nx==c2->nx) && (c1->ny==c2->ny)
 	    && (fabs(c1->phi0-c2->phi0)<1e-6) && (fabs(c1->theta0-c2->theta0)<1e-6)
 	    && (fabs(c1->Delta_theta-c2->Delta_theta)<1e-6)
-	    && (fabs(c1->Delta_phi-c2->Delta_phi)<1e-6));
+	    && (fabs(c1->Delta_phi-c2->Delta_phi)<1e-6)
+	    && (c1->lmax_sht==c2->lmax_sht));
 }
   
 void nmt_field_free(nmt_field *fl)
@@ -488,7 +497,7 @@ nmt_field *nmt_field_read(int is_healpix,char *fname_mask,char *fname_maps,char 
   cs->is_healpix=is_healpix;
   cs_dum=my_malloc(sizeof(nmt_curvedsky_info));
   cs_dum->is_healpix=is_healpix;
-  
+
   //Read mask and compute nside, lmax etc.
   mask=he_read_map(fname_mask,cs,0);
   lmax=he_get_lmax(cs);

@@ -492,9 +492,18 @@ void he_map2alm(nmt_curvedsky_info *cs,int lmax,int ntrans,int spin,flouble **ma
 void he_alm2cl(fcomplex **alms_1,fcomplex **alms_2,int pol_1,int pol_2,flouble **cls,int lmax);
 
 /**
- * @brief Get maximum multipole
+ * @brief Gets the multipole approximately corresponding to the Nyquist frequency.
  *
  * Computes the maximum multipole probed by a map.
+ * @param cs curved sky geometry info.
+ * @return maximum multipole.
+ */
+int he_get_largest_possible_lmax(nmt_curvedsky_info *cs);
+
+/**
+ * @brief Get maximum multipole allowed by sky geometry configuration.
+ *
+ * Returns the maximum multipole for a nmt_curvedsky_info.
  * @param cs curved sky geometry info.
  * @return maximum multipole.
  */

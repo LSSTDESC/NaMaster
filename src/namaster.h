@@ -460,6 +460,7 @@ void nmt_purify_flat(nmt_field_flat *fl,flouble *mask,fcomplex **walm0,
 typedef struct {
   int is_healpix; //!< is this HEALPix pixelization?
   long n_eq; //!< equivalent of nside, number of pixels in the equatorial ring
+  int lmax_sht; //!< Maximum multipole to compute spherical harmonic transform
   int nx_short; //!< Number of grid points in the x dimension before completing the circle
   int nx; //!< Number of grid points in the phi dimension
   int ny; //!< Number of grid points in the theta dimension
@@ -496,6 +497,7 @@ nmt_curvedsky_info *nmt_curvedsky_info_copy(nmt_curvedsky_info *cs_in);
  * @return nmt_curvedsky_info struct.
  */
 nmt_curvedsky_info *nmt_curvedsky_info_alloc(int is_healpix,long nside,
+					     int lmax_sht,
 					     int nx0,int ny0,flouble Dtheta,flouble Dphi,
 					     flouble phi0,flouble theta0);
 
@@ -951,9 +953,11 @@ typedef struct {
  * @param bin nmt_binning_scheme defining the power spectrum bandpowers.
  * @param is_teb if !=0, all mode-coupling matrices (0-0,0-2,2-2) will be computed at the same time.
  * @param niter number of iterations when computing alms.
+ * @param lmax_mask maximum multipole to which the masks should be resolved. If smaller than the maximum multipole of fl1/fl2, it will be set to that.
+ * @return Newly allocated nmt_workspace structure containing the mode-coupling matrix.
  */
 nmt_workspace *nmt_compute_coupling_matrix(nmt_field *fl1,nmt_field *fl2,nmt_binning_scheme *bin,
-					   int is_teb,int niter);
+					   int is_teb,int niter,int lmax_mask);
 
 /**
  * @brief Updates the mode coupling matrix with a new one.Saves nmt_workspace structure to file
@@ -1109,13 +1113,14 @@ void nmt_compute_coupled_cell(nmt_field *fl1,nmt_field *fl2,flouble **cl_out);
           where \p ncls is defined above and \p nbpw is the number of bandpowers defined
 	  by \p bin.
  * @param niter number of iterations when computing alms.
+ * @param lmax_mask maximum multipole to which the masks should be resolved. If smaller than the maximum multipole of fl1/fl2, it will be set to that.
  * @return Newly allocated nmt_workspace structure containing the mode-coupling matrix
            if \p w0 is NULL (will return \p w0 otherwise).
  */
 nmt_workspace *nmt_compute_power_spectra(nmt_field *fl1,nmt_field *fl2,
 					 nmt_binning_scheme *bin,nmt_workspace *w0,
 					 flouble **cl_noise,flouble **cl_proposal,flouble **cl_out,
-					 int niter);
+					 int niter,int lmax_mask);
 
 /**
  * @brief Flat-sky Gaussian covariance matrix

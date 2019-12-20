@@ -7,7 +7,7 @@
 CTEST(nmt,he_synalm) {
   int ii,l;
   long nside=128;
-  nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(1,nside,-1,-1,-1,-1,-1,-1);
+  nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(1,nside,-1,-1,-1,-1,-1,-1,-1);
   long lmax=3*nside-1;
   int nmaps=2;
   int ncls=nmaps*nmaps;
@@ -94,7 +94,7 @@ CTEST(nmt,he_alm2cl)
 {
   int ii;
   long nside=256;
-  nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(1,nside,-1,-1,-1,-1,-1,-1);
+  nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(1,nside,-1,-1,-1,-1,-1,-1,-1);
   int lmax=3*nside-1;
   long npix=he_nside2npix(nside);
   double **maps=my_malloc(3*sizeof(double *));
@@ -148,7 +148,7 @@ CTEST(nmt,he_sht) {
   int ii;
   int nmaps=34;
   long nside=16;
-  nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(1,nside,-1,-1,-1,-1,-1,-1);
+  nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(1,nside,-1,-1,-1,-1,-1,-1,-1);
   long lmax=3*nside-1;
   long npix=he_nside2npix(nside);
   double **maps=my_malloc(2*nmaps*sizeof(double *));
@@ -191,7 +191,7 @@ CTEST(nmt,he_sht) {
 
   //Test for one particular example
   nside=256;
-  free(cs); cs=nmt_curvedsky_info_alloc(1,nside,-1,-1,-1,-1,-1,-1);
+  free(cs); cs=nmt_curvedsky_info_alloc(1,nside,-1,-1,-1,-1,-1,-1,-1);
   npix=he_nside2npix(nside);
   free(maps);
   for(ii=0;ii<2;ii++)
@@ -232,10 +232,10 @@ CTEST(nmt,he_get_lmax) {
   long nside=256;
   int ny=384,nx=2*(ny-1);
   double dtheta=M_PI/(ny-1),dphi=dtheta;
-  nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(1,nside,-1,-1,-1,-1,-1,-1); 
+  nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(1,nside,-1,-1,-1,-1,-1,-1,-1); 
   ASSERT_TRUE(he_get_lmax(cs)==3*nside-1);
   free(cs);
-  cs=nmt_curvedsky_info_alloc(0,-1,nx,ny,dtheta,dphi,0.,M_PI);
+  cs=nmt_curvedsky_info_alloc(0,-1,-1,nx,ny,dtheta,dphi,0.,M_PI);
   ASSERT_TRUE(he_get_lmax(cs)==(int)(M_PI/dtheta));
   free(cs);
 }
@@ -244,10 +244,10 @@ CTEST(nmt,he_get_pix_area) {
   long nside=256;
   int ny=383,nx=2*(ny-1);
   double dtheta=M_PI/(ny-1),dphi=dtheta;
-  nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(1,nside,-1,-1,-1,-1,-1,-1); 
+  nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(1,nside,-1,-1,-1,-1,-1,-1,-1); 
   ASSERT_DBL_NEAR_TOL(he_get_pix_area(cs,-1),M_PI/(3*nside*nside),1E-10);
   free(cs);
-  cs=nmt_curvedsky_info_alloc(0,-1,nx,ny,dtheta,dphi,0.,M_PI);
+  cs=nmt_curvedsky_info_alloc(0,-1,-1,nx,ny,dtheta,dphi,0.,M_PI);
   ASSERT_DBL_NEAR_TOL(he_get_pix_area(cs,(ny-1)/2),dphi*dtheta,1E-10);
   free(cs);
 }
@@ -257,7 +257,7 @@ CTEST(nmt,he_sht_car) {
   int nmaps=34;
   int ny=384,nx=2*(ny-1);
   double dtheta=M_PI/(ny-1),dphi=dtheta;
-  nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(0,-1,nx,ny,dtheta,dphi,0.,M_PI);
+  nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(0,-1,-1,nx,ny,dtheta,dphi,0.,M_PI);
   long lmax=he_get_lmax(cs);
   long npix_short=nx*ny;
   double **maps=my_malloc(2*nmaps*sizeof(double *));
@@ -328,7 +328,7 @@ CTEST(nmt,he_io) {
 
   int ii;
   long nside=4;
-  nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(1,nside,-1,-1,-1,-1,-1,-1);
+  nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(1,nside,-1,-1,-1,-1,-1,-1,-1);
   long npix=he_nside2npix(nside);
   ASSERT_EQUAL(npix,12*nside*nside);
 
@@ -439,7 +439,7 @@ CTEST(nmt,he_ringnum) {
 CTEST(nmt,he_algb) {
   int ii;
   long nside=128;
-  nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(1,nside,-1,-1,-1,-1,-1,-1);
+  nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(1,nside,-1,-1,-1,-1,-1,-1,-1);
   long npix=he_nside2npix(nside);
   double *mp1=my_malloc(npix*sizeof(double));
   double *mp2=my_malloc(npix*sizeof(double));
@@ -468,7 +468,7 @@ CTEST(nmt,he_algb) {
   int ny=1383,nx=2*(ny-1);
   double dtheta=M_PI/(ny-1),dphi=dtheta;
   npix=ny*nx;
-  cs=nmt_curvedsky_info_alloc(0,-1,nx,ny,dtheta,dphi,0.,M_PI);
+  cs=nmt_curvedsky_info_alloc(0,-1,-1,nx,ny,dtheta,dphi,0.,M_PI);
   mp1=my_malloc(npix*sizeof(double));
   mp2=my_malloc(npix*sizeof(double));
   mpr=my_malloc(npix*sizeof(double));

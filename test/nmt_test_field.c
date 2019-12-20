@@ -8,7 +8,7 @@ CTEST(nmt,field_alloc) {
   int ii,nmaps;
   double ntemp=5;
   long nside=128;
-  nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(1,nside,-1,-1,-1,-1,-1,-1);
+  nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(1,nside,-1,-1,-1,-1,-1,-1,-1);
   long lmax=he_get_lmax(cs);
   long npix=he_nside2npix(nside);
   double **maps;
@@ -217,7 +217,7 @@ CTEST(nmt,field_read) {
 CTEST(nmt,field_synfast) {
   int ii,im1,im2,l,if1,if2;
   long nside=128;
-  nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(1,nside,-1,-1,-1,-1,-1,-1);
+  nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(1,nside,-1,-1,-1,-1,-1,-1,-1);
   long lmax=he_get_lmax(cs);
   int nfields=3;
   int field_spins[3]={0,2,0};
