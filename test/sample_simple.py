@@ -23,7 +23,7 @@ f_0 = nmt.NmtField(mask, [hp.read_map("maps.fits", field=0, verbose=False)])
 f_2 = nmt.NmtField(mask, hp.read_map("maps.fits", field=[1, 2], verbose=False))
 
 # Initialize binning scheme with 4 ells per bandpower
-b = nmt.NmtBin(nside, nlb=4)
+b = nmt.NmtBin.from_nside_linear(nside, 4)
 
 # Compute MASTER estimator
 # spin-0 x spin-0

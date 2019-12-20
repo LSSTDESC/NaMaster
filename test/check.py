@@ -9,7 +9,7 @@ mp_t,mp_q,mp_u=hp.read_map("maps.fits",field=[0,1,2],verbose=False)
 mask=np.ones(hp.nside2npix(nside))
 aft_tt,aft_ee,aft_bb,aft_te,aft_eb,aft_tb=hp.anafast([mp_t,mp_q,mp_u],pol=True)
 
-b=nmt.NmtBin(nside,nlb=1)
+b=nmt.NmtBin.from_nside_linear(nside,1)
 larr=b.get_effective_ells()
 
 f0=nmt.NmtField(mask,[mp_t])

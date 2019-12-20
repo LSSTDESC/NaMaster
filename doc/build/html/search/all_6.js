@@ -7,6 +7,7 @@ var searchData=
   ['he_5fang2pix',['he_ang2pix',['../utils_8h.html#a74e01f044fa18a949c1dfe87937be871',1,'utils.h']]],
   ['he_5fgenerate_5fbeam_5fwindow',['he_generate_beam_window',['../utils_8h.html#a38d0f5a28fdee6d45e7bb0f1ba4dccce',1,'utils.h']]],
   ['he_5fget_5ffile_5fparams',['he_get_file_params',['../utils_8h.html#a772e1900b15dac8a0946d179e4bb54db',1,'utils.h']]],
+  ['he_5fget_5flargest_5fpossible_5flmax',['he_get_largest_possible_lmax',['../utils_8h.html#a8f51253b4561522fb7b898e308774849',1,'utils.h']]],
   ['he_5fget_5flmax',['he_get_lmax',['../utils_8h.html#ac1baa0c83f6ccff768d9ad6066ce5a39',1,'utils.h']]],
   ['he_5fget_5fpix_5farea',['he_get_pix_area',['../utils_8h.html#a8856a1455f5875c6276ccc28fe7419a3',1,'utils.h']]],
   ['he_5fin_5fring',['he_in_ring',['../utils_8h.html#a1256210832cc7ba19a7dd6451af4fae8',1,'utils.h']]],

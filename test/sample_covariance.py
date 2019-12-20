@@ -49,7 +49,8 @@ def compute_master(f_a, f_b, wsp):
 # Let's generate one particular sample and its power spectrum.
 print("Field")
 f0, f2 = get_sample_field()
-b = nmt.NmtBin(nside, nlb=20)  # We will use 20 multipoles per bandpower.
+# We will use 20 multipoles per bandpower.
+b = nmt.NmtBin.from_nside_linear(nside, 20)
 print("Workspace")
 w00 = nmt.NmtWorkspace()
 w00.compute_coupling_matrix(f0, f0, b)
