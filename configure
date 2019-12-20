@@ -636,6 +636,7 @@ ac_subst_vars='am__EXEEXT_FALSE
 am__EXEEXT_TRUE
 LTLIBOBJS
 LIBOBJS
+libsharp_libs
 fftw_thread_type
 OPENMP_CFLAGS
 MAINT
@@ -771,6 +772,8 @@ enable_libtool_lock
 enable_maintainer_mode
 enable_openmp
 enable_fftw_pthreads
+enable_libsharp_healpix
+enable_libsharp_gitlab
 '
       ac_precious_vars='build_alias
 host_alias
@@ -1427,6 +1430,10 @@ Optional Features:
                           sometimes confusing) to the casual installer
   --disable-openmp        do not use OpenMP
   --enable-fftw-pthreads  Enable using pthreads instead of OpenMP with FFTW
+  --enable-libsharp_healpix
+                          Enable Healpix new fft
+  --enable-libsharp_gitlab
+                          Enable libsharp's new fft
 
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
@@ -13343,6 +13350,44 @@ elif test "x$enable_fftw_pthreads" != "xyes"; then :
 
 fi
 
+# Which libsharp version are we using?
+# Check whether --enable-libsharp_healpix was given.
+if test "${enable_libsharp_healpix+set}" = set; then :
+  enableval=$enable_libsharp_healpix;
+fi
+
+# Check whether --enable-libsharp_gitlab was given.
+if test "${enable_libsharp_gitlab+set}" = set; then :
+  enableval=$enable_libsharp_gitlab;
+fi
+
+# Set libsharp libraries needed
+if test "x$enable_libsharp_healpix" = "xyes"; then :
+  libsharp_libs="-lsharp -lpocketfft -lc_utils "
+
+elif test "x$enable_libsharp_gitlab" = "xyes"; then :
+  libsharp_libs="-lsharp "
+
+else
+  libsharp_libs="-lsharp -lfftpack -lc_utils"
+
+fi
+# Set necessary define flags
+if test "x$enable_libsharp_gitlab" = "xyes"; then :
+
+$as_echo "#define LIBSHARP_GITLAB 1" >>confdefs.h
+
+elif test "x$enable_libsharp_healpix" = "xyes"; then :
+
+$as_echo "#define LIBSHARP_HEALPIX 1" >>confdefs.h
+
+else
+
+$as_echo "#define LIBSHARP_GITHUB 1" >>confdefs.h
+
+fi
+
+
 # Checks for libraries.
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing pow" >&5
 $as_echo_n "checking for library containing pow... " >&6; }
@@ -13576,9 +13621,10 @@ else
   as_fn_error $? "Couldn't find cfitsio" "$LINENO" 5
 fi
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing sharp_Ylmgen_destroy" >&5
-$as_echo_n "checking for library containing sharp_Ylmgen_destroy... " >&6; }
-if ${ac_cv_search_sharp_Ylmgen_destroy+:} false; then :
+if test "x$enable_libsharp_gitlab" = "xyes"; then :
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing sharp_make_triangular_alm_info" >&5
+$as_echo_n "checking for library containing sharp_make_triangular_alm_info... " >&6; }
+if ${ac_cv_search_sharp_make_triangular_alm_info+:} false; then :
   $as_echo_n "(cached) " >&6
 else
   ac_func_search_save_LIBS=$LIBS
@@ -13591,11 +13637,129 @@ cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 #ifdef __cplusplus
 extern "C"
 #endif
-char sharp_Ylmgen_destroy ();
+char sharp_make_triangular_alm_info ();
 int
 main ()
 {
-return sharp_Ylmgen_destroy ();
+return sharp_make_triangular_alm_info ();
+  ;
+  return 0;
+}
+_ACEOF
+for ac_lib in '' sharp; do
+  if test -z "$ac_lib"; then
+    ac_res="none required"
+  else
+    ac_res=-l$ac_lib
+    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
+  fi
+  if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_search_sharp_make_triangular_alm_info=$ac_res
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext
+  if ${ac_cv_search_sharp_make_triangular_alm_info+:} false; then :
+  break
+fi
+done
+if ${ac_cv_search_sharp_make_triangular_alm_info+:} false; then :
+
+else
+  ac_cv_search_sharp_make_triangular_alm_info=no
+fi
+rm conftest.$ac_ext
+LIBS=$ac_func_search_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_sharp_make_triangular_alm_info" >&5
+$as_echo "$ac_cv_search_sharp_make_triangular_alm_info" >&6; }
+ac_res=$ac_cv_search_sharp_make_triangular_alm_info
+if test "$ac_res" != no; then :
+  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
+
+else
+  as_fn_error $? "Couldn't find libsharp gitlab" "$LINENO" 5
+fi
+
+elif test "x$enable_libsharp_healpix" = "xyes"; then :
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing sharp_make_triangular_alm_info" >&5
+$as_echo_n "checking for library containing sharp_make_triangular_alm_info... " >&6; }
+if ${ac_cv_search_sharp_make_triangular_alm_info+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_func_search_save_LIBS=$LIBS
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char sharp_make_triangular_alm_info ();
+int
+main ()
+{
+return sharp_make_triangular_alm_info ();
+  ;
+  return 0;
+}
+_ACEOF
+for ac_lib in '' sharp; do
+  if test -z "$ac_lib"; then
+    ac_res="none required"
+  else
+    ac_res=-l$ac_lib
+    LIBS="-l$ac_lib -lpocketfft -lc_utils $ac_func_search_save_LIBS"
+  fi
+  if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_search_sharp_make_triangular_alm_info=$ac_res
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext
+  if ${ac_cv_search_sharp_make_triangular_alm_info+:} false; then :
+  break
+fi
+done
+if ${ac_cv_search_sharp_make_triangular_alm_info+:} false; then :
+
+else
+  ac_cv_search_sharp_make_triangular_alm_info=no
+fi
+rm conftest.$ac_ext
+LIBS=$ac_func_search_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_sharp_make_triangular_alm_info" >&5
+$as_echo "$ac_cv_search_sharp_make_triangular_alm_info" >&6; }
+ac_res=$ac_cv_search_sharp_make_triangular_alm_info
+if test "$ac_res" != no; then :
+  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
+
+else
+  as_fn_error $? "Couldn't find libsharp healpix" "$LINENO" 5
+fi
+
+else
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing sharp_make_triangular_alm_info" >&5
+$as_echo_n "checking for library containing sharp_make_triangular_alm_info... " >&6; }
+if ${ac_cv_search_sharp_make_triangular_alm_info+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_func_search_save_LIBS=$LIBS
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char sharp_make_triangular_alm_info ();
+int
+main ()
+{
+return sharp_make_triangular_alm_info ();
   ;
   return 0;
 }
@@ -13608,25 +13772,25 @@ for ac_lib in '' sharp; do
     LIBS="-l$ac_lib -lfftpack -lc_utils $ac_func_search_save_LIBS"
   fi
   if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_search_sharp_Ylmgen_destroy=$ac_res
+  ac_cv_search_sharp_make_triangular_alm_info=$ac_res
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext
-  if ${ac_cv_search_sharp_Ylmgen_destroy+:} false; then :
+  if ${ac_cv_search_sharp_make_triangular_alm_info+:} false; then :
   break
 fi
 done
-if ${ac_cv_search_sharp_Ylmgen_destroy+:} false; then :
+if ${ac_cv_search_sharp_make_triangular_alm_info+:} false; then :
 
 else
-  ac_cv_search_sharp_Ylmgen_destroy=no
+  ac_cv_search_sharp_make_triangular_alm_info=no
 fi
 rm conftest.$ac_ext
 LIBS=$ac_func_search_save_LIBS
 fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_sharp_Ylmgen_destroy" >&5
-$as_echo "$ac_cv_search_sharp_Ylmgen_destroy" >&6; }
-ac_res=$ac_cv_search_sharp_Ylmgen_destroy
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_sharp_make_triangular_alm_info" >&5
+$as_echo "$ac_cv_search_sharp_make_triangular_alm_info" >&6; }
+ac_res=$ac_cv_search_sharp_make_triangular_alm_info
 if test "$ac_res" != no; then :
   test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
 
@@ -13634,6 +13798,7 @@ else
   as_fn_error $? "Couldn't find libsharp" "$LINENO" 5
 fi
 
+fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing ring2nest" >&5
 $as_echo_n "checking for library containing ring2nest... " >&6; }
 if ${ac_cv_search_ring2nest+:} false; then :

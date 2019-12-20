@@ -1,3 +1,4 @@
+#include "config.h"
 #include "utils.h"
 
 void run_master(nmt_field *fl1,nmt_field *fl2,

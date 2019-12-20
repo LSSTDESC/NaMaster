@@ -1,3 +1,4 @@
+#include "config.h"
 #include "utils.h"
 
 nmt_curvedsky_info *nmt_curvedsky_info_copy(nmt_curvedsky_info *cs_in)

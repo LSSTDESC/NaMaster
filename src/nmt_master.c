@@ -1,3 +1,4 @@
+#include "config.h"
 #include "utils.h"
 
 static void purify_generic(nmt_field *fl,flouble *mask,fcomplex **walm0,
