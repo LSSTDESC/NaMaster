@@ -142,11 +142,11 @@ class TestCovarSph(unittest.TestCase) :
         self.f2=nmt.NmtField(msk,[mps[1],mps[2]])
         self.f0_half=nmt.NmtField(msk[:self.npix//4],[mps[0,:self.npix//4]]) #Half nside
         self.w=nmt.NmtWorkspace()
-        self.w.read_from("test/benchmarks/bm_nc_np_w00.dat")
+        self.w.read_from("test/benchmarks/bm_nc_np_w00.fits")
         self.w02=nmt.NmtWorkspace()
-        self.w02.read_from("test/benchmarks/bm_nc_np_w02.dat")
+        self.w02.read_from("test/benchmarks/bm_nc_np_w02.fits")
         self.w22=nmt.NmtWorkspace()
-        self.w22.read_from("test/benchmarks/bm_nc_np_w22.dat")
+        self.w22.read_from("test/benchmarks/bm_nc_np_w22.fits")
 
         l,cltt,clee,clbb,clte,nltt,nlee,nlbb,nlte=np.loadtxt("test/benchmarks/cls_lss.txt",unpack=True)
         self.l=l[:3*self.nside]

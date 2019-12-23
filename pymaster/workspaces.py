@@ -81,7 +81,7 @@ class NmtWorkspace(object):
         """
         if self.wsp is None:
             raise RuntimeError("Must initialize workspace before writing")
-        lib.write_workspace(self.wsp, fname)
+        lib.write_workspace(self.wsp, "!"+fname)
 
     def get_coupling_matrix(self):
         """
