@@ -49,11 +49,11 @@ if not os.path.isfile("cont_lss_star_ns%d.fits"%o.nside_out) :
     mean=np.sum(starmap*msk)/np.sum(msk)
 
     clcont=hp.anafast((starmap-mean)*msk)/fsky
-    nflat=np.mean(clcont[max(2,o.nside_out/3-50):o.nside_out/3+50])*np.ones_like(clcont); #Add extra fluctuations beyond ell~nside/3 with flat power spectrum
+    nflat=np.mean(clcont[max(2,o.nside_out//3-50):o.nside_out//3+50])*np.ones_like(clcont); #Add extra fluctuations beyond ell~nside/3 with flat power spectrum
     dstar=hp.synfast(nflat,o.nside_out,new=True,verbose=False)
     starmap_b=np.maximum(starmap+dstar,0)
     clcont_b=hp.anafast((starmap_b-mean)*msk)/fsky
-    ratio=-np.sqrt(0.03*np.sum(cltt[max(2,o.nside_out/3-50):o.nside_out/3+50])/np.sum(clcont_b[max(2,o.nside_out/3-50):o.nside_out/3+50])) #3% contamination at ell~nside/3
+    ratio=-np.sqrt(0.03*np.sum(cltt[max(2,o.nside_out//3-50):o.nside_out//3+50])/np.sum(clcont_b[max(2,o.nside_out//3-50):o.nside_out//3+50])) #3% contamination at ell~nside/3
     starmap_b=(starmap_b-mean)*ratio
 
     dmap=hp.synfast(cltt[:3*o.nside_out],o.nside_out,new=True,verbose=False);

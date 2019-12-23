@@ -30,6 +30,24 @@ class NmtWorkspace(object):
             self.wsp = None
         self.wsp = lib.read_workspace(fname)
 
+    def update_beams(self, beam1, beam2):
+        if ((not isinstance(beam1, (list, tuple, np.ndarray))) or
+            (not isinstance(beam2, (list, tuple, np.ndarray)))):
+            raise ValueError("The new beams must be provided as arrays")
+
+        lmax = self.wsp.lmax_fields
+        if (len(beam1)<=lmax) or (len(beam2)<=lmax):
+            raise ValueError("The new beams must go up to ell = %d" % lmax)
+        lib.wsp_update_beams(self.wsp, beam1, beam2)
+
+    def update_bins(self, bins):
+        if self.wsp is None:
+            raise ValueError("Can't update bins without first computing "
+                             "the mode-coupling matrix")
+        if bins.bin is None:
+            raise ValueError("Can't replace with uninitialized bins")
+        lib.wsp_update_bins(self.wsp, bins.bin)
+
     def compute_coupling_matrix(self, fl1, fl2, bins, is_teb=False, n_iter=3,
                                 lmax_mask=-1):
         """

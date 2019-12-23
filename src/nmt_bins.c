@@ -4,16 +4,18 @@
 void nmt_bins_free(nmt_binning_scheme *bins)
 {
   int ii;
-  free(bins->nell_list);
-  for(ii=0;ii<bins->n_bands;ii++) {
-    free(bins->ell_list[ii]);
-    free(bins->w_list[ii]);
-    free(bins->f_ell[ii]);
+  if(bins!=NULL) {
+    free(bins->nell_list);
+    for(ii=0;ii<bins->n_bands;ii++) {
+      free(bins->ell_list[ii]);
+      free(bins->w_list[ii]);
+      free(bins->f_ell[ii]);
+    }
+    free(bins->ell_list);
+    free(bins->w_list);
+    free(bins->f_ell);
+    free(bins);
   }
-  free(bins->ell_list);
-  free(bins->w_list);
-  free(bins->f_ell);
-  free(bins);
 }
 
 nmt_binning_scheme *nmt_bins_constant(int nlb,int lmax,int is_l2)

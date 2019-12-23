@@ -752,6 +752,14 @@ class workspace(_object):
     __swig_getmethods__["lmax"] = _nmtlib.workspace_lmax_get
     if _newclass:
         lmax = _swig_property(_nmtlib.workspace_lmax_get, _nmtlib.workspace_lmax_set)
+    __swig_setmethods__["lmax_fields"] = _nmtlib.workspace_lmax_fields_set
+    __swig_getmethods__["lmax_fields"] = _nmtlib.workspace_lmax_fields_get
+    if _newclass:
+        lmax_fields = _swig_property(_nmtlib.workspace_lmax_fields_get, _nmtlib.workspace_lmax_fields_set)
+    __swig_setmethods__["lmax_mask"] = _nmtlib.workspace_lmax_mask_set
+    __swig_getmethods__["lmax_mask"] = _nmtlib.workspace_lmax_mask_get
+    if _newclass:
+        lmax_mask = _swig_property(_nmtlib.workspace_lmax_mask_get, _nmtlib.workspace_lmax_mask_set)
     __swig_setmethods__["is_teb"] = _nmtlib.workspace_is_teb_set
     __swig_getmethods__["is_teb"] = _nmtlib.workspace_is_teb_get
     if _newclass:
@@ -764,6 +772,10 @@ class workspace(_object):
     __swig_getmethods__["cs"] = _nmtlib.workspace_cs_get
     if _newclass:
         cs = _swig_property(_nmtlib.workspace_cs_get, _nmtlib.workspace_cs_set)
+    __swig_setmethods__["beam_prod"] = _nmtlib.workspace_beam_prod_set
+    __swig_getmethods__["beam_prod"] = _nmtlib.workspace_beam_prod_get
+    if _newclass:
+        beam_prod = _swig_property(_nmtlib.workspace_beam_prod_get, _nmtlib.workspace_beam_prod_set)
     __swig_setmethods__["pcl_masks"] = _nmtlib.workspace_pcl_masks_set
     __swig_getmethods__["pcl_masks"] = _nmtlib.workspace_pcl_masks_get
     if _newclass:
@@ -804,6 +816,14 @@ compute_coupling_matrix = _nmtlib.compute_coupling_matrix
 def update_coupling_matrix(w, n_rows, new_matrix):
     return _nmtlib.update_coupling_matrix(w, n_rows, new_matrix)
 update_coupling_matrix = _nmtlib.update_coupling_matrix
+
+def workspace_update_binning(w, bin):
+    return _nmtlib.workspace_update_binning(w, bin)
+workspace_update_binning = _nmtlib.workspace_update_binning
+
+def workspace_update_beams(w, nl1, b1, nl2, b2):
+    return _nmtlib.workspace_update_beams(w, nl1, b1, nl2, b2)
+workspace_update_beams = _nmtlib.workspace_update_beams
 
 def workspace_write(w, fname):
     return _nmtlib.workspace_write(w, fname)
@@ -1204,6 +1224,14 @@ couple_cell_py_flat = _nmtlib.couple_cell_py_flat
 def comp_pspec(fl1, fl2, bin, w0, ncl1, ncl2, dout, n_iter, lmax_mask):
     return _nmtlib.comp_pspec(fl1, fl2, bin, w0, ncl1, ncl2, dout, n_iter, lmax_mask)
 comp_pspec = _nmtlib.comp_pspec
+
+def wsp_update_beams(w, nell3, nell4):
+    return _nmtlib.wsp_update_beams(w, nell3, nell4)
+wsp_update_beams = _nmtlib.wsp_update_beams
+
+def wsp_update_bins(w, b):
+    return _nmtlib.wsp_update_bins(w, b)
+wsp_update_bins = _nmtlib.wsp_update_bins
 
 def comp_pspec_flat(fl1, fl2, bin, w0, ncl1, nell3, ncl2, dout, lmn_x, lmx_x, lmn_y, lmx_y):
     return _nmtlib.comp_pspec_flat(fl1, fl2, bin, w0, ncl1, nell3, ncl2, dout, lmn_x, lmx_x, lmn_y, lmx_y)
