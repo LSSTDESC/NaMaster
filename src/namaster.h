@@ -986,6 +986,18 @@ void nmt_update_coupling_matrix(nmt_workspace *w,int n_rows,double *new_matrix);
 void nmt_workspace_update_binning(nmt_workspace *w,
 				  nmt_binning_scheme *bin);
 
+/**
+ * @brief Updates the beams associated to this workspace.
+ *
+ * Also recomputes the binned MCM and its inverse
+ * @param nl1 Number of elements of b1.
+ * @param b1 First field's beam (harmonic space). One element per multipole.
+ * @param nl2 Number of elements of b1.
+ * @param b2 Second field's beam (harmonic space). One element per multipole.
+ */
+void nmt_workspace_update_beams(nmt_workspace *w,
+				int nl1,double *b1,
+				int nl2,double *b2);
 
 /**
  * @brief Saves nmt_workspace structure to file

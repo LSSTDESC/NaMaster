@@ -206,6 +206,23 @@ void nmt_update_coupling_matrix(nmt_workspace *w,int n_rows,double *new_matrix)
   bin_coupling_matrix(w);
 }
 
+void nmt_workspace_update_beams(nmt_workspace *w,
+				int nl1,double *b1,
+				int nl2,double *b2)
+{
+  if((nl1<=w->lmax_fields) || (nl2<=w->lmax_fields)) {
+    report_error(NMT_ERROR_INCONSISTENT,
+		 "New beams are not large enough\n");
+  }
+
+  int ii;
+  for(ii=0;ii<=w->lmax_fields;ii++)
+    w->beam_prod[ii]=b1[ii]*b2[ii];
+
+  //Recompute the binned coupling matrix
+  bin_coupling_matrix(w);
+}
+
 void nmt_workspace_update_binning(nmt_workspace *w,
 				  nmt_binning_scheme *bin)
 {

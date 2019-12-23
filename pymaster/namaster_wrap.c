@@ -4227,6 +4227,13 @@ void comp_pspec(nmt_field *fl1,nmt_field *fl2,
     nmt_workspace_free(w);
 }
 
+void wsp_update_beams(nmt_workspace *w,  // Workspace
+		      int nell3,double *weights, // 1st beam
+		      int nell4,double *f_ell) // 2nd beam
+{
+  nmt_workspace_update_beams(w,nell3,weights,nell4,f_ell);
+}
+
 void wsp_update_bins(nmt_workspace *w,nmt_binning_scheme *b)
 {
   nmt_workspace_update_binning(w,b);
@@ -12872,6 +12879,63 @@ fail:
 }
 
 
+SWIGINTERN PyObject *_wrap_workspace_update_beams(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_workspace *arg1 = (nmt_workspace *) 0 ;
+  int arg2 ;
+  double *arg3 = (double *) 0 ;
+  int arg4 ;
+  double *arg5 = (double *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int val2 ;
+  int ecode2 = 0 ;
+  void *argp3 = 0 ;
+  int res3 = 0 ;
+  int val4 ;
+  int ecode4 = 0 ;
+  void *argp5 = 0 ;
+  int res5 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  PyObject * obj2 = 0 ;
+  PyObject * obj3 = 0 ;
+  PyObject * obj4 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OOOOO:workspace_update_beams",&obj0,&obj1,&obj2,&obj3,&obj4)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_workspace, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "workspace_update_beams" "', argument " "1"" of type '" "nmt_workspace *""'"); 
+  }
+  arg1 = (nmt_workspace *)(argp1);
+  ecode2 = SWIG_AsVal_int(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "workspace_update_beams" "', argument " "2"" of type '" "int""'");
+  } 
+  arg2 = (int)(val2);
+  res3 = SWIG_ConvertPtr(obj2, &argp3,SWIGTYPE_p_double, 0 |  0 );
+  if (!SWIG_IsOK(res3)) {
+    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "workspace_update_beams" "', argument " "3"" of type '" "double *""'"); 
+  }
+  arg3 = (double *)(argp3);
+  ecode4 = SWIG_AsVal_int(obj3, &val4);
+  if (!SWIG_IsOK(ecode4)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "workspace_update_beams" "', argument " "4"" of type '" "int""'");
+  } 
+  arg4 = (int)(val4);
+  res5 = SWIG_ConvertPtr(obj4, &argp5,SWIGTYPE_p_double, 0 |  0 );
+  if (!SWIG_IsOK(res5)) {
+    SWIG_exception_fail(SWIG_ArgError(res5), "in method '" "workspace_update_beams" "', argument " "5"" of type '" "double *""'"); 
+  }
+  arg5 = (double *)(argp5);
+  nmt_workspace_update_beams(arg1,arg2,arg3,arg4,arg5);
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
 SWIGINTERN PyObject *_wrap_workspace_write(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   nmt_workspace *arg1 = (nmt_workspace *) 0 ;
@@ -20101,6 +20165,92 @@ fail:
 }
 
 
+SWIGINTERN PyObject *_wrap_wsp_update_beams(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_workspace *arg1 = (nmt_workspace *) 0 ;
+  int arg2 ;
+  double *arg3 = (double *) 0 ;
+  int arg4 ;
+  double *arg5 = (double *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyArrayObject *array2 = NULL ;
+  int is_new_object2 = 0 ;
+  PyArrayObject *array4 = NULL ;
+  int is_new_object4 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  PyObject * obj2 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OOO:wsp_update_beams",&obj0,&obj1,&obj2)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_workspace, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "wsp_update_beams" "', argument " "1"" of type '" "nmt_workspace *""'"); 
+  }
+  arg1 = (nmt_workspace *)(argp1);
+  {
+    npy_intp size[1] = {
+      -1
+    };
+    array2 = obj_to_array_contiguous_allow_conversion(obj1,
+      NPY_DOUBLE,
+      &is_new_object2);
+    if (!array2 || !require_dimensions(array2, 1) ||
+      !require_size(array2, size, 1)) SWIG_fail;
+    arg2 = (int) array_size(array2,0);
+    arg3 = (double*) array_data(array2);
+  }
+  {
+    npy_intp size[1] = {
+      -1
+    };
+    array4 = obj_to_array_contiguous_allow_conversion(obj2,
+      NPY_DOUBLE,
+      &is_new_object4);
+    if (!array4 || !require_dimensions(array4, 1) ||
+      !require_size(array4, size, 1)) SWIG_fail;
+    arg4 = (int) array_size(array4,0);
+    arg5 = (double*) array_data(array4);
+  }
+  {
+    try {
+      wsp_update_beams(arg1,arg2,arg3,arg4,arg5);
+    }
+    finally {
+      SWIG_exception(SWIG_RuntimeError,nmt_error_message);
+    }
+  }
+  resultobj = SWIG_Py_Void();
+  {
+    if (is_new_object2 && array2)
+    {
+      Py_DECREF(array2); 
+    }
+  }
+  {
+    if (is_new_object4 && array4)
+    {
+      Py_DECREF(array4); 
+    }
+  }
+  return resultobj;
+fail:
+  {
+    if (is_new_object2 && array2)
+    {
+      Py_DECREF(array2); 
+    }
+  }
+  {
+    if (is_new_object4 && array4)
+    {
+      Py_DECREF(array4); 
+    }
+  }
+  return NULL;
+}
+
+
 SWIGINTERN PyObject *_wrap_wsp_update_bins(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   nmt_workspace *arg1 = (nmt_workspace *) 0 ;
@@ -20609,6 +20759,7 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"compute_coupling_matrix", _wrap_compute_coupling_matrix, METH_VARARGS, NULL},
 	 { (char *)"update_coupling_matrix", _wrap_update_coupling_matrix, METH_VARARGS, NULL},
 	 { (char *)"workspace_update_binning", _wrap_workspace_update_binning, METH_VARARGS, NULL},
+	 { (char *)"workspace_update_beams", _wrap_workspace_update_beams, METH_VARARGS, NULL},
 	 { (char *)"workspace_write", _wrap_workspace_write, METH_VARARGS, NULL},
 	 { (char *)"workspace_read", _wrap_workspace_read, METH_VARARGS, NULL},
 	 { (char *)"workspace_free", _wrap_workspace_free, METH_VARARGS, NULL},
@@ -20724,6 +20875,7 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"couple_cell_py", _wrap_couple_cell_py, METH_VARARGS, NULL},
 	 { (char *)"couple_cell_py_flat", _wrap_couple_cell_py_flat, METH_VARARGS, NULL},
 	 { (char *)"comp_pspec", _wrap_comp_pspec, METH_VARARGS, NULL},
+	 { (char *)"wsp_update_beams", _wrap_wsp_update_beams, METH_VARARGS, NULL},
 	 { (char *)"wsp_update_bins", _wrap_wsp_update_bins, METH_VARARGS, NULL},
 	 { (char *)"comp_pspec_flat", _wrap_comp_pspec_flat, METH_VARARGS, NULL},
 	 { NULL, NULL, 0, NULL }

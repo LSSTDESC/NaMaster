@@ -228,6 +228,19 @@ class TestWorkspaceHPX(unittest.TestCase) :
     def test_workspace_master_yc_yp(self) :
         self.mastest(True,True)
 
+    def test_workspace_rebeam(self):
+        w=nmt.NmtWorkspace()
+        w.read_from("test/benchmarks/bm_yc_yp_w02.dat") #OK read
+        lmax=w.wsp.lmax_fields
+        b=np.ones(lmax+1)*2.
+        w.update_beams(b,b) #All good
+        b2=np.ones(lmax//2+1)*2. #Too short
+        with self.assertRaises(ValueError):
+            w.update_beams(b,b2)
+        b2=1. #Not array
+        with self.assertRaises(ValueError):
+            w.update_beams(b,b2)
+
     def test_workspace_rebin(self):
         b4=nmt.NmtBin.from_nside_linear(self.nside,4)
         w=nmt.NmtWorkspace()

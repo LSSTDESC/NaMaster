@@ -381,7 +381,7 @@ CTEST(nmt,he_io) {
   set_error_policy(EXIT_ON_ERROR);
 }
 
-CTEST_SKIP(nmt,he_qdisc) {
+CTEST(nmt,he_qdisc) {
   int ii;
   long nside=256;
   long ntot_alloc=20000;

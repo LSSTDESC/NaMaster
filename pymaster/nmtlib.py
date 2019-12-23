@@ -821,6 +821,10 @@ def workspace_update_binning(w, bin):
     return _nmtlib.workspace_update_binning(w, bin)
 workspace_update_binning = _nmtlib.workspace_update_binning
 
+def workspace_update_beams(w, nl1, b1, nl2, b2):
+    return _nmtlib.workspace_update_beams(w, nl1, b1, nl2, b2)
+workspace_update_beams = _nmtlib.workspace_update_beams
+
 def workspace_write(w, fname):
     return _nmtlib.workspace_write(w, fname)
 workspace_write = _nmtlib.workspace_write
@@ -1220,6 +1224,10 @@ couple_cell_py_flat = _nmtlib.couple_cell_py_flat
 def comp_pspec(fl1, fl2, bin, w0, ncl1, ncl2, dout, n_iter, lmax_mask):
     return _nmtlib.comp_pspec(fl1, fl2, bin, w0, ncl1, ncl2, dout, n_iter, lmax_mask)
 comp_pspec = _nmtlib.comp_pspec
+
+def wsp_update_beams(w, nell3, nell4):
+    return _nmtlib.wsp_update_beams(w, nell3, nell4)
+wsp_update_beams = _nmtlib.wsp_update_beams
 
 def wsp_update_bins(w, b):
     return _nmtlib.wsp_update_bins(w, b)
