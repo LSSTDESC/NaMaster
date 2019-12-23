@@ -941,6 +941,11 @@ void comp_pspec(nmt_field *fl1,nmt_field *fl2,
     nmt_workspace_free(w);
 }
 
+void wsp_update_bins(nmt_workspace *w,nmt_binning_scheme *b)
+{
+  nmt_workspace_update_binning(w,b);
+}
+
 void comp_pspec_flat(nmt_field_flat *fl1,nmt_field_flat *fl2,
 		     nmt_binning_scheme_flat *bin,nmt_workspace_flat *w0,
 		     int ncl1,int nell1,double *cls1,

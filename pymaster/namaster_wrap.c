@@ -4227,6 +4227,11 @@ void comp_pspec(nmt_field *fl1,nmt_field *fl2,
     nmt_workspace_free(w);
 }
 
+void wsp_update_bins(nmt_workspace *w,nmt_binning_scheme *b)
+{
+  nmt_workspace_update_binning(w,b);
+}
+
 void comp_pspec_flat(nmt_field_flat *fl1,nmt_field_flat *fl2,
 		     nmt_binning_scheme_flat *bin,nmt_workspace_flat *w0,
 		     int ncl1,int nell1,double *cls1,
@@ -12681,6 +12686,36 @@ fail:
 }
 
 
+SWIGINTERN PyObject *_wrap_workspace_update_binning(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_workspace *arg1 = (nmt_workspace *) 0 ;
+  nmt_binning_scheme *arg2 = (nmt_binning_scheme *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  void *argp2 = 0 ;
+  int res2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:workspace_update_binning",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_workspace, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "workspace_update_binning" "', argument " "1"" of type '" "nmt_workspace *""'"); 
+  }
+  arg1 = (nmt_workspace *)(argp1);
+  res2 = SWIG_ConvertPtr(obj1, &argp2,SWIGTYPE_p_nmt_binning_scheme, 0 |  0 );
+  if (!SWIG_IsOK(res2)) {
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "workspace_update_binning" "', argument " "2"" of type '" "nmt_binning_scheme *""'"); 
+  }
+  arg2 = (nmt_binning_scheme *)(argp2);
+  nmt_workspace_update_binning(arg1,arg2);
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
 SWIGINTERN PyObject *_wrap_workspace_write(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   nmt_workspace *arg1 = (nmt_workspace *) 0 ;
@@ -19910,6 +19945,43 @@ fail:
 }
 
 
+SWIGINTERN PyObject *_wrap_wsp_update_bins(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_workspace *arg1 = (nmt_workspace *) 0 ;
+  nmt_binning_scheme *arg2 = (nmt_binning_scheme *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  void *argp2 = 0 ;
+  int res2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:wsp_update_bins",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_workspace, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "wsp_update_bins" "', argument " "1"" of type '" "nmt_workspace *""'"); 
+  }
+  arg1 = (nmt_workspace *)(argp1);
+  res2 = SWIG_ConvertPtr(obj1, &argp2,SWIGTYPE_p_nmt_binning_scheme, 0 |  0 );
+  if (!SWIG_IsOK(res2)) {
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "wsp_update_bins" "', argument " "2"" of type '" "nmt_binning_scheme *""'"); 
+  }
+  arg2 = (nmt_binning_scheme *)(argp2);
+  {
+    try {
+      wsp_update_bins(arg1,arg2);
+    }
+    finally {
+      SWIG_exception(SWIG_RuntimeError,nmt_error_message);
+    }
+  }
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
 SWIGINTERN PyObject *_wrap_comp_pspec_flat(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   nmt_field_flat *arg1 = (nmt_field_flat *) 0 ;
@@ -20374,6 +20446,7 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"workspace_swigregister", workspace_swigregister, METH_VARARGS, NULL},
 	 { (char *)"compute_coupling_matrix", _wrap_compute_coupling_matrix, METH_VARARGS, NULL},
 	 { (char *)"update_coupling_matrix", _wrap_update_coupling_matrix, METH_VARARGS, NULL},
+	 { (char *)"workspace_update_binning", _wrap_workspace_update_binning, METH_VARARGS, NULL},
 	 { (char *)"workspace_write", _wrap_workspace_write, METH_VARARGS, NULL},
 	 { (char *)"workspace_read", _wrap_workspace_read, METH_VARARGS, NULL},
 	 { (char *)"workspace_free", _wrap_workspace_free, METH_VARARGS, NULL},
@@ -20489,6 +20562,7 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"couple_cell_py", _wrap_couple_cell_py, METH_VARARGS, NULL},
 	 { (char *)"couple_cell_py_flat", _wrap_couple_cell_py_flat, METH_VARARGS, NULL},
 	 { (char *)"comp_pspec", _wrap_comp_pspec, METH_VARARGS, NULL},
+	 { (char *)"wsp_update_bins", _wrap_wsp_update_bins, METH_VARARGS, NULL},
 	 { (char *)"comp_pspec_flat", _wrap_comp_pspec_flat, METH_VARARGS, NULL},
 	 { NULL, NULL, 0, NULL }
 };

@@ -805,6 +805,10 @@ def update_coupling_matrix(w, n_rows, new_matrix):
     return _nmtlib.update_coupling_matrix(w, n_rows, new_matrix)
 update_coupling_matrix = _nmtlib.update_coupling_matrix
 
+def workspace_update_binning(w, bin):
+    return _nmtlib.workspace_update_binning(w, bin)
+workspace_update_binning = _nmtlib.workspace_update_binning
+
 def workspace_write(w, fname):
     return _nmtlib.workspace_write(w, fname)
 workspace_write = _nmtlib.workspace_write
@@ -1204,6 +1208,10 @@ couple_cell_py_flat = _nmtlib.couple_cell_py_flat
 def comp_pspec(fl1, fl2, bin, w0, ncl1, ncl2, dout, n_iter, lmax_mask):
     return _nmtlib.comp_pspec(fl1, fl2, bin, w0, ncl1, ncl2, dout, n_iter, lmax_mask)
 comp_pspec = _nmtlib.comp_pspec
+
+def wsp_update_bins(w, b):
+    return _nmtlib.wsp_update_bins(w, b)
+wsp_update_bins = _nmtlib.wsp_update_bins
 
 def comp_pspec_flat(fl1, fl2, bin, w0, ncl1, nell3, ncl2, dout, lmn_x, lmx_x, lmn_y, lmx_y):
     return _nmtlib.comp_pspec_flat(fl1, fl2, bin, w0, ncl1, nell3, ncl2, dout, lmn_x, lmx_x, lmn_y, lmx_y)

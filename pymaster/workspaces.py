@@ -30,6 +30,14 @@ class NmtWorkspace(object):
             self.wsp = None
         self.wsp = lib.read_workspace(fname)
 
+    def update_bins(self, bins):
+        if self.wsp is None:
+            raise ValueError("Can't update bins without first computing "
+                             "the mode-coupling matrix")
+        if bins.bin is None:
+            raise ValueError("Can't replace with uninitialized bins")
+        lib.wsp_update_bins(self.wsp, bins.bin)
+
     def compute_coupling_matrix(self, fl1, fl2, bins, is_teb=False, n_iter=3,
                                 lmax_mask=-1):
         """

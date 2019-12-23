@@ -212,10 +212,10 @@ class TestWorkspaceHPX(unittest.TestCase) :
 
     def test_workspace_master_teb_np(self) :
         self.mastest(False,False,do_teb=True)
-        
+
     def test_workspace_master_teb_yp(self) :
         self.mastest(False,True,do_teb=True)
-        
+
     def test_workspace_master_nc_np(self) :
         self.mastest(False,False)
 
@@ -227,6 +227,16 @@ class TestWorkspaceHPX(unittest.TestCase) :
 
     def test_workspace_master_yc_yp(self) :
         self.mastest(True,True)
+
+    def test_workspace_rebin(self):
+        b4=nmt.NmtBin.from_nside_linear(self.nside,4)
+        w=nmt.NmtWorkspace()
+        w.read_from("test/benchmarks/bm_yc_yp_w02.dat") #OK read
+        w.update_bins(b4)
+        self.assertEqual(w.wsp.bin.n_bands,b4.bin.n_bands)
+        b4=nmt.NmtBin.from_nside_linear(self.nside//2,4)
+        with self.assertRaises(RuntimeError): #Wrong lmax
+            w.update_bins(b4)
 
     def test_workspace_io(self) :
         w=nmt.NmtWorkspace()
