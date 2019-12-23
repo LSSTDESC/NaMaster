@@ -706,6 +706,16 @@ CTEST(nmt,master_errors) {
   nmt_update_coupling_matrix(w,(lmax+1),mat);
   ASSERT_DBL_NEAR_TOL(w->coupling_matrix_unbinned[2][cs->n_eq+1],1.2345,1E-10);
   free(mat);
+  //nmt_update_binning with wrong input
+  nmt_binning_scheme *bin2=nmt_bins_constant(20,lmax/2,0);
+  try { nmt_workspace_update_binning(w,bin2); }
+  ASSERT_NOT_EQUAL(0,nmt_exception_status);
+  nmt_bins_free(bin2);
+  //nmt_update_binning works as expected
+  bin2=nmt_bins_constant(4,lmax,0);
+  nmt_workspace_update_binning(w,bin2);
+  ASSERT_EQUAL(3*cs->n_eq-1,w->bin->ell_max);
+  nmt_bins_free(bin2);
   nmt_workspace_free(w);
   set_error_policy(EXIT_ON_ERROR);
 

@@ -15,21 +15,10 @@ static void purify_generic(nmt_field *fl,flouble *mask,fcomplex **walm0,
   }
 }
 
-static nmt_workspace *nmt_workspace_new(nmt_curvedsky_info *cs,int ncls,
-					nmt_binning_scheme *bin,int is_teb)
+static void nmt_workspace_store_bins(nmt_workspace *w,
+				     nmt_binning_scheme *bin)
 {
   int ii;
-  nmt_workspace *w=my_malloc(sizeof(nmt_workspace));
-  w->lmax=bin->ell_max;
-  w->is_teb=is_teb;
-  w->ncls=ncls;
-
-  w->cs=nmt_curvedsky_info_copy(cs);
-  w->pcl_masks=my_malloc((he_get_lmax(w->cs)+1)*sizeof(flouble));
-
-  w->coupling_matrix_unbinned=my_malloc(w->ncls*(w->lmax+1)*sizeof(flouble *));
-  for(ii=0;ii<w->ncls*(w->lmax+1);ii++)
-    w->coupling_matrix_unbinned[ii]=my_calloc(w->ncls*(w->lmax+1),sizeof(flouble));
 
   w->bin=my_malloc(sizeof(nmt_binning_scheme));
   w->bin->n_bands=bin->n_bands;
@@ -47,6 +36,26 @@ static nmt_workspace *nmt_workspace_new(nmt_curvedsky_info *cs,int ncls,
     memcpy(w->bin->f_ell[ii],bin->f_ell[ii],w->bin->nell_list[ii]*sizeof(flouble));
   }
   w->bin->ell_max=bin->ell_max;
+
+}
+
+static nmt_workspace *nmt_workspace_new(nmt_curvedsky_info *cs,int ncls,
+					nmt_binning_scheme *bin,int is_teb)
+{
+  int ii;
+  nmt_workspace *w=my_malloc(sizeof(nmt_workspace));
+  w->lmax=bin->ell_max;
+  w->is_teb=is_teb;
+  w->ncls=ncls;
+
+  w->cs=nmt_curvedsky_info_copy(cs);
+  w->pcl_masks=my_malloc((he_get_lmax(w->cs)+1)*sizeof(flouble));
+
+  w->coupling_matrix_unbinned=my_malloc(w->ncls*(w->lmax+1)*sizeof(flouble *));
+  for(ii=0;ii<w->ncls*(w->lmax+1);ii++)
+    w->coupling_matrix_unbinned[ii]=my_calloc(w->ncls*(w->lmax+1),sizeof(flouble));
+
+  nmt_workspace_store_bins(w,bin);
 
   w->coupling_matrix_binned=gsl_matrix_alloc(w->ncls*w->bin->n_bands,w->ncls*w->bin->n_bands);
   w->coupling_matrix_perm=gsl_permutation_alloc(w->ncls*w->bin->n_bands);
@@ -181,6 +190,26 @@ void nmt_update_coupling_matrix(nmt_workspace *w,int n_rows,double *new_matrix)
 
   for(ii=0;ii<n_rows;ii++)
     memcpy(w->coupling_matrix_unbinned[ii],&(new_matrix[ii*n_rows]),n_rows*sizeof(flouble));
+  bin_coupling_matrix(w);
+}
+
+void nmt_workspace_update_binning(nmt_workspace *w,
+				  nmt_binning_scheme *bin)
+{
+  if(bin->ell_max!=w->bin->ell_max) {
+    report_error(NMT_ERROR_INCONSISTENT,
+		 "New bins must have the same ell_max\n");
+  }
+
+  //Store new bins
+  nmt_bins_free(w->bin);
+  nmt_workspace_store_bins(w,bin);
+
+  //Rebin matrix
+  gsl_matrix_free(w->coupling_matrix_binned);
+  gsl_permutation_free(w->coupling_matrix_perm);
+  w->coupling_matrix_binned=gsl_matrix_alloc(w->ncls*w->bin->n_bands,w->ncls*w->bin->n_bands);
+  w->coupling_matrix_perm=gsl_permutation_alloc(w->ncls*w->bin->n_bands);
   bin_coupling_matrix(w);
 }
 

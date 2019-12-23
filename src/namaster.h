@@ -974,6 +974,17 @@ nmt_workspace *nmt_compute_coupling_matrix(nmt_field *fl1,nmt_field *fl2,nmt_bin
 void nmt_update_coupling_matrix(nmt_workspace *w,int n_rows,double *new_matrix);
 
 /**
+ * @brief Updates the binning scheme associated to this workspace.
+ *
+ * Also rebins the MCM and re-inverts it.
+ * @param w nmt_workspace to be updated.
+ * @param bin new nmt_binning_scheme.
+ */
+void nmt_workspace_update_binning(nmt_workspace *w,
+				  nmt_binning_scheme *bin);
+
+
+/**
  * @brief Saves nmt_workspace structure to file
  *
  * The output file uses a native binary format. In combination with nmt_workspace_read(),
