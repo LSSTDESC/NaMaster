@@ -752,6 +752,14 @@ class workspace(_object):
     __swig_getmethods__["lmax"] = _nmtlib.workspace_lmax_get
     if _newclass:
         lmax = _swig_property(_nmtlib.workspace_lmax_get, _nmtlib.workspace_lmax_set)
+    __swig_setmethods__["lmax_fields"] = _nmtlib.workspace_lmax_fields_set
+    __swig_getmethods__["lmax_fields"] = _nmtlib.workspace_lmax_fields_get
+    if _newclass:
+        lmax_fields = _swig_property(_nmtlib.workspace_lmax_fields_get, _nmtlib.workspace_lmax_fields_set)
+    __swig_setmethods__["lmax_mask"] = _nmtlib.workspace_lmax_mask_set
+    __swig_getmethods__["lmax_mask"] = _nmtlib.workspace_lmax_mask_get
+    if _newclass:
+        lmax_mask = _swig_property(_nmtlib.workspace_lmax_mask_get, _nmtlib.workspace_lmax_mask_set)
     __swig_setmethods__["is_teb"] = _nmtlib.workspace_is_teb_set
     __swig_getmethods__["is_teb"] = _nmtlib.workspace_is_teb_get
     if _newclass:
@@ -764,6 +772,10 @@ class workspace(_object):
     __swig_getmethods__["cs"] = _nmtlib.workspace_cs_get
     if _newclass:
         cs = _swig_property(_nmtlib.workspace_cs_get, _nmtlib.workspace_cs_set)
+    __swig_setmethods__["beam_prod"] = _nmtlib.workspace_beam_prod_set
+    __swig_getmethods__["beam_prod"] = _nmtlib.workspace_beam_prod_get
+    if _newclass:
+        beam_prod = _swig_property(_nmtlib.workspace_beam_prod_get, _nmtlib.workspace_beam_prod_set)
     __swig_setmethods__["pcl_masks"] = _nmtlib.workspace_pcl_masks_set
     __swig_getmethods__["pcl_masks"] = _nmtlib.workspace_pcl_masks_get
     if _newclass:

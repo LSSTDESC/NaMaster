@@ -934,9 +934,12 @@ nmt_workspace_flat *nmt_compute_power_spectra_flat(nmt_field_flat *fl1,nmt_field
  */
 typedef struct {
   int lmax; //!< Maximum multipole used
+  int lmax_fields; //!< Resolution of fields being correlated.
+  int lmax_mask; //!< Mask resolution
   int is_teb; //!< Does it hold all MCM elements to compute all of spin0-spin0, 0-2 and 2-2 correlations?
   int ncls; //!< Number of power spectra (1, 2 or 4 depending of the spins of the fields being correlated.
   nmt_curvedsky_info *cs; //!< curved sky geometry information.
+  flouble *beam_prod; //!< Product of field beams.
   flouble *pcl_masks; //!< Pseudo-CL of the masks.
   flouble **coupling_matrix_unbinned; //!< Unbinned mode-coupling matrix
   nmt_binning_scheme *bin; //!< Bandpowers defining the binning
