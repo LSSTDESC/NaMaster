@@ -15,21 +15,10 @@ static void purify_generic(nmt_field *fl,flouble *mask,fcomplex **walm0,
   }
 }
 
-static nmt_workspace *nmt_workspace_new(nmt_curvedsky_info *cs,int ncls,
-					nmt_binning_scheme *bin,int is_teb)
+static void nmt_workspace_store_bins(nmt_workspace *w,
+				     nmt_binning_scheme *bin)
 {
   int ii;
-  nmt_workspace *w=my_malloc(sizeof(nmt_workspace));
-  w->lmax=bin->ell_max;
-  w->is_teb=is_teb;
-  w->ncls=ncls;
-
-  w->cs=nmt_curvedsky_info_copy(cs);
-  w->pcl_masks=my_malloc((he_get_lmax(w->cs)+1)*sizeof(flouble));
-
-  w->coupling_matrix_unbinned=my_malloc(w->ncls*(w->lmax+1)*sizeof(flouble *));
-  for(ii=0;ii<w->ncls*(w->lmax+1);ii++)
-    w->coupling_matrix_unbinned[ii]=my_calloc(w->ncls*(w->lmax+1),sizeof(flouble));
 
   w->bin=my_malloc(sizeof(nmt_binning_scheme));
   w->bin->n_bands=bin->n_bands;
@@ -48,6 +37,30 @@ static nmt_workspace *nmt_workspace_new(nmt_curvedsky_info *cs,int ncls,
   }
   w->bin->ell_max=bin->ell_max;
 
+}
+
+static nmt_workspace *nmt_workspace_new(nmt_curvedsky_info *cs,int ncls,
+					nmt_binning_scheme *bin,int is_teb,
+					int lmax_fields,int lmax_mask)
+{
+  int ii;
+  nmt_workspace *w=my_malloc(sizeof(nmt_workspace));
+  w->lmax=bin->ell_max;
+  w->lmax_fields=lmax_fields;
+  w->lmax_mask=lmax_mask;
+  w->is_teb=is_teb;
+  w->ncls=ncls;
+
+  w->cs=nmt_curvedsky_info_copy(cs);
+  w->pcl_masks=my_malloc((w->lmax_mask+1)*sizeof(flouble));
+  w->beam_prod=my_malloc((w->lmax_fields+1)*sizeof(flouble));
+
+  w->coupling_matrix_unbinned=my_malloc(w->ncls*(w->lmax+1)*sizeof(flouble *));
+  for(ii=0;ii<w->ncls*(w->lmax+1);ii++)
+    w->coupling_matrix_unbinned[ii]=my_calloc(w->ncls*(w->lmax+1),sizeof(flouble));
+
+  nmt_workspace_store_bins(w,bin);
+
   w->coupling_matrix_binned=gsl_matrix_alloc(w->ncls*w->bin->n_bands,w->ncls*w->bin->n_bands);
   w->coupling_matrix_perm=gsl_permutation_alloc(w->ncls*w->bin->n_bands);
 
@@ -64,6 +77,7 @@ void nmt_workspace_free(nmt_workspace *w)
   for(ii=0;ii<w->ncls*(w->lmax+1);ii++)
     free(w->coupling_matrix_unbinned[ii]);
   free(w->coupling_matrix_unbinned);
+  free(w->beam_prod);
   free(w->pcl_masks);
   free(w);
 }
@@ -76,12 +90,17 @@ nmt_workspace *nmt_workspace_read(char *fname)
 
   my_fread(&(w->is_teb),sizeof(int),1,fi);
   my_fread(&(w->lmax),sizeof(int),1,fi);
+  my_fread(&(w->lmax_fields),sizeof(int),1,fi);
+  my_fread(&(w->lmax_mask),sizeof(int),1,fi);
   w->cs=my_malloc(sizeof(nmt_curvedsky_info));
   my_fread(w->cs,sizeof(nmt_curvedsky_info),1,fi);
   my_fread(&(w->ncls),sizeof(int),1,fi);
 
-  w->pcl_masks=my_malloc((w->lmax+1)*sizeof(flouble));
-  my_fread(w->pcl_masks,sizeof(flouble),w->lmax+1,fi);
+  w->pcl_masks=my_malloc((w->lmax_mask+1)*sizeof(flouble));
+  my_fread(w->pcl_masks,sizeof(flouble),w->lmax_mask+1,fi);
+
+  w->beam_prod=my_malloc((w->lmax_fields+1)*sizeof(flouble));
+  my_fread(w->beam_prod,sizeof(flouble),w->lmax_fields+1,fi);
 
   w->coupling_matrix_unbinned=my_malloc(w->ncls*(w->lmax+1)*sizeof(flouble *));
   for(ii=0;ii<w->ncls*(w->lmax+1);ii++) {
@@ -123,9 +142,12 @@ void nmt_workspace_write(nmt_workspace *w,char *fname)
 
   my_fwrite(&(w->is_teb),sizeof(int),1,fo);
   my_fwrite(&(w->lmax),sizeof(int),1,fo);
+  my_fwrite(&(w->lmax_fields),sizeof(int),1,fo);
+  my_fwrite(&(w->lmax_mask),sizeof(int),1,fo);
   my_fwrite(w->cs,sizeof(nmt_curvedsky_info),1,fo);
   my_fwrite(&(w->ncls),sizeof(int),1,fo);
-  my_fwrite(w->pcl_masks,sizeof(flouble),w->lmax+1,fo);
+  my_fwrite(w->pcl_masks,sizeof(flouble),w->lmax_mask+1,fo);
+  my_fwrite(w->beam_prod,sizeof(flouble),w->lmax_fields+1,fo);
   for(ii=0;ii<w->ncls*(w->lmax+1);ii++)
     my_fwrite(w->coupling_matrix_unbinned[ii],sizeof(flouble),w->ncls*(w->lmax+1),fo);
 
@@ -158,7 +180,7 @@ static void bin_coupling_matrix(nmt_workspace *w)
 	    for(i3=0;i3<w->bin->nell_list[ib3];i3++) {
 	      l3=w->bin->ell_list[ib3][i3];
 	      coupling_b+=w->coupling_matrix_unbinned[w->ncls*l2+icl_a][w->ncls*l3+icl_b]*
-		w->bin->w_list[ib2][i2]*w->bin->f_ell[ib2][i2]/w->bin->f_ell[ib3][i3];
+		w->beam_prod[l3]*w->bin->w_list[ib2][i2]*w->bin->f_ell[ib2][i2]/w->bin->f_ell[ib3][i3];
 	    }
 	  }
 	  gsl_matrix_set(w->coupling_matrix_binned,w->ncls*ib2+icl_a,w->ncls*ib3+icl_b,coupling_b);
@@ -184,6 +206,43 @@ void nmt_update_coupling_matrix(nmt_workspace *w,int n_rows,double *new_matrix)
   bin_coupling_matrix(w);
 }
 
+void nmt_workspace_update_beams(nmt_workspace *w,
+				int nl1,double *b1,
+				int nl2,double *b2)
+{
+  if((nl1<=w->lmax_fields) || (nl2<=w->lmax_fields)) {
+    report_error(NMT_ERROR_INCONSISTENT,
+		 "New beams are not large enough\n");
+  }
+
+  int ii;
+  for(ii=0;ii<=w->lmax_fields;ii++)
+    w->beam_prod[ii]=b1[ii]*b2[ii];
+
+  //Recompute the binned coupling matrix
+  bin_coupling_matrix(w);
+}
+
+void nmt_workspace_update_binning(nmt_workspace *w,
+				  nmt_binning_scheme *bin)
+{
+  if(bin->ell_max!=w->bin->ell_max) {
+    report_error(NMT_ERROR_INCONSISTENT,
+		 "New bins must have the same ell_max\n");
+  }
+
+  //Store new bins
+  nmt_bins_free(w->bin);
+  nmt_workspace_store_bins(w,bin);
+
+  //Rebin matrix
+  gsl_matrix_free(w->coupling_matrix_binned);
+  gsl_permutation_free(w->coupling_matrix_perm);
+  w->coupling_matrix_binned=gsl_matrix_alloc(w->ncls*w->bin->n_bands,w->ncls*w->bin->n_bands);
+  w->coupling_matrix_perm=gsl_permutation_alloc(w->ncls*w->bin->n_bands);
+  bin_coupling_matrix(w);
+}
+
 //Computes binned coupling matrix
 // fl1,fl2 (in) : fields we're correlating
 // coupling_matrix_out (out) : unbinned coupling matrix
@@ -193,7 +252,6 @@ nmt_workspace *nmt_compute_coupling_matrix(nmt_field *fl1,nmt_field *fl2,
 {
   int l2,lmax_large,lmax_fields;
   nmt_workspace *w;
-  flouble *beam_prod;
   int n_cl=fl1->nmaps*fl2->nmaps;
   if(is_teb) {
     if(!((fl1->pol==0) && (fl2->pol==1)))
@@ -209,22 +267,22 @@ nmt_workspace *nmt_compute_coupling_matrix(nmt_field *fl1,nmt_field *fl2,
     report_error(NMT_ERROR_CONSISTENT_RESO,
 		 "Requesting bandpowers for too high a "
 		 "multipole given map resolution\n");
-  w=nmt_workspace_new(fl1->cs,n_cl,bin,is_teb);
   lmax_fields=fl1->lmax; // ell_max for the maps
   lmax_large=lmax_fields; // ell_max for the masks
   if(lmax_mask>lmax_large)
     lmax_large=lmax_mask;
+  w=nmt_workspace_new(fl1->cs,n_cl,bin,is_teb,
+		      lmax_fields,lmax_large);
 
-  beam_prod=my_malloc((lmax_fields+1)*sizeof(flouble));
-  for(l2=0;l2<=lmax_fields;l2++)
-    beam_prod[l2]=fl1->beam[l2]*fl2->beam[l2];
+  for(l2=0;l2<=w->lmax_fields;l2++)
+    w->beam_prod[l2]=fl1->beam[l2]*fl2->beam[l2];
 
-  he_anafast(&(fl1->mask),&(fl2->mask),0,0,&(w->pcl_masks),fl1->cs,lmax_large,niter);
-  for(l2=0;l2<=lmax_large;l2++)
+  he_anafast(&(fl1->mask),&(fl2->mask),0,0,&(w->pcl_masks),fl1->cs,w->lmax_mask,niter);
+  for(l2=0;l2<=w->lmax_mask;l2++)
     w->pcl_masks[l2]*=(2*l2+1.);
 
 #pragma omp parallel default(none)		\
-  shared(w,beam_prod,fl1,fl2,lmax_large)
+  shared(w,fl1,fl2)
   {
     int ll2,ll3;
     double *wigner_00=NULL,*wigner_22=NULL,*wigner_12=NULL,*wigner_02=NULL;
@@ -233,12 +291,12 @@ nmt_workspace *nmt_compute_coupling_matrix(nmt_field *fl1,nmt_field *fl2,
     int pure_any=pe1 || pb1 || pe2 || pb2;
 
     if((w->ncls==1) || (w->ncls==2) || (w->ncls==7))
-      wigner_00=my_malloc(2*(lmax_large+1)*sizeof(double));
+      wigner_00=my_malloc(2*(w->lmax_mask+1)*sizeof(double));
     if((w->ncls==2) || (w->ncls==4) || (w->ncls==7))
-      wigner_22=my_malloc(2*(lmax_large+1)*sizeof(double));
+      wigner_22=my_malloc(2*(w->lmax_mask+1)*sizeof(double));
     if(pure_any) {
-      wigner_12=my_malloc(2*(lmax_large+1)*sizeof(double));
-      wigner_02=my_malloc(2*(lmax_large+1)*sizeof(double));
+      wigner_12=my_malloc(2*(w->lmax_mask+1)*sizeof(double));
+      wigner_02=my_malloc(2*(w->lmax_mask+1)*sizeof(double));
     }
 
     if((w->ncls!=1) && (w->ncls!=7))
@@ -248,18 +306,18 @@ nmt_workspace *nmt_compute_coupling_matrix(nmt_field *fl1,nmt_field *fl2,
     for(ll2=lstart;ll2<=w->lmax;ll2++) {
       for(ll3=lstart;ll3<=w->lmax;ll3++) {
 	int jj,l1,lmin_here,lmax_here;
-	int lmin_here_00=0,lmax_here_00=2*(lmax_large+1)+1;
-	int lmin_here_22=0,lmax_here_22=2*(lmax_large+1)+1;
-	int lmin_here_12=0,lmax_here_12=2*(lmax_large+1)+1;
-	int lmin_here_02=0,lmax_here_02=2*(lmax_large+1)+1;
+	int lmin_here_00=0,lmax_here_00=2*(w->lmax_mask+1)+1;
+	int lmin_here_22=0,lmax_here_22=2*(w->lmax_mask+1)+1;
+	int lmin_here_12=0,lmax_here_12=2*(w->lmax_mask+1)+1;
+	int lmin_here_02=0,lmax_here_02=2*(w->lmax_mask+1)+1;
 
 	if((w->ncls==1) || (w->ncls==2) || (w->ncls==7))
-	  drc3jj(ll2,ll3,0,0,&lmin_here_00,&lmax_here_00,wigner_00,2*(lmax_large+1));
+	  drc3jj(ll2,ll3,0,0,&lmin_here_00,&lmax_here_00,wigner_00,2*(w->lmax_mask+1));
 	if((w->ncls==2) || (w->ncls==4) || (w->ncls==7))
-	  drc3jj(ll2,ll3,2,-2,&lmin_here_22,&lmax_here_22,wigner_22,2*(lmax_large+1));
+	  drc3jj(ll2,ll3,2,-2,&lmin_here_22,&lmax_here_22,wigner_22,2*(w->lmax_mask+1));
 	if(pure_any) {
-	  drc3jj(ll2,ll3,1,-2,&lmin_here_12,&lmax_here_12,wigner_12,2*(lmax_large+1));
-	  drc3jj(ll2,ll3,0,-2,&lmin_here_02,&lmax_here_02,wigner_02,2*(lmax_large+1));
+	  drc3jj(ll2,ll3,1,-2,&lmin_here_12,&lmax_here_12,wigner_12,2*(w->lmax_mask+1));
+	  drc3jj(ll2,ll3,0,-2,&lmin_here_02,&lmax_here_02,wigner_02,2*(w->lmax_mask+1));
 	}
 
 	if(w->ncls!=7) {
@@ -279,7 +337,7 @@ nmt_workspace *nmt_compute_coupling_matrix(nmt_field *fl1,nmt_field *fl2,
 	//All lines regarding lmax are in principle unnecessary, since lmax is just l3+l2
 
 	for(l1=lmin_here;l1<=lmax_here;l1++) {
-	  if(l1<=lmax_large) {
+	  if(l1<=w->lmax_mask) {
 	    flouble wfac,fac_12=0,fac_02=0;
 	    int j02,j12;
 	    int j00=l1-lmin_here_00;
@@ -400,7 +458,7 @@ nmt_workspace *nmt_compute_coupling_matrix(nmt_field *fl1,nmt_field *fl2,
 	for(jj=0;jj<w->ncls;jj++) {
 	  int kk;
 	  for(kk=0;kk<w->ncls;kk++)
-	    w->coupling_matrix_unbinned[w->ncls*ll2+jj][w->ncls*ll3+kk]*=(2*ll3+1.)*beam_prod[ll3]/(4*M_PI);
+	    w->coupling_matrix_unbinned[w->ncls*ll2+jj][w->ncls*ll3+kk]*=(2*ll3+1.)/(4*M_PI);
 	}
       }
     } //end omp for
@@ -415,7 +473,6 @@ nmt_workspace *nmt_compute_coupling_matrix(nmt_field *fl1,nmt_field *fl2,
   } //end omp parallel
 
   bin_coupling_matrix(w);
-  free(beam_prod);
 
   return w;
 }
@@ -678,8 +735,9 @@ void nmt_couple_cl_l(nmt_workspace *w,flouble **cl_in,flouble **cl_out)
       flouble *mrow=w->coupling_matrix_unbinned[w->ncls*l1+icl1];
       for(l2=0;l2<=w->lmax;l2++) {
 	int icl2=0;
+	flouble beamprod=w->beam_prod[l2];
 	for(icl2=0;icl2<w->ncls;icl2++)
-	  cl+=mrow[w->ncls*l2+icl2]*cl_in[icl2][l2];
+	  cl+=mrow[w->ncls*l2+icl2]*beamprod*cl_in[icl2][l2];
       }
       cl_out[icl1][l1]=cl;
     }
@@ -709,10 +767,11 @@ void nmt_compute_bandpower_windows(nmt_workspace *w,double *bpw_win_out)
 	  int l2;
 	  for(l2=0;l2<=w->lmax;l2++) {
 	    int index_2=w->ncls*l2+icl2;
+	    double beamprod=w->beam_prod[l2];
 	    double m0=gsl_matrix_get(mat_coupled_bin,
 				     index_b1,index_2);
 	    gsl_matrix_set(mat_coupled_bin,index_b1,index_2,
-			   m0+matrix_row[index_2]*wf);
+			   m0+matrix_row[index_2]*beamprod*wf);
 	  }
 	}
       }

@@ -941,6 +941,18 @@ void comp_pspec(nmt_field *fl1,nmt_field *fl2,
     nmt_workspace_free(w);
 }
 
+void wsp_update_beams(nmt_workspace *w,  // Workspace
+		      int nell3,double *weights, // 1st beam
+		      int nell4,double *f_ell) // 2nd beam
+{
+  nmt_workspace_update_beams(w,nell3,weights,nell4,f_ell);
+}
+
+void wsp_update_bins(nmt_workspace *w,nmt_binning_scheme *b)
+{
+  nmt_workspace_update_binning(w,b);
+}
+
 void comp_pspec_flat(nmt_field_flat *fl1,nmt_field_flat *fl2,
 		     nmt_binning_scheme_flat *bin,nmt_workspace_flat *w0,
 		     int ncl1,int nell1,double *cls1,

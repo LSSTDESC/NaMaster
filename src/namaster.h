@@ -934,9 +934,12 @@ nmt_workspace_flat *nmt_compute_power_spectra_flat(nmt_field_flat *fl1,nmt_field
  */
 typedef struct {
   int lmax; //!< Maximum multipole used
+  int lmax_fields; //!< Resolution of fields being correlated.
+  int lmax_mask; //!< Mask resolution
   int is_teb; //!< Does it hold all MCM elements to compute all of spin0-spin0, 0-2 and 2-2 correlations?
   int ncls; //!< Number of power spectra (1, 2 or 4 depending of the spins of the fields being correlated.
   nmt_curvedsky_info *cs; //!< curved sky geometry information.
+  flouble *beam_prod; //!< Product of field beams.
   flouble *pcl_masks; //!< Pseudo-CL of the masks.
   flouble **coupling_matrix_unbinned; //!< Unbinned mode-coupling matrix
   nmt_binning_scheme *bin; //!< Bandpowers defining the binning
@@ -972,6 +975,29 @@ nmt_workspace *nmt_compute_coupling_matrix(nmt_field *fl1,nmt_field *fl2,nmt_bin
  * @param new_matrix new mode-coupling matrix (flattened).
  */
 void nmt_update_coupling_matrix(nmt_workspace *w,int n_rows,double *new_matrix);
+
+/**
+ * @brief Updates the binning scheme associated to this workspace.
+ *
+ * Also rebins the MCM and re-inverts it.
+ * @param w nmt_workspace to be updated.
+ * @param bin new nmt_binning_scheme.
+ */
+void nmt_workspace_update_binning(nmt_workspace *w,
+				  nmt_binning_scheme *bin);
+
+/**
+ * @brief Updates the beams associated to this workspace.
+ *
+ * Also recomputes the binned MCM and its inverse
+ * @param nl1 Number of elements of b1.
+ * @param b1 First field's beam (harmonic space). One element per multipole.
+ * @param nl2 Number of elements of b1.
+ * @param b2 Second field's beam (harmonic space). One element per multipole.
+ */
+void nmt_workspace_update_beams(nmt_workspace *w,
+				int nl1,double *b1,
+				int nl2,double *b2);
 
 /**
  * @brief Saves nmt_workspace structure to file
