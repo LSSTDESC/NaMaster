@@ -1312,4 +1312,7 @@ void nmt_covar_workspace_write(nmt_covar_workspace *cw,char *fname);
  */
 nmt_covar_workspace *nmt_covar_workspace_read(char *fname);
 
+void nmt_workspace_write_fits(nmt_workspace *w,char *fname);
+nmt_workspace *nmt_workspace_read_fits(char *fname);
+
 #endif //_NAMASTER_H_
