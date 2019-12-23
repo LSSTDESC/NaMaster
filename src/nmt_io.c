@@ -38,6 +38,12 @@ static nmt_curvedsky_info *nmt_curvedsky_info_fromhdus(fitsfile *fptr,
   fits_read_key(fptr,TDOUBLE,"PHI0",&(cs->phi0),NULL,status);
   fits_read_key(fptr,TDOUBLE,"THETA0",&(cs->theta0),NULL,status);
 
+  //This only means that it had some trouble converting into double precision
+  //It can happen if some of these quantities were rubbish to begin with, so
+  //we just ignore this one.
+  if(*status == 412)
+    *status=0;
+
   return cs;
 }
 
