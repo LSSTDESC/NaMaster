@@ -581,12 +581,12 @@ nmt_workspace_flat *comp_coupling_matrix_flat(nmt_field_flat *fl1,nmt_field_flat
 
 nmt_workspace *read_workspace(char *fname)
 {
-  return nmt_workspace_read(fname);
+  return nmt_workspace_read_fits(fname);
 }
 
 void write_workspace(nmt_workspace *w,char *fname)
 {
-  nmt_workspace_write(w,fname);
+  nmt_workspace_write_fits(w,fname);
 }
 
 nmt_workspace_flat *read_workspace_flat(char *fname)

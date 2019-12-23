@@ -3867,12 +3867,12 @@ nmt_workspace_flat *comp_coupling_matrix_flat(nmt_field_flat *fl1,nmt_field_flat
 
 nmt_workspace *read_workspace(char *fname)
 {
-  return nmt_workspace_read(fname);
+  return nmt_workspace_read_fits(fname);
 }
 
 void write_workspace(nmt_workspace *w,char *fname)
 {
-  nmt_workspace_write(w,fname);
+  nmt_workspace_write_fits(w,fname);
 }
 
 nmt_workspace_flat *read_workspace_flat(char *fname)
@@ -12936,64 +12936,6 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_workspace_write(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
-  PyObject *resultobj = 0;
-  nmt_workspace *arg1 = (nmt_workspace *) 0 ;
-  char *arg2 = (char *) 0 ;
-  void *argp1 = 0 ;
-  int res1 = 0 ;
-  int res2 ;
-  char *buf2 = 0 ;
-  int alloc2 = 0 ;
-  PyObject * obj0 = 0 ;
-  PyObject * obj1 = 0 ;
-  
-  if (!PyArg_ParseTuple(args,(char *)"OO:workspace_write",&obj0,&obj1)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_workspace, 0 |  0 );
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "workspace_write" "', argument " "1"" of type '" "nmt_workspace *""'"); 
-  }
-  arg1 = (nmt_workspace *)(argp1);
-  res2 = SWIG_AsCharPtrAndSize(obj1, &buf2, NULL, &alloc2);
-  if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "workspace_write" "', argument " "2"" of type '" "char *""'");
-  }
-  arg2 = (char *)(buf2);
-  nmt_workspace_write(arg1,arg2);
-  resultobj = SWIG_Py_Void();
-  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
-  return resultobj;
-fail:
-  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
-  return NULL;
-}
-
-
-SWIGINTERN PyObject *_wrap_workspace_read(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
-  PyObject *resultobj = 0;
-  char *arg1 = (char *) 0 ;
-  int res1 ;
-  char *buf1 = 0 ;
-  int alloc1 = 0 ;
-  PyObject * obj0 = 0 ;
-  nmt_workspace *result = 0 ;
-  
-  if (!PyArg_ParseTuple(args,(char *)"O:workspace_read",&obj0)) SWIG_fail;
-  res1 = SWIG_AsCharPtrAndSize(obj0, &buf1, NULL, &alloc1);
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "workspace_read" "', argument " "1"" of type '" "char *""'");
-  }
-  arg1 = (char *)(buf1);
-  result = (nmt_workspace *)nmt_workspace_read(arg1);
-  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_nmt_workspace, 0 |  0 );
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
-  return resultobj;
-fail:
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
-  return NULL;
-}
-
-
 SWIGINTERN PyObject *_wrap_workspace_free(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   nmt_workspace *arg1 = (nmt_workspace *) 0 ;
@@ -14967,6 +14909,64 @@ SWIGINTERN PyObject *_wrap_covar_workspace_read(PyObject *SWIGUNUSEDPARM(self), 
   arg1 = (char *)(buf1);
   result = (nmt_covar_workspace *)nmt_covar_workspace_read(arg1);
   resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_nmt_covar_workspace, 0 |  0 );
+  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
+  return resultobj;
+fail:
+  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_workspace_write_fits(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_workspace *arg1 = (nmt_workspace *) 0 ;
+  char *arg2 = (char *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int res2 ;
+  char *buf2 = 0 ;
+  int alloc2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:workspace_write_fits",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_workspace, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "workspace_write_fits" "', argument " "1"" of type '" "nmt_workspace *""'"); 
+  }
+  arg1 = (nmt_workspace *)(argp1);
+  res2 = SWIG_AsCharPtrAndSize(obj1, &buf2, NULL, &alloc2);
+  if (!SWIG_IsOK(res2)) {
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "workspace_write_fits" "', argument " "2"" of type '" "char *""'");
+  }
+  arg2 = (char *)(buf2);
+  nmt_workspace_write_fits(arg1,arg2);
+  resultobj = SWIG_Py_Void();
+  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
+  return resultobj;
+fail:
+  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_workspace_read_fits(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  char *arg1 = (char *) 0 ;
+  int res1 ;
+  char *buf1 = 0 ;
+  int alloc1 = 0 ;
+  PyObject * obj0 = 0 ;
+  nmt_workspace *result = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:workspace_read_fits",&obj0)) SWIG_fail;
+  res1 = SWIG_AsCharPtrAndSize(obj0, &buf1, NULL, &alloc1);
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "workspace_read_fits" "', argument " "1"" of type '" "char *""'");
+  }
+  arg1 = (char *)(buf1);
+  result = (nmt_workspace *)nmt_workspace_read_fits(arg1);
+  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_nmt_workspace, 0 |  0 );
   if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
   return resultobj;
 fail:
@@ -20760,8 +20760,6 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"update_coupling_matrix", _wrap_update_coupling_matrix, METH_VARARGS, NULL},
 	 { (char *)"workspace_update_binning", _wrap_workspace_update_binning, METH_VARARGS, NULL},
 	 { (char *)"workspace_update_beams", _wrap_workspace_update_beams, METH_VARARGS, NULL},
-	 { (char *)"workspace_write", _wrap_workspace_write, METH_VARARGS, NULL},
-	 { (char *)"workspace_read", _wrap_workspace_read, METH_VARARGS, NULL},
 	 { (char *)"workspace_free", _wrap_workspace_free, METH_VARARGS, NULL},
 	 { (char *)"compute_deprojection_bias", _wrap_compute_deprojection_bias, METH_VARARGS, NULL},
 	 { (char *)"compute_uncorr_noise_deprojection_bias", _wrap_compute_uncorr_noise_deprojection_bias, METH_VARARGS, NULL},
@@ -20822,6 +20820,8 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"compute_gaussian_covariance", _wrap_compute_gaussian_covariance, METH_VARARGS, NULL},
 	 { (char *)"covar_workspace_write", _wrap_covar_workspace_write, METH_VARARGS, NULL},
 	 { (char *)"covar_workspace_read", _wrap_covar_workspace_read, METH_VARARGS, NULL},
+	 { (char *)"workspace_write_fits", _wrap_workspace_write_fits, METH_VARARGS, NULL},
+	 { (char *)"workspace_read_fits", _wrap_workspace_read_fits, METH_VARARGS, NULL},
 	 { (char *)"get_nell_list", _wrap_get_nell_list, METH_VARARGS, NULL},
 	 { (char *)"get_nell", _wrap_get_nell, METH_VARARGS, NULL},
 	 { (char *)"get_ell_list", _wrap_get_ell_list, METH_VARARGS, NULL},

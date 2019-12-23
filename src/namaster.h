@@ -1000,29 +1000,6 @@ void nmt_workspace_update_beams(nmt_workspace *w,
 				int nl2,double *b2);
 
 /**
- * @brief Saves nmt_workspace structure to file
- *
- * The output file uses a native binary format. In combination with nmt_workspace_read(),
- * this can be used to save the information contained in a given workspace and reuse it for
- * future power spectrum computations. The same workspace can be used on any pair of fields
- * with the same masks.
- * @param w nmt_workspace to be saved.
- * @param fname Path to output file.
- */
-void nmt_workspace_write(nmt_workspace *w,char *fname);
-
-/**
- * @brief Builds nmt_workspace structure from file
- *
- * The input file uses a native binary format. In combination with nmt_workspace_write(),
- * this can be used to save the information contained in a given workspace and reuse it for
- * future power spectrum computations. The same workspace can be used on any pair of fields
- * with the same masks.
- * @param fname Path to input file.
- */
-nmt_workspace *nmt_workspace_read(char *fname);
-
-/**
  * @brief nmt_workspace destructor
  */
 void nmt_workspace_free(nmt_workspace *w);
@@ -1338,7 +1315,28 @@ void nmt_covar_workspace_write(nmt_covar_workspace *cw,char *fname);
  */
 nmt_covar_workspace *nmt_covar_workspace_read(char *fname);
 
+
+/**
+ * @brief Saves nmt_workspace structure to file
+ *
+ * The output file uses the FITS standard. In combination with nmt_workspace_read_fits(),
+ * this can be used to save the information contained in a given workspace and reuse it for
+ * future power spectrum computations. The same workspace can be used on any pair of fields
+ * with the same masks.
+ * @param w nmt_workspace to be saved.
+ * @param fname Path to output file.
+ */
 void nmt_workspace_write_fits(nmt_workspace *w,char *fname);
+
+/**
+ * @brief Builds nmt_workspace structure from file
+ *
+ * The input file uses the FITS standard. In combination with nmt_workspace_write_fits(),
+ * this can be used to save the information contained in a given workspace and reuse it for
+ * future power spectrum computations. The same workspace can be used on any pair of fields
+ * with the same masks.
+ * @param fname Path to input file.
+ */
 nmt_workspace *nmt_workspace_read_fits(char *fname);
 
 #endif //_NAMASTER_H_

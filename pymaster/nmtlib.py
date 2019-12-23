@@ -825,14 +825,6 @@ def workspace_update_beams(w, nl1, b1, nl2, b2):
     return _nmtlib.workspace_update_beams(w, nl1, b1, nl2, b2)
 workspace_update_beams = _nmtlib.workspace_update_beams
 
-def workspace_write(w, fname):
-    return _nmtlib.workspace_write(w, fname)
-workspace_write = _nmtlib.workspace_write
-
-def workspace_read(fname):
-    return _nmtlib.workspace_read(fname)
-workspace_read = _nmtlib.workspace_read
-
 def workspace_free(w):
     return _nmtlib.workspace_free(w)
 workspace_free = _nmtlib.workspace_free
@@ -1012,6 +1004,14 @@ covar_workspace_write = _nmtlib.covar_workspace_write
 def covar_workspace_read(fname):
     return _nmtlib.covar_workspace_read(fname)
 covar_workspace_read = _nmtlib.covar_workspace_read
+
+def workspace_write_fits(w, fname):
+    return _nmtlib.workspace_write_fits(w, fname)
+workspace_write_fits = _nmtlib.workspace_write_fits
+
+def workspace_read_fits(fname):
+    return _nmtlib.workspace_read_fits(fname)
+workspace_read_fits = _nmtlib.workspace_read_fits
 
 def get_nell_list(bins, iout):
     return _nmtlib.get_nell_list(bins, iout)

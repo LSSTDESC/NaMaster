@@ -299,23 +299,40 @@ static void nmt_coupling_binned_fromhdus(fitsfile *fptr,
   free(perm);
 }
 
+static void check_fits(int status,char *fname,int is_read)
+{
+  if(status) {
+    if(is_read)
+      report_error(NMT_ERROR_READ,"Error reading file %s\n",fname);
+    else
+      report_error(NMT_ERROR_WRITE,"Error writing file %s\n",fname);
+  }
+}
+
 void nmt_workspace_write_fits(nmt_workspace *w,char *fname)
 {
   fitsfile *fptr;
   int status=0;
   fits_create_file(&fptr,fname,&status);
+  check_fits(status,fname,0);
   // Workspace info HDU
   nmt_workspace_info_tohdus(fptr,w,&status);
+  check_fits(status,fname,0);
   // CS info HDU
   nmt_curvedsky_info_tohdus(fptr,w->cs,&status);
+  check_fits(status,fname,0);
   // beam_prod HDU
   nmt_l_arr_tohdus(fptr,w->lmax_fields,w->beam_prod,"BEAMS",&status);
+  check_fits(status,fname,0);
   // pcl_masks HDU
   nmt_l_arr_tohdus(fptr,w->lmax_mask,w->pcl_masks,"PCL_MASKS",&status);
+  check_fits(status,fname,0);
   // bins HDUs
   nmt_binning_scheme_tohdus(fptr,w->bin,&status);
+  check_fits(status,fname,0);
   // binned MCM HDU
   nmt_coupling_binned_tohdus(fptr,w,&status);
+  check_fits(status,fname,0);
   fits_close_file(fptr,&status);
 }
 
@@ -326,18 +343,25 @@ nmt_workspace *nmt_workspace_read_fits(char *fname)
   nmt_workspace *w=my_malloc(sizeof(nmt_workspace));
 
   fits_open_file(&fptr,fname,READONLY,&status);
+  check_fits(status,fname,1);
   // Workspace info HDU
   nmt_workspace_info_fromhdus(fptr,w,&status);
+  check_fits(status,fname,1);
   // CS info HDU
   w->cs=nmt_curvedsky_info_fromhdus(fptr,&status);
+  check_fits(status,fname,1);
   // beam_prod HDU
   w->beam_prod=nmt_l_arr_fromhdus(fptr,w->lmax_fields,&status);
+  check_fits(status,fname,1);
   // pcl_masks HDU
   w->pcl_masks=nmt_l_arr_fromhdus(fptr,w->lmax_mask,&status);
+  check_fits(status,fname,1);
   // bins HDUs
   w->bin=nmt_binning_scheme_fromhdus(fptr,&status);
+  check_fits(status,fname,1);
   // binned MCM HDU
   nmt_coupling_binned_fromhdus(fptr,w,&status);
+  check_fits(status,fname,1);
   fits_close_file(fptr,&status);
 
   return w;
