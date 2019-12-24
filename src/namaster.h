@@ -1108,8 +1108,6 @@ nmt_workspace *nmt_compute_power_spectra(nmt_field *fl1,nmt_field *fl2,
  * Structure containing the information necessary to compute Gaussian covariance matrices
  * for the pseudo-CL spectra of two flat-sky spin-0 fields.
  *
- * @warning All covariance-related functionality is still under development, and in the future will hopefully support.
- * fields of different spins.
  */
 typedef struct {
   nmt_binning_scheme_flat *bin; //!< Bandpowers defining the binning
@@ -1125,7 +1123,6 @@ typedef struct {
 
 /**
  * @brief nmt_covar_workspace_flat destructor.
- * @warning All covariance-related functionality is still under development, and in the future will hopefully support.
  */
 void nmt_covar_workspace_flat_free(nmt_covar_workspace_flat *cw);
 
@@ -1140,7 +1137,6 @@ void nmt_covar_workspace_flat_free(nmt_covar_workspace_flat *cw);
  * @param flb2 nmt_field_field for the second field going into the second (b-th) power spectrum.
  * @param ba nmt_binning_scheme_flat used for the first power spectrum.
  * @param bb nmt_binning_scheme_flat used for the second power spectrum.
- * @warning All covariance-related functionality is still under development, and in the future will hopefully support.
  */
 nmt_covar_workspace_flat *nmt_covar_workspace_flat_init(nmt_field_flat *fla1,nmt_field_flat *fla2,
 							nmt_binning_scheme_flat *ba,
@@ -1182,7 +1178,6 @@ void nmt_compute_gaussian_covariance_flat(nmt_covar_workspace_flat *cw,
  * between fields with the same masks.
  * @param cw nmt_covar_workspace_flat to be saved.
  * @param fname Path to output file.
- * @warning All covariance-related functionality is still under development, and in the future will hopefully support.
  */
 void nmt_covar_workspace_flat_write(nmt_covar_workspace_flat *cw,char *fname);
 
@@ -1194,7 +1189,6 @@ void nmt_covar_workspace_flat_write(nmt_covar_workspace_flat *cw,char *fname);
  * future covariance matrix computations. The same workspace can be used on any pair of power spectra
  * between fields with the same masks.
  * @param fname Path to input file.
- * @warning All covariance-related functionality is still under development, and in the future will hopefully support.
  */
 nmt_covar_workspace_flat *nmt_covar_workspace_flat_read(char *fname);
 
@@ -1203,9 +1197,6 @@ nmt_covar_workspace_flat *nmt_covar_workspace_flat_read(char *fname);
  *
  * Structure containing the information necessary to compute Gaussian covariance matrices
  * for the pseudo-CL spectra of two full-sky spin-0 fields.
- *
- * @warning All covariance-related functionality is still under development, and in the future will hopefully support.
- * fields of different spins.
  */
 typedef struct {
   int lmax; //!< Maximum multipole for the first set of power spectra
@@ -1221,7 +1212,6 @@ typedef struct {
 
 /**
  * @brief nmt_covar_workspace destructor.
- * @warning All covariance-related functionality is still under development, and in the future will hopefully support.
  */
 void nmt_covar_workspace_free(nmt_covar_workspace *cw);
 
@@ -1236,7 +1226,6 @@ void nmt_covar_workspace_free(nmt_covar_workspace *cw);
  * @param flb2 nmt_field for the second field going into the second (b-th) power spectrum.
  * @param lmax maximum multipole up to which the coupling coefficients will be calculated.
  * @param niter number of iterations when computing alms.
- * @warning All covariance-related functionality is still under development, and in the future will hopefully support.
  */
 nmt_covar_workspace *nmt_covar_workspace_init(nmt_field *fla1,nmt_field *fla2,
 					      nmt_field *flb1,nmt_field *flb2,
@@ -1266,32 +1255,6 @@ void  nmt_compute_gaussian_covariance(nmt_covar_workspace *cw,
 				      flouble **clac,flouble **clad,
 				      flouble **clbc,flouble **clbd,
 				      flouble *covar_out);
-
-/**
- * @brief Saves nmt_covar_workspace structure to file
- *
- * The output file uses a native binary format. In combination with nmt_covar_workspace_read(),
- * this can be used to save the information contained in a given workspace and reuse it for
- * future covariance matrix computations. The same workspace can be used on any pair of power spectra
- * between fields with the same masks.
- * @param cw nmt_covar_workspace to be saved.
- * @param fname Path to output file.
- * @warning All covariance-related functionality is still under development, and in the future will hopefully support.
- */
-void nmt_covar_workspace_write(nmt_covar_workspace *cw,char *fname);
-
-/**
- * @brief Builds nmt_covar_workspace structure from file
- *
- * The input file uses a native binary format. In combination with nmt_covar_workspace_write(),
- * this can be used to save the information contained in a given workspace and reuse it for
- * future covariance matrix computations. The same workspace can be used on any pair of power spectra
- * between fields with the same masks.
- * @param fname Path to input file.
- * @warning All covariance-related functionality is still under development, and in the future will hopefully support.
- */
-nmt_covar_workspace *nmt_covar_workspace_read(char *fname);
-
 
 /**
  * @brief Saves nmt_workspace structure to file
@@ -1338,5 +1301,28 @@ nmt_workspace_flat *nmt_workspace_flat_read_fits(char *fname);
  * @param fname Path to output file.
  */
 void nmt_workspace_flat_write_fits(nmt_workspace_flat *w,char *fname);
+
+/**
+ * @brief Saves nmt_covar_workspace structure to file
+ *
+ * The output file uses the FITS standard. In combination with nmt_covar_workspace_read_fits(),
+ * this can be used to save the information contained in a given workspace and reuse it for
+ * future covariance matrix computations. The same workspace can be used on any pair of power spectra
+ * between fields with the same masks.
+ * @param cw nmt_covar_workspace to be saved.
+ * @param fname Path to output file.
+ */
+void nmt_covar_workspace_write_fits(nmt_covar_workspace *cw,char *fname);
+
+/**
+ * @brief Builds nmt_covar_workspace structure from file
+ *
+ * The input file uses the FITS standard. In combination with nmt_covar_workspace_write_fits(),
+ * this can be used to save the information contained in a given workspace and reuse it for
+ * future covariance matrix computations. The same workspace can be used on any pair of power spectra
+ * between fields with the same masks.
+ * @param fname Path to input file.
+ */
+nmt_covar_workspace *nmt_covar_workspace_read_fits(char *fname);
 
 #endif //_NAMASTER_H_

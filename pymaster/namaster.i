@@ -667,12 +667,12 @@ void comp_deproj_bias_flat(nmt_field_flat *fl1,nmt_field_flat *fl2,
 
 void write_covar_workspace(nmt_covar_workspace *cw,char *fname)
 {
-  nmt_covar_workspace_write(cw,fname);
+  nmt_covar_workspace_write_fits(cw,fname);
 }
 
 nmt_covar_workspace *read_covar_workspace(char *fname)
 {
-  return nmt_covar_workspace_read(fname);
+  return nmt_covar_workspace_read_fits(fname);
 }
 
 nmt_covar_workspace *covar_workspace_init_py(nmt_field *fa1,nmt_field *fa2,

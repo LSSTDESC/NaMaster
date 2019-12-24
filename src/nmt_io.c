@@ -713,3 +713,107 @@ nmt_workspace_flat *nmt_workspace_flat_read_fits(char *fname)
 
   return w;
 }
+
+static void nmt_covar_coeffs_tohdus(fitsfile *fptr,
+				    int n_expected,double **coeff,
+				    char *name,int *status)
+{
+  long ii,n_el=n_expected;
+  long naxes[2]={n_el,n_el};
+  long fpixel[2]={1,1};
+  fits_create_img(fptr,DOUBLE_IMG,2,naxes,status);
+  fits_write_key(fptr,TSTRING,"COEFF",name,NULL,status);
+  for(ii=0;ii<n_el;ii++) {
+    fpixel[1]=ii+1;
+    fits_write_pix(fptr,TDOUBLE,fpixel,n_el,coeff[ii],status);
+  }
+}
+
+static double **nmt_covar_coeffs_fromhdus(fitsfile *fptr,
+					  int n_expected,
+					  int *status)
+{
+  flouble *matrix;
+  long ii,n_el;
+  long naxes[2],fpixel[2]={1,1};
+
+  fits_movrel_hdu(fptr,1,NULL,status);
+  fits_get_img_size(fptr,2,naxes,status);
+  n_el=naxes[0];
+  if(n_el!=n_expected)
+    report_error(NMT_ERROR_INCONSISTENT,"Mistmatching coefficient size\n");
+  matrix=my_malloc(n_el*n_el*sizeof(flouble));
+  fits_read_pix(fptr,TDOUBLE,fpixel,naxes[0]*naxes[1],NULL,matrix,NULL,status);
+
+  double **coeff=my_malloc(n_el*sizeof(flouble *));
+  for(ii=0;ii<n_el;ii++) {
+    coeff[ii]=my_malloc(n_el*sizeof(flouble));
+    memcpy(coeff[ii],&(matrix[ii*n_el]),n_el*sizeof(flouble));
+  }
+  free(matrix);
+  return coeff;
+}
+
+void nmt_covar_workspace_write_fits(nmt_covar_workspace *cw,char *fname)
+{
+  fitsfile *fptr;
+  int status=0;
+  fits_create_file(&fptr,fname,&status);
+  check_fits(status,fname,0);
+
+  //Empty primary
+  fits_create_img(fptr,BYTE_IMG,0,NULL,&status);
+  fits_write_key(fptr,TINT,"LMAX",&(cw->lmax),NULL,&status);
+  check_fits(status,fname,0);
+
+  nmt_covar_coeffs_tohdus(fptr,cw->lmax+1,cw->xi00_1122,"00_1122",&status);
+  check_fits(status,fname,0);
+  nmt_covar_coeffs_tohdus(fptr,cw->lmax+1,cw->xi00_1221,"00_1221",&status);
+  check_fits(status,fname,0);
+  nmt_covar_coeffs_tohdus(fptr,cw->lmax+1,cw->xi02_1122,"02_1122",&status);
+  check_fits(status,fname,0);
+  nmt_covar_coeffs_tohdus(fptr,cw->lmax+1,cw->xi02_1221,"02_1221",&status);
+  check_fits(status,fname,0);
+  nmt_covar_coeffs_tohdus(fptr,cw->lmax+1,cw->xi22p_1122,"22P_1122",&status);
+  check_fits(status,fname,0);
+  nmt_covar_coeffs_tohdus(fptr,cw->lmax+1,cw->xi22p_1221,"22P_1221",&status);
+  check_fits(status,fname,0);
+  nmt_covar_coeffs_tohdus(fptr,cw->lmax+1,cw->xi22m_1122,"22M_1122",&status);
+  check_fits(status,fname,0);
+  nmt_covar_coeffs_tohdus(fptr,cw->lmax+1,cw->xi22m_1221,"22M_1221",&status);
+  check_fits(status,fname,0);
+  fits_close_file(fptr,&status);
+}
+
+nmt_covar_workspace *nmt_covar_workspace_read_fits(char *fname)
+{
+  fitsfile *fptr;
+  int status=0;
+  nmt_covar_workspace *cw=my_malloc(sizeof(nmt_covar_workspace));
+
+  fits_open_file(&fptr,fname,READONLY,&status);
+  check_fits(status,fname,0);
+  fits_read_key(fptr,TINT,"LMAX",&(cw->lmax),NULL,&status);
+  check_fits(status,fname,0);
+  //Empty primary
+
+  cw->xi00_1122=nmt_covar_coeffs_fromhdus(fptr,cw->lmax+1,&status);
+  check_fits(status,fname,0);
+  cw->xi00_1221=nmt_covar_coeffs_fromhdus(fptr,cw->lmax+1,&status);
+  check_fits(status,fname,0);
+  cw->xi02_1122=nmt_covar_coeffs_fromhdus(fptr,cw->lmax+1,&status);
+  check_fits(status,fname,0);
+  cw->xi02_1221=nmt_covar_coeffs_fromhdus(fptr,cw->lmax+1,&status);
+  check_fits(status,fname,0);
+  cw->xi22p_1122=nmt_covar_coeffs_fromhdus(fptr,cw->lmax+1,&status);
+  check_fits(status,fname,0);
+  cw->xi22p_1221=nmt_covar_coeffs_fromhdus(fptr,cw->lmax+1,&status);
+  check_fits(status,fname,0);
+  cw->xi22m_1122=nmt_covar_coeffs_fromhdus(fptr,cw->lmax+1,&status);
+  check_fits(status,fname,0);
+  cw->xi22m_1221=nmt_covar_coeffs_fromhdus(fptr,cw->lmax+1,&status);
+  check_fits(status,fname,0);
+  fits_close_file(fptr,&status);
+
+  return cw;
+}
