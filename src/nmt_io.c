@@ -7,6 +7,7 @@ static void nmt_curvedsky_info_tohdus(fitsfile *fptr,
 				      int *status)
 {
   fits_create_img(fptr,BYTE_IMG,0,NULL,status);
+  fits_write_key(fptr,TSTRING,"EXTNAME","CS_INFO",NULL,status);
   fits_write_key(fptr,TINT   ,"IS_HEALPIX",&(cs->is_healpix),NULL,status);
   fits_write_key(fptr,TLONG  ,"N_EQ",&(cs->n_eq),NULL,status);
   fits_write_key(fptr,TINT   ,"LMAX_SHT",&(cs->lmax_sht),NULL,status);
@@ -56,6 +57,7 @@ static void nmt_workspace_info_tohdus(fitsfile *fptr,
   long naxes[2]={n_el,n_el};
   long fpixel[2]={1,1};
   fits_create_img(fptr,DOUBLE_IMG,2,naxes,status);
+  fits_write_key(fptr,TSTRING,"EXTNAME","WSP_PRIMARY",NULL,status);
   fits_write_key(fptr,TINT,"LMAX",&(w->lmax),NULL,status);
   fits_write_key(fptr,TINT,"LMAX_FIELDS",&(w->lmax_fields),NULL,status);
   fits_write_key(fptr,TINT,"LMAX_MASK",&(w->lmax_mask),NULL,status);
@@ -221,7 +223,7 @@ static void nmt_binning_scheme_tohdus(fitsfile *fptr,
   sprintf(tunit[2]," ");
 
   for(ii=0;ii<b->n_bands;ii++) {
-    sprintf(title,"BAND_%d",ii+1);
+    sprintf(title,"BINS_BAND_%d",ii+1);
     fits_create_tbl(fptr,BINARY_TBL,0,3,ttype,tform,tunit,title,status);
     fits_write_col(fptr,TINT,1,1,1,b->nell_list[ii],b->ell_list[ii],status);
     fits_write_col(fptr,TDOUBLE,2,1,1,b->nell_list[ii],b->w_list[ii],status);
@@ -258,6 +260,7 @@ static void nmt_coupling_binned_tohdus(fitsfile *fptr,
 
   //Create HDU and write
   fits_create_img(fptr,DOUBLE_IMG,2,naxes,status);
+  fits_write_key(fptr,TSTRING,"EXTNAME","MCM_BINNED",NULL,status);
   fits_write_pix(fptr,TDOUBLE,fpixel,n_el*n_el,matrix_binned,status);
   free(matrix_binned);
 
@@ -268,6 +271,7 @@ static void nmt_coupling_binned_tohdus(fitsfile *fptr,
 
   //Create HDU and write
   fits_create_img(fptr,LONG_IMG,1,naxes,status);
+  fits_write_key(fptr,TSTRING,"EXTNAME","MCM_PERM",NULL,status);
   fits_write_pix(fptr,TINT,fpixel,n_el,perm,status);
   free(perm);
 }
@@ -383,6 +387,7 @@ static void nmt_workspace_flat_info_tohdus(fitsfile *fptr,
   long naxes[2]={n_el2,n_el1};
   long fpixel[2]={1,1};
   fits_create_img(fptr,DOUBLE_IMG,2,naxes,status);
+  fits_write_key(fptr,TSTRING,"EXTNAME","WSP_PRIMARY",NULL,status);
   fits_write_key(fptr,TDOUBLE,"LMAX",&(w->lmax),NULL,status);
   fits_write_key(fptr,TDOUBLE,"ELLCUT_X_I",&(w->ellcut_x[0]),NULL,status);
   fits_write_key(fptr,TDOUBLE,"ELLCUT_X_F",&(w->ellcut_x[1]),NULL,status);
@@ -441,7 +446,7 @@ static void nmt_flatsky_info_tohdus(fitsfile *fptr,
   tunit=my_malloc(1*sizeof(char *));
   tunit[0]=my_malloc(256); sprintf(tunit[0]," ");
 
-  fits_create_tbl(fptr,BINARY_TBL,0,1,ttype,tform,tunit,"FLATSKY_INFO",status);
+  fits_create_tbl(fptr,BINARY_TBL,0,1,ttype,tform,tunit,"FS_INFO",status);
   fits_write_col(fptr,TDOUBLE,1,1,1,fs->n_ell,fs->ell_min,status);
   fits_write_key(fptr,TINT   ,"NX",&(fs->nx),NULL,status);
   fits_write_key(fptr,TINT   ,"NY",&(fs->ny),NULL,status);
@@ -534,6 +539,7 @@ static void nmt_flat_coupling_binned_tohdus(fitsfile *fptr,
 
   //Non-GSL
   fits_create_img(fptr,DOUBLE_IMG,2,naxes,status);
+  fits_write_key(fptr,TSTRING,"EXTNAME","MCM_BINNED",NULL,status);
   for(ii=0;ii<n_el;ii++) {
     fpixel[1]=ii+1;
     fits_write_pix(fptr,TDOUBLE,fpixel,n_el,w->coupling_matrix_binned[ii],status);
@@ -547,6 +553,7 @@ static void nmt_flat_coupling_binned_tohdus(fitsfile *fptr,
       matrix[i0+jj]=gsl_matrix_get(w->coupling_matrix_binned_gsl,ii,jj);
   }
   fits_create_img(fptr,DOUBLE_IMG,2,naxes,status);
+  fits_write_key(fptr,TSTRING,"EXTNAME","MCM_BINNED_GSL",NULL,status);
   fpixel[1]=1;
   fits_write_pix(fptr,TDOUBLE,fpixel,n_el*n_el,matrix,status);
   free(matrix);
@@ -556,6 +563,7 @@ static void nmt_flat_coupling_binned_tohdus(fitsfile *fptr,
   for(ii=0;ii<n_el;ii++)
     perm[ii]=(int)(w->coupling_matrix_perm->data[ii]);
   fits_create_img(fptr,LONG_IMG,1,naxes,status);
+  fits_write_key(fptr,TSTRING,"EXTNAME","MCM_PERM",NULL,status);
   fits_write_pix(fptr,TINT,fpixel,n_el,perm,status);
   free(perm);
 }
@@ -722,7 +730,7 @@ static void nmt_covar_coeffs_tohdus(fitsfile *fptr,
   long naxes[2]={n_el,n_el};
   long fpixel[2]={1,1};
   fits_create_img(fptr,DOUBLE_IMG,2,naxes,status);
-  fits_write_key(fptr,TSTRING,"COEFF",name,NULL,status);
+  fits_write_key(fptr,TSTRING,"EXTNAME",name,NULL,status);
   for(ii=0;ii<n_el;ii++) {
     fpixel[1]=ii+1;
     fits_write_pix(fptr,TDOUBLE,fpixel,n_el,coeff[ii],status);
@@ -763,24 +771,25 @@ void nmt_covar_workspace_write_fits(nmt_covar_workspace *cw,char *fname)
 
   //Empty primary
   fits_create_img(fptr,BYTE_IMG,0,NULL,&status);
+  fits_write_key(fptr,TSTRING,"EXTNAME","CWSP_PRIMARY",NULL,&status);
   fits_write_key(fptr,TINT,"LMAX",&(cw->lmax),NULL,&status);
   check_fits(status,fname,0);
 
-  nmt_covar_coeffs_tohdus(fptr,cw->lmax+1,cw->xi00_1122,"00_1122",&status);
+  nmt_covar_coeffs_tohdus(fptr,cw->lmax+1,cw->xi00_1122,"XI00_1122",&status);
   check_fits(status,fname,0);
-  nmt_covar_coeffs_tohdus(fptr,cw->lmax+1,cw->xi00_1221,"00_1221",&status);
+  nmt_covar_coeffs_tohdus(fptr,cw->lmax+1,cw->xi00_1221,"XI00_1221",&status);
   check_fits(status,fname,0);
-  nmt_covar_coeffs_tohdus(fptr,cw->lmax+1,cw->xi02_1122,"02_1122",&status);
+  nmt_covar_coeffs_tohdus(fptr,cw->lmax+1,cw->xi02_1122,"XI02_1122",&status);
   check_fits(status,fname,0);
-  nmt_covar_coeffs_tohdus(fptr,cw->lmax+1,cw->xi02_1221,"02_1221",&status);
+  nmt_covar_coeffs_tohdus(fptr,cw->lmax+1,cw->xi02_1221,"XI02_1221",&status);
   check_fits(status,fname,0);
-  nmt_covar_coeffs_tohdus(fptr,cw->lmax+1,cw->xi22p_1122,"22P_1122",&status);
+  nmt_covar_coeffs_tohdus(fptr,cw->lmax+1,cw->xi22p_1122,"XI22P_1122",&status);
   check_fits(status,fname,0);
-  nmt_covar_coeffs_tohdus(fptr,cw->lmax+1,cw->xi22p_1221,"22P_1221",&status);
+  nmt_covar_coeffs_tohdus(fptr,cw->lmax+1,cw->xi22p_1221,"XI22P_1221",&status);
   check_fits(status,fname,0);
-  nmt_covar_coeffs_tohdus(fptr,cw->lmax+1,cw->xi22m_1122,"22M_1122",&status);
+  nmt_covar_coeffs_tohdus(fptr,cw->lmax+1,cw->xi22m_1122,"XI22M_1122",&status);
   check_fits(status,fname,0);
-  nmt_covar_coeffs_tohdus(fptr,cw->lmax+1,cw->xi22m_1221,"22M_1221",&status);
+  nmt_covar_coeffs_tohdus(fptr,cw->lmax+1,cw->xi22m_1221,"XI22M_1221",&status);
   check_fits(status,fname,0);
   fits_close_file(fptr,&status);
 }
@@ -827,6 +836,7 @@ void nmt_covar_workspace_flat_write_fits(nmt_covar_workspace_flat *cw,char *fnam
 
   //Empty primary
   fits_create_img(fptr,BYTE_IMG,0,NULL,&status);
+  fits_write_key(fptr,TSTRING,"EXTNAME","CWSP_PRIMARY",NULL,&status);
   check_fits(status,fname,0);
 
   //Bins
@@ -834,21 +844,21 @@ void nmt_covar_workspace_flat_write_fits(nmt_covar_workspace_flat *cw,char *fnam
   check_fits(status,fname,0);
 
   //Coeffs
-  nmt_covar_coeffs_tohdus(fptr,cw->bin->n_bands,cw->xi00_1122,"00_1122",&status);
+  nmt_covar_coeffs_tohdus(fptr,cw->bin->n_bands,cw->xi00_1122,"XI00_1122",&status);
   check_fits(status,fname,0);
-  nmt_covar_coeffs_tohdus(fptr,cw->bin->n_bands,cw->xi00_1221,"00_1221",&status);
+  nmt_covar_coeffs_tohdus(fptr,cw->bin->n_bands,cw->xi00_1221,"XI00_1221",&status);
   check_fits(status,fname,0);
-  nmt_covar_coeffs_tohdus(fptr,cw->bin->n_bands,cw->xi02_1122,"02_1122",&status);
+  nmt_covar_coeffs_tohdus(fptr,cw->bin->n_bands,cw->xi02_1122,"XI02_1122",&status);
   check_fits(status,fname,0);
-  nmt_covar_coeffs_tohdus(fptr,cw->bin->n_bands,cw->xi02_1221,"02_1221",&status);
+  nmt_covar_coeffs_tohdus(fptr,cw->bin->n_bands,cw->xi02_1221,"XI02_1221",&status);
   check_fits(status,fname,0);
-  nmt_covar_coeffs_tohdus(fptr,cw->bin->n_bands,cw->xi22p_1122,"22P_1122",&status);
+  nmt_covar_coeffs_tohdus(fptr,cw->bin->n_bands,cw->xi22p_1122,"XI22P_1122",&status);
   check_fits(status,fname,0);
-  nmt_covar_coeffs_tohdus(fptr,cw->bin->n_bands,cw->xi22p_1221,"22P_1221",&status);
+  nmt_covar_coeffs_tohdus(fptr,cw->bin->n_bands,cw->xi22p_1221,"XI22P_1221",&status);
   check_fits(status,fname,0);
-  nmt_covar_coeffs_tohdus(fptr,cw->bin->n_bands,cw->xi22m_1122,"22M_1122",&status);
+  nmt_covar_coeffs_tohdus(fptr,cw->bin->n_bands,cw->xi22m_1122,"XI22M_1122",&status);
   check_fits(status,fname,0);
-  nmt_covar_coeffs_tohdus(fptr,cw->bin->n_bands,cw->xi22m_1221,"22M_1221",&status);
+  nmt_covar_coeffs_tohdus(fptr,cw->bin->n_bands,cw->xi22m_1221,"XI22M_1221",&status);
   check_fits(status,fname,0);
   fits_close_file(fptr,&status);
 }
