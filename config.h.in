@@ -58,12 +58,6 @@
 /* libsharp github version */
 #undef LIBSHARP_GITHUB
 
-/* libsharp gitlab version */
-#undef LIBSHARP_GITLAB
-
-/* libsharp healpix version */
-#undef LIBSHARP_HEALPIX
-
 /* Define to the sub-directory where libtool stores uninstalled libraries. */
 #undef LT_OBJDIR
 
