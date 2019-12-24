@@ -6,6 +6,6 @@ DEPDIR=_deps
 [ -e $DEPDIR/lib ] || mkdir $DEPDIR/lib
 [ -e $DEPDIR/include ] || mkdir $DEPDIR/include
 ADEPDIR=$PWD/$DEPDIR
-CPPFLAGS+=" -I${ADEPDIR}/include" LDFLAGS+=" -L${ADEPDIR}/lib" ./configure --prefix=${ADEPDIR} --with-pic
+CPPFLAGS+=" -I${ADEPDIR}/include" LDFLAGS+=" -L${ADEPDIR}/lib" ./configure --prefix=${ADEPDIR} --with-pic $@
 make
 make install
