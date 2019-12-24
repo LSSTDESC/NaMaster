@@ -40,7 +40,8 @@ else:
 _nmtlib = Extension("_nmtlib",
                     ["pymaster/namaster_wrap.c"],
                     libraries=libs,
-                    include_dirs=[numpy_include, "../src/"],
+                    library_dirs=["./_deps/libsharp/auto/lib/"],
+                    include_dirs=[numpy_include, "./src/", "./_deps/libsharp/auto/include/"],
                     extra_compile_args=extra,
                     )
 
