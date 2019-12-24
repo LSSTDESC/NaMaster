@@ -79,7 +79,7 @@ class NmtCovarianceWorkspace(object):
         """
         if self.wsp is None:
             raise ValueError("Must initialize workspace before writing")
-        lib.write_covar_workspace(self.wsp, fname)
+        lib.write_covar_workspace(self.wsp, "!"+fname)
 
 
 class NmtCovarianceWorkspaceFlat(object):
@@ -163,7 +163,7 @@ class NmtCovarianceWorkspaceFlat(object):
         """
         if self.wsp is None:
             raise ValueError("Must initialize workspace before writing")
-        lib.write_covar_workspace_flat(self.wsp, fname)
+        lib.write_covar_workspace_flat(self.wsp, "!"+fname)
 
 
 def gaussian_covariance(cw, spin_a1, spin_a2, spin_b1, spin_b2,

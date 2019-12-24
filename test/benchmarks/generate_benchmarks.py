@@ -115,24 +115,24 @@ f0=nmt.NmtFieldFlat(lx,ly,msk,[dt])
 f2=nmt.NmtFieldFlat(lx,ly,msk,[dq,du])
 w00=nmt.NmtWorkspaceFlat(); w00.compute_coupling_matrix(f0,f0,b);
 cw00=nmt.NmtCovarianceWorkspaceFlat(); cw00.compute_coupling_coefficients(f0,f0,b);
-cw00.write_to(prefix+'_cw00.dat')
+cw00.write_to(prefix+'_cw00.fits')
 cov=nmt.gaussian_covariance_flat(cw00,0,0,0,0,l,
                                  [cltt+nltt],[cltt+nltt],[cltt+nltt],[cltt+nltt],
                                  w00);
 np.savetxt(prefix+"_cov.txt",cov)
 clb00=w00.couple_cell(l,np.array([nltt]))
 c00=w00.decouple_cell(nmt.compute_coupled_cell_flat(f0,f0,b),cl_bias=clb00)
-w00.write_to(prefix+'_w00.dat')
+w00.write_to(prefix+'_w00.fits')
 np.savetxt(prefix+'_c00.txt',np.transpose([leff,c00[0]]));
 w02=nmt.NmtWorkspaceFlat(); w02.compute_coupling_matrix(f0,f2,b);
 clb02=w02.couple_cell(l,np.array([nlte,0*nlte]))
 c02=w02.decouple_cell(nmt.compute_coupled_cell_flat(f0,f2,b),cl_bias=clb02)
-w02.write_to(prefix+'_w02.dat')
+w02.write_to(prefix+'_w02.fits')
 np.savetxt(prefix+'_c02.txt',np.transpose([leff,c02[0],c02[1]]));
 w22=nmt.NmtWorkspaceFlat(); w22.compute_coupling_matrix(f2,f2,b);
 clb22=w22.couple_cell(l,np.array([nlee,0*nlee,0*nlbb,nlbb]))
 c22=w22.decouple_cell(nmt.compute_coupled_cell_flat(f2,f2,b),cl_bias=clb22)
-w22.write_to(prefix+'_w22.dat')
+w22.write_to(prefix+'_w22.fits')
 np.savetxt(prefix+'_c22.txt',np.transpose([leff,c22[0],c22[1],c22[2],c22[3]]));
 # Covariance for 02,02
 cov=nmt.gaussian_covariance_flat(cw00,0,2,0,2,l,
@@ -176,21 +176,21 @@ clb00=nmt.deprojection_bias_flat(f0,f0,b,l,[cltt+nltt])
 np.savetxt(prefix+'_cb00.txt',np.transpose([leff,clb00[0]]))
 clb00+=w00.couple_cell(l,np.array([nltt]))
 c00=w00.decouple_cell(nmt.compute_coupled_cell_flat(f0,f0,b),cl_bias=clb00)
-w00.write_to(prefix+'_w00.dat')
+w00.write_to(prefix+'_w00.fits')
 np.savetxt(prefix+'_c00.txt',np.transpose([leff,c00[0]]));
 w02=nmt.NmtWorkspaceFlat(); w02.compute_coupling_matrix(f0,f2,b);
 clb02=nmt.deprojection_bias_flat(f0,f2,b,l,[clte+nlte,0*clte])
 np.savetxt(prefix+'_cb02.txt',np.transpose([leff,clb02[0],clb02[1]]))
 clb02+=w02.couple_cell(l,np.array([nlte,0*nlte]))
 c02=w02.decouple_cell(nmt.compute_coupled_cell_flat(f0,f2,b),cl_bias=clb02)
-w02.write_to(prefix+'_w02.dat')
+w02.write_to(prefix+'_w02.fits')
 np.savetxt(prefix+'_c02.txt',np.transpose([leff,c02[0],c02[1]]));
 w22=nmt.NmtWorkspaceFlat(); w22.compute_coupling_matrix(f2,f2,b);
 clb22=nmt.deprojection_bias_flat(f2,f2,b,l,[clee+nlee,0*clee,0*clbb,clbb+nlbb])
 np.savetxt(prefix+'_cb22.txt',np.transpose([leff,clb22[0],clb22[1],clb22[2],clb22[3]]))
 clb22+=w22.couple_cell(l,np.array([nlee,0*nlee,0*nlbb,nlbb]))
 c22=w22.decouple_cell(nmt.compute_coupled_cell_flat(f2,f2,b),cl_bias=clb22)
-w22.write_to(prefix+'_w22.dat')
+w22.write_to(prefix+'_w22.fits')
 np.savetxt(prefix+'_c22.txt',np.transpose([leff,c22[0],c22[1],c22[2],c22[3]]));
 
 #No contaminants, purified
@@ -200,17 +200,17 @@ f2=nmt.NmtFieldFlat(lx,ly,msk,[dq,du],purify_b=True)
 w00=nmt.NmtWorkspaceFlat(); w00.compute_coupling_matrix(f0,f0,b);
 clb00=w00.couple_cell(l,np.array([nltt]))
 c00=w00.decouple_cell(nmt.compute_coupled_cell_flat(f0,f0,b),cl_bias=clb00)
-w00.write_to(prefix+'_w00.dat')
+w00.write_to(prefix+'_w00.fits')
 np.savetxt(prefix+'_c00.txt',np.transpose([leff,c00[0]]));
 w02=nmt.NmtWorkspaceFlat(); w02.compute_coupling_matrix(f0,f2,b);
 clb02=w02.couple_cell(l,np.array([nlte,0*nlte]))
 c02=w02.decouple_cell(nmt.compute_coupled_cell_flat(f0,f2,b),cl_bias=clb02)
-w02.write_to(prefix+'_w02.dat')
+w02.write_to(prefix+'_w02.fits')
 np.savetxt(prefix+'_c02.txt',np.transpose([leff,c02[0],c02[1]]));
 w22=nmt.NmtWorkspaceFlat(); w22.compute_coupling_matrix(f2,f2,b);
 clb22=w22.couple_cell(l,np.array([nlee,0*nlee,0*nlbb,nlbb]))
 c22=w22.decouple_cell(nmt.compute_coupled_cell_flat(f2,f2,b),cl_bias=clb22)
-w22.write_to(prefix+'_w22.dat')
+w22.write_to(prefix+'_w22.fits')
 np.savetxt(prefix+'_c22.txt',np.transpose([leff,c22[0],c22[1],c22[2],c22[3]]));
 
 #With contaminants, purified
@@ -222,21 +222,21 @@ clb00=nmt.deprojection_bias_flat(f0,f0,b,l,[cltt+nltt])
 np.savetxt(prefix+'_cb00.txt',np.transpose([leff,clb00[0]]))
 clb00+=w00.couple_cell(l,np.array([nltt]))
 c00=w00.decouple_cell(nmt.compute_coupled_cell_flat(f0,f0,b),cl_bias=clb00)
-w00.write_to(prefix+'_w00.dat')
+w00.write_to(prefix+'_w00.fits')
 np.savetxt(prefix+'_c00.txt',np.transpose([leff,c00[0]]));
 w02=nmt.NmtWorkspaceFlat(); w02.compute_coupling_matrix(f0,f2,b);
 clb02=nmt.deprojection_bias_flat(f0,f2,b,l,[clte+nlte,0*clte])
 np.savetxt(prefix+'_cb02.txt',np.transpose([leff,clb02[0],clb02[1]]))
 clb02+=w02.couple_cell(l,np.array([nlte,0*nlte]))
 c02=w02.decouple_cell(nmt.compute_coupled_cell_flat(f0,f2,b),cl_bias=clb02)
-w02.write_to(prefix+'_w02.dat')
+w02.write_to(prefix+'_w02.fits')
 np.savetxt(prefix+'_c02.txt',np.transpose([leff,c02[0],c02[1]]));
 w22=nmt.NmtWorkspaceFlat(); w22.compute_coupling_matrix(f2,f2,b);
 clb22=nmt.deprojection_bias_flat(f2,f2,b,l,[clee+nlee,0*clee,0*clbb,clbb+nlbb])
 np.savetxt(prefix+'_cb22.txt',np.transpose([leff,clb22[0],clb22[1],clb22[2],clb22[3]]))
 clb22+=w22.couple_cell(l,np.array([nlee,0*nlee,0*nlbb,nlbb]))
 c22=w22.decouple_cell(nmt.compute_coupled_cell_flat(f2,f2,b),cl_bias=clb22)
-w22.write_to(prefix+'_w22.dat')
+w22.write_to(prefix+'_w22.fits')
 np.savetxt(prefix+'_c22.txt',np.transpose([leff,c22[0],c22[1],c22[2],c22[3]]));
 
 def getmaskapoana(ns,aps,fsk=0.1,dec0=-50,ra0=0.) :
@@ -286,7 +286,7 @@ f0=nmt.NmtField(mask,[dl])
 f2=nmt.NmtField(mask,[dw_q,dw_u])
 w00=nmt.NmtWorkspace(); w00.compute_coupling_matrix(f0,f0,b);
 cw00=nmt.NmtCovarianceWorkspace(); cw00.compute_coupling_coefficients(f0,f0);
-cw00.write_to(prefix+'_cw00.dat')
+cw00.write_to(prefix+'_cw00.fits')
 cov=nmt.gaussian_covariance(cw00,0,0,0,0,
                             [(cltt+nltt)[:3*nside_out]],
                             [(cltt+nltt)[:3*nside_out]],
@@ -296,18 +296,18 @@ cov=nmt.gaussian_covariance(cw00,0,0,0,0,
 np.savetxt(prefix+"_cov.txt",cov)
 clb00=np.array([nltt[:3*nside_out]])
 c00=w00.decouple_cell(nmt.compute_coupled_cell(f0,f0),cl_bias=clb00)
-w00.write_to(prefix+'_w00.dat')
+w00.write_to(prefix+'_w00.fits')
 np.savetxt(prefix+"_c00.txt",np.transpose([leff,c00[0]]))
 w02=nmt.NmtWorkspace(); w02.compute_coupling_matrix(f0,f2,b);
 clb02=np.array([nlte[:3*nside_out],0*nlte[:3*nside_out]])
 c02=w02.decouple_cell(nmt.compute_coupled_cell(f0,f2),cl_bias=clb02)
-w02.write_to(prefix+'_w02.dat')
+w02.write_to(prefix+'_w02.fits')
 np.savetxt(prefix+"_c02.txt",np.transpose([leff,c02[0],c02[1]]))
 w22=nmt.NmtWorkspace(); w22.compute_coupling_matrix(f2,f2,b);
 clb22=np.array([nlee[:3*nside_out],0*nlee[:3*nside_out],
                 0*nlbb[:3*nside_out],nlbb[:3*nside_out]])
 c22=w22.decouple_cell(nmt.compute_coupled_cell(f2,f2),cl_bias=clb22)
-w22.write_to(prefix+'_w22.dat')
+w22.write_to(prefix+'_w22.fits')
 np.savetxt(prefix+"_c22.txt",np.transpose([leff,c22[0],c22[1],c22[2],c22[3]]))
 # Covariance for 02,02
 cov=nmt.gaussian_covariance(cw00,0,2,0,2,
@@ -354,14 +354,14 @@ clb00=nmt.deprojection_bias(f0,f0,[(cltt+nltt)[:3*nside_out]])
 np.savetxt(prefix+'_cb00.txt',np.transpose([lfull,clb00[0]]))
 clb00+=np.array([nltt[:3*nside_out]])
 c00=w00.decouple_cell(nmt.compute_coupled_cell(f0,f0),cl_bias=clb00)
-w00.write_to(prefix+'_w00.dat')
+w00.write_to(prefix+'_w00.fits')
 np.savetxt(prefix+"_c00.txt",np.transpose([leff,c00[0]]))
 w02=nmt.NmtWorkspace(); w02.compute_coupling_matrix(f0,f2,b);
 clb02=nmt.deprojection_bias(f0,f2,[(clte+nlte)[:3*nside_out],0*clte[:3*nside_out]])
 np.savetxt(prefix+'_cb02.txt',np.transpose([lfull,clb02[0],clb02[1]]))
 clb02+=np.array([nlte[:3*nside_out],0*nlte[:3*nside_out]])
 c02=w02.decouple_cell(nmt.compute_coupled_cell(f0,f2),cl_bias=clb02)
-w02.write_to(prefix+'_w02.dat')
+w02.write_to(prefix+'_w02.fits')
 np.savetxt(prefix+"_c02.txt",np.transpose([leff,c02[0],c02[1]]))
 w22=nmt.NmtWorkspace(); w22.compute_coupling_matrix(f2,f2,b);
 clb22=nmt.deprojection_bias(f2,f2,[(clee+nlee)[:3*nside_out],0*clee[:3*nside_out],
@@ -370,7 +370,7 @@ np.savetxt(prefix+'_cb22.txt',np.transpose([lfull,clb22[0],clb22[1],clb22[2],clb
 clb22+=np.array([nlee[:3*nside_out],0*nlee[:3*nside_out],
                  0*nlbb[:3*nside_out],nlbb[:3*nside_out]])
 c22=w22.decouple_cell(nmt.compute_coupled_cell(f2,f2),cl_bias=clb22)
-w22.write_to(prefix+'_w22.dat')
+w22.write_to(prefix+'_w22.fits')
 np.savetxt(prefix+"_c22.txt",np.transpose([leff,c22[0],c22[1],c22[2],c22[3]]))
 
 #No contaminants, purified
@@ -380,18 +380,18 @@ f2=nmt.NmtField(mask,[dw_q,dw_u],purify_b=True)
 w00=nmt.NmtWorkspace(); w00.compute_coupling_matrix(f0,f0,b);
 clb00=np.array([nltt[:3*nside_out]])
 c00=w00.decouple_cell(nmt.compute_coupled_cell(f0,f0),cl_bias=clb00)
-w00.write_to(prefix+'_w00.dat')
+w00.write_to(prefix+'_w00.fits')
 np.savetxt(prefix+"_c00.txt",np.transpose([leff,c00[0]]))
 w02=nmt.NmtWorkspace(); w02.compute_coupling_matrix(f0,f2,b);
 clb02=np.array([nlte[:3*nside_out],0*nlte[:3*nside_out]])
 c02=w02.decouple_cell(nmt.compute_coupled_cell(f0,f2),cl_bias=clb02)
-w02.write_to(prefix+'_w02.dat')
+w02.write_to(prefix+'_w02.fits')
 np.savetxt(prefix+"_c02.txt",np.transpose([leff,c02[0],c02[1]]))
 w22=nmt.NmtWorkspace(); w22.compute_coupling_matrix(f2,f2,b);
 clb22=np.array([nlee[:3*nside_out],0*nlee[:3*nside_out],
                 0*nlbb[:3*nside_out],nlbb[:3*nside_out]])
 c22=w22.decouple_cell(nmt.compute_coupled_cell(f2,f2),cl_bias=clb22)
-w22.write_to(prefix+'_w22.dat')
+w22.write_to(prefix+'_w22.fits')
 np.savetxt(prefix+"_c22.txt",np.transpose([leff,c22[0],c22[1],c22[2],c22[3]]))
 
 #With contaminants, purified
@@ -403,14 +403,14 @@ clb00=nmt.deprojection_bias(f0,f0,[(cltt+nltt)[:3*nside_out]])
 np.savetxt(prefix+'_cb00.txt',np.transpose([lfull,clb00[0]]))
 clb00+=np.array([nltt[:3*nside_out]])
 c00=w00.decouple_cell(nmt.compute_coupled_cell(f0,f0),cl_bias=clb00)
-w00.write_to(prefix+'_w00.dat')
+w00.write_to(prefix+'_w00.fits')
 np.savetxt(prefix+"_c00.txt",np.transpose([leff,c00[0]]))
 w02=nmt.NmtWorkspace(); w02.compute_coupling_matrix(f0,f2,b);
 clb02=nmt.deprojection_bias(f0,f2,[(clte+nlte)[:3*nside_out],0*clte[:3*nside_out]])
 np.savetxt(prefix+'_cb02.txt',np.transpose([lfull,clb02[0],clb02[1]]))
 clb02+=np.array([nlte[:3*nside_out],0*nlte[:3*nside_out]])
 c02=w02.decouple_cell(nmt.compute_coupled_cell(f0,f2),cl_bias=clb02)
-w02.write_to(prefix+'_w02.dat')
+w02.write_to(prefix+'_w02.fits')
 np.savetxt(prefix+"_c02.txt",np.transpose([leff,c02[0],c02[1]]))
 w22=nmt.NmtWorkspace(); w22.compute_coupling_matrix(f2,f2,b);
 clb22=nmt.deprojection_bias(f2,f2,[(clee+nlee)[:3*nside_out],0*clee[:3*nside_out],
@@ -419,5 +419,5 @@ np.savetxt(prefix+'_cb22.txt',np.transpose([lfull,clb22[0],clb22[1],clb22[2],clb
 clb22+=np.array([nlee[:3*nside_out],0*nlee[:3*nside_out],
                  0*nlbb[:3*nside_out],nlbb[:3*nside_out]])
 c22=w22.decouple_cell(nmt.compute_coupled_cell(f2,f2),cl_bias=clb22)
-w22.write_to(prefix+'_w22.dat')
+w22.write_to(prefix+'_w22.fits')
 np.savetxt(prefix+"_c22.txt",np.transpose([leff,c22[0],c22[1],c22[2],c22[3]]))

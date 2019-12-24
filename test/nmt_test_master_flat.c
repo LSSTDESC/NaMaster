@@ -571,7 +571,7 @@ CTEST(nmt,master_flat_errors) {
   set_error_policy(THROW_ON_ERROR);
 
   //Read from non-existent file
-  try { w=nmt_workspace_flat_read("nofile"); }
+  try { w=nmt_workspace_flat_read_fits("nofile"); }
   ASSERT_NOT_EQUAL(0,nmt_exception_status);
   ASSERT_NULL(w);
 

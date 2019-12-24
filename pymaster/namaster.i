@@ -581,22 +581,22 @@ nmt_workspace_flat *comp_coupling_matrix_flat(nmt_field_flat *fl1,nmt_field_flat
 
 nmt_workspace *read_workspace(char *fname)
 {
-  return nmt_workspace_read(fname);
+  return nmt_workspace_read_fits(fname);
 }
 
 void write_workspace(nmt_workspace *w,char *fname)
 {
-  nmt_workspace_write(w,fname);
+  nmt_workspace_write_fits(w,fname);
 }
 
 nmt_workspace_flat *read_workspace_flat(char *fname)
 {
-  return nmt_workspace_flat_read(fname);
+  return nmt_workspace_flat_read_fits(fname);
 }
 
 void write_workspace_flat(nmt_workspace_flat *w,char *fname)
 {
-  nmt_workspace_flat_write(w,fname);
+  nmt_workspace_flat_write_fits(w,fname);
 }
    
 void comp_uncorr_noise_deproj_bias(nmt_field *fl1,
@@ -667,12 +667,12 @@ void comp_deproj_bias_flat(nmt_field_flat *fl1,nmt_field_flat *fl2,
 
 void write_covar_workspace(nmt_covar_workspace *cw,char *fname)
 {
-  nmt_covar_workspace_write(cw,fname);
+  nmt_covar_workspace_write_fits(cw,fname);
 }
 
 nmt_covar_workspace *read_covar_workspace(char *fname)
 {
-  return nmt_covar_workspace_read(fname);
+  return nmt_covar_workspace_read_fits(fname);
 }
 
 nmt_covar_workspace *covar_workspace_init_py(nmt_field *fa1,nmt_field *fa2,
@@ -684,12 +684,12 @@ nmt_covar_workspace *covar_workspace_init_py(nmt_field *fa1,nmt_field *fa2,
 
 void write_covar_workspace_flat(nmt_covar_workspace_flat *cw,char *fname)
 {
-  nmt_covar_workspace_flat_write(cw,fname);
+  nmt_covar_workspace_flat_write_fits(cw,fname);
 }
 
 nmt_covar_workspace_flat *read_covar_workspace_flat(char *fname)
 {
-  return nmt_covar_workspace_flat_read(fname);
+  return nmt_covar_workspace_flat_read_fits(fname);
 }
 
 nmt_covar_workspace_flat *covar_workspace_flat_init_py(nmt_field_flat *fa1,nmt_field_flat *fa2,

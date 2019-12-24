@@ -668,7 +668,7 @@ CTEST(nmt,master_errors) {
   set_error_policy(THROW_ON_ERROR);
 
   //Read from non-existent file
-  try { w=nmt_workspace_read("nofile"); }
+  try { w=nmt_workspace_read_fits("nofile.fits"); }
   ASSERT_NOT_EQUAL(0,nmt_exception_status);
   ASSERT_NULL(w);
   //Wrong bins

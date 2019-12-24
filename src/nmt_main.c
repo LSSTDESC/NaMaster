@@ -84,7 +84,7 @@ void run_master(nmt_field *fl1,nmt_field *fl2,
   nmt_workspace *w;
   if(access(fname_coupling,F_OK)!=-1) { //If file exists just read matrix
     printf("Reading coupling matrix\n");
-    w=nmt_workspace_read(fname_coupling);
+    w=nmt_workspace_read_fits(fname_coupling);
     if(w->bin->n_bands!=bin->n_bands)
       report_error(NMT_ERROR_CONSISTENT_RESO,"Read coupling matrix doesn't fit input binning scheme\n");
   }
@@ -92,7 +92,7 @@ void run_master(nmt_field *fl1,nmt_field *fl2,
     printf("Computing coupling matrix \n");
     w=nmt_compute_coupling_matrix(fl1,fl2,bin,0,HE_NITER_DEFAULT,-1);
     if(strcmp(fname_coupling,"none"))
-      nmt_workspace_write(w,fname_coupling);
+      nmt_workspace_write_fits(w,fname_coupling);
   }
 
   printf("Computing data pseudo-Cl\n");

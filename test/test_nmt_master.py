@@ -230,7 +230,7 @@ class TestWorkspaceHPX(unittest.TestCase) :
 
     def test_workspace_rebeam(self):
         w=nmt.NmtWorkspace()
-        w.read_from("test/benchmarks/bm_yc_yp_w02.dat") #OK read
+        w.read_from("test/benchmarks/bm_yc_yp_w02.fits") #OK read
         lmax=w.wsp.lmax_fields
         b=np.ones(lmax+1)*2.
         w.update_beams(b,b) #All good
@@ -244,7 +244,7 @@ class TestWorkspaceHPX(unittest.TestCase) :
     def test_workspace_rebin(self):
         b4=nmt.NmtBin.from_nside_linear(self.nside,4)
         w=nmt.NmtWorkspace()
-        w.read_from("test/benchmarks/bm_yc_yp_w02.dat") #OK read
+        w.read_from("test/benchmarks/bm_yc_yp_w02.fits") #OK read
         w.update_bins(b4)
         self.assertEqual(w.wsp.bin.n_bands,b4.bin.n_bands)
         b4=nmt.NmtBin.from_nside_linear(self.nside//2,4)
@@ -254,8 +254,8 @@ class TestWorkspaceHPX(unittest.TestCase) :
     def test_workspace_io(self) :
         w=nmt.NmtWorkspace()
         with self.assertRaises(RuntimeError) : #Invalid writing
-            w.write_to("test/wspc.dat")
-        w.read_from("test/benchmarks/bm_yc_yp_w02.dat") #OK read
+            w.write_to("test/wspc.fits")
+        w.read_from("test/benchmarks/bm_yc_yp_w02.fits") #OK read
         self.assertEqual(w.wsp.cs.n_eq,64)
         mcm_old=w.get_coupling_matrix() #Read mode coupling matrix
         mcm_new=np.identity(3*w.wsp.cs.n_eq*2) #Updating mode-coupling matrix
@@ -263,7 +263,7 @@ class TestWorkspaceHPX(unittest.TestCase) :
         mcm_back=w.get_coupling_matrix() #Retireve MCM and check it's correct
         self.assertTrue(np.fabs(np.sum(np.diagonal(mcm_back))-3*w.wsp.cs.n_eq*2)<=1E-16)
         with self.assertRaises(RuntimeError) :  #Can't write on that file
-            w.write_to("tests/wspc.dat")
+            w.write_to("tests/wspc.fits")
         with self.assertRaises(RuntimeError) : #File doesn't exist
             w.read_from("none")
 
@@ -510,11 +510,11 @@ class TestWorkspaceFsk(unittest.TestCase) :
     def test_workspace_flat_io(self) :
         w=nmt.NmtWorkspaceFlat()
         with self.assertRaises(RuntimeError) : #Invalid writing
-            w.write_to("test/wspc.dat")
-        w.read_from("test/benchmarks/bm_f_yc_yp_w02.dat") #OK read
+            w.write_to("test/wspc.fits")
+        w.read_from("test/benchmarks/bm_f_yc_yp_w02.fits") #OK read
         self.assertEqual(self.msk.shape,(w.wsp.fs.ny,w.wsp.fs.nx))
         with self.assertRaises(RuntimeError) :  #Can't write on that file
-            w.write_to("tests/wspc.dat")
+            w.write_to("tests/wspc.fits")
         with self.assertRaises(RuntimeError) : #File doesn't exist
             w.read_from("none")
 
