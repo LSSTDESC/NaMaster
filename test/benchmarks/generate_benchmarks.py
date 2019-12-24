@@ -115,7 +115,7 @@ f0=nmt.NmtFieldFlat(lx,ly,msk,[dt])
 f2=nmt.NmtFieldFlat(lx,ly,msk,[dq,du])
 w00=nmt.NmtWorkspaceFlat(); w00.compute_coupling_matrix(f0,f0,b);
 cw00=nmt.NmtCovarianceWorkspaceFlat(); cw00.compute_coupling_coefficients(f0,f0,b);
-cw00.write_to(prefix+'_cw00.dat')
+cw00.write_to(prefix+'_cw00.fits')
 cov=nmt.gaussian_covariance_flat(cw00,0,0,0,0,l,
                                  [cltt+nltt],[cltt+nltt],[cltt+nltt],[cltt+nltt],
                                  w00);

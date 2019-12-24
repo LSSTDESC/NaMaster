@@ -98,12 +98,12 @@ w02.compute_coupling_matrix(f0, f2, b)
 w22 = nmt.NmtWorkspaceFlat()
 w22.compute_coupling_matrix(f2, f2, b)
 # Workspaces can be saved to and read from disk to avoid recomputing them:
-w00.write_to("w00_flat.dat")
-w00.read_from("w00_flat.dat")
-w02.write_to("w02_flat.dat")
-w02.read_from("w02_flat.dat")
-w22.write_to("w22_flat.dat")
-w22.read_from("w22_flat.dat")
+w00.write_to("w00_flat.fits")
+w00.read_from("w00_flat.fits")
+w02.write_to("w02_flat.fits")
+w02.read_from("w02_flat.fits")
+w22.write_to("w22_flat.fits")
+w22.read_from("w22_flat.fits")
 
 # Computing power spectra:
 # As in the full-sky case, you compute the pseudo-CL estimator by

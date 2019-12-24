@@ -1170,29 +1170,6 @@ void nmt_compute_gaussian_covariance_flat(nmt_covar_workspace_flat *cw,
 					  flouble **clbc,flouble **clbd,flouble *covar_out);
 
 /**
- * @brief Saves nmt_covar_workspace_flat structure to file
- *
- * The output file uses a native binary format. In combination with nmt_covar_workspace_flat_read(),
- * this can be used to save the information contained in a given workspace and reuse it for
- * future covariance matrix computations. The same workspace can be used on any pair of power spectra
- * between fields with the same masks.
- * @param cw nmt_covar_workspace_flat to be saved.
- * @param fname Path to output file.
- */
-void nmt_covar_workspace_flat_write(nmt_covar_workspace_flat *cw,char *fname);
-
-/**
- * @brief Builds nmt_covar_workspace_flat structure from file
- *
- * The input file uses a native binary format. In combination with nmt_covar_workspace_flat_write(),
- * this can be used to save the information contained in a given workspace and reuse it for
- * future covariance matrix computations. The same workspace can be used on any pair of power spectra
- * between fields with the same masks.
- * @param fname Path to input file.
- */
-nmt_covar_workspace_flat *nmt_covar_workspace_flat_read(char *fname);
-
-/**
  * @brief Full-sky Gaussian covariance matrix
  *
  * Structure containing the information necessary to compute Gaussian covariance matrices
@@ -1324,5 +1301,28 @@ void nmt_covar_workspace_write_fits(nmt_covar_workspace *cw,char *fname);
  * @param fname Path to input file.
  */
 nmt_covar_workspace *nmt_covar_workspace_read_fits(char *fname);
+
+/**
+ * @brief Saves nmt_covar_workspace_flat structure to file
+ *
+ * The output file uses the FITS standard. In combination with nmt_covar_workspace_flat_read_fits(),
+ * this can be used to save the information contained in a given workspace and reuse it for
+ * future covariance matrix computations. The same workspace can be used on any pair of power spectra
+ * between fields with the same masks.
+ * @param cw nmt_covar_workspace_flat to be saved.
+ * @param fname Path to output file.
+ */
+void nmt_covar_workspace_flat_write_fits(nmt_covar_workspace_flat *cw,char *fname);
+
+/**
+ * @brief Builds nmt_covar_workspace_flat structure from file
+ *
+ * The input file uses the FITS standard. In combination with nmt_covar_workspace_flat_write_fits(),
+ * this can be used to save the information contained in a given workspace and reuse it for
+ * future covariance matrix computations. The same workspace can be used on any pair of power spectra
+ * between fields with the same masks.
+ * @param fname Path to input file.
+ */
+nmt_covar_workspace_flat *nmt_covar_workspace_flat_read_fits(char *fname);
 
 #endif //_NAMASTER_H_

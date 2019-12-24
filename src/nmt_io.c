@@ -817,3 +817,73 @@ nmt_covar_workspace *nmt_covar_workspace_read_fits(char *fname)
 
   return cw;
 }
+
+void nmt_covar_workspace_flat_write_fits(nmt_covar_workspace_flat *cw,char *fname)
+{
+  fitsfile *fptr;
+  int status=0;
+  fits_create_file(&fptr,fname,&status);
+  check_fits(status,fname,0);
+
+  //Empty primary
+  fits_create_img(fptr,BYTE_IMG,0,NULL,&status);
+  check_fits(status,fname,0);
+
+  //Bins
+  nmt_binning_scheme_flat_tohdus(fptr,cw->bin,&status);
+  check_fits(status,fname,0);
+
+  //Coeffs
+  nmt_covar_coeffs_tohdus(fptr,cw->bin->n_bands,cw->xi00_1122,"00_1122",&status);
+  check_fits(status,fname,0);
+  nmt_covar_coeffs_tohdus(fptr,cw->bin->n_bands,cw->xi00_1221,"00_1221",&status);
+  check_fits(status,fname,0);
+  nmt_covar_coeffs_tohdus(fptr,cw->bin->n_bands,cw->xi02_1122,"02_1122",&status);
+  check_fits(status,fname,0);
+  nmt_covar_coeffs_tohdus(fptr,cw->bin->n_bands,cw->xi02_1221,"02_1221",&status);
+  check_fits(status,fname,0);
+  nmt_covar_coeffs_tohdus(fptr,cw->bin->n_bands,cw->xi22p_1122,"22P_1122",&status);
+  check_fits(status,fname,0);
+  nmt_covar_coeffs_tohdus(fptr,cw->bin->n_bands,cw->xi22p_1221,"22P_1221",&status);
+  check_fits(status,fname,0);
+  nmt_covar_coeffs_tohdus(fptr,cw->bin->n_bands,cw->xi22m_1122,"22M_1122",&status);
+  check_fits(status,fname,0);
+  nmt_covar_coeffs_tohdus(fptr,cw->bin->n_bands,cw->xi22m_1221,"22M_1221",&status);
+  check_fits(status,fname,0);
+  fits_close_file(fptr,&status);
+}
+
+nmt_covar_workspace_flat *nmt_covar_workspace_flat_read_fits(char *fname)
+{
+  fitsfile *fptr;
+  int status=0;
+  nmt_covar_workspace_flat *cw=my_malloc(sizeof(nmt_covar_workspace_flat));
+
+  fits_open_file(&fptr,fname,READONLY,&status);
+  check_fits(status,fname,1);
+
+  //Bins
+  cw->bin=nmt_binning_scheme_flat_fromhdus(fptr,&status);
+  check_fits(status,fname,1);
+
+  //Coeffs
+  cw->xi00_1122=nmt_covar_coeffs_fromhdus(fptr,cw->bin->n_bands,&status);
+  check_fits(status,fname,1);
+  cw->xi00_1221=nmt_covar_coeffs_fromhdus(fptr,cw->bin->n_bands,&status);
+  check_fits(status,fname,1);
+  cw->xi02_1122=nmt_covar_coeffs_fromhdus(fptr,cw->bin->n_bands,&status);
+  check_fits(status,fname,1);
+  cw->xi02_1221=nmt_covar_coeffs_fromhdus(fptr,cw->bin->n_bands,&status);
+  check_fits(status,fname,1);
+  cw->xi22p_1122=nmt_covar_coeffs_fromhdus(fptr,cw->bin->n_bands,&status);
+  check_fits(status,fname,1);
+  cw->xi22p_1221=nmt_covar_coeffs_fromhdus(fptr,cw->bin->n_bands,&status);
+  check_fits(status,fname,1);
+  cw->xi22m_1122=nmt_covar_coeffs_fromhdus(fptr,cw->bin->n_bands,&status);
+  check_fits(status,fname,1);
+  cw->xi22m_1221=nmt_covar_coeffs_fromhdus(fptr,cw->bin->n_bands,&status);
+  check_fits(status,fname,1);
+  fits_close_file(fptr,&status);
+
+  return cw;
+}

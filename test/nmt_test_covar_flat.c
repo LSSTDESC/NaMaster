@@ -24,7 +24,7 @@ CTEST(nmt,covar_flat) {
   
   nmt_workspace_flat *w=nmt_workspace_flat_read_fits("test/benchmarks/bm_f_nc_np_w00.fits");
   nmt_covar_workspace_flat *cw=nmt_covar_workspace_flat_init(f0,f0,bin,f0,f0,bin);
-  nmt_covar_workspace_flat *cwr=nmt_covar_workspace_flat_read("test/benchmarks/bm_f_nc_np_cw00.dat");
+  nmt_covar_workspace_flat *cwr=nmt_covar_workspace_flat_read_fits("test/benchmarks/bm_f_nc_np_cw00.fits");
   free(msk); free(map); nmt_bins_flat_free(bin); nmt_field_flat_free(f0);
 
   ASSERT_EQUAL(cwr->bin->n_bands,cw->bin->n_bands);
@@ -105,12 +105,12 @@ CTEST(nmt,covar_flat_errors) {
   nmt_covar_workspace_flat_free(cw); cw=NULL;
 
   //Wrong reading
-  try { cw=nmt_covar_workspace_flat_read("none"); }
+  try { cw=nmt_covar_workspace_flat_read_fits("none"); }
   ASSERT_NOT_EQUAL(0,nmt_exception_status);
   ASSERT_NULL(cw);
 
   //Correct reading
-  try { cw=nmt_covar_workspace_flat_read("test/benchmarks/bm_f_nc_np_cw00.dat"); }
+  try { cw=nmt_covar_workspace_flat_read_fits("test/benchmarks/bm_f_nc_np_cw00.fits"); }
   ASSERT_EQUAL(0,nmt_exception_status);
   nmt_covar_workspace_flat_free(cw); cw=NULL;
 

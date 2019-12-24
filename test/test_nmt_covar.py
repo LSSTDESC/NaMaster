@@ -97,15 +97,15 @@ class TestCovarFsk(unittest.TestCase) :
         cw=nmt.NmtCovarianceWorkspaceFlat()
 
         with self.assertRaises(ValueError) : #Write uninitialized
-            cw.write_to("wsp.dat");
+            cw.write_to("wsp.fits");
         
         cw.compute_coupling_coefficients(self.f0,self.f0,self.b)  #All good
         self.assertEqual(cw.wsp.bin.n_bands,self.w.wsp.bin.n_bands)
 
         with self.assertRaises(RuntimeError) : #Write uninitialized
-            cw.write_to("tests/wsp.dat");
+            cw.write_to("tests/wsp.fits");
 
-        cw.read_from('test/benchmarks/bm_f_nc_np_cw00.dat') #Correct reading
+        cw.read_from('test/benchmarks/bm_f_nc_np_cw00.fits') #Correct reading
         self.assertEqual(cw.wsp.bin.n_bands,self.w.wsp.bin.n_bands)
 
         #gaussian_covariance
@@ -212,13 +212,13 @@ class TestCovarSph(unittest.TestCase) :
         cw=nmt.NmtCovarianceWorkspace()
 
         with self.assertRaises(ValueError) : #Write uninitialized
-            cw.write_to("wsp.dat");
+            cw.write_to("wsp.fits");
             
         cw.compute_coupling_coefficients(self.f0,self.f0) #All good
         self.assertEqual(cw.wsp.lmax,self.w.wsp.lmax)
         self.assertEqual(cw.wsp.lmax,self.w.wsp.lmax)
         with self.assertRaises(RuntimeError) : #Write uninitialized
-            cw.write_to("tests/wsp.dat");
+            cw.write_to("tests/wsp.fits");
 
         cw.read_from('test/benchmarks/bm_nc_np_cw00.fits') #Correct reading
         self.assertEqual(cw.wsp.lmax,self.w.wsp.lmax)

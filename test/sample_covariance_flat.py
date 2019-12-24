@@ -70,10 +70,10 @@ plt.imshow(f0.get_maps()[0] * mask, interpolation='nearest', origin='lower')
 plt.colorbar()
 print("Workspace")
 w = nmt.NmtWorkspaceFlat()
-if not os.path.isfile("w_flat_covar.dat"):
+if not os.path.isfile("w_flat_covar.fits"):
     w.compute_coupling_matrix(f0, f0, b)
-    w.write_to("w_flat_covar.dat")
-w.read_from("w_flat_covar.dat")
+    w.write_to("w_flat_covar.fits")
+w.read_from("w_flat_covar.fits")
 cl_0 = compute_master(f0, f0, w)[0]
 
 # Let's now compute the Gaussian estimate of the covariance!
@@ -81,11 +81,11 @@ print("Covariance")
 # First we generate a NmtCovarianceWorkspaceFlat object to precompute
 # and store the necessary coupling coefficients
 cw = nmt.NmtCovarianceWorkspaceFlat()
-if not os.path.isfile("cw_flat.dat"):
+if not os.path.isfile("cw_flat.fits"):
     # This is the time-consuming operation
     cw.compute_coupling_coefficients(f0, f0, b)
-    cw.write_to("cw_flat.dat")
-cw.read_from("cw_flat.dat")
+    cw.write_to("cw_flat.fits")
+cw.read_from("cw_flat.fits")
 covar = nmt.gaussian_covariance_flat(cw, 0, 0, 0, 0, larr,
                                      [clarr], [clarr],
                                      [clarr], [clarr], w)

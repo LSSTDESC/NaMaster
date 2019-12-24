@@ -684,12 +684,12 @@ nmt_covar_workspace *covar_workspace_init_py(nmt_field *fa1,nmt_field *fa2,
 
 void write_covar_workspace_flat(nmt_covar_workspace_flat *cw,char *fname)
 {
-  nmt_covar_workspace_flat_write(cw,fname);
+  nmt_covar_workspace_flat_write_fits(cw,fname);
 }
 
 nmt_covar_workspace_flat *read_covar_workspace_flat(char *fname)
 {
-  return nmt_covar_workspace_flat_read(fname);
+  return nmt_covar_workspace_flat_read_fits(fname);
 }
 
 nmt_covar_workspace_flat *covar_workspace_flat_init_py(nmt_field_flat *fa1,nmt_field_flat *fa2,

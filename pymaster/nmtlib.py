@@ -914,14 +914,6 @@ covar_workspace_flat_init = _nmtlib.covar_workspace_flat_init
 def compute_gaussian_covariance_flat(cw, pol_a, pol_b, pol_c, pol_d, wa, wb, nl, larr, clac, clad, clbc, clbd, covar_out):
     return _nmtlib.compute_gaussian_covariance_flat(cw, pol_a, pol_b, pol_c, pol_d, wa, wb, nl, larr, clac, clad, clbc, clbd, covar_out)
 compute_gaussian_covariance_flat = _nmtlib.compute_gaussian_covariance_flat
-
-def covar_workspace_flat_write(cw, fname):
-    return _nmtlib.covar_workspace_flat_write(cw, fname)
-covar_workspace_flat_write = _nmtlib.covar_workspace_flat_write
-
-def covar_workspace_flat_read(fname):
-    return _nmtlib.covar_workspace_flat_read(fname)
-covar_workspace_flat_read = _nmtlib.covar_workspace_flat_read
 class covar_workspace(_object):
     __swig_setmethods__ = {}
     __setattr__ = lambda self, name, value: _swig_setattr(self, covar_workspace, name, value)
@@ -1012,6 +1004,14 @@ covar_workspace_write_fits = _nmtlib.covar_workspace_write_fits
 def covar_workspace_read_fits(fname):
     return _nmtlib.covar_workspace_read_fits(fname)
 covar_workspace_read_fits = _nmtlib.covar_workspace_read_fits
+
+def covar_workspace_flat_write_fits(cw, fname):
+    return _nmtlib.covar_workspace_flat_write_fits(cw, fname)
+covar_workspace_flat_write_fits = _nmtlib.covar_workspace_flat_write_fits
+
+def covar_workspace_flat_read_fits(fname):
+    return _nmtlib.covar_workspace_flat_read_fits(fname)
+covar_workspace_flat_read_fits = _nmtlib.covar_workspace_flat_read_fits
 
 def get_nell_list(bins, iout):
     return _nmtlib.get_nell_list(bins, iout)
