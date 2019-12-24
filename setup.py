@@ -30,12 +30,12 @@ if use_icc:
     extra = []
     if USE_OPENMP:
         libs += ['gomp', 'iomp5']
-        extra += ['-openmp']
+    extra += ['-openmp']
 else:
     extra = ['-O4']
     if USE_OPENMP:
         libs += ['gomp']
-        extra += ['-fopenmp']
+    extra += ['-fopenmp']
 
 _nmtlib = Extension("_nmtlib",
                     ["pymaster/namaster_wrap.c"],
