@@ -22,7 +22,7 @@ else:
     USE_OPENMP = True
 
 libs = [
-    'sharp', 'fftpack', 'c_utils', 'chealpix', 'cfitsio',
+    'nmt', 'sharp', 'fftpack', 'c_utils', 'chealpix', 'cfitsio',
     'gsl', 'gslcblas', 'm'] + FFTW_LIBS
 
 use_icc = False  # Set to True if you compiled libsharp with icc
