@@ -636,6 +636,7 @@ ac_subst_vars='am__EXEEXT_FALSE
 am__EXEEXT_TRUE
 LTLIBOBJS
 LIBOBJS
+libsharp_libs
 fftw_thread_type
 OPENMP_CFLAGS
 MAINT
@@ -13342,6 +13343,10 @@ elif test "x$enable_fftw_pthreads" != "xyes"; then :
   fftw_thread_type="-lfftw3_omp"
 
 fi
+
+# Set libsharp libraries needed
+libsharp_libs="-lsharp -lfftpack -lc_utils"
+
 
 # Checks for libraries.
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing pow" >&5
