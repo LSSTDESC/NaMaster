@@ -26,7 +26,7 @@ static nmt_curvedsky_info *nmt_curvedsky_info_fromhdus(fitsfile *fptr,
 {
   nmt_curvedsky_info *cs=my_malloc(sizeof(nmt_curvedsky_info));
 
-  fits_movrel_hdu(fptr,1,NULL,status);
+  fits_movnam_hdu(fptr,IMAGE_HDU,"CS_INFO",0,status);
   fits_read_key(fptr,TINT   ,"IS_HEALPIX",&(cs->is_healpix),NULL,status);
   fits_read_key(fptr,TLONG  ,"N_EQ",&(cs->n_eq),NULL,status);
   fits_read_key(fptr,TINT   ,"LMAX_SHT",&(cs->lmax_sht),NULL,status);
@@ -73,6 +73,7 @@ static void nmt_workspace_info_fromhdus(fitsfile *fptr,
 					nmt_workspace *w,
 					int *status)
 {
+  fits_movnam_hdu(fptr,IMAGE_HDU,"WSP_PRIMARY",0,status);
   fits_read_key(fptr,TINT,"LMAX",&(w->lmax),NULL,status);
   fits_read_key(fptr,TINT,"LMAX_FIELDS",&(w->lmax_fields),NULL,status);
   fits_read_key(fptr,TINT,"LMAX_MASK",&(w->lmax_mask),NULL,status);
@@ -125,14 +126,14 @@ static void nmt_l_arr_tohdus(fitsfile *fptr,
   free(tunit);
 }
 
-static double *nmt_l_arr_fromhdus(fitsfile *fptr, int lmax_expect, int *status)
+static double *nmt_l_arr_fromhdus(fitsfile *fptr, int lmax_expect, char *arrname, int *status)
 {
   double *f;
   double nulval;
   int anynul;
   long nrows;
   *status=0;
-  fits_movrel_hdu(fptr,1,NULL,status);
+  fits_movnam_hdu(fptr,BINARY_TBL,arrname,0,status);
   fits_get_num_rows(fptr,&nrows,status);
   if(nrows!=lmax_expect+1) {
     report_error(NMT_ERROR_INCONSISTENT,
@@ -151,7 +152,7 @@ static nmt_binning_scheme *nmt_binning_scheme_fromhdus(fitsfile *fptr,
   long nrows;
   double nulval;
   nmt_binning_scheme *b=my_malloc(sizeof(nmt_binning_scheme));
-  fits_movrel_hdu(fptr,1,NULL,status);
+  fits_movnam_hdu(fptr,BINARY_TBL,"BINS_SUMMARY",0,status);
   fits_read_key(fptr,TINT,"N_BANDS",&(b->n_bands),NULL,status);
   fits_read_key(fptr,TINT,"ELL_MAX",&(b->ell_max),NULL,status);
   fits_get_num_rows(fptr,&nrows,status);
@@ -167,7 +168,9 @@ static nmt_binning_scheme *nmt_binning_scheme_fromhdus(fitsfile *fptr,
 		b->nell_list,&anynul,status);
 
   for(ii=0;ii<b->n_bands;ii++) {
-    fits_movrel_hdu(fptr,1,NULL,status);
+    char hduname[256];
+    sprintf(hduname,"BINS_BAND_%d",ii+1);
+    fits_movnam_hdu(fptr,BINARY_TBL,hduname,0,status);
     fits_get_num_rows(fptr,&nrows,status);
     if(nrows!=b->nell_list[ii]) {
       report_error(NMT_ERROR_INCONSISTENT,
@@ -285,7 +288,7 @@ static void nmt_coupling_binned_fromhdus(fitsfile *fptr,
 
   //Read flattened coupling matrix
   double *matrix_binned=my_malloc(n_el*n_el*sizeof(double));
-  fits_movrel_hdu(fptr,1,NULL,status);
+  fits_movnam_hdu(fptr,IMAGE_HDU,"MCM_BINNED",0,status);
   fits_read_pix(fptr,TDOUBLE,fpixel,n_el*n_el,NULL,matrix_binned,NULL,status);
 
   //Unflatten
@@ -300,7 +303,7 @@ static void nmt_coupling_binned_fromhdus(fitsfile *fptr,
 
   //Read permutation
   int *perm=my_malloc(n_el*sizeof(int));
-  fits_movrel_hdu(fptr,1,NULL,status);
+  fits_movnam_hdu(fptr,IMAGE_HDU,"MCM_PERM",0,status);
   fits_read_pix(fptr,TINT,fpixel,n_el,NULL,perm,NULL,status);
 
   w->coupling_matrix_perm=gsl_permutation_alloc(n_el);
@@ -361,10 +364,10 @@ nmt_workspace *nmt_workspace_read_fits(char *fname)
   w->cs=nmt_curvedsky_info_fromhdus(fptr,&status);
   check_fits(status,fname,1);
   // beam_prod HDU
-  w->beam_prod=nmt_l_arr_fromhdus(fptr,w->lmax_fields,&status);
+  w->beam_prod=nmt_l_arr_fromhdus(fptr,w->lmax_fields,"BEAMS",&status);
   check_fits(status,fname,1);
   // pcl_masks HDU
-  w->pcl_masks=nmt_l_arr_fromhdus(fptr,w->lmax_mask,&status);
+  w->pcl_masks=nmt_l_arr_fromhdus(fptr,w->lmax_mask,"PCL_MASKS",&status);
   check_fits(status,fname,1);
   // bins HDUs
   w->bin=nmt_binning_scheme_fromhdus(fptr,&status);
@@ -409,6 +412,7 @@ static void nmt_workspace_flat_info_fromhdus(fitsfile *fptr,
 					     nmt_workspace_flat *w,
 					     int *status)
 {
+  fits_movnam_hdu(fptr,IMAGE_HDU,"WSP_PRIMARY",0,status);
   fits_read_key(fptr,TDOUBLE,"LMAX",&(w->lmax),NULL,status);
   fits_read_key(fptr,TDOUBLE,"ELLCUT_X_I",&(w->ellcut_x[0]),NULL,status);
   fits_read_key(fptr,TDOUBLE,"ELLCUT_X_F",&(w->ellcut_x[1]),NULL,status);
@@ -467,7 +471,7 @@ static nmt_flatsky_info *nmt_flatsky_info_fromhdus(fitsfile *fptr,
 {
   nmt_flatsky_info *fs=my_malloc(sizeof(nmt_flatsky_info));
 
-  fits_movrel_hdu(fptr,1,NULL,status);
+  fits_movnam_hdu(fptr,BINARY_TBL,"FS_INFO",0,status);
   fits_read_key(fptr,TINT   ,"NX",&(fs->nx),NULL,status);
   fits_read_key(fptr,TINT   ,"NY",&(fs->ny),NULL,status);
   fits_read_key(fptr,TLONG  ,"NPIX",&(fs->npix),NULL,status);
@@ -512,12 +516,12 @@ static void nmt_n_cells_tohdus(fitsfile *fptr,
 }
 
 static int *nmt_n_cells_fromhdus(fitsfile *fptr,
-				    int *status)
+				 int *status)
 {
   int *n_cells;
   long nrows;
   int nulval,anynul;
-  fits_movrel_hdu(fptr,1,NULL,status);
+  fits_movnam_hdu(fptr,BINARY_TBL,"N_CELLS",0,status);
   fits_get_num_rows(fptr,&nrows,status);
   n_cells=my_malloc(nrows*sizeof(int));
   fits_read_col(fptr,TINT,1,1,1,nrows,&nulval,n_cells,&anynul,status);
@@ -577,7 +581,7 @@ static void nmt_flat_coupling_binned_fromhdus(fitsfile *fptr,
   long naxes[2],fpixel[2]={1,1};
 
   //Non-GSL
-  fits_movrel_hdu(fptr,1,NULL,status);
+  fits_movnam_hdu(fptr,IMAGE_HDU,"MCM_BINNED",0,status);
   fits_get_img_size(fptr,2,naxes,status);
   n_el=naxes[0];
   matrix=my_malloc(n_el*n_el*sizeof(flouble));
@@ -590,7 +594,7 @@ static void nmt_flat_coupling_binned_fromhdus(fitsfile *fptr,
   }
 
   //GSL
-  fits_movrel_hdu(fptr,1,NULL,status);
+  fits_movnam_hdu(fptr,IMAGE_HDU,"MCM_BINNED_GSL",0,status);
   fits_get_img_size(fptr,2,naxes,status);
   if((naxes[0]!=n_el) || (naxes[1]!=n_el)) {
     report_error(NMT_ERROR_INCONSISTENT,
@@ -607,7 +611,7 @@ static void nmt_flat_coupling_binned_fromhdus(fitsfile *fptr,
 
   //Read permutation
   int *perm=my_malloc(n_el*sizeof(int));
-  fits_movrel_hdu(fptr,1,NULL,status);
+  fits_movnam_hdu(fptr,IMAGE_HDU,"MCM_PERM",0,status);
   fits_read_pix(fptr,TINT,fpixel,n_el,NULL,perm,NULL,status);
 
   w->coupling_matrix_perm=gsl_permutation_alloc(n_el);
@@ -657,7 +661,8 @@ static nmt_binning_scheme_flat *nmt_binning_scheme_flat_fromhdus(fitsfile *fptr,
   long nrows;
   double nulval;
   nmt_binning_scheme_flat *b=my_malloc(sizeof(nmt_binning_scheme_flat));
-  fits_movrel_hdu(fptr,1,NULL,status);
+
+  fits_movnam_hdu(fptr,BINARY_TBL,"BINS_SUMMARY",0,status);
   fits_get_num_rows(fptr,&nrows,status);
   b->n_bands=nrows;
   b->ell_0_list=my_malloc(b->n_bands*sizeof(flouble));
@@ -739,13 +744,14 @@ static void nmt_covar_coeffs_tohdus(fitsfile *fptr,
 
 static double **nmt_covar_coeffs_fromhdus(fitsfile *fptr,
 					  int n_expected,
+					  char *name,
 					  int *status)
 {
   flouble *matrix;
   long ii,n_el;
   long naxes[2],fpixel[2]={1,1};
 
-  fits_movrel_hdu(fptr,1,NULL,status);
+  fits_movnam_hdu(fptr,IMAGE_HDU,name,0,status);
   fits_get_img_size(fptr,2,naxes,status);
   n_el=naxes[0];
   if(n_el!=n_expected)
@@ -802,25 +808,26 @@ nmt_covar_workspace *nmt_covar_workspace_read_fits(char *fname)
 
   fits_open_file(&fptr,fname,READONLY,&status);
   check_fits(status,fname,1);
+  fits_movnam_hdu(fptr,ANY_HDU,"CWSP_PRIMARY",0,&status);
   fits_read_key(fptr,TINT,"LMAX",&(cw->lmax),NULL,&status);
   check_fits(status,fname,1);
   //Empty primary
 
-  cw->xi00_1122=nmt_covar_coeffs_fromhdus(fptr,cw->lmax+1,&status);
+  cw->xi00_1122=nmt_covar_coeffs_fromhdus(fptr,cw->lmax+1,"XI00_1122",&status);
   check_fits(status,fname,1);
-  cw->xi00_1221=nmt_covar_coeffs_fromhdus(fptr,cw->lmax+1,&status);
+  cw->xi00_1221=nmt_covar_coeffs_fromhdus(fptr,cw->lmax+1,"XI00_1221",&status);
   check_fits(status,fname,1);
-  cw->xi02_1122=nmt_covar_coeffs_fromhdus(fptr,cw->lmax+1,&status);
+  cw->xi02_1122=nmt_covar_coeffs_fromhdus(fptr,cw->lmax+1,"XI02_1122",&status);
   check_fits(status,fname,1);
-  cw->xi02_1221=nmt_covar_coeffs_fromhdus(fptr,cw->lmax+1,&status);
+  cw->xi02_1221=nmt_covar_coeffs_fromhdus(fptr,cw->lmax+1,"XI02_1221",&status);
   check_fits(status,fname,1);
-  cw->xi22p_1122=nmt_covar_coeffs_fromhdus(fptr,cw->lmax+1,&status);
+  cw->xi22p_1122=nmt_covar_coeffs_fromhdus(fptr,cw->lmax+1,"XI22P_1122",&status);
   check_fits(status,fname,1);
-  cw->xi22p_1221=nmt_covar_coeffs_fromhdus(fptr,cw->lmax+1,&status);
+  cw->xi22p_1221=nmt_covar_coeffs_fromhdus(fptr,cw->lmax+1,"XI22P_1221",&status);
   check_fits(status,fname,1);
-  cw->xi22m_1122=nmt_covar_coeffs_fromhdus(fptr,cw->lmax+1,&status);
+  cw->xi22m_1122=nmt_covar_coeffs_fromhdus(fptr,cw->lmax+1,"XI22M_1122",&status);
   check_fits(status,fname,1);
-  cw->xi22m_1221=nmt_covar_coeffs_fromhdus(fptr,cw->lmax+1,&status);
+  cw->xi22m_1221=nmt_covar_coeffs_fromhdus(fptr,cw->lmax+1,"XI22M_1221",&status);
   check_fits(status,fname,1);
   fits_close_file(fptr,&status);
 
@@ -871,27 +878,28 @@ nmt_covar_workspace_flat *nmt_covar_workspace_flat_read_fits(char *fname)
 
   fits_open_file(&fptr,fname,READONLY,&status);
   check_fits(status,fname,1);
+  fits_movnam_hdu(fptr,IMAGE_HDU,"CWSP_PRIMARY",0,&status);
 
   //Bins
   cw->bin=nmt_binning_scheme_flat_fromhdus(fptr,&status);
   check_fits(status,fname,1);
 
   //Coeffs
-  cw->xi00_1122=nmt_covar_coeffs_fromhdus(fptr,cw->bin->n_bands,&status);
+  cw->xi00_1122=nmt_covar_coeffs_fromhdus(fptr,cw->bin->n_bands,"XI00_1122",&status);
   check_fits(status,fname,1);
-  cw->xi00_1221=nmt_covar_coeffs_fromhdus(fptr,cw->bin->n_bands,&status);
+  cw->xi00_1221=nmt_covar_coeffs_fromhdus(fptr,cw->bin->n_bands,"XI00_1221",&status);
   check_fits(status,fname,1);
-  cw->xi02_1122=nmt_covar_coeffs_fromhdus(fptr,cw->bin->n_bands,&status);
+  cw->xi02_1122=nmt_covar_coeffs_fromhdus(fptr,cw->bin->n_bands,"XI02_1122",&status);
   check_fits(status,fname,1);
-  cw->xi02_1221=nmt_covar_coeffs_fromhdus(fptr,cw->bin->n_bands,&status);
+  cw->xi02_1221=nmt_covar_coeffs_fromhdus(fptr,cw->bin->n_bands,"XI02_1221",&status);
   check_fits(status,fname,1);
-  cw->xi22p_1122=nmt_covar_coeffs_fromhdus(fptr,cw->bin->n_bands,&status);
+  cw->xi22p_1122=nmt_covar_coeffs_fromhdus(fptr,cw->bin->n_bands,"XI22P_1122",&status);
   check_fits(status,fname,1);
-  cw->xi22p_1221=nmt_covar_coeffs_fromhdus(fptr,cw->bin->n_bands,&status);
+  cw->xi22p_1221=nmt_covar_coeffs_fromhdus(fptr,cw->bin->n_bands,"XI22P_1221",&status);
   check_fits(status,fname,1);
-  cw->xi22m_1122=nmt_covar_coeffs_fromhdus(fptr,cw->bin->n_bands,&status);
+  cw->xi22m_1122=nmt_covar_coeffs_fromhdus(fptr,cw->bin->n_bands,"XI22M_1122",&status);
   check_fits(status,fname,1);
-  cw->xi22m_1221=nmt_covar_coeffs_fromhdus(fptr,cw->bin->n_bands,&status);
+  cw->xi22m_1221=nmt_covar_coeffs_fromhdus(fptr,cw->bin->n_bands,"XI22M_1221",&status);
   check_fits(status,fname,1);
   fits_close_file(fptr,&status);
 
