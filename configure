@@ -636,7 +636,6 @@ ac_subst_vars='am__EXEEXT_FALSE
 am__EXEEXT_TRUE
 LTLIBOBJS
 LIBOBJS
-libsharp_libs
 fftw_thread_type
 OPENMP_CFLAGS
 MAINT
@@ -13344,15 +13343,6 @@ elif test "x$enable_fftw_pthreads" != "xyes"; then :
 
 fi
 
-# Set libsharp libraries needed
-libsharp_libs="-lsharp -lfftpack -lc_utils"
-
-# Set necessary define flags
-
-$as_echo "#define LIBSHARP_GITHUB 1" >>confdefs.h
-
-
-
 # Checks for libraries.
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing pow" >&5
 $as_echo_n "checking for library containing pow... " >&6; }
@@ -13702,64 +13692,7 @@ else
   as_fn_error $? "Couldn't find libfftw3" "$LINENO" 5
 fi
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing sharp_make_triangular_alm_info" >&5
-$as_echo_n "checking for library containing sharp_make_triangular_alm_info... " >&6; }
-if ${ac_cv_search_sharp_make_triangular_alm_info+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_func_search_save_LIBS=$LIBS
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char sharp_make_triangular_alm_info ();
-int
-main ()
-{
-return sharp_make_triangular_alm_info ();
-  ;
-  return 0;
-}
-_ACEOF
-for ac_lib in '' sharp; do
-  if test -z "$ac_lib"; then
-    ac_res="none required"
-  else
-    ac_res=-l$ac_lib
-    LIBS="-l$ac_lib -lfftpack -lc_utils $ac_func_search_save_LIBS"
-  fi
-  if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_search_sharp_make_triangular_alm_info=$ac_res
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext
-  if ${ac_cv_search_sharp_make_triangular_alm_info+:} false; then :
-  break
-fi
-done
-if ${ac_cv_search_sharp_make_triangular_alm_info+:} false; then :
-
-else
-  ac_cv_search_sharp_make_triangular_alm_info=no
-fi
-rm conftest.$ac_ext
-LIBS=$ac_func_search_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_sharp_make_triangular_alm_info" >&5
-$as_echo "$ac_cv_search_sharp_make_triangular_alm_info" >&6; }
-ac_res=$ac_cv_search_sharp_make_triangular_alm_info
-if test "$ac_res" != no; then :
-  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
-
-else
-  as_fn_error $? "Couldn't find libsharp" "$LINENO" 5
-fi
-
+#AC_SEARCH_LIBS([sharp_make_triangular_alm_info],[sharp],[],AC_MSG_ERROR(Couldn't find libsharp),[-lfftpack -lc_utils])
 
 # Checks for header files.
 for ac_header in stdlib.h string.h math.h stdarg.h unistd.h time.h omp.h complex.h
