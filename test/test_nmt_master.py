@@ -254,7 +254,7 @@ class TestWorkspaceHPX(unittest.TestCase) :
     def test_workspace_io(self) :
         w=nmt.NmtWorkspace()
         with self.assertRaises(RuntimeError) : #Invalid writing
-            w.write_to("test/wspc.dat")
+            w.write_to("test/wspc.fits")
         w.read_from("test/benchmarks/bm_yc_yp_w02.fits") #OK read
         self.assertEqual(w.wsp.cs.n_eq,64)
         mcm_old=w.get_coupling_matrix() #Read mode coupling matrix
@@ -510,11 +510,11 @@ class TestWorkspaceFsk(unittest.TestCase) :
     def test_workspace_flat_io(self) :
         w=nmt.NmtWorkspaceFlat()
         with self.assertRaises(RuntimeError) : #Invalid writing
-            w.write_to("test/wspc.dat")
-        w.read_from("test/benchmarks/bm_f_yc_yp_w02.dat") #OK read
+            w.write_to("test/wspc.fits")
+        w.read_from("test/benchmarks/bm_f_yc_yp_w02.fits") #OK read
         self.assertEqual(self.msk.shape,(w.wsp.fs.ny,w.wsp.fs.nx))
         with self.assertRaises(RuntimeError) :  #Can't write on that file
-            w.write_to("tests/wspc.dat")
+            w.write_to("tests/wspc.fits")
         with self.assertRaises(RuntimeError) : #File doesn't exist
             w.read_from("none")
 

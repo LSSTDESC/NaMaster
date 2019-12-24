@@ -22,7 +22,7 @@ CTEST(nmt,covar_flat) {
 					  DY_TEST*NY_TEST*M_PI/180,
 					  msk,0,&map,0,NULL,0,NULL,NULL,0,0,1E-10);
   
-  nmt_workspace_flat *w=nmt_workspace_flat_read_fits("test/benchmarks/bm_f_nc_np_w00.dat");
+  nmt_workspace_flat *w=nmt_workspace_flat_read_fits("test/benchmarks/bm_f_nc_np_w00.fits");
   nmt_covar_workspace_flat *cw=nmt_covar_workspace_flat_init(f0,f0,bin,f0,f0,bin);
   nmt_covar_workspace_flat *cwr=nmt_covar_workspace_flat_read("test/benchmarks/bm_f_nc_np_cw00.dat");
   free(msk); free(map); nmt_bins_flat_free(bin); nmt_field_flat_free(f0);

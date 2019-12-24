@@ -27,11 +27,11 @@ class TestCovarFsk(unittest.TestCase) :
         self.f0_half=nmt.NmtFieldFlat(lx,ly,msk[:ny//2,:nx//2],
                                       [mps[0,:ny//2,:nx//2]])
         self.w=nmt.NmtWorkspaceFlat()
-        self.w.read_from("test/benchmarks/bm_f_nc_np_w00.dat")
+        self.w.read_from("test/benchmarks/bm_f_nc_np_w00.fits")
         self.w02=nmt.NmtWorkspaceFlat()
-        self.w02.read_from("test/benchmarks/bm_f_nc_np_w02.dat")
+        self.w02.read_from("test/benchmarks/bm_f_nc_np_w02.fits")
         self.w22=nmt.NmtWorkspaceFlat()
-        self.w22.read_from("test/benchmarks/bm_f_nc_np_w22.dat")
+        self.w22.read_from("test/benchmarks/bm_f_nc_np_w22.fits")
         
         l,cltt,clee,clbb,clte,nltt,nlee,nlbb,nlte=np.loadtxt("test/benchmarks/cls_lss.txt",unpack=True)
         self.l=l
