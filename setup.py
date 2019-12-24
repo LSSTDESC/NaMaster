@@ -22,7 +22,7 @@ else:
     USE_OPENMP = True
 
 libs = [
-    'nmt', 'sharp', 'fftpack', 'c_utils', 'chealpix', 'cfitsio',
+    'sharp', 'fftpack', 'c_utils', 'chealpix', 'cfitsio',
     'gsl', 'gslcblas', 'm'] + FFTW_LIBS
 
 use_icc = False  # Set to True if you compiled libsharp with icc
@@ -39,8 +39,10 @@ else:
 
 _nmtlib = Extension("_nmtlib",
                     ["pymaster/namaster_wrap.c"],
+                    extra_objects=["./_deps/lib/libnmt.a"],
                     libraries=libs,
-                    include_dirs=[numpy_include, "./src/"],
+                    library_dirs=["./_deps/lib/"],
+                    include_dirs=[numpy_include, "./src/","./_deps/include/"],
                     extra_compile_args=extra,
                     )
 

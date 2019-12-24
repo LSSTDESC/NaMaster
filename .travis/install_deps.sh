@@ -10,15 +10,7 @@ pip install nose healpy scipy
 
 #### Install libsharp ####
 
-git clone https://github.com/Libsharp/libsharp.git
-cd libsharp
-autoconf -i
-./configure --enable-pic
-make
-mv auto/bin $TRAVIS_BUILD_DIR
-mv auto/lib $TRAVIS_BUILD_DIR
-mv auto/include $TRAVIS_BUILD_DIR
-cd ..
+./scripts/install_libsharp.sh
 
 #### Install GSL2.0+ ####
 
