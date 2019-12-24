@@ -744,29 +744,6 @@ typedef struct {
 void nmt_workspace_flat_free(nmt_workspace_flat *w);
 
 /**
- * @brief Builds nmt_workspace_flat structure from file
- *
- * The input file uses a native binary format. In combination with nmt_workspace_flat_write(),
- * this can be used to save the information contained in a given workspace and reuse it for
- * future power spectrum computations. The same workspace can be used on any pair of fields
- * with the same masks.
- * @param fname Path to input file.
- */
-nmt_workspace_flat *nmt_workspace_flat_read(char *fname);
-
-/**
- * @brief Saves nmt_workspace_flat structure to file
- *
- * The output file uses a native binary format. In combination with nmt_workspace_flat_read(),
- * this can be used to save the information contained in a given workspace and reuse it for
- * future power spectrum computations. The same workspace can be used on any pair of fields
- * with the same masks.
- * @param w nmt_workspace_flat to be saved.
- * @param fname Path to output file.
- */
-void nmt_workspace_flat_write(nmt_workspace_flat *w,char *fname);
-
-/**
  * @brief Computes mode-coupling matrix.
  *
  * Computes MCM for a given pair of flat-sky fields.
@@ -1338,5 +1315,28 @@ void nmt_workspace_write_fits(nmt_workspace *w,char *fname);
  * @param fname Path to input file.
  */
 nmt_workspace *nmt_workspace_read_fits(char *fname);
+
+/**
+ * @brief Builds nmt_workspace_flat structure from file
+ *
+ * The input file uses the FITS standard. In combination with nmt_workspace_flat_write_fits(),
+ * this can be used to save the information contained in a given workspace and reuse it for
+ * future power spectrum computations. The same workspace can be used on any pair of fields
+ * with the same masks.
+ * @param fname Path to input file.
+ */
+nmt_workspace_flat *nmt_workspace_flat_read_fits(char *fname);
+
+/**
+ * @brief Saves nmt_workspace_flat structure to file
+ *
+ * The output file uses the FITS standard. In combination with nmt_workspace_flat_read_fits(),
+ * this can be used to save the information contained in a given workspace and reuse it for
+ * future power spectrum computations. The same workspace can be used on any pair of fields
+ * with the same masks.
+ * @param w nmt_workspace_flat to be saved.
+ * @param fname Path to output file.
+ */
+void nmt_workspace_flat_write_fits(nmt_workspace_flat *w,char *fname);
 
 #endif //_NAMASTER_H_

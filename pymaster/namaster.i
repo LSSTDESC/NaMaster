@@ -591,12 +591,12 @@ void write_workspace(nmt_workspace *w,char *fname)
 
 nmt_workspace_flat *read_workspace_flat(char *fname)
 {
-  return nmt_workspace_flat_read(fname);
+  return nmt_workspace_flat_read_fits(fname);
 }
 
 void write_workspace_flat(nmt_workspace_flat *w,char *fname)
 {
-  nmt_workspace_flat_write(w,fname);
+  nmt_workspace_flat_write_fits(w,fname);
 }
    
 void comp_uncorr_noise_deproj_bias(nmt_field *fl1,

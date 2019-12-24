@@ -707,14 +707,6 @@ def workspace_flat_free(w):
     return _nmtlib.workspace_flat_free(w)
 workspace_flat_free = _nmtlib.workspace_flat_free
 
-def workspace_flat_read(fname):
-    return _nmtlib.workspace_flat_read(fname)
-workspace_flat_read = _nmtlib.workspace_flat_read
-
-def workspace_flat_write(w, fname):
-    return _nmtlib.workspace_flat_write(w, fname)
-workspace_flat_write = _nmtlib.workspace_flat_write
-
 def compute_coupling_matrix_flat(fl1, fl2, bin, lmn_x, lmx_x, lmn_y, lmx_y, is_teb):
     return _nmtlib.compute_coupling_matrix_flat(fl1, fl2, bin, lmn_x, lmx_x, lmn_y, lmx_y, is_teb)
 compute_coupling_matrix_flat = _nmtlib.compute_coupling_matrix_flat
@@ -1012,6 +1004,14 @@ workspace_write_fits = _nmtlib.workspace_write_fits
 def workspace_read_fits(fname):
     return _nmtlib.workspace_read_fits(fname)
 workspace_read_fits = _nmtlib.workspace_read_fits
+
+def workspace_flat_read_fits(fname):
+    return _nmtlib.workspace_flat_read_fits(fname)
+workspace_flat_read_fits = _nmtlib.workspace_flat_read_fits
+
+def workspace_flat_write_fits(w, fname):
+    return _nmtlib.workspace_flat_write_fits(w, fname)
+workspace_flat_write_fits = _nmtlib.workspace_flat_write_fits
 
 def get_nell_list(bins, iout):
     return _nmtlib.get_nell_list(bins, iout)
