@@ -274,7 +274,7 @@ class NmtWorkspaceFlat(object):
         if self.wsp is None:
             raise RuntimeError("Must initialize workspace before "
                                "writing")
-        lib.write_workspace_flat(self.wsp, fname)
+        lib.write_workspace_flat(self.wsp, "!"+fname)
 
     def couple_cell(self, ells, cl_in):
         """

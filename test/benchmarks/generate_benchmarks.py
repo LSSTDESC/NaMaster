@@ -286,7 +286,7 @@ f0=nmt.NmtField(mask,[dl])
 f2=nmt.NmtField(mask,[dw_q,dw_u])
 w00=nmt.NmtWorkspace(); w00.compute_coupling_matrix(f0,f0,b);
 cw00=nmt.NmtCovarianceWorkspace(); cw00.compute_coupling_coefficients(f0,f0);
-cw00.write_to(prefix+'_cw00.dat')
+cw00.write_to(prefix+'_cw00.fits')
 cov=nmt.gaussian_covariance(cw00,0,0,0,0,
                             [(cltt+nltt)[:3*nside_out]],
                             [(cltt+nltt)[:3*nside_out]],

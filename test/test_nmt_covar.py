@@ -220,7 +220,7 @@ class TestCovarSph(unittest.TestCase) :
         with self.assertRaises(RuntimeError) : #Write uninitialized
             cw.write_to("tests/wsp.dat");
 
-        cw.read_from('test/benchmarks/bm_nc_np_cw00.dat') #Correct reading
+        cw.read_from('test/benchmarks/bm_nc_np_cw00.fits') #Correct reading
         self.assertEqual(cw.wsp.lmax,self.w.wsp.lmax)
         self.assertEqual(cw.wsp.lmax,self.w.wsp.lmax)
 

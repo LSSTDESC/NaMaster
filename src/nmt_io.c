@@ -702,13 +702,13 @@ nmt_workspace_flat *nmt_workspace_flat_read_fits(char *fname)
   check_fits(status,fname,1);
   // n_cells HDU
   w->n_cells=nmt_n_cells_fromhdus(fptr,&status);
-  check_fits(status,fname,0);
+  check_fits(status,fname,1);
   // binned MCM HDUs
   nmt_flat_coupling_binned_fromhdus(fptr,w,&status);
-  check_fits(status,fname,0);
+  check_fits(status,fname,1);
   // bins HDU
   w->bin=nmt_binning_scheme_flat_fromhdus(fptr,&status);
-  check_fits(status,fname,0);
+  check_fits(status,fname,1);
   fits_close_file(fptr,&status);
 
   return w;
@@ -792,27 +792,27 @@ nmt_covar_workspace *nmt_covar_workspace_read_fits(char *fname)
   nmt_covar_workspace *cw=my_malloc(sizeof(nmt_covar_workspace));
 
   fits_open_file(&fptr,fname,READONLY,&status);
-  check_fits(status,fname,0);
+  check_fits(status,fname,1);
   fits_read_key(fptr,TINT,"LMAX",&(cw->lmax),NULL,&status);
-  check_fits(status,fname,0);
+  check_fits(status,fname,1);
   //Empty primary
 
   cw->xi00_1122=nmt_covar_coeffs_fromhdus(fptr,cw->lmax+1,&status);
-  check_fits(status,fname,0);
+  check_fits(status,fname,1);
   cw->xi00_1221=nmt_covar_coeffs_fromhdus(fptr,cw->lmax+1,&status);
-  check_fits(status,fname,0);
+  check_fits(status,fname,1);
   cw->xi02_1122=nmt_covar_coeffs_fromhdus(fptr,cw->lmax+1,&status);
-  check_fits(status,fname,0);
+  check_fits(status,fname,1);
   cw->xi02_1221=nmt_covar_coeffs_fromhdus(fptr,cw->lmax+1,&status);
-  check_fits(status,fname,0);
+  check_fits(status,fname,1);
   cw->xi22p_1122=nmt_covar_coeffs_fromhdus(fptr,cw->lmax+1,&status);
-  check_fits(status,fname,0);
+  check_fits(status,fname,1);
   cw->xi22p_1221=nmt_covar_coeffs_fromhdus(fptr,cw->lmax+1,&status);
-  check_fits(status,fname,0);
+  check_fits(status,fname,1);
   cw->xi22m_1122=nmt_covar_coeffs_fromhdus(fptr,cw->lmax+1,&status);
-  check_fits(status,fname,0);
+  check_fits(status,fname,1);
   cw->xi22m_1221=nmt_covar_coeffs_fromhdus(fptr,cw->lmax+1,&status);
-  check_fits(status,fname,0);
+  check_fits(status,fname,1);
   fits_close_file(fptr,&status);
 
   return cw;

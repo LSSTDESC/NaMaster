@@ -79,7 +79,7 @@ class NmtCovarianceWorkspace(object):
         """
         if self.wsp is None:
             raise ValueError("Must initialize workspace before writing")
-        lib.write_covar_workspace(self.wsp, fname)
+        lib.write_covar_workspace(self.wsp, "!"+fname)
 
 
 class NmtCovarianceWorkspaceFlat(object):
