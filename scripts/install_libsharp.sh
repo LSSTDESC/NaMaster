@@ -4,6 +4,9 @@
 
 DEPDIR=_deps
 [ -e $DEPDIR ] || mkdir $DEPDIR
+[ -e $DEPDIR/bin ] || mkdir $DEPDIR/bin
+[ -e $DEPDIR/lib ] || mkdir $DEPDIR/lib
+[ -e $DEPDIR/include ] || mkdir $DEPDIR/include
 cd $DEPDIR
 [ -e libsharp ] || git clone https://github.com/Libsharp/libsharp # do we want a frozen version?
 cd libsharp
@@ -18,3 +21,6 @@ autoconf
 ./configure --enable-pic
 make
 rm -rf python/
+cp auto/bin/* ../bin/
+cp auto/lib/* ../lib/
+cp auto/include/* ../include/

@@ -36,7 +36,7 @@ AC_SEARCH_LIBS([gsl_spline2d_eval_e],[gsl],[],AC_MSG_ERROR(Couldn't find libgsl.
 AC_SEARCH_LIBS([ffopen],[cfitsio],[],AC_MSG_ERROR(Couldn't find cfitsio))
 AC_SEARCH_LIBS([ring2nest],[chealpix],[],AC_MSG_ERROR(Couldn't find libchealpix))
 AC_SEARCH_LIBS([fftw_execute],[fftw3],[],AC_MSG_ERROR(Couldn't find libfftw3))
-#AC_SEARCH_LIBS([sharp_make_triangular_alm_info],[sharp],[],AC_MSG_ERROR(Couldn't find libsharp),[-lfftpack -lc_utils])
+AC_SEARCH_LIBS([sharp_make_triangular_alm_info],[sharp],[],AC_MSG_ERROR(Couldn't find libsharp),[-lfftpack -lc_utils])
 
 # Checks for header files.
 AC_CHECK_HEADERS([stdlib.h string.h math.h stdarg.h unistd.h time.h omp.h complex.h])
