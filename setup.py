@@ -30,12 +30,12 @@ if use_icc:
     extra = []
     if USE_OPENMP:
         libs += ['gomp', 'iomp5']
-        extra += ['-openmp']
+    extra += ['-openmp']
 else:
     extra = ['-O4']
     if USE_OPENMP:
         libs += ['gomp']
-        extra += ['-fopenmp']
+    extra += ['-fopenmp']
 
 _nmtlib = Extension("_nmtlib",
                     ["pymaster/namaster_wrap.c"],
@@ -44,6 +44,7 @@ _nmtlib = Extension("_nmtlib",
                     library_dirs=["./_deps/lib/"],
                     include_dirs=[numpy_include, "./src/","./_deps/include/"],
                     extra_compile_args=extra,
+                    extra_link_args=extra
                     )
 
 with open("README.md", "r") as fh:
