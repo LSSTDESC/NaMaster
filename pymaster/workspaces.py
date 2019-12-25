@@ -31,12 +31,13 @@ class NmtWorkspace(object):
         self.wsp = lib.read_workspace(fname)
 
     def update_beams(self, beam1, beam2):
-        if ((not isinstance(beam1, (list, tuple, np.ndarray))) or
-            (not isinstance(beam2, (list, tuple, np.ndarray)))):
+        b1arr = isinstance(beam1, (list, tuple, np.ndarray))
+        b2arr = isinstance(beam2, (list, tuple, np.ndarray))
+        if ((not b1arr) or (not b2arr)):
             raise ValueError("The new beams must be provided as arrays")
 
         lmax = self.wsp.lmax_fields
-        if (len(beam1)<=lmax) or (len(beam2)<=lmax):
+        if (len(beam1) <= lmax) or (len(beam2) <= lmax):
             raise ValueError("The new beams must go up to ell = %d" % lmax)
         lib.wsp_update_beams(self.wsp, beam1, beam2)
 
