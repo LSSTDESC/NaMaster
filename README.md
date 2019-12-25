@@ -14,7 +14,7 @@ If that works for you and you don't care about optimizing the code too much, ski
 NaMaster has the following dependencies, which should be present in your system before you can install the code:
 * [GSL](https://www.gnu.org/software/gsl/). Version 2 required.
 * [FFTW](http://www.fftw.org/). Version 3 required. Install with `--enable-openmp` and potentially also `--enable-shared`.
-* [libsharp](https://github.com/Libsharp/libsharp). Libsharp is automatically installed with NaMaster. However, if you want to use your own preinstalled version, you should simlink it into the directory `_deps`, such that `_deps/lib/libsharp.a` can be seen. (see instructions in [NERSC_installation.md](NERSC_installation.md) for more details on libsharp).
+* [libsharp](https://github.com/Libsharp/libsharp). Libsharp is automatically installed with NaMaster (see section 3 below). However, if you want to use your own preinstalled version, you should simlink it into the directory `_deps`, such that `_deps/lib/libsharp.a` can be seen (see instructions in [NERSC_installation.md](NERSC_installation.md) for more details on libsharp).
 * [cfitsio](https://heasarc.gsfc.nasa.gov/fitsio/). Any version >3 should work.
 * [HEALPix](https://sourceforge.net/projects/healpix/). Any version >2 should work. You only need to install the C libraries (including the shared ones).
 
@@ -40,12 +40,12 @@ If you installed `pymaster` via `pip`, you can uninstall everything by running
 pip uninstall pymaster
 ```
 
-Note that the C library is automatically compiled when installing the python module. If you care about the C library at all, or you have trouble compiling it, see the next section.
+***Note that the C library is automatically compiled when installing the python module.*** If you care about the C library at all, or you have trouble compiling it, see the next section.
 
 ### 2- C library
 The script `scripts/install_libnmt.sh` contains the instructions run by `setup.py` to compile the C library (`libnmt.a`). You may have to edit this file or make sure to include any missing compilation flags if `setup.py` encounters issues compiling the library.
 
-If you need the C library for your own code, `scripts/install_libnmt.sh` installs it in `deps/lib` and `deps/include`. Note that the script process will also generate an executable `namaster`, residing in `_deps/bin` that can be used to compute power spectra. The use of this program is discouraged over using the python module.
+If you need the C library for your own code, `scripts/install_libnmt.sh` installs it in `_deps/lib` and `_deps/include`. Note that the script process will also generate an executable `namaster`, residing in `_deps/bin` that can be used to compute power spectra. The use of this program is discouraged over using the python module.
 
 You can check that the C code works by running
 ```
