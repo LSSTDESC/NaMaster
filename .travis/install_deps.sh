@@ -8,10 +8,6 @@ wget https://sourceforge.net/projects/healpix/files/Healpix_3.11/autotools_packa
 
 pip install nose healpy scipy
 
-#### Install libsharp ####
-
-./scripts/install_libsharp.sh
-
 #### Install GSL2.0+ ####
 
 wget ftp://ftp.gnu.org/gnu/gsl/gsl-2.5.tar.gz --passive-ftp && tar xzf gsl-2.5.tar.gz && cd gsl-2.5 &&  ./configure --enable-shared && make && sudo make install && cd ..
