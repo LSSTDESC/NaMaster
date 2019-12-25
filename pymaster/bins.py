@@ -108,7 +108,7 @@ class NmtBin(object):
         Convenience constructor for generic linear binning.
 
         :param int lmax: integer value corresponding to the maximum \
-            multipole used by these bandpowers. 
+            multipole used by these bandpowers.
         :param int nlb: integer value corresponding to a constant \
             bandpower width. I.e. the bandpowers will be defined as \
             consecutive sets of nlb multipoles from l=2 to l=lmax \
