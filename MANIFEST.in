@@ -20,5 +20,6 @@ include missing
 recursive-include pymaster *.i *.c
 recursive-include src *
 recursive-include scripts *
-recursive-include doc *
 recursive-include test *
+recursive-exclude test/benchmarks/ *
+recursive-exclude test *.fits
