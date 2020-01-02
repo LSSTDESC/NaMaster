@@ -1,0 +1,25 @@
+include CHANGELOG.md
+include NERSC_installation.md
+include LICENSE
+
+include aclocal.m4
+include ar-lib
+include compile
+include config.guess
+include config.h.in
+include config.sub
+include configure
+include configure.ac
+include depcomp
+include install-sh
+include ltmain.sh
+include Makefile.am
+include Makefile.in
+include missing
+
+recursive-include pymaster *.i *.c
+recursive-include src *
+recursive-include scripts *
+recursive-include test *
+recursive-exclude test/benchmarks/ *
+recursive-exclude test *.fits

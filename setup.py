@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import sys
-from setuptools import setup, Extension
+from setuptools import setup, Extension # RM
+from distutils.errors import DistutilsError
 from setuptools.command.build_py import build_py as _build # RM
 from setuptools.command.develop import develop as _develop # RM
 import subprocess as sp # RM
