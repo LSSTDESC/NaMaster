@@ -6,7 +6,7 @@ DEPDIR=_deps
 [ -e $DEPDIR/lib ] || mkdir $DEPDIR/lib
 [ -e $DEPDIR/include ] || mkdir $DEPDIR/include
 ADEPDIR=$PWD/$DEPDIR
-CFLAGS+=" -fopenmp" CPPFLAGS+=" -I${ADEPDIR}/include -fopenmp" LDFLAGS+=" -L${ADEPDIR}/lib" ./configure --prefix=${ADEPDIR} --with-pic $@
+CFLAGS="$CFLAGS -fopenmp" CPPFLAGS="$CPPFLAGS -I${ADEPDIR}/include -fopenmp" LDFLAGS="$LDFLAGS -L${ADEPDIR}/lib" ./configure --prefix=${ADEPDIR} --with-pic $@
 make clean
 make
 make install
