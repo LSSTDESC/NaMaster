@@ -27,10 +27,17 @@ matrix:
     name: Linux (Python3.6)
   - os: osx
     osx_image: xcode9.4
-    sudo: required
-    python: 3.6
-    env: TOKEN=py36 
+    env: TOKENV=py36 
     name: OSX (Python3.6)
+  - os: osx
+    osx_image: xcode9.4
+    env:
+      - TOKENV=py36
+      - COMPILER=clang
+      - CC=clang
+      - CXX=clang++
+      - LD_LIBRARY_PATH=/usr/local/clang/lib:$LD_LIBRARY_PATH
+    name: OSX (Python3.6, clang)
 
 before_install:
 - "chmod 777 ./.travis/install_deps.sh"
