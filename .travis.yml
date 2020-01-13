@@ -21,13 +21,16 @@ addons:
 matrix:
   include:
   - os: linux
-    python: 2.7
-    sudo: required
-    env: TOXENV=py27
-  - os: linux
     sudo: required
     python: 3.6
     env: TOXENV=py36
+    name: Linux (Python3.6)
+  - os: osx
+    osx_image: xcode9.4
+    sudo: required
+    python: 3.6
+    env: TOKEN=py36 
+    name: OSX (Python3.6)
 
 before_install:
 - "chmod 777 ./.travis/install_deps.sh"
@@ -36,7 +39,8 @@ script:
 - export PATH=$TRAVIS_BUILD_DIR/bin:$PATH
 - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$TRAVIS_BUILD_DIR/lib:/usr/local/lib
 - export LDFLAGS="-L$TRAVIS_BUILD_DIR/lib -L/usr/local/lib"
-- export CPPFLAGS="-I$TRAVIS_BUILD_DIR/include -I/usr/local/include"
+- export CFLAGS="-fopenmp "
+- export CPPFLAGS="-fopenmp -I$TRAVIS_BUILD_DIR/include -I/usr/local/include"
 - export LDFLAGS="-L$TRAVIS_BUILD_DIR/lib -L/usr/local/lib -Wl,-rpath=$TRAVIS_BUILD_DIR/lib -Wl,-rpath=/usr/local/lib"
 - python setup.py install
 - make check
