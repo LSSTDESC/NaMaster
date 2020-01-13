@@ -27,7 +27,8 @@ AC_ARG_ENABLE([fftw_pthreads],
     AS_HELP_STRING([--enable-fftw-pthreads], [Enable using pthreads instead of OpenMP with FFTW]))
 AS_IF(
     [test "x$enable_fftw_pthreads" = "xyes"], [AC_SUBST([fftw_thread_type], "-lfftw3_threads -lpthread")],
-    [test "x$enable_fftw_pthreads" != "xyes"], [AC_SUBST([fftw_thread_type], "-lfftw3_omp")])
+    [test "x$enable_openmp" != "xyes"], [AC_SUBST([fftw_thread_type], "")],
+    [AC_SUBST([fftw_thread_type], "-lfftw3_omp")])
 
 # Set libsharp libraries needed
 AC_SUBST([libsharp_libs], "-lsharp -lfftpack -lc_utils")

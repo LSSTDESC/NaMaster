@@ -13339,7 +13339,10 @@ fi
 if test "x$enable_fftw_pthreads" = "xyes"; then :
   fftw_thread_type="-lfftw3_threads -lpthread"
 
-elif test "x$enable_fftw_pthreads" != "xyes"; then :
+elif test "x$enable_openmp" != "xyes"; then :
+  fftw_thread_type=""
+
+else
   fftw_thread_type="-lfftw3_omp"
 
 fi
