@@ -18,6 +18,9 @@ addons:
             - autoconf
             - libcfitsio3-dev
 
+python:
+  - 3.6
+
 matrix:
   include:
   - os: linux
