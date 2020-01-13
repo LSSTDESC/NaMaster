@@ -35,15 +35,14 @@ script:
 - export PATH=$TRAVIS_BUILD_DIR/bin:$PATH
 - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$TRAVIS_BUILD_DIR/lib:/usr/local/lib
 - export LDFLAGS="-L$TRAVIS_BUILD_DIR/lib -L/usr/local/lib"
-#- export CFLAGS="-fopenmp "
-#- export CPPFLAGS="-fopenmp -I$TRAVIS_BUILD_DIR/include -I/usr/local/include"
 - export CPPFLAGS="-I$TRAVIS_BUILD_DIR/include -I/usr/local/include"
 - export LDFLAGS="-L$TRAVIS_BUILD_DIR/lib -L/usr/local/lib -Wl,-rpath=$TRAVIS_BUILD_DIR/lib -Wl,-rpath=/usr/local/lib"
-- python setup.py install --enable-fftw-pthreads --disable-openmp
+- python setup.py install
 - make check
 - python -m unittest discover -v
 - pip uninstall pymaster -y
 - rm _deps/lib/libnmt.a
-- python setup.py install
+- export CFLAGS="-fopenmp "
+- python setup.py install --enable-fftw-pthreads --disable-openmp
 - make check
 - python -m unittest discover -v
