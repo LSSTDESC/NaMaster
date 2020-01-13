@@ -27,12 +27,12 @@ matrix:
     name: Linux (Python3.6)
   - os: osx
     osx_image: xcode9.4
-    env: TOKENV=py36 
+    env: TOXENV=py36
     name: OSX (Python3.6)
   - os: osx
     osx_image: xcode9.4
     env:
-      - TOKENV=py36
+      - TOXENV=py36
       - COMPILER=clang
       - CC=clang
       - CXX=clang++
@@ -46,8 +46,9 @@ script:
 - export PATH=$TRAVIS_BUILD_DIR/bin:$PATH
 - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$TRAVIS_BUILD_DIR/lib:/usr/local/lib
 - export LDFLAGS="-L$TRAVIS_BUILD_DIR/lib -L/usr/local/lib"
-- export CFLAGS="-fopenmp "
-- export CPPFLAGS="-fopenmp -I$TRAVIS_BUILD_DIR/include -I/usr/local/include"
+#- export CFLAGS="-fopenmp "
+#- export CPPFLAGS="-fopenmp -I$TRAVIS_BUILD_DIR/include -I/usr/local/include"
+- export CPPFLAGS="-I$TRAVIS_BUILD_DIR/include -I/usr/local/include"
 - export LDFLAGS="-L$TRAVIS_BUILD_DIR/lib -L/usr/local/lib -Wl,-rpath=$TRAVIS_BUILD_DIR/lib -Wl,-rpath=/usr/local/lib"
 - python setup.py install
 - make check
