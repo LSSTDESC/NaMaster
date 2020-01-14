@@ -9,7 +9,7 @@ wget https://sourceforge.net/projects/healpix/files/Healpix_3.11/autotools_packa
 pip install nose healpy scipy
 
 # Install cfitsio
-wget heasarc.gsfc.nasa.gov/FTP/software/fitsio/c/cfitsio-3.47.tar.gz && tar xzf heasarc.gsfc.nasa.gov/FTP/software/fitsio/c/cfitsio-3.47.tar.gz && cd cfitsio-3.47 && ./configure && make && sudo make install && cd ..
+wget heasarc.gsfc.nasa.gov/FTP/software/fitsio/c/cfitsio-3.47.tar.gz && tar xzf cfitsio-3.47.tar.gz && cd cfitsio-3.47 && ./configure && make && sudo make install && cd ..
 
 #### Install GSL2.0+ ####
 
