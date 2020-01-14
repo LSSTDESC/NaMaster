@@ -1,4 +1,4 @@
-language: generic
+language: python
 sudo: false
 cache:
     apt: true
@@ -30,21 +30,26 @@ matrix:
       env: TOXENV=py36
       name: OSX (Python3.6)
 
-before_install:
-- "chmod 777 ./.travis/install_deps.sh"
-- "./.travis/install_deps.sh"
+install:
+  - "./.travis/install.sh"
+  - export PATH=$HOME/miniconda/bin:$TRAVIS_BUILD_DIR/bin:$PATH
+  - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$TRAVIS_BUILD_DIR/lib:/usr/local/lib
+  - export LDFLAGS="-L$TRAVIS_BUILD_DIR/lib -L/usr/local/lib"
+  - export CPPFLAGS="-I$TRAVIS_BUILD_DIR/include -I/usr/local/include"
+  - export LDFLAGS="-L$TRAVIS_BUILD_DIR/lib -L/usr/local/lib -Wl,-rpath=$TRAVIS_BUILD_DIR/lib -Wl,-rpath=/usr/local/lib"
+  - source activate test-environment
+  - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then conda install -y llvm-openmp; fi
+  - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then export DYLD_FALLBACK_LIBRARY_PATH=${CONDA_PREFIX}/lib; fi
+  - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then export CONDA_BUILD_SYSROOT=/; fi
+  - "./.travis/install_deps.sh"
+
 script:
-- export PATH=$TRAVIS_BUILD_DIR/bin:$PATH
-- export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$TRAVIS_BUILD_DIR/lib:/usr/local/lib
-- export LDFLAGS="-L$TRAVIS_BUILD_DIR/lib -L/usr/local/lib"
-- export CPPFLAGS="-I$TRAVIS_BUILD_DIR/include -I/usr/local/include"
-- export LDFLAGS="-L$TRAVIS_BUILD_DIR/lib -L/usr/local/lib -Wl,-rpath=$TRAVIS_BUILD_DIR/lib -Wl,-rpath=/usr/local/lib"
-- python setup.py install
-- make check
-- python -m unittest discover -v
-- pip uninstall pymaster -y
-- rm _deps/lib/libnmt.a
-- export CFLAGS="-fopenmp "
-- python setup.py install --enable-fftw-pthreads --disable-openmp
-- make check
-- python -m unittest discover -v
+  - python setup.py install
+  - make check
+  - python -m unittest discover -v
+  - pip uninstall pymaster -y
+  - rm _deps/lib/libnmt.a
+  - export CFLAGS="-fopenmp "
+  - python setup.py install --enable-fftw-pthreads --disable-openmp
+  - make check
+  - python -m unittest discover -v
