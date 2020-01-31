@@ -31,7 +31,7 @@ else:
     USE_OPENMP = True
 
 libs = [
-    'sharp', 'fftpack', 'c_utils', 'chealpix', 'cfitsio',
+    'sharp', 'fftpack', 'c_utils', 'cfitsio',
     'gsl', 'gslcblas', 'm'] + FFTW_LIBS
 
 use_icc = False  # Set to True if you compiled libsharp with icc
@@ -54,6 +54,14 @@ def _compile_libsharp(): # RM
         except: # RM
             raise DistutilsError('Failed to install libsharp.') # RM
 
+def _compile_libchealpix(): # RM
+    if not os.path.exists('_deps/lib/libchealpix.a'): # RM
+        try: # RM
+            sp.check_call('./scripts/install_libchealpix.sh', # RM
+                          shell=True) # RM
+        except: # RM
+            raise DistutilsError('Failed to install libchealpix.') # RM
+
 def _compile_libnmt(): # RM
     if not os.path.exists('_deps/lib/libnmt.a'): # RM
         try: # RM
@@ -66,6 +74,7 @@ class build(_build): # RM
     """Specialized Python source builder.""" # RM
     def run(self): # RM
         _compile_libsharp() # RM
+        _compile_libchealpix() # RM
         _compile_libnmt() # RM
         _build.run(self) # RM
 
@@ -73,12 +82,13 @@ class develop(_develop): # RM
     """Specialized Python develop mode.""" # RM
     def run(self): # RM
         _compile_libsharp() # RM
+        _compile_libchealpix() # RM
         _compile_libnmt() # RM
         _build.run(self) # RM
 
 _nmtlib = Extension("_nmtlib",
                     ["pymaster/namaster_wrap.c"],
-                    extra_objects=["./_deps/lib/libnmt.a"],
+                    extra_objects=["./_deps/lib/libnmt.a", "./_deps/lib/libchealpix.a"],
                     libraries=libs,
                     library_dirs=["./_deps/lib/"],
                     include_dirs=[numpy_include, "./src/","./_deps/include/"],
