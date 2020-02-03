@@ -287,6 +287,19 @@ class TestWorkspaceHPX(unittest.TestCase):
     def test_workspace_master_yc_yp(self):
         self.mastest(True, True)
 
+    def test_workspace_shorten(self):
+        w = nmt.NmtWorkspace()
+        w.read_from("test/benchmarks/bm_yc_yp_w02.fits")  # OK read
+        lmax = w.wsp.lmax
+        larr = np.arange(lmax + 1)
+        larr_long = np.arange(2 * lmax + 1)
+        cls = 100. / (larr + 10.)
+        cls_long = 100. / (larr_long + 10.)
+
+        cls_c = w.couple_cell([cls, cls])
+        cls_c_long = w.couple_cell([cls_long, cls_long])
+        self.assertTrue(np.all(cls_c == cls_c_long))
+
     def test_workspace_rebeam(self):
         w = nmt.NmtWorkspace()
         w.read_from("test/benchmarks/bm_yc_yp_w02.fits")  # OK read
