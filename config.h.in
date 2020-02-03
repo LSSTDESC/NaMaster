@@ -55,15 +55,6 @@
 /* Define to 1 if you have the <unistd.h> header file. */
 #undef HAVE_UNISTD_H
 
-/* libsharp github version */
-#undef LIBSHARP_GITHUB
-
-/* libsharp gitlab version */
-#undef LIBSHARP_GITLAB
-
-/* libsharp healpix version */
-#undef LIBSHARP_HEALPIX
-
 /* Define to the sub-directory where libtool stores uninstalled libraries. */
 #undef LT_OBJDIR
 

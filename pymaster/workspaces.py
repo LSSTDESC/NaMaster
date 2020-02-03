@@ -138,6 +138,9 @@ class NmtWorkspace(object):
         if (len(cl_in) != self.wsp.ncls) or \
            (len(cl_in[0]) < self.wsp.lmax + 1):
             raise ValueError("Input power spectrum has wrong shape")
+
+        # Shorten C_ells if they're too long
+        cl_in = np.array(cl_in)[:, :self.wsp.lmax+1]
         cl1d = lib.couple_cell_py(self.wsp, cl_in,
                                   self.wsp.ncls * (self.wsp.lmax + 1))
         clout = np.reshape(cl1d, [self.wsp.ncls, self.wsp.lmax + 1])
