@@ -54,10 +54,14 @@ class NmtField(object):
     :param lmax_sht: maximum multipole up to which map power spectra will be
         computed. If negative or zero, the maximum multipole given the map
         resolution will be used (e.g. 3 * nside - 1 for HEALPix maps).
+    :param masked_on_input: set to `True` if input maps and templates are
+        already multiplied by the masks. Note that this is not advisable
+        if you're using purification.
     """
     def __init__(self, mask, maps, templates=None, beam=None,
                  purify_e=False, purify_b=False, n_iter_mask_purify=3,
-                 tol_pinv=1E-10, wcs=None, n_iter=3, lmax_sht=-1):
+                 tol_pinv=1E-10, wcs=None, n_iter=3, lmax_sht=-1,
+                 masked_on_input=False):
         self.fl = None
 
         pure_e = 0
@@ -66,6 +70,9 @@ class NmtField(object):
         pure_b = 0
         if purify_b:
             pure_b = 1
+        masked_input = 0
+        if masked_on_input:
+            masked_input = 1
 
         wt = NmtWCSTranslator(wcs, mask.shape)
         if wt.is_healpix == 0:
@@ -138,13 +145,13 @@ class NmtField(object):
                                           wt.phi0, wt.theta_max,
                                           mask, maps, templates, beam_use,
                                           pure_e, pure_b, n_iter_mask_purify,
-                                          tol_pinv, n_iter)
+                                          tol_pinv, n_iter, masked_input)
         else:
             self.fl = lib.field_alloc_new_notemp(
                 wt.is_healpix, wt.nside, lmax_sht, wt.nx, wt.ny, wt.d_phi,
                 wt.d_theta, wt.phi0, wt.theta_max,
                 mask, maps, beam_use, pure_e, pure_b, n_iter_mask_purify,
-                n_iter)
+                n_iter, masked_input)
 
     def __del__(self):
         if self.fl is not None:

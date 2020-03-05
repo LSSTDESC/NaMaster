@@ -98,6 +98,12 @@ Data Fields</h2></td></tr>
 <tr class="memitem:abdfd1e6c3ed5721c9b3badc6d45c78fb"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structnmt__workspace.html#abdfd1e6c3ed5721c9b3badc6d45c78fb">lmax</a></td></tr>
 <tr class="memdesc:abdfd1e6c3ed5721c9b3badc6d45c78fb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Maximum multipole used.  <a href="#abdfd1e6c3ed5721c9b3badc6d45c78fb">More...</a><br /></td></tr>
 <tr class="separator:abdfd1e6c3ed5721c9b3badc6d45c78fb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a32d3b5a5ed6184b5c59e2039abb8019a"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structnmt__workspace.html#a32d3b5a5ed6184b5c59e2039abb8019a">lmax_fields</a></td></tr>
+<tr class="memdesc:a32d3b5a5ed6184b5c59e2039abb8019a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Resolution of fields being correlated.  <a href="#a32d3b5a5ed6184b5c59e2039abb8019a">More...</a><br /></td></tr>
+<tr class="separator:a32d3b5a5ed6184b5c59e2039abb8019a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a493d9985e48ab34aa6b568f962c2f850"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structnmt__workspace.html#a493d9985e48ab34aa6b568f962c2f850">lmax_mask</a></td></tr>
+<tr class="memdesc:a493d9985e48ab34aa6b568f962c2f850"><td class="mdescLeft">&#160;</td><td class="mdescRight">Mask resolution.  <a href="#a493d9985e48ab34aa6b568f962c2f850">More...</a><br /></td></tr>
+<tr class="separator:a493d9985e48ab34aa6b568f962c2f850"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af644386c942f4e6cce242c5264cc806f"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structnmt__workspace.html#af644386c942f4e6cce242c5264cc806f">is_teb</a></td></tr>
 <tr class="memdesc:af644386c942f4e6cce242c5264cc806f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Does it hold all MCM elements to compute all of spin0-spin0, 0-2 and 2-2 correlations?  <a href="#af644386c942f4e6cce242c5264cc806f">More...</a><br /></td></tr>
 <tr class="separator:af644386c942f4e6cce242c5264cc806f"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -107,6 +113,9 @@ Data Fields</h2></td></tr>
 <tr class="memitem:a7a2bbce859b520872bdc75e9f9b246e6"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structnmt__curvedsky__info.html">nmt_curvedsky_info</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structnmt__workspace.html#a7a2bbce859b520872bdc75e9f9b246e6">cs</a></td></tr>
 <tr class="memdesc:a7a2bbce859b520872bdc75e9f9b246e6"><td class="mdescLeft">&#160;</td><td class="mdescRight">curved sky geometry information.  <a href="#a7a2bbce859b520872bdc75e9f9b246e6">More...</a><br /></td></tr>
 <tr class="separator:a7a2bbce859b520872bdc75e9f9b246e6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a238e059cf8a2e7c56bf7d3b241a7d770"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structnmt__workspace.html#a238e059cf8a2e7c56bf7d3b241a7d770">beam_prod</a></td></tr>
+<tr class="memdesc:a238e059cf8a2e7c56bf7d3b241a7d770"><td class="mdescLeft">&#160;</td><td class="mdescRight">Product of field beams.  <a href="#a238e059cf8a2e7c56bf7d3b241a7d770">More...</a><br /></td></tr>
+<tr class="separator:a238e059cf8a2e7c56bf7d3b241a7d770"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:adca52e00db6159f765b629cfb82075a5"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structnmt__workspace.html#adca52e00db6159f765b629cfb82075a5">pcl_masks</a></td></tr>
 <tr class="memdesc:adca52e00db6159f765b629cfb82075a5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Pseudo-CL of the masks.  <a href="#adca52e00db6159f765b629cfb82075a5">More...</a><br /></td></tr>
 <tr class="separator:adca52e00db6159f765b629cfb82075a5"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -127,6 +136,20 @@ Data Fields</h2></td></tr>
 <div class="textblock"><p>Full-sky mode-coupling matrix. </p>
 <p>Structure containing information about the mode-coupling matrix (MCM) for full-sky pseudo-CLs. </p>
 </div><h2 class="groupheader">Field Documentation</h2>
+<a class="anchor" id="a238e059cf8a2e7c56bf7d3b241a7d770"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a>* nmt_workspace::beam_prod</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Product of field beams. </p>
+
+</div>
+</div>
 <a class="anchor" id="ae2270cbbb4cac1dfa13743c814401d6c"></a>
 <div class="memitem">
 <div class="memproto">
@@ -222,6 +245,34 @@ Data Fields</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Maximum multipole used. </p>
+
+</div>
+</div>
+<a class="anchor" id="a32d3b5a5ed6184b5c59e2039abb8019a"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int nmt_workspace::lmax_fields</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Resolution of fields being correlated. </p>
+
+</div>
+</div>
+<a class="anchor" id="a493d9985e48ab34aa6b568f962c2f850"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int nmt_workspace::lmax_mask</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Mask resolution. </p>
 
 </div>
 </div>

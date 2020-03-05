@@ -274,12 +274,12 @@
 <span class="n">w22</span> <span class="o">=</span> <span class="n">nmt</span><span class="o">.</span><span class="n">NmtWorkspaceFlat</span><span class="p">()</span>
 <span class="n">w22</span><span class="o">.</span><span class="n">compute_coupling_matrix</span><span class="p">(</span><span class="n">f2</span><span class="p">,</span> <span class="n">f2</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
 <span class="c1"># Workspaces can be saved to and read from disk to avoid recomputing them:</span>
-<span class="n">w00</span><span class="o">.</span><span class="n">write_to</span><span class="p">(</span><span class="s2">&quot;w00_flat.dat&quot;</span><span class="p">)</span>
-<span class="n">w00</span><span class="o">.</span><span class="n">read_from</span><span class="p">(</span><span class="s2">&quot;w00_flat.dat&quot;</span><span class="p">)</span>
-<span class="n">w02</span><span class="o">.</span><span class="n">write_to</span><span class="p">(</span><span class="s2">&quot;w02_flat.dat&quot;</span><span class="p">)</span>
-<span class="n">w02</span><span class="o">.</span><span class="n">read_from</span><span class="p">(</span><span class="s2">&quot;w02_flat.dat&quot;</span><span class="p">)</span>
-<span class="n">w22</span><span class="o">.</span><span class="n">write_to</span><span class="p">(</span><span class="s2">&quot;w22_flat.dat&quot;</span><span class="p">)</span>
-<span class="n">w22</span><span class="o">.</span><span class="n">read_from</span><span class="p">(</span><span class="s2">&quot;w22_flat.dat&quot;</span><span class="p">)</span>
+<span class="n">w00</span><span class="o">.</span><span class="n">write_to</span><span class="p">(</span><span class="s2">&quot;w00_flat.fits&quot;</span><span class="p">)</span>
+<span class="n">w00</span><span class="o">.</span><span class="n">read_from</span><span class="p">(</span><span class="s2">&quot;w00_flat.fits&quot;</span><span class="p">)</span>
+<span class="n">w02</span><span class="o">.</span><span class="n">write_to</span><span class="p">(</span><span class="s2">&quot;w02_flat.fits&quot;</span><span class="p">)</span>
+<span class="n">w02</span><span class="o">.</span><span class="n">read_from</span><span class="p">(</span><span class="s2">&quot;w02_flat.fits&quot;</span><span class="p">)</span>
+<span class="n">w22</span><span class="o">.</span><span class="n">write_to</span><span class="p">(</span><span class="s2">&quot;w22_flat.fits&quot;</span><span class="p">)</span>
+<span class="n">w22</span><span class="o">.</span><span class="n">read_from</span><span class="p">(</span><span class="s2">&quot;w22_flat.fits&quot;</span><span class="p">)</span>
 
 <span class="c1"># Computing power spectra:</span>
 <span class="c1"># As in the full-sky case, you compute the pseudo-CL estimator by</span>

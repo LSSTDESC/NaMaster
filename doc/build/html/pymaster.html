@@ -210,7 +210,7 @@
 <p>All sky maps accepted and returned by these functions are in the form of HEALPix maps exclusively with RING ordering.</p>
 <span class="target" id="module-pymaster.field"></span><dl class="class">
 <dt id="pymaster.field.NmtField">
-<em class="property">class </em><code class="descclassname">pymaster.field.</code><code class="descname">NmtField</code><span class="sig-paren">(</span><em>mask</em>, <em>maps</em>, <em>templates=None</em>, <em>beam=None</em>, <em>purify_e=False</em>, <em>purify_b=False</em>, <em>n_iter_mask_purify=3</em>, <em>tol_pinv=1e-10</em>, <em>wcs=None</em>, <em>n_iter=3</em>, <em>lmax_sht=-1</em><span class="sig-paren">)</span><a class="headerlink" href="#pymaster.field.NmtField" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">pymaster.field.</code><code class="descname">NmtField</code><span class="sig-paren">(</span><em>mask</em>, <em>maps</em>, <em>templates=None</em>, <em>beam=None</em>, <em>purify_e=False</em>, <em>purify_b=False</em>, <em>n_iter_mask_purify=3</em>, <em>tol_pinv=1e-10</em>, <em>wcs=None</em>, <em>n_iter=3</em>, <em>lmax_sht=-1</em>, <em>masked_on_input=False</em><span class="sig-paren">)</span><a class="headerlink" href="#pymaster.field.NmtField" title="Permalink to this definition">¶</a></dt>
 <dd><p>An NmtField object contains all the information describing the fields to
 correlate, including their observed maps, masks and contaminant templates.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -231,6 +231,9 @@ correlate, including their observed maps, masks and contaminant templates.</p>
 <li><strong>lmax_sht</strong> – maximum multipole up to which map power spectra will be
 computed. If negative or zero, the maximum multipole given the map
 resolution will be used (e.g. 3 * nside - 1 for HEALPix maps).</li>
+<li><strong>masked_on_input</strong> – set to <cite>True</cite> if input maps and templates are
+already multiplied by the masks. Note that this is not advisable
+if you’re using purification.</li>
 </ul>
 </td>
 </tr>

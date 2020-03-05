@@ -580,11 +580,13 @@ void nmt_field_free(nmt_field *fl);
 	  decomposition. All eigenvalues that are smaller than \p tol_pinv the largest
 	  eigenvalue will be discarded.
  * @param niter number of iterations when computing alms (for all transforms other than the mask's).
+ * @param masked_input if not 0, input maps and templates have already been masked.
+          This is not advisable if using purification.
  */
 nmt_field *nmt_field_alloc_sph(nmt_curvedsky_info *cs,flouble *mask,int pol,flouble **maps,
 			       int ntemp,flouble ***temp,flouble *beam,
 			       int pure_e,int pure_b,int n_iter_mask_purify,double tol_pinv,
-			       int niter);
+			       int niter,int masked_input);
 
 /**
  * @brief nmt_field constructor from file.
