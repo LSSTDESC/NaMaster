@@ -271,7 +271,7 @@ void nmt_purify_flat(nmt_field_flat *fl,flouble *mask,fcomplex **walm0,
 nmt_field_flat *nmt_field_flat_alloc(int nx,int ny,flouble lx,flouble ly,
 				     flouble *mask,int pol,flouble **maps,int ntemp,flouble ***temp,
 				     int nl_beam,flouble *l_beam,flouble *beam,
-				     int pure_e,int pure_b,double tol_pinv)
+				     int pure_e,int pure_b,double tol_pinv,int masked_input)
 {
   long ip;
   int ii,itemp,itemp2,imap;
@@ -302,8 +302,15 @@ nmt_field_flat *nmt_field_flat_alloc(int nx,int ny,flouble lx,flouble ly,
     fl->mask[ip]=mask[ip];
 
   fl->maps=my_malloc(fl->nmaps*sizeof(flouble *));
-  for(ii=0;ii<fl->nmaps;ii++)
+  for(ii=0;ii<fl->nmaps;ii++) {
     fl->maps[ii]=dftw_malloc(fl->npix*sizeof(flouble));
+    if(masked_input) { //If input maps are already masked, we need to unmask them for purification
+      for(ip=0;ip<fl->npix;ip++) {
+        if(mask[ip]>0)
+          maps[ii][ip]/=mask[ip];
+      }
+    }
+  }
 
   if(fl->ntemp>0) {
     fl->temp=my_malloc(fl->ntemp*sizeof(flouble **));
@@ -311,7 +318,13 @@ nmt_field_flat *nmt_field_flat_alloc(int nx,int ny,flouble lx,flouble ly,
       fl->temp[itemp]=my_malloc(fl->nmaps*sizeof(flouble *));
       for(imap=0;imap<fl->nmaps;imap++) {
 	fl->temp[itemp][imap]=dftw_malloc(fl->npix*sizeof(flouble));
-	fs_map_product(fl->fs,temp[itemp][imap],fl->mask,fl->temp[itemp][imap]); //Multiply by mask
+        if(masked_input) { //If input maps are already masked, we need to unmask them for purification
+          for(ip=0;ip<fl->npix;ip++) {
+            if(mask[ip]>0)
+              temp[itemp][imap][ip]/=mask[ip];
+          }
+        }
+        fs_map_product(fl->fs,temp[itemp][imap],fl->mask,fl->temp[itemp][imap]);
       }
     }
     

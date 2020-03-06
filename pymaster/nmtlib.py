@@ -421,8 +421,8 @@ def field_flat_free(fl):
     return _nmtlib.field_flat_free(fl)
 field_flat_free = _nmtlib.field_flat_free
 
-def field_flat_alloc(nx, ny, lx, ly, mask, pol, maps, ntemp, temp, nl_beam, l_beam, beam, pure_e, pure_b, tol_pinv):
-    return _nmtlib.field_flat_alloc(nx, ny, lx, ly, mask, pol, maps, ntemp, temp, nl_beam, l_beam, beam, pure_e, pure_b, tol_pinv)
+def field_flat_alloc(nx, ny, lx, ly, mask, pol, maps, ntemp, temp, nl_beam, l_beam, beam, pure_e, pure_b, tol_pinv, masked_input):
+    return _nmtlib.field_flat_alloc(nx, ny, lx, ly, mask, pol, maps, ntemp, temp, nl_beam, l_beam, beam, pure_e, pure_b, tol_pinv, masked_input)
 field_flat_alloc = _nmtlib.field_flat_alloc
 
 def synfast_flat(nx, ny, lx, ly, nfields, spin_arr, nl_beam, l_beam, beam_fields, nl_cell, l_cell, cell_fields, seed):
@@ -1089,12 +1089,12 @@ def field_alloc_new_notemp(is_healpix, nside, lmax_sht, nx, ny, delta_phi, delta
     return _nmtlib.field_alloc_new_notemp(is_healpix, nside, lmax_sht, nx, ny, delta_phi, delta_theta, phi0, theta0, npix_1, nmap_2, nell3, pure_e, pure_b, n_iter_mask_purify, n_iter, masked_input)
 field_alloc_new_notemp = _nmtlib.field_alloc_new_notemp
 
-def field_alloc_new_flat(nx, ny, lx, ly, npix_1, nmap_2, ntmp_3, ncl1, pure_e, pure_b, tol_pinv):
-    return _nmtlib.field_alloc_new_flat(nx, ny, lx, ly, npix_1, nmap_2, ntmp_3, ncl1, pure_e, pure_b, tol_pinv)
+def field_alloc_new_flat(nx, ny, lx, ly, npix_1, nmap_2, ntmp_3, ncl1, pure_e, pure_b, tol_pinv, masked_input):
+    return _nmtlib.field_alloc_new_flat(nx, ny, lx, ly, npix_1, nmap_2, ntmp_3, ncl1, pure_e, pure_b, tol_pinv, masked_input)
 field_alloc_new_flat = _nmtlib.field_alloc_new_flat
 
-def field_alloc_new_notemp_flat(nx, ny, lx, ly, npix_1, nmap_2, ncl1, pure_e, pure_b):
-    return _nmtlib.field_alloc_new_notemp_flat(nx, ny, lx, ly, npix_1, nmap_2, ncl1, pure_e, pure_b)
+def field_alloc_new_notemp_flat(nx, ny, lx, ly, npix_1, nmap_2, ncl1, pure_e, pure_b, masked_input):
+    return _nmtlib.field_alloc_new_notemp_flat(nx, ny, lx, ly, npix_1, nmap_2, ncl1, pure_e, pure_b, masked_input)
 field_alloc_new_notemp_flat = _nmtlib.field_alloc_new_notemp_flat
 
 def get_map(fl, imap, ldout):

@@ -64,11 +64,11 @@ CTEST(nmt,master_teb_flat_full) {
   f0=nmt_field_flat_alloc(NX_TEST,NY_TEST,
   			  DX_TEST*NX_TEST*M_PI/180,
 			  DY_TEST*NY_TEST*M_PI/180,
-			  msk,0,mps0,0,NULL,0,NULL,NULL,0,0,1E-10);
+			  msk,0,mps0,0,NULL,0,NULL,NULL,0,0,1E-10,0);
   f2=nmt_field_flat_alloc(NX_TEST,NY_TEST,
   			  DX_TEST*NX_TEST*M_PI/180,
 			  DY_TEST*NY_TEST*M_PI/180,
-			  msk,1,mps2,0,NULL,0,NULL,NULL,0,0,1E-10);
+			  msk,1,mps2,0,NULL,0,NULL,NULL,0,0,1E-10,0);
   w_teb=nmt_compute_coupling_matrix_flat(f0,f2,bin,1,-1,1,-1,1);
   w00=nmt_compute_coupling_matrix_flat(f0,f0,bin,1,-1,1,-1,0);
   w02=nmt_compute_coupling_matrix_flat(f0,f2,bin,1,-1,1,-1,0);
@@ -178,7 +178,7 @@ CTEST(nmt,master_22_flat_full) {
   f2=nmt_field_flat_alloc(NX_TEST,NY_TEST,
   			  DX_TEST*NX_TEST*M_PI/180,
 			  DY_TEST*NY_TEST*M_PI/180,
-			  msk,1,mps2,0,NULL,0,NULL,NULL,0,0,1E-10);
+			  msk,1,mps2,0,NULL,0,NULL,NULL,0,0,1E-10,0);
   w22=nmt_compute_coupling_matrix_flat(f2,f2,bin,1,-1,1,-1,0);
   nmt_couple_cl_l_flat_fast(w22,nlth,lth,cell_noise,cell_noise_coup);
   nmt_compute_coupled_cell_flat(f2,f2,bin,cell,1,-1,1,-1);
@@ -192,7 +192,7 @@ CTEST(nmt,master_22_flat_full) {
   f2=nmt_field_flat_alloc(NX_TEST,NY_TEST,
   			  DX_TEST*NX_TEST*M_PI/180,
 			  DY_TEST*NY_TEST*M_PI/180,
-			  msk,1,mps2,0,NULL,0,NULL,NULL,0,1,1E-10);
+			  msk,1,mps2,0,NULL,0,NULL,NULL,0,1,1E-10,0);
   w22=nmt_compute_coupling_matrix_flat(f2,f2,bin,1,-1,1,-1,0);
   nmt_couple_cl_l_flat_fast(w22,nlth,lth,cell_noise,cell_noise_coup);
   nmt_compute_coupled_cell_flat(f2,f2,bin,cell,1,-1,1,-1);
@@ -206,7 +206,7 @@ CTEST(nmt,master_22_flat_full) {
   f2=nmt_field_flat_alloc(NX_TEST,NY_TEST,
   			  DX_TEST*NX_TEST*M_PI/180,
 			  DY_TEST*NY_TEST*M_PI/180,
-			  msk,1,mps2,1,&tmp2,0,NULL,NULL,0,0,1E-10);
+			  msk,1,mps2,1,&tmp2,0,NULL,NULL,0,0,1E-10,0);
   w22=nmt_compute_coupling_matrix_flat(f2,f2,bin,1,-1,1,-1,0);
   nmt_couple_cl_l_flat_fast(w22,nlth,lth,cell_noise,cell_noise_coup);
   nmt_compute_deprojection_bias_flat(f2,f2,bin,1,-1,1,-1,nlth,lth,cell_signal,cell_deproj);
@@ -225,7 +225,7 @@ CTEST(nmt,master_22_flat_full) {
   f2=nmt_field_flat_alloc(NX_TEST,NY_TEST,
   			  DX_TEST*NX_TEST*M_PI/180,
 			  DY_TEST*NY_TEST*M_PI/180,
-			  msk,1,mps2,1,&tmp2,0,NULL,NULL,0,1,1E-10);
+			  msk,1,mps2,1,&tmp2,0,NULL,NULL,0,1,1E-10,0);
   w22=nmt_compute_coupling_matrix_flat(f2,f2,bin,1,-1,1,-1,0);
   nmt_couple_cl_l_flat_fast(w22,nlth,lth,cell_noise,cell_noise_coup);
   nmt_compute_deprojection_bias_flat(f2,f2,bin,1,-1,1,-1,nlth,lth,cell_signal,cell_deproj);
@@ -327,11 +327,11 @@ CTEST(nmt,master_02_flat_full) {
   f0=nmt_field_flat_alloc(NX_TEST,NY_TEST,
   			  DX_TEST*NX_TEST*M_PI/180,
 			  DY_TEST*NY_TEST*M_PI/180,
-			  msk,0,mps0,0,NULL,0,NULL,NULL,0,0,1E-10);
+			  msk,0,mps0,0,NULL,0,NULL,NULL,0,0,1E-10,0);
   f2=nmt_field_flat_alloc(NX_TEST,NY_TEST,
   			  DX_TEST*NX_TEST*M_PI/180,
 			  DY_TEST*NY_TEST*M_PI/180,
-			  msk,1,mps2,0,NULL,0,NULL,NULL,0,0,1E-10);
+			  msk,1,mps2,0,NULL,0,NULL,NULL,0,0,1E-10,0);
   w02=nmt_compute_coupling_matrix_flat(f0,f2,bin,1,-1,1,-1,0);
   nmt_couple_cl_l_flat_fast(w02,nlth,lth,cell_noise,cell_noise_coup);
   nmt_compute_coupled_cell_flat(f0,f2,bin,cell,1,-1,1,-1);
@@ -346,11 +346,11 @@ CTEST(nmt,master_02_flat_full) {
   f0=nmt_field_flat_alloc(NX_TEST,NY_TEST,
   			  DX_TEST*NX_TEST*M_PI/180,
 			  DY_TEST*NY_TEST*M_PI/180,
-			  msk,0,mps0,0,NULL,0,NULL,NULL,0,0,1E-10);
+			  msk,0,mps0,0,NULL,0,NULL,NULL,0,0,1E-10,0);
   f2=nmt_field_flat_alloc(NX_TEST,NY_TEST,
   			  DX_TEST*NX_TEST*M_PI/180,
 			  DY_TEST*NY_TEST*M_PI/180,
-			  msk,1,mps2,0,NULL,0,NULL,NULL,0,1,1E-10);
+			  msk,1,mps2,0,NULL,0,NULL,NULL,0,1,1E-10,0);
   w02=nmt_compute_coupling_matrix_flat(f0,f2,bin,1,-1,1,-1,0);
   nmt_couple_cl_l_flat_fast(w02,nlth,lth,cell_noise,cell_noise_coup);
   nmt_compute_coupled_cell_flat(f0,f2,bin,cell,1,-1,1,-1);
@@ -365,11 +365,11 @@ CTEST(nmt,master_02_flat_full) {
   f0=nmt_field_flat_alloc(NX_TEST,NY_TEST,
   			  DX_TEST*NX_TEST*M_PI/180,
 			  DY_TEST*NY_TEST*M_PI/180,
-			  msk,0,mps0,1,&tmp0,0,NULL,NULL,0,0,1E-10);
+			  msk,0,mps0,1,&tmp0,0,NULL,NULL,0,0,1E-10,0);
   f2=nmt_field_flat_alloc(NX_TEST,NY_TEST,
   			  DX_TEST*NX_TEST*M_PI/180,
 			  DY_TEST*NY_TEST*M_PI/180,
-			  msk,1,mps2,1,&tmp2,0,NULL,NULL,0,0,1E-10);
+			  msk,1,mps2,1,&tmp2,0,NULL,NULL,0,0,1E-10,0);
   w02=nmt_compute_coupling_matrix_flat(f0,f2,bin,1,-1,1,-1,0);
   nmt_couple_cl_l_flat_fast(w02,nlth,lth,cell_noise,cell_noise_coup);
   nmt_compute_deprojection_bias_flat(f0,f2,bin,1,-1,1,-1,nlth,lth,cell_signal,cell_deproj);
@@ -389,11 +389,11 @@ CTEST(nmt,master_02_flat_full) {
   f0=nmt_field_flat_alloc(NX_TEST,NY_TEST,
     			  DX_TEST*NX_TEST*M_PI/180,
 			  DY_TEST*NY_TEST*M_PI/180,
-			  msk,0,mps0,1,&tmp0,0,NULL,NULL,0,0,1E-10);
+			  msk,0,mps0,1,&tmp0,0,NULL,NULL,0,0,1E-10,0);
   f2=nmt_field_flat_alloc(NX_TEST,NY_TEST,
     			  DX_TEST*NX_TEST*M_PI/180,
 			  DY_TEST*NY_TEST*M_PI/180,
-			  msk,1,mps2,1,&tmp2,0,NULL,NULL,0,1,1E-10);
+			  msk,1,mps2,1,&tmp2,0,NULL,NULL,0,1,1E-10,0);
   w02=nmt_compute_coupling_matrix_flat(f0,f2,bin,1,-1,1,-1,0);
   nmt_couple_cl_l_flat_fast(w02,nlth,lth,cell_noise,cell_noise_coup);
   nmt_compute_deprojection_bias_flat(f0,f2,bin,1,-1,1,-1,nlth,lth,cell_signal,cell_deproj);
@@ -493,7 +493,7 @@ CTEST(nmt,master_00_flat_full) {
   f0=nmt_field_flat_alloc(NX_TEST,NY_TEST,
   			  DX_TEST*NX_TEST*M_PI/180,
 			  DY_TEST*NY_TEST*M_PI/180,
-			  msk,0,&mps,0,NULL,0,NULL,NULL,0,0,1E-10);
+			  msk,0,&mps,0,NULL,0,NULL,NULL,0,0,1E-10,0);
   w00=nmt_compute_coupling_matrix_flat(f0,f0,bin,1,-1,1,-1,0);
   nmt_couple_cl_l_flat_fast(w00,nlth,lth,cell_noise,cell_noise_coup);
   nmt_compute_coupled_cell_flat(f0,f0,bin,cell,1,-1,1,-1);
@@ -507,7 +507,7 @@ CTEST(nmt,master_00_flat_full) {
   f0=nmt_field_flat_alloc(NX_TEST,NY_TEST,
   			  DX_TEST*NX_TEST*M_PI/180,
 			  DY_TEST*NY_TEST*M_PI/180,
-			  msk,0,&mps,1,&tmp,0,NULL,NULL,0,0,1E-10);
+			  msk,0,&mps,1,&tmp,0,NULL,NULL,0,0,1E-10,0);
   w00=nmt_compute_coupling_matrix_flat(f0,f0,bin,1,-1,1,-1,0);
   nmt_couple_cl_l_flat_fast(w00,nlth,lth,cell_noise,cell_noise_coup);
   nmt_compute_deprojection_bias_flat(f0,f0,bin,1,-1,1,-1,nlth,lth,cell_signal,cell_deproj);
@@ -562,11 +562,11 @@ CTEST(nmt,master_flat_errors) {
   nmt_field_flat *f0=nmt_field_flat_alloc(NX_TEST,NY_TEST,
 					  DX_TEST*NX_TEST*M_PI/180,
 					  DY_TEST*NY_TEST*M_PI/180,
-					  msk,0,mps,0,NULL,0,NULL,NULL,0,0,1E-10);
+					  msk,0,mps,0,NULL,0,NULL,NULL,0,0,1E-10,0);
   nmt_field_flat *f0b=nmt_field_flat_alloc(NX_TEST/2,NY_TEST/2,
 					   DX_TEST*(NX_TEST/2)*M_PI/180,
 					   DY_TEST*(NY_TEST/2)*M_PI/180,
-					   msk,0,mps,0,NULL,0,NULL,NULL,0,0,1E-10);
+					   msk,0,mps,0,NULL,0,NULL,NULL,0,0,1E-10,0);
   
   set_error_policy(THROW_ON_ERROR);
 

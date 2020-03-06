@@ -271,7 +271,7 @@ if you’re using purification.</li>
 
 <dl class="class">
 <dt id="pymaster.field.NmtFieldFlat">
-<em class="property">class </em><code class="descclassname">pymaster.field.</code><code class="descname">NmtFieldFlat</code><span class="sig-paren">(</span><em>lx</em>, <em>ly</em>, <em>mask</em>, <em>maps</em>, <em>templates=None</em>, <em>beam=None</em>, <em>purify_e=False</em>, <em>purify_b=False</em>, <em>tol_pinv=1e-10</em><span class="sig-paren">)</span><a class="headerlink" href="#pymaster.field.NmtFieldFlat" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">pymaster.field.</code><code class="descname">NmtFieldFlat</code><span class="sig-paren">(</span><em>lx</em>, <em>ly</em>, <em>mask</em>, <em>maps</em>, <em>templates=None</em>, <em>beam=None</em>, <em>purify_e=False</em>, <em>purify_b=False</em>, <em>tol_pinv=1e-10</em>, <em>masked_on_input=False</em><span class="sig-paren">)</span><a class="headerlink" href="#pymaster.field.NmtFieldFlat" title="Permalink to this definition">¶</a></dt>
 <dd><p>An NmtFieldFlat object contains all the information describing the     flat-sky fields to correlate, including their observed maps, masks     and contaminant templates.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -286,6 +286,9 @@ if you’re using purification.</li>
 <li><strong>purify_e</strong> – use pure E-modes?</li>
 <li><strong>purify_b</strong> – use pure B-modes?</li>
 <li><strong>tol_pinv</strong> – when computing the pseudo-inverse of the contaminant         covariance matrix, all eigenvalues below tol_pinv * max_eval will         be treated as singular values, where max_eval is the largest         eigenvalue. Only relevant if passing contaminant templates that         are likely to be highly correlated.</li>
+<li><strong>masked_on_input</strong> – set to <cite>True</cite> if input maps and templates are
+already multiplied by the masks. Note that this is not advisable
+if you’re using purification.</li>
 </ul>
 </td>
 </tr>

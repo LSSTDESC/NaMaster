@@ -394,11 +394,13 @@ void nmt_field_flat_free(nmt_field_flat *fl);
 	  possibility in a consistent way. Effectively this is a singular-value
 	  decomposition. All eigenvalues that are smaller than \p tol_pinv the largest
 	  eigenvalue will be discarded.
+ * @param masked_input if not 0, input maps and templates have already been masked.
+          This is not advisable if using purification.
  */
 nmt_field_flat *nmt_field_flat_alloc(int nx,int ny,flouble lx,flouble ly,
 				     flouble *mask,int pol,flouble **maps,int ntemp,flouble ***temp,
 				     int nl_beam,flouble *l_beam,flouble *beam,
-				     int pure_e,int pure_b,double tol_pinv);
+				     int pure_e,int pure_b,double tol_pinv,int masked_input);
 
 /**
  * @brief Gaussian realizations of flat-sky fields

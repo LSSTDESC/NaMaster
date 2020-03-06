@@ -44,7 +44,7 @@ var searchData=
   ['nmt_5fell_5feff_5fflat',['nmt_ell_eff_flat',['../namaster_8h.html#a4e84a5553b85b3c2229222be9f458c48',1,'namaster.h']]],
   ['nmt_5fextend_5fcar_5fmap',['nmt_extend_CAR_map',['../namaster_8h.html#a7e478d292e9d6ebd73ae461e35c7a565',1,'namaster.h']]],
   ['nmt_5ffield_5falloc_5fsph',['nmt_field_alloc_sph',['../namaster_8h.html#a6f928f54f8fce30eab77a26620c77937',1,'namaster.h']]],
-  ['nmt_5ffield_5fflat_5falloc',['nmt_field_flat_alloc',['../namaster_8h.html#aabbe46403594065cfe5ea7fa89cc2a68',1,'namaster.h']]],
+  ['nmt_5ffield_5fflat_5falloc',['nmt_field_flat_alloc',['../namaster_8h.html#acd582858189fafb11b9f27f8debf59bb',1,'namaster.h']]],
   ['nmt_5ffield_5fflat_5ffree',['nmt_field_flat_free',['../namaster_8h.html#ae485829665fb97c262c561d1b7b44d73',1,'namaster.h']]],
   ['nmt_5ffield_5ffree',['nmt_field_free',['../namaster_8h.html#a41926995999fb081de99f07473559af8',1,'namaster.h']]],
   ['nmt_5ffield_5fread',['nmt_field_read',['../namaster_8h.html#a047fefbb9c98299ba573ec97fbdc6b5d',1,'namaster.h']]],

@@ -343,7 +343,8 @@ nmt_field_flat *field_alloc_new_flat(int nx,int ny,double lx,double ly,
 				     int nmap_2,int npix_2,double *mps,
 				     int ntmp_3,int nmap_3,int npix_3,double *tmp,
 				     int ncl1,int nell1,double *cls1,
-				     int pure_e,int pure_b,double tol_pinv)
+				     int pure_e,int pure_b,double tol_pinv,
+                                     int masked_input)
 {
   int ii,jj;
   int pol=0,ntemp=0;
@@ -385,7 +386,8 @@ nmt_field_flat *field_alloc_new_flat(int nx,int ny,double lx,double ly,
   }
 
   fl=nmt_field_flat_alloc(nx,ny,lx,ly,mask,pol,maps,ntemp,temp,
-			  nell1,larr,beam,pure_e,pure_b,tol_pinv);
+			  nell1,larr,beam,pure_e,pure_b,tol_pinv,
+                          masked_input);
 
   if(tmp!=NULL) {
     for(ii=0;ii<ntmp_3;ii++)
@@ -401,12 +403,14 @@ nmt_field_flat *field_alloc_new_notemp_flat(int nx,int ny,double lx,double ly,
 					    int npix_1,double *mask,
 					    int nmap_2,int npix_2,double *mps,
 					    int ncl1,int nell1,double *cls1,
-					    int pure_e,int pure_b)
+					    int pure_e,int pure_b,
+                                            int masked_input)
 {
   asserting(lx>0);
   asserting(ly>0);
   return field_alloc_new_flat(nx,ny,lx,ly,npix_1,mask,nmap_2,npix_2,mps,
-			      -1,-1,-1,NULL,ncl1,nell1,cls1,pure_e,pure_b,0.);
+			      -1,-1,-1,NULL,ncl1,nell1,cls1,pure_e,pure_b,0.,
+                              masked_input);
 }
 
 void get_map(nmt_field *fl,int imap,double *ldout,long nldout)

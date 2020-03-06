@@ -20,7 +20,7 @@ CTEST(nmt,covar_flat) {
   nmt_field_flat *f0=nmt_field_flat_alloc(NX_TEST,NY_TEST,
 					  DX_TEST*NX_TEST*M_PI/180,
 					  DY_TEST*NY_TEST*M_PI/180,
-					  msk,0,&map,0,NULL,0,NULL,NULL,0,0,1E-10);
+					  msk,0,&map,0,NULL,0,NULL,NULL,0,0,1E-10,0);
   
   nmt_workspace_flat *w=nmt_workspace_flat_read_fits("test/benchmarks/bm_f_nc_np_w00.fits");
   nmt_covar_workspace_flat *cw=nmt_covar_workspace_flat_init(f0,f0,bin,f0,f0,bin);
@@ -88,12 +88,12 @@ CTEST(nmt,covar_flat_errors) {
   nmt_field_flat *f0=nmt_field_flat_alloc(NX_TEST,NY_TEST,
 					  DX_TEST*NX_TEST*M_PI/180,
 					  DY_TEST*NY_TEST*M_PI/180,
-					  msk,0,&map,0,NULL,0,NULL,NULL,0,0,1E-10);
+					  msk,0,&map,0,NULL,0,NULL,NULL,0,0,1E-10,0);
   
   nmt_field_flat *f0b=nmt_field_flat_alloc(NX_TEST,NY_TEST,
 					   DX_TEST*NX_TEST*M_PI/180,
 					   DY_TEST*NY_TEST*M_PI/180,
-					   msk,0,&map,0,NULL,0,NULL,NULL,0,0,1E-10);
+					   msk,0,&map,0,NULL,0,NULL,NULL,0,0,1E-10,0);
   
 
 
