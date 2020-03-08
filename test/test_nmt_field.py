@@ -2,13 +2,20 @@ import unittest
 import numpy as np
 import pymaster as nmt
 import healpy as hp
-from .testutils import normdiff
+import warnings
+import sys
+from .testutils import normdiff, read_flat_map
 
 # Unit tests associated with the NmtField and NmtFieldFlat classes
 
 
 class TestFieldCAR(unittest.TestCase):
     def setUp(self):
+        # This is to avoid showing an ugly warning that
+        # has nothing to do with pymaster
+        if (sys.version_info > (3, 1)):
+            warnings.simplefilter("ignore", ResourceWarning)
+
         from astropy.io import fits
         from astropy.wcs import WCS
 
@@ -162,6 +169,11 @@ class TestFieldCAR(unittest.TestCase):
 
 class TestFieldHPX(unittest.TestCase):
     def setUp(self):
+        # This is to avoid showing an ugly warning that
+        # has nothing to do with pymaster
+        if (sys.version_info > (3, 1)):
+            warnings.simplefilter("ignore", ResourceWarning)
+
         self.nside = 64
         self.lmax = 3*self.nside-1
         self.ntemp = 5
@@ -185,6 +197,43 @@ class TestFieldHPX(unittest.TestCase):
             # _2Y^E_20 + _2Y^B_3 0
             self.tmp[i][1] = -np.sqrt(15./2./np.pi)*sth**2/4.
             self.tmp[i][2] = -np.sqrt(105./2./np.pi)*cth*sth**2/2.
+
+    def test_field_masked(self):
+        nside = 64
+        b = nmt.NmtBin.from_nside_linear(nside, 16)
+        msk = hp.read_map("test/benchmarks/msk.fits", verbose=False)
+        mps = np.array(hp.read_map("test/benchmarks/mps.fits",
+                                   verbose=False,
+                                   field=[0, 1, 2]))
+        mps_msk = np.array([m * msk for m in mps])
+        f0 = nmt.NmtField(msk, [mps[0]])
+        f0_msk = nmt.NmtField(msk, [mps_msk[0]],
+                              masked_on_input=True)
+        f2 = nmt.NmtField(msk, [mps[1], mps[2]])
+        f2_msk = nmt.NmtField(msk, [mps_msk[1], mps_msk[2]],
+                              masked_on_input=True)
+        w00 = nmt.NmtWorkspace()
+        w00.compute_coupling_matrix(f0, f0, b)
+        w02 = nmt.NmtWorkspace()
+        w02.compute_coupling_matrix(f0, f2, b)
+        w22 = nmt.NmtWorkspace()
+        w22.compute_coupling_matrix(f2, f2, b)
+
+        def mkcl(w, f, g):
+            return w.decouple_cell(nmt.compute_coupled_cell(f, g))
+
+        c00 = mkcl(w00, f0, f0).flatten()
+        c02 = mkcl(w02, f0, f2).flatten()
+        c22 = mkcl(w22, f2, f2).flatten()
+        c00_msk = mkcl(w00, f0_msk, f0_msk).flatten()
+        c02_msk = mkcl(w02, f0_msk, f2_msk).flatten()
+        c22_msk = mkcl(w22, f2_msk, f2_msk).flatten()
+        self.assertTrue(np.all(np.fabs(c00-c00_msk) /
+                               np.mean(c00) < 1E-10))
+        self.assertTrue(np.all(np.fabs(c02-c02_msk) /
+                               np.mean(c02) < 1E-10))
+        self.assertTrue(np.all(np.fabs(c22-c22_msk) /
+                               np.mean(c22) < 1E-10))
 
     def test_field_alloc(self):
         # No templates
@@ -250,6 +299,11 @@ class TestFieldHPX(unittest.TestCase):
 
 class TestFieldFsk(unittest.TestCase):
     def setUp(self):
+        # This is to avoid showing an ugly warning that
+        # has nothing to do with pymaster
+        if (sys.version_info > (3, 1)):
+            warnings.simplefilter("ignore", ResourceWarning)
+
         self.ntemp = 5
         self.nx = 141
         self.ny = 311
@@ -277,6 +331,49 @@ class TestFieldFsk(unittest.TestCase):
         self.tmp = np.array([self.mps.copy() for i in range(self.ntemp)])
         self.beam = np.array([np.arange(self.nell)*self.lmax/(self.nell-1.),
                               np.ones(self.nell)])
+
+    def test_field_masked(self):
+        wcs, msk = read_flat_map("test/benchmarks/msk_flat.fits")
+        ny, nx = msk.shape
+        lx = np.radians(np.fabs(nx*wcs.wcs.cdelt[0]))
+        ly = np.radians(np.fabs(ny*wcs.wcs.cdelt[1]))
+        mps = np.array([read_flat_map("test/benchmarks/mps_flat.fits",
+                                      i_map=i)[1] for i in range(3)])
+        mps_msk = np.array([m * msk for m in mps])
+        d_ell = 20
+        lmax = 500.
+        ledges = np.arange(int(lmax/d_ell)+1)*d_ell+2
+        b = nmt.NmtBinFlat(ledges[:-1], ledges[1:])
+
+        f0 = nmt.NmtFieldFlat(lx, ly, msk, [mps[0]])
+        f0_msk = nmt.NmtFieldFlat(lx, ly, msk, [mps_msk[0]],
+                                  masked_on_input=True)
+        f2 = nmt.NmtFieldFlat(lx, ly, msk, [mps[1], mps[2]])
+        f2_msk = nmt.NmtFieldFlat(lx, ly, msk,
+                                  [mps_msk[1], mps_msk[2]],
+                                  masked_on_input=True)
+        w00 = nmt.NmtWorkspaceFlat()
+        w00.compute_coupling_matrix(f0, f0, b)
+        w02 = nmt.NmtWorkspaceFlat()
+        w02.compute_coupling_matrix(f0, f2, b)
+        w22 = nmt.NmtWorkspaceFlat()
+        w22.compute_coupling_matrix(f2, f2, b)
+
+        def mkcl(w, f, g):
+            return w.decouple_cell(nmt.compute_coupled_cell_flat(f, g, b))
+
+        c00 = mkcl(w00, f0, f0).flatten()
+        c02 = mkcl(w02, f0, f2).flatten()
+        c22 = mkcl(w22, f2, f2).flatten()
+        c00_msk = mkcl(w00, f0_msk, f0_msk).flatten()
+        c02_msk = mkcl(w02, f0_msk, f2_msk).flatten()
+        c22_msk = mkcl(w22, f2_msk, f2_msk).flatten()
+        self.assertTrue(np.all(np.fabs(c00-c00_msk) /
+                               np.mean(c00) < 1E-10))
+        self.assertTrue(np.all(np.fabs(c02-c02_msk) /
+                               np.mean(c02) < 1E-10))
+        self.assertTrue(np.all(np.fabs(c22-c22_msk) /
+                               np.mean(c22) < 1E-10))
 
     def test_field_flat_alloc(self):
         # No templates
