@@ -38,7 +38,7 @@ CTEST(nmt,master_bias_uncorr) {
     cell_tmpb[ii]=my_malloc((lmax+1)*sizeof(double));
   }
   
-  f0=nmt_field_alloc_sph(cs,msk,0,mps0,1,&tmp0,NULL,0,0,3,1E-10,HE_NITER_DEFAULT);
+  f0=nmt_field_alloc_sph(cs,msk,0,mps0,1,&tmp0,NULL,0,0,3,1E-10,HE_NITER_DEFAULT,0);
   nmt_compute_uncorr_noise_deprojection_bias(f0,msk,cell,HE_NITER_DEFAULT);
   he_anafast(tmp0,tmp0,0,0,cell_tmp,cs,lmax,3);
   f_fac=0;
@@ -62,7 +62,7 @@ CTEST(nmt,master_bias_uncorr) {
     }
   }
   
-  f2=nmt_field_alloc_sph(cs,msk,1,mps2,1,&tmp2,NULL,0,0,3,1E-10,HE_NITER_DEFAULT);
+  f2=nmt_field_alloc_sph(cs,msk,1,mps2,1,&tmp2,NULL,0,0,3,1E-10,HE_NITER_DEFAULT,0);
   nmt_compute_uncorr_noise_deprojection_bias(f2,msk,cell,HE_NITER_DEFAULT);
   f_fac=0;
   prefac=0;
@@ -160,8 +160,8 @@ CTEST(nmt,master_teb_full) {
   fclose(fi);
   
   //No contaminants
-  f0=nmt_field_alloc_sph(cs,msk,0,mps0,0,NULL,NULL,0,0,3,1E-10,HE_NITER_DEFAULT);
-  f2=nmt_field_alloc_sph(cs,msk,1,mps2,0,NULL,NULL,0,0,3,1E-10,HE_NITER_DEFAULT);
+  f0=nmt_field_alloc_sph(cs,msk,0,mps0,0,NULL,NULL,0,0,3,1E-10,HE_NITER_DEFAULT,0);
+  f2=nmt_field_alloc_sph(cs,msk,1,mps2,0,NULL,NULL,0,0,3,1E-10,HE_NITER_DEFAULT,0);
   w_teb=nmt_compute_coupling_matrix(f0,f2,bin,1,HE_NITER_DEFAULT,-1);
   w00=nmt_compute_coupling_matrix(f0,f0,bin,0,HE_NITER_DEFAULT,-1);
   w02=nmt_compute_coupling_matrix(f0,f2,bin,0,HE_NITER_DEFAULT,-1);
@@ -253,7 +253,7 @@ CTEST(nmt,master_22_full) {
   fclose(fi);
   
   //No contaminants
-  f2=nmt_field_alloc_sph(cs,msk,1,mps2,0,NULL,NULL,0,0,3,1E-10,HE_NITER_DEFAULT);
+  f2=nmt_field_alloc_sph(cs,msk,1,mps2,0,NULL,NULL,0,0,3,1E-10,HE_NITER_DEFAULT,0);
   w22=nmt_compute_coupling_matrix(f2,f2,bin,0,HE_NITER_DEFAULT,-1);
   nmt_compute_coupled_cell(f2,f2,cell);
   nmt_decouple_cl_l(w22,cell,cell_noise,cell_deproj,cell_out);
@@ -263,7 +263,7 @@ CTEST(nmt,master_22_full) {
   nmt_field_free(f2);
 
   //With purification
-  f2=nmt_field_alloc_sph(cs,msk,1,mps2,0,NULL,NULL,0,1,3,1E-10,HE_NITER_DEFAULT);
+  f2=nmt_field_alloc_sph(cs,msk,1,mps2,0,NULL,NULL,0,1,3,1E-10,HE_NITER_DEFAULT,0);
   w22=nmt_compute_coupling_matrix(f2,f2,bin,0,HE_NITER_DEFAULT,-1);
   nmt_compute_coupled_cell(f2,f2,cell);
   nmt_decouple_cl_l(w22,cell,cell_noise,cell_deproj,cell_out);
@@ -273,7 +273,7 @@ CTEST(nmt,master_22_full) {
   nmt_field_free(f2);
 
   //With contaminants
-  f2=nmt_field_alloc_sph(cs,msk,1,mps2,1,&tmp2,NULL,0,0,3,1E-10,HE_NITER_DEFAULT);
+  f2=nmt_field_alloc_sph(cs,msk,1,mps2,1,&tmp2,NULL,0,0,3,1E-10,HE_NITER_DEFAULT,0);
   w22=nmt_compute_coupling_matrix(f2,f2,bin,0,HE_NITER_DEFAULT,-1);
   nmt_compute_coupled_cell(f2,f2,cell);
   nmt_compute_deprojection_bias(f2,f2,cell_signal,cell_deproj,HE_NITER_DEFAULT);
@@ -286,7 +286,7 @@ CTEST(nmt,master_22_full) {
   nmt_field_free(f2);
 
   //With contaminants, with purification
-  f2=nmt_field_alloc_sph(cs,msk,1,mps2,1,&tmp2,NULL,0,1,3,1E-10,HE_NITER_DEFAULT);
+  f2=nmt_field_alloc_sph(cs,msk,1,mps2,1,&tmp2,NULL,0,1,3,1E-10,HE_NITER_DEFAULT,0);
   w22=nmt_compute_coupling_matrix(f2,f2,bin,0,HE_NITER_DEFAULT,-1);
   nmt_compute_coupled_cell(f2,f2,cell);
   nmt_compute_deprojection_bias(f2,f2,cell_signal,cell_deproj,HE_NITER_DEFAULT);
@@ -369,8 +369,8 @@ CTEST(nmt,master_02_full) {
   fclose(fi);
   
   //No contaminants
-  f0=nmt_field_alloc_sph(cs,msk,0,mps0,0,NULL,NULL,0,0,3,1E-10,HE_NITER_DEFAULT);
-  f2=nmt_field_alloc_sph(cs,msk,1,mps2,0,NULL,NULL,0,0,3,1E-10,HE_NITER_DEFAULT);
+  f0=nmt_field_alloc_sph(cs,msk,0,mps0,0,NULL,NULL,0,0,3,1E-10,HE_NITER_DEFAULT,0);
+  f2=nmt_field_alloc_sph(cs,msk,1,mps2,0,NULL,NULL,0,0,3,1E-10,HE_NITER_DEFAULT,0);
   w02=nmt_compute_coupling_matrix(f0,f2,bin,0,HE_NITER_DEFAULT,-1);
   nmt_compute_coupled_cell(f0,f2,cell);
   nmt_decouple_cl_l(w02,cell,cell_noise,cell_deproj,cell_out);
@@ -381,8 +381,8 @@ CTEST(nmt,master_02_full) {
   nmt_field_free(f2);
 
   //With purification
-  f0=nmt_field_alloc_sph(cs,msk,0,mps0,0,NULL,NULL,0,0,3,1E-10,HE_NITER_DEFAULT);
-  f2=nmt_field_alloc_sph(cs,msk,1,mps2,0,NULL,NULL,0,1,3,1E-10,HE_NITER_DEFAULT);
+  f0=nmt_field_alloc_sph(cs,msk,0,mps0,0,NULL,NULL,0,0,3,1E-10,HE_NITER_DEFAULT,0);
+  f2=nmt_field_alloc_sph(cs,msk,1,mps2,0,NULL,NULL,0,1,3,1E-10,HE_NITER_DEFAULT,0);
   w02=nmt_compute_coupling_matrix(f0,f2,bin,0,HE_NITER_DEFAULT,-1);
   nmt_compute_coupled_cell(f0,f2,cell);
   nmt_decouple_cl_l(w02,cell,cell_noise,cell_deproj,cell_out);
@@ -393,8 +393,8 @@ CTEST(nmt,master_02_full) {
   nmt_field_free(f2);
 
   //With contaminants
-  f0=nmt_field_alloc_sph(cs,msk,0,mps0,1,&tmp0,NULL,0,0,3,1E-10,HE_NITER_DEFAULT);
-  f2=nmt_field_alloc_sph(cs,msk,1,mps2,1,&tmp2,NULL,0,0,3,1E-10,HE_NITER_DEFAULT);
+  f0=nmt_field_alloc_sph(cs,msk,0,mps0,1,&tmp0,NULL,0,0,3,1E-10,HE_NITER_DEFAULT,0);
+  f2=nmt_field_alloc_sph(cs,msk,1,mps2,1,&tmp2,NULL,0,0,3,1E-10,HE_NITER_DEFAULT,0);
   w02=nmt_compute_coupling_matrix(f0,f2,bin,0,HE_NITER_DEFAULT,-1);
   nmt_compute_coupled_cell(f0,f2,cell);
   nmt_compute_deprojection_bias(f0,f2,cell_signal,cell_deproj,HE_NITER_DEFAULT);
@@ -408,8 +408,8 @@ CTEST(nmt,master_02_full) {
   nmt_field_free(f2);
 
   //With contaminants, with purification
-  f0=nmt_field_alloc_sph(cs,msk,0,mps0,1,&tmp0,NULL,0,1,3,1E-10,HE_NITER_DEFAULT);
-  f2=nmt_field_alloc_sph(cs,msk,1,mps2,1,&tmp2,NULL,0,1,3,1E-10,HE_NITER_DEFAULT);
+  f0=nmt_field_alloc_sph(cs,msk,0,mps0,1,&tmp0,NULL,0,1,3,1E-10,HE_NITER_DEFAULT,0);
+  f2=nmt_field_alloc_sph(cs,msk,1,mps2,1,&tmp2,NULL,0,1,3,1E-10,HE_NITER_DEFAULT,0);
   w02=nmt_compute_coupling_matrix(f0,f2,bin,0,HE_NITER_DEFAULT,-1);
   nmt_compute_coupled_cell(f0,f2,cell);
   nmt_compute_deprojection_bias(f0,f2,cell_signal,cell_deproj,HE_NITER_DEFAULT);
@@ -490,7 +490,7 @@ CTEST(nmt,master_00_full) {
   fclose(fi);
   
   //No contaminants
-  f0=nmt_field_alloc_sph(cs,msk,0,&mps,0,NULL,NULL,0,0,3,1E-10,HE_NITER_DEFAULT);
+  f0=nmt_field_alloc_sph(cs,msk,0,&mps,0,NULL,NULL,0,0,3,1E-10,HE_NITER_DEFAULT,0);
   w00=nmt_compute_coupling_matrix(f0,f0,bin,0,HE_NITER_DEFAULT,-1);
   nmt_compute_coupled_cell(f0,f0,cell);
   nmt_decouple_cl_l(w00,cell,cell_noise,cell_deproj,cell_out);
@@ -500,7 +500,7 @@ CTEST(nmt,master_00_full) {
   nmt_field_free(f0);
 
   //With contaminants
-  f0=nmt_field_alloc_sph(cs,msk,0,&mps,1,&tmp,NULL,0,0,3,1E-10,HE_NITER_DEFAULT);
+  f0=nmt_field_alloc_sph(cs,msk,0,&mps,1,&tmp,NULL,0,0,3,1E-10,HE_NITER_DEFAULT,0);
   w00=nmt_compute_coupling_matrix(f0,f0,bin,0,HE_NITER_DEFAULT,-1);
   nmt_compute_coupled_cell(f0,f0,cell);
   nmt_compute_deprojection_bias(f0,f0,cell_signal,cell_deproj,HE_NITER_DEFAULT);
@@ -569,7 +569,7 @@ CTEST(nmt,master_00_f_ell) {
   fclose(fi);
   
   //No contaminants
-  f0=nmt_field_alloc_sph(cs,msk,0,&mps,0,NULL,NULL,0,0,3,1E-10,HE_NITER_DEFAULT);
+  f0=nmt_field_alloc_sph(cs,msk,0,&mps,0,NULL,NULL,0,0,3,1E-10,HE_NITER_DEFAULT,0);
   w00=nmt_compute_coupling_matrix(f0,f0,bin,0,HE_NITER_DEFAULT,-1);
   nmt_compute_coupled_cell(f0,f0,cell);
   nmt_decouple_cl_l(w00,cell,cell_noise,cell_deproj,cell_out);
@@ -604,7 +604,7 @@ CTEST(nmt,bandpower_windows) {
   double *msk=he_read_map("test/benchmarks/msk.fits",cs,0);
   long lmax=he_get_lmax(cs);
   nmt_binning_scheme *bin=nmt_bins_constant(20,lmax,0);
-  nmt_field *f0=nmt_field_alloc_sph(cs,msk,0,&mpt,0,NULL,NULL,0,0,3,1E-10,HE_NITER_DEFAULT);
+  nmt_field *f0=nmt_field_alloc_sph(cs,msk,0,&mpt,0,NULL,NULL,0,0,3,1E-10,HE_NITER_DEFAULT,0);
   nmt_workspace *w=nmt_compute_coupling_matrix(f0,f0,bin,0,HE_NITER_DEFAULT,-1);
 
   double *cls_in=malloc((lmax+1)*sizeof(double));
@@ -662,8 +662,8 @@ CTEST(nmt,master_errors) {
   nmt_workspace *w=NULL,*wb=NULL;
   nmt_curvedsky_info *cs_half=nmt_curvedsky_info_alloc(1,cs->n_eq/2,-1,-1,-1,-1,-1,-1,-1);
 
-  nmt_field *f0=nmt_field_alloc_sph(cs,msk,0,&mpt,0,NULL,NULL,0,0,3,1E-10,HE_NITER_DEFAULT);
-  nmt_field *f0b=nmt_field_alloc_sph(cs_half,msk,0,&mpt,0,NULL,NULL,0,0,3,1E-10,HE_NITER_DEFAULT);
+  nmt_field *f0=nmt_field_alloc_sph(cs,msk,0,&mpt,0,NULL,NULL,0,0,3,1E-10,HE_NITER_DEFAULT,0);
+  nmt_field *f0b=nmt_field_alloc_sph(cs_half,msk,0,&mpt,0,NULL,NULL,0,0,3,1E-10,HE_NITER_DEFAULT,0);
   
   set_error_policy(THROW_ON_ERROR);
 

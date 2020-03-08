@@ -35,7 +35,7 @@ CTEST(nmt,field_flat_alloc) {
 
   //No templates
   f=nmt_field_flat_alloc(fsk->nx,fsk->ny,fsk->lx,fsk->ly,mask,0,maps,0,NULL,
-			 nbpw+1,larr,beam,0,0,1E-5);
+			 nbpw+1,larr,beam,0,0,1E-5,0);
   //Sanity checks
   ASSERT_EQUAL(fsk->nx,f->fs->nx);
   ASSERT_EQUAL(fsk->npix,f->npix);
@@ -64,7 +64,7 @@ CTEST(nmt,field_flat_alloc) {
 
   //With templates
   f=nmt_field_flat_alloc(fsk->nx,fsk->ny,fsk->lx,fsk->ly,mask,0,maps,ntemp,temp,
-			 0,NULL,NULL,0,0,1E-5);
+			 0,NULL,NULL,0,0,1E-5,0);
   //Since maps and templates are the same, template-deprojected map should be 0
   for(ii=0;ii<npix;ii++)
     ASSERT_DBL_NEAR_TOL(0.0,f->maps[0][ii],1E-10);
@@ -110,7 +110,7 @@ CTEST(nmt,field_flat_alloc) {
 
   //No templates
   f=nmt_field_flat_alloc(fsk->nx,fsk->ny,fsk->lx,fsk->ly,mask,1,maps,0,NULL,
-			 nbpw+1,larr,beam,0,0,1E-5);
+			 nbpw+1,larr,beam,0,0,1E-5,0);
   //Sanity checks
   ASSERT_EQUAL(1,f->pol);
   ASSERT_EQUAL(2,f->nmaps);
@@ -140,7 +140,7 @@ CTEST(nmt,field_flat_alloc) {
 
   //With purification (nothing should change)
   f=nmt_field_flat_alloc(fsk->nx,fsk->ny,fsk->lx,fsk->ly,mask,1,maps,0,NULL,
-			 nbpw+1,larr,beam,1,1,1E-5);
+			 nbpw+1,larr,beam,1,1,1E-5,0);
   //Sanity checks
   ASSERT_EQUAL(1,f->pol);
   ASSERT_EQUAL(2,f->nmaps);
@@ -170,7 +170,7 @@ CTEST(nmt,field_flat_alloc) {
 
   //With templates
   f=nmt_field_flat_alloc(fsk->nx,fsk->ny,fsk->lx,fsk->ly,mask,1,maps,ntemp,temp,
-			 0,NULL,NULL,0,0,1E-5);
+			 0,NULL,NULL,0,0,1E-5,0);
   //Since maps and templates are the same, template-deprojected map should be 0
   for(ii=0;ii<nmaps;ii++) {
     int jj;
@@ -206,7 +206,7 @@ CTEST(nmt,field_flat_alloc) {
 
   //With templates and purification (nothing should change)
   f=nmt_field_flat_alloc(fsk->nx,fsk->ny,fsk->lx,fsk->ly,mask,1,maps,ntemp,temp,
-			 nbpw+1,larr,beam,1,1,1E-5);
+			 nbpw+1,larr,beam,1,1,1E-5,0);
   //Since maps and templates are the same, template-deprojected map should be 0
   for(ii=0;ii<nmaps;ii++) {
     int jj;

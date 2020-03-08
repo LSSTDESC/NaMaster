@@ -271,7 +271,7 @@ void nmt_purify(nmt_field *fl,flouble *mask,fcomplex **walm0,
 nmt_field *nmt_field_alloc_sph(nmt_curvedsky_info *cs,flouble *mask,int pol,flouble **maps,
 			       int ntemp,flouble ***temp,flouble *beam,
 			       int pure_e,int pure_b,int n_iter_mask_purify,double tol_pinv,
-			       int niter)
+			       int niter,int masked_input)
 {
   int ii,itemp,itemp2,imap;
   long npix_short;
@@ -311,7 +311,18 @@ nmt_field *nmt_field_alloc_sph(nmt_curvedsky_info *cs,flouble *mask,int pol,flou
   fl->maps=my_malloc(fl->nmaps*sizeof(flouble *));
   for(imap=0;imap<fl->nmaps;imap++) {//Need to multiply observed map by mask first
     fl->maps[imap]=nmt_extend_CAR_map(fl->cs,maps[imap]);
-    he_map_product(fl->cs,fl->maps[imap],fl->mask,fl->maps[imap]);
+    if(masked_input) { //If input maps are already masked, we need to unmask them for purification.
+      if(fl->pol && (fl->pure_e || fl->pure_b)) {
+	long ip;
+	for(ip=0;ip<npix_short;ip++) {
+          if(mask[ip]>0)
+            maps[imap][ip]/=mask[ip];
+        }
+      }
+    }
+    else { //Otherwise, multiply by the mask and store
+      he_map_product(fl->cs,fl->maps[imap],fl->mask,fl->maps[imap]);
+    }
   }
 
   if(fl->ntemp>0) {
@@ -320,7 +331,18 @@ nmt_field *nmt_field_alloc_sph(nmt_curvedsky_info *cs,flouble *mask,int pol,flou
       fl->temp[itemp]=my_malloc(fl->nmaps*sizeof(flouble *));
       for(imap=0;imap<fl->nmaps;imap++) {
 	fl->temp[itemp][imap]=nmt_extend_CAR_map(fl->cs,temp[itemp][imap]);
-	he_map_product(fl->cs,fl->temp[itemp][imap],fl->mask,fl->temp[itemp][imap]); //Multiply by mask
+        if(masked_input) { //If input maps are already masked, we need to unmask them for purification.
+          if(fl->pol && (fl->pure_e || fl->pure_b)) {
+            long ip;
+            for(ip=0;ip<npix_short;ip++) {
+              if(mask[ip]>0)
+                temp[itemp][imap][ip]/=mask[ip];
+            }
+          }
+        }
+        else { //Otherwise, multiply by the mask and store
+          he_map_product(fl->cs,fl->temp[itemp][imap],fl->mask,fl->temp[itemp][imap]);
+        }
       }
     }
 
@@ -554,7 +576,7 @@ nmt_field *nmt_field_read(int is_healpix,char *fname_mask,char *fname_maps,char 
   }
 
   fl=nmt_field_alloc_sph(cs,mask,pol,maps,ntemp,temp,beam,pure_e,pure_b,
-			 n_iter_mask_purify,tol_pinv,niter);
+			 n_iter_mask_purify,tol_pinv,niter,0);
 
   if(beam!=NULL)
     free(beam);
