@@ -6,13 +6,24 @@ NaMaster is a C library, Python module and standalone program to compute full-sk
 
 
 ## Installation
-Unless you care a lot about optimizing the code, you should probably use the conda recipe for NaMaster currently hosted on [conda-forge](https://anaconda.org/conda-forge/namaster) (infinite kudos to [Mat Becker](https://github.com/beckermr) for this). This means simply running:
+
+There are different ways to install NaMaster. In rough order of complexity, they are:
+
+### Conda forge 
+Unless you care a lot about optimizing the code, it's worth giving this one a go. The conda recipe for NaMaster is currently hosted on [conda-forge](https://anaconda.org/conda-forge/namaster) (infinite kudos to [Mat Becker](https://github.com/beckermr) for this). In this case, installing NaMaster means simply running:
 ```
 conda install -c conda-forge namaster
 ```
 If that works for you and you don't care about optimizing the code too much, skip the rest of this section. If you don't have admin permissions, you can give virtual environments a try (or else follow the instructions below).
 
-### 0- Dependencies
+### PyPI
+NaMaster is also hosted on [PyPI](https://pypi.org/project/pymaster). Installing it should be as simple as running:
+```
+python -m pip install pymaster [--user]
+```
+(add `--user` if you don't have admin permissions. Note that this will compile the code on your machine, so you'll need to have installed its [dependencies](#0-Dependencies).
+
+(### 0-Dependencies)
 NaMaster has the following dependencies, which should be present in your system before you can install the code:
 * [GSL](https://www.gnu.org/software/gsl/). Version 2 required.
 * [FFTW](http://www.fftw.org/). Version 3 required. Install with `--enable-openmp` and potentially also `--enable-shared`.
