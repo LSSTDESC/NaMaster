@@ -21,9 +21,9 @@ NaMaster is also hosted on [PyPI](https://pypi.org/project/pymaster). Installing
 ```
 python -m pip install pymaster [--user]
 ```
-(add `--user` if you don't have admin permissions. Note that this will compile the code on your machine, so you'll need to have installed its [dependencies](#0-Dependencies).
+(add `--user` if you don't have admin permissions. Note that this will compile the code on your machine, so you'll need to have installed its [dependencies](#dependencies).
 
-(### 0-Dependencies)
+### Dependencies
 NaMaster has the following dependencies, which should be present in your system before you can install the code:
 * [GSL](https://www.gnu.org/software/gsl/). Version 2 required.
 * [FFTW](http://www.fftw.org/). Version 3 required. Install with `--enable-openmp` and potentially also `--enable-shared`.
