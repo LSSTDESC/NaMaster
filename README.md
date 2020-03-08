@@ -10,7 +10,7 @@ NaMaster is a C library, Python module and standalone program to compute full-sk
 There are different ways to install NaMaster. In rough order of complexity, they are:
 
 ### Conda forge 
-Unless you care a lot about optimizing the code, it's worth giving this one a go. The conda recipe for NaMaster is currently hosted on [conda-forge](https://anaconda.org/conda-forge/namaster) (infinite kudos to [Mat Becker](https://github.com/beckermr) for this). In this case, installing NaMaster means simply running:
+Unless you care about optimizing the code, it's worth giving this one a go. The conda recipe for NaMaster is currently hosted on [conda-forge](https://anaconda.org/conda-forge/namaster) (infinite kudos to [Mat Becker](https://github.com/beckermr) for this). In this case, installing NaMaster means simply running:
 ```
 conda install -c conda-forge namaster
 ```
@@ -23,15 +23,13 @@ python -m pip install pymaster [--user]
 ```
 (add `--user` if you don't have admin permissions. Note that this will compile the code on your machine, so you'll need to have installed its [dependencies](#dependencies).
 
-### Dependencies
-NaMaster has the following dependencies, which should be present in your system before you can install the code:
-* [GSL](https://www.gnu.org/software/gsl/). Version 2 required.
-* [FFTW](http://www.fftw.org/). Version 3 required. Install with `--enable-openmp` and potentially also `--enable-shared`.
-* [libsharp](https://github.com/Libsharp/libsharp). Libsharp is automatically installed with NaMaster (see section 3 below). However, if you want to use your own preinstalled version, you should simlink it into the directory `_deps`, such that `_deps/lib/libsharp.a` can be seen (see instructions in [NERSC_installation.md](NERSC_installation.md) for more details on libsharp).
-* [cfitsio](https://heasarc.gsfc.nasa.gov/fitsio/). Any version >3 should work.
-* [HEALPix](https://sourceforge.net/projects/healpix/). Any version >2 should work. You only need to install the C libraries (including the shared ones).
+### From source
+If all the above fail, try to install NaMaster from its source. You should first clone this [github repository](https://github.com/LSSTDESC/NaMaster). Then follow these steps:
 
-### 1- Python
+#### 1. Install dependencies.
+Install the dependencies listed [here](#dependencies). Note that some of them (libsharp and HEALPix) may not be necessary, as pymaster will attempt to install them automatically.
+
+#### 2. Install the python module
 Installing the python module `pymaster` should be as simple as running
 ```
 python setup.py install [--user]
@@ -46,7 +44,7 @@ You can check that the python installation works by running the unit tests:
 ```
 python -m unittest discover -v
 ```
-Note that the `test` directory, containing all unit tests, also contains all the sample python scripts described in the documentation (see below).
+Note that the `test` directory, containing all unit tests, also contains all the sample python scripts described in the [documentation](https://namaster.readthedocs.io).
 
 If you installed `pymaster` via `pip`, you can uninstall everything by running
 ```
@@ -55,7 +53,7 @@ pip uninstall pymaster
 
 ***Note that the C library is automatically compiled when installing the python module.*** If you care about the C library at all, or you have trouble compiling it, see the next section.
 
-### 2- C library
+### 3. Install the C code (optional)
 The script `scripts/install_libnmt.sh` contains the instructions run by `setup.py` to compile the C library (`libnmt.a`). You may have to edit this file or make sure to include any missing compilation flags if `setup.py` encounters issues compiling the library.
 
 If you need the C library for your own code, `scripts/install_libnmt.sh` installs it in `_deps/lib` and `_deps/include`. Note that the script process will also generate an executable `namaster`, residing in `_deps/bin` that can be used to compute power spectra. The use of this program is discouraged over using the python module.
@@ -66,15 +64,23 @@ make check
 ```
 If all the checks pass, you're good to go.
 
-### 3- Libsharp
-`setup.py` attempts to download and install libsharp automatically. This is done by running the script `scripts/install_libsharp.sh`. If you encounter any trouble during this step, inspect the contents of that file. Libsharp gets installed in `_deps/lib` and `_deps/include`.
-
 
 ## Documentation 
 The following sources of documentation are available for users:
+* [Python documentation](doc/build/html/index.html): also available in [readthedocs](http://namaster.readthedocs.io)
 * [Scientific documentation](doc/doc_scientific.pdf): description of the methods implemented in NaMaster
-* [C API documentation](doc/doc_C_API.pdf): description of the C library functionality and the NaMaster executable. Installation instructions and a description of all dependencies can also be found here.
-* [Python wrapper documentation](doc/build/html/index.html): also available in [readthedocs](http://namaster.readthedocs.io/en/latest/)
+* [C API documentation](doc/doc_C_API.pdf): description of the C library functionality and the NaMaster executable.
+
+
+## Dependencies
+NaMaster has the following dependencies, which should be present in your system before you can install the code from source:
+* [GSL](https://www.gnu.org/software/gsl/). Version 2 required.
+* [FFTW](http://www.fftw.org/). Version 3 required. Install with `--enable-openmp` and potentially also `--enable-shared`.
+* [cfitsio](https://heasarc.gsfc.nasa.gov/fitsio/). Any version >3 should work.
+
+Besides these, NaMaster will attempt to install the following two dependencies. If this fails, or if you'd like to use your own preinstalled versions, follow these instructions:
+* [libsharp](https://github.com/Libsharp/libsharp). Libsharp is automatically installed with NaMaster. `setup.py` attempts to download and install libsharp automatically. This is done by running the script `scripts/install_libsharp.sh`. If you encounter any trouble during this step, inspect the contents of that file. Libsharp gets installed in `_deps/lib` and `_deps/include`. However, if you want to use your own preinstalled version of libsharp, you should simlink it into the directory `_deps`, such that `_deps/lib/libsharp.a` can be seen. See instructions in [NERSC_installation.md](NERSC_installation.md) for more details on libsharp. 
+* [HEALPix](https://sourceforge.net/projects/healpix/). Like libsharp, HEALPix is automatically installed by `setup.py` by running the script `scripts/install_libchealpix.sh` (have a look there if you run into trouble). HEALPix gets installed in `_deps/lib` and `_deps/include`. However, if you want to use your own preinstalled version , you should simlink it into the directory `_deps`, such that `_deps/lib/libchealpix.a` can be seen. Any version >2 should work. Only the C libraries are needed.
 
 
 ## Licensing, credits and feedback
@@ -87,4 +93,4 @@ If you use NaMaster for any scientific publication, we kindly ask you to cite th
 - Zack Li (@xzackli)
 - Thibaut Louis (@thibautlouis)
 
-For feedback, please contact the author via github issues or emaild (david.alonso@physics.ox.ac.uk).
+For feedback, please contact the author via github issues or email (david.alonso@physics.ox.ac.uk).
