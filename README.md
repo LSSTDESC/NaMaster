@@ -89,6 +89,7 @@ You are welcome to re-use the code, which is open source and freely available un
 If you use NaMaster for any scientific publication, we kindly ask you to cite this github repository and the companion paper https://arxiv.org/abs/1809.09603. Special kudos should go to the following heroes for their contributions to the code:
 - Mat Becker (@beckermr)
 - Giulio Fabbian (@gfabbian)
+- Martina Gerbino (@mgerbino)
 - Daniel Lenz (@DanielLenz)
 - Zack Li (@xzackli)
 - Thibaut Louis (@thibautlouis)
