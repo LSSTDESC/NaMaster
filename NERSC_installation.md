@@ -44,7 +44,7 @@ LDSHARED="cc -shared" CC=cc python setup.py install --user
 ```
 
 ## Running NaMaster on the compute nodes
-Finally, there's one quirk of NERSC that should be taken into account (see [this issue](https://github.com/LSSTDESC/NaMaster/issues/62). Before you run any script using NaMaster on NERSC (either on the queues or on an interactive node), run the following command:
+Finally, there's one quirk of NERSC that should be taken into account (see [this issue](https://github.com/LSSTDESC/NaMaster/issues/62)). Before you run any script using NaMaster on NERSC (either on the queues or on an interactive node), run the following command:
 ```
 module unload craype-hugepages2M
 ```
