@@ -25,7 +25,7 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$GSL_DIR/lib:$CFITSIO_DIR/lib
 export CC=cc
 ```
 
-4. Run the following commands to avoid static linking of the final NaMaster library. Doing so just once should be enough (i.e. no need to include this in your .bashrc.ext):
+4. Run the following commands to avoid static linking of the final NaMaster library. Doing so just once should be enough (i.e. no need to include this in your `.bashrc.ext`):
 ```
 export CRAYPE_LINK_TYPE=dynamic
 export XTPE_LINK_TYPE=dynamic
@@ -41,23 +41,6 @@ Note that the `LDSHARED` instruction is there to force setuptools to use the rig
 If you can't install the code from PyPI (e.g. if you want to install your own modified version), then go to the root directory of  NaMaster and run:
 ```
 LDSHARED="cc -shared" CC=cc python setup.py install --user
-```
-
-All the instructions below assume that you're using the Intel compilers on NERSC.
-
-You'll want to run the following in order to prepare your environment to install NaMaster:
-```
-module load gsl/2.5
-export LDFLAGS+=" -L$GSL_DIR/lib -L$HOME/lib"
-export CPPFLAGS+=" -I$GSL_DIR/include -I$HOME/include"
-```
-This makes sure that the OS will be able to find GSL and all the other libraries at compile time.
-
-I'd also advice to add the following lines to your `.bashrc.ext` file (in your home directory), so python will always be able to find NaMaster.
-```
-module load gsl/2.5
-export CC=cc
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$GSL_DIR/lib:$HOME/lib
 ```
 
 ## Running NaMaster on the compute nodes
