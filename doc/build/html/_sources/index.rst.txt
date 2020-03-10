@@ -13,9 +13,10 @@ Below you can find links to pymaster's full documentation and 8 different exampl
 We recommend that users read NaMaster's :download:`scientific documentation <../doc_scientific.pdf>` and the `C API documentation <index_doxy.html>`_ for a complete overview of all the facilities included in this package, and in order to have a good understanding of the methods implemented in it.
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Contents:
 
+   installation
    pymaster
    sample_simple
    sample_bins

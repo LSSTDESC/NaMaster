@@ -21,7 +21,7 @@ NaMaster is also hosted on [PyPI](https://pypi.org/project/pymaster). Installing
 ```
 python -m pip install pymaster [--user]
 ```
-(add `--user` if you don't have admin permissions. Note that this will compile the code on your machine, so you'll need to have installed its [dependencies](#dependencies).
+(add `--user` if you don't have admin permissions). Note that this will compile the code on your machine, so you'll need to have installed its [dependencies](#dependencies).
 
 ### From source
 If all the above fail, try to install NaMaster from its source. You should first clone this [github repository](https://github.com/LSSTDESC/NaMaster). Then follow these steps:
