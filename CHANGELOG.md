@@ -1,5 +1,6 @@
 # v1.0.2 changes
 - Pip-installable (#95).
+- Installation instructions on rtd (#95).
 
 # v1.0.1 changes
 - Input maps and templates can be masked (#93).
