@@ -65,6 +65,13 @@ make check
 If all the checks pass, you're good to go.
 
 
+## Installing on Mac
+
+NaMaster can be installed on Mac using any of the methods above as long as you have either the `clang` compiler with OpenMP capabilities or the `gcc` compiler. Both can be accessed via homebrew. If you don't have either, you can still try the conda installation above.
+
+***Note: NaMaster is not supported on Windows machines yet.***
+
+
 ## Documentation 
 The following sources of documentation are available for users:
 * [Python documentation](doc/build/html/index.html): also available in [readthedocs](http://namaster.readthedocs.io)

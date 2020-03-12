@@ -4,6 +4,7 @@ Installation
 
 There are different ways to install NaMaster. In rough order of complexity, they are:
 
+
 Conda forge
 ===========
 
@@ -26,6 +27,7 @@ NaMaster is also hosted on `PyPI <https://pypi.org/project/pymaster>`_. Installi
     $ python -m pip install pymaster [--user]
 
 (add ``--user`` if you don't have admin permissions). Note that this will compile the code on your machine, so you'll need to have installed its :ref:`dependencies <dependencies>`.
+
 
 From source
 ===========
@@ -85,6 +87,14 @@ You can check that the C code works by running
    $ make check
 
 If all the checks pass, you're good to go.
+
+
+Installing on Mac
+=================
+
+NaMaster can be installed on Mac using any of the methods above as long as you have either the ``clang`` compiler with OpenMP capabilities or the ``gcc`` compiler. Both can be accessed via homebrew. If you don't have either, you can still try the conda installation above.
+
+**Note: NaMaster is not supported on Windows machines yet.**
 
 
 .. _dependencies:
