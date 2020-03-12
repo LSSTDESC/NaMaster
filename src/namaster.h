@@ -490,6 +490,7 @@ nmt_curvedsky_info *nmt_curvedsky_info_copy(nmt_curvedsky_info *cs_in);
  * such that the map actually fits on the sphere (i.e. theta0-(ny-1)*Dtheta >=0).
  * @param is_healpix is this HEALPix pixelization.
  * @param nside if is_healpix, this should be the HEALPix Nside parameter.
+ * @param lmax_sht maximum multipole up to which spherical harmonic transforms will be computed.
  * @param nx0 number of pixels in the phi direction.
  * @param ny0 number of pixels in the theta direction.
  * @param Dtheta pixel size in the theta direction. In radians. Must be positive.
@@ -971,6 +972,7 @@ void nmt_workspace_update_binning(nmt_workspace *w,
  * @brief Updates the beams associated to this workspace.
  *
  * Also recomputes the binned MCM and its inverse
+ * @param w workspace.
  * @param nl1 Number of elements of b1.
  * @param b1 First field's beam (harmonic space). One element per multipole.
  * @param nl2 Number of elements of b1.
@@ -1154,7 +1156,10 @@ nmt_covar_workspace_flat *nmt_covar_workspace_flat_init(nmt_field_flat *fla1,nmt
  * and two nmt_covar_workspace_flat structures.
  * @param cw nmt_covar_workspace_flat structure containing the information necessary to compute the
           covariance matrix.
- * @param pol_X whether field X is spin-2
+ * @param pol_a whether field a is spin-2
+ * @param pol_b whether field b is spin-2
+ * @param pol_c whether field c is spin-2
+ * @param pol_d whether field d is spin-2
  * @param wa nmt_workspace_flat structure containing the mode-coupling matrix for the first power spectra (between fields a and b).
  * @param wb nmt_workspace_flat structure containing the mode-coupling matrix for the second power spectra (between fields c and d).
  * @param nl Number of multipoles in which input power spectra are computed.
@@ -1219,7 +1224,10 @@ nmt_covar_workspace *nmt_covar_workspace_init(nmt_field *fla1,nmt_field *fla2,
  * and a nmt_covar_workspace structure.
  * @param cw nmt_covar_workspace structure containing the information necessary to compute the
           covariance matrix.
- * @param pol_X whether field X is spin-2
+ * @param pol_a whether field a is spin-2
+ * @param pol_b whether field b is spin-2
+ * @param pol_c whether field c is spin-2
+ * @param pol_d whether field d is spin-2
  * @param wa nmt_workspace structure containing the mode-coupling matrix for the first power spectra.
  * @param wb nmt_workspace structure containing the mode-coupling matrix for the second power spectra.
  * @param clac Cross-power spectra between field 1 in the first set and field 1 in the second set (ac)

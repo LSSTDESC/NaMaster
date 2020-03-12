@@ -9,7 +9,15 @@ DEPDIR=_deps
 [ -e $DEPDIR/include ] || mkdir $DEPDIR/include
 ADEPDIR=$PWD/$DEPDIR
 cd $DEPDIR
-[ -e chealpix-3.11.4 ] || wget https://sourceforge.net/projects/healpix/files/Healpix_3.11/autotools_packages/chealpix-3.11.4.tar.gz && tar xzf chealpix-3.11.4.tar.gz
+unameOut="$(uname -s)"
+echo ${unameOut}
+if [ "${unameOut}" = "Linux" ]
+then
+    [ -e chealpix-3.11.4 ] || wget https://sourceforge.net/projects/healpix/files/Healpix_3.11/autotools_packages/chealpix-3.11.4.tar.gz && tar xzf chealpix-3.11.4.tar.gz
+elif [ "${unameOut}" = "Darwin" ]
+then
+    [ -e chealpix-3.11.4 ] || curl https://sourceforge.net/projects/healpix/files/Healpix_3.11/autotools_packages/chealpix-3.11.4.tar.gz -L --output chealpix-3.11.4.tar.gz && tar xzf chealpix-3.11.4.tar.gz
+fi
 cd chealpix-3.11.4
 ./configure --enable-static --disable-shared --with-pic --prefix=${ADEPDIR} $@
 if [ $? -eq 0 ]; then

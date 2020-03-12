@@ -1531,7 +1531,10 @@ Functions</h2></td></tr>
 <p>Computes the covariance matrix for two sets of power spectra given input predicted spectra and a <a class="el" href="structnmt__covar__workspace.html" title="Full-sky Gaussian covariance matrix. ">nmt_covar_workspace</a> structure. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">cw</td><td><a class="el" href="structnmt__covar__workspace.html" title="Full-sky Gaussian covariance matrix. ">nmt_covar_workspace</a> structure containing the information necessary to compute the covariance matrix. </td></tr>
-    <tr><td class="paramname">pol_X</td><td>whether field X is spin-2 </td></tr>
+    <tr><td class="paramname">pol_a</td><td>whether field a is spin-2 </td></tr>
+    <tr><td class="paramname">pol_b</td><td>whether field b is spin-2 </td></tr>
+    <tr><td class="paramname">pol_c</td><td>whether field c is spin-2 </td></tr>
+    <tr><td class="paramname">pol_d</td><td>whether field d is spin-2 </td></tr>
     <tr><td class="paramname">wa</td><td><a class="el" href="structnmt__workspace.html" title="Full-sky mode-coupling matrix. ">nmt_workspace</a> structure containing the mode-coupling matrix for the first power spectra. </td></tr>
     <tr><td class="paramname">wb</td><td><a class="el" href="structnmt__workspace.html" title="Full-sky mode-coupling matrix. ">nmt_workspace</a> structure containing the mode-coupling matrix for the second power spectra. </td></tr>
     <tr><td class="paramname">clac</td><td>Cross-power spectra between field 1 in the first set and field 1 in the second set (ac) All power spectra should be defined for all ell &lt; lmax. </td></tr>
@@ -1645,7 +1648,10 @@ Functions</h2></td></tr>
 <p>Computes the covariance matrix for two sets of power spectra given input predicted spectra and two <a class="el" href="structnmt__covar__workspace__flat.html" title="Flat-sky Gaussian covariance matrix. ">nmt_covar_workspace_flat</a> structures. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">cw</td><td><a class="el" href="structnmt__covar__workspace__flat.html" title="Flat-sky Gaussian covariance matrix. ">nmt_covar_workspace_flat</a> structure containing the information necessary to compute the covariance matrix. </td></tr>
-    <tr><td class="paramname">pol_X</td><td>whether field X is spin-2 </td></tr>
+    <tr><td class="paramname">pol_a</td><td>whether field a is spin-2 </td></tr>
+    <tr><td class="paramname">pol_b</td><td>whether field b is spin-2 </td></tr>
+    <tr><td class="paramname">pol_c</td><td>whether field c is spin-2 </td></tr>
+    <tr><td class="paramname">pol_d</td><td>whether field d is spin-2 </td></tr>
     <tr><td class="paramname">wa</td><td><a class="el" href="structnmt__workspace__flat.html" title="Flat-sky mode-coupling matrix. ">nmt_workspace_flat</a> structure containing the mode-coupling matrix for the first power spectra (between fields a and b). </td></tr>
     <tr><td class="paramname">wb</td><td><a class="el" href="structnmt__workspace__flat.html" title="Flat-sky mode-coupling matrix. ">nmt_workspace_flat</a> structure containing the mode-coupling matrix for the second power spectra (between fields c and d). </td></tr>
     <tr><td class="paramname">nl</td><td>Number of multipoles in which input power spectra are computed. </td></tr>
@@ -2413,6 +2419,7 @@ Functions</h2></td></tr>
   <table class="params">
     <tr><td class="paramname">is_healpix</td><td>is this HEALPix pixelization. </td></tr>
     <tr><td class="paramname">nside</td><td>if is_healpix, this should be the HEALPix Nside parameter. </td></tr>
+    <tr><td class="paramname">lmax_sht</td><td>maximum multipole up to which spherical harmonic transforms will be computed. </td></tr>
     <tr><td class="paramname">nx0</td><td>number of pixels in the phi direction. </td></tr>
     <tr><td class="paramname">ny0</td><td>number of pixels in the theta direction. </td></tr>
     <tr><td class="paramname">Dtheta</td><td>pixel size in the theta direction. In radians. Must be positive. </td></tr>
@@ -3903,6 +3910,7 @@ Functions</h2></td></tr>
 <p>Updates the beams associated to this workspace. </p>
 <p>Also recomputes the binned MCM and its inverse </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
+    <tr><td class="paramname">w</td><td>workspace. </td></tr>
     <tr><td class="paramname">nl1</td><td>Number of elements of b1. </td></tr>
     <tr><td class="paramname">b1</td><td>First field's beam (harmonic space). One element per multipole. </td></tr>
     <tr><td class="paramname">nl2</td><td>Number of elements of b1. </td></tr>

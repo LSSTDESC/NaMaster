@@ -552,7 +552,7 @@ void he_write_CAR_map(flouble **tmap,int nfields,nmt_curvedsky_info *sky_info,ch
  *
  * @param fname Path to input FITS file.
  * @param is_healpix Whether pixelization should be HEALPix.
- * @param nside HEALPix resolution parameter.
+ * @param nfields number of fields in file.
  * @param isnest >0 if maps are in NESTED ordering.
  * @return curved sky geometry information.
  */
