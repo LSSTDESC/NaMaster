@@ -81,7 +81,7 @@ The following sources of documentation are available for users:
 
 ## Dependencies
 NaMaster has the following dependencies, which should be present in your system before you can install the code from source:
-* [GSL](https://www.gnu.org/software/gsl/). Version 2 required.
+* [GSL](https://www.gnu.org/software/gsl/). Version 2 required (note in certain systems you may also need to install `openblas` - see [this issue](https://github.com/LSSTDESC/NaMaster/issues/106).
 * [FFTW](http://www.fftw.org/). Version 3 required. Install with `--enable-openmp` and potentially also `--enable-shared`.
 * [cfitsio](https://heasarc.gsfc.nasa.gov/fitsio/). Any version >3 should work.
 
