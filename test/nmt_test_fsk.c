@@ -71,7 +71,7 @@ CTEST(nmt,fsk_synalm) {
     cells[3][ii]=pow((2*lpivot)/(ll+lpivot),alpha_pivot);
   }
 
-  nmt_binning_scheme_flat *bpw=nmt_bins_flat_create(nbpw,larr,&(larr[1]));
+  nmt_binning_scheme_flat *bpw=nmt_bins_flat_create(nbpw,larr,&(larr[1]),0,NULL,NULL);
   double dkx=2*M_PI/fsk->lx,dky=2*M_PI/fsk->ly;
   for(ii=0;ii<fsk->ny;ii++) {
     int jj;
@@ -180,7 +180,7 @@ CTEST(nmt,fsk_cls) {
     l0[ii]=ii*lmax/nbpw;
     lf[ii]=(ii+1.)*lmax/nbpw;
   }
-  nmt_binning_scheme_flat *bpw=nmt_bins_flat_create(nbpw,l0,lf);
+  nmt_binning_scheme_flat *bpw=nmt_bins_flat_create(nbpw,l0,lf,0,NULL,NULL);
   for(ii=0;ii<fsk->ny;ii++) {
     int jj;
     double ky;

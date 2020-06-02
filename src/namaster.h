@@ -61,6 +61,53 @@ typedef double complex fcomplex;
  * the code.
  */
 
+
+/**
+ * @brief Flat-sky Fourier-space function
+ *
+ * Unlike multipoles in harmonic space, in the case of full-sky operations,
+ * wavenumbers k in Fourier space for flat-sky fields are in general continuous
+ * variables. This structure helps define functions of these continuous variables.
+ */
+typedef struct {
+  int is_const; //!< If >0, this function is just a constant
+  flouble x0; //!< Lower edge of spline interpolation
+  flouble xf; //!< Upper edge of spline interpolation
+  flouble y0; //!< Function will take this value for x < \p x0
+  flouble yf; //!< Function will take this value for x > \p xf
+  gsl_spline *spl; //!< GSL spline interpolator.
+} nmt_k_function;
+
+/**
+ * @brief nmt_k_function creator.
+ *
+ * @param nk Number of elements in input arrays.
+ * @param karr k-values at which the input function is sampled.
+ * @param farr Function values at k = \p karr.
+ * @param y0 Constant function value below interpolation range.
+ * @param yf Constant function value above interpolation range.
+ * @param is_const If non-zero, will create a constant function.
+ *        In this case all previous arguments other than \p y0 are ignored
+ *        and the function will take this value for all k.
+ */
+nmt_k_function *nmt_k_function_alloc(int nk,flouble *karr,flouble *farr,
+				     flouble y0,flouble yf,int is_const);
+
+/**
+ * @brief nmt_k_function destructor
+ */
+void nmt_k_function_free(nmt_k_function *f);
+
+/**
+ * @brief nmt_k_function evaluator.
+ *
+ * Returns value of function at \p k.
+ * @param f nmt_k_function to evaluate.
+ * @param k Value of k for which you want f(k).
+ * @param intacc GSL interpolation accelerator. If you don't want any, just pass a NULL pointer.
+ */
+flouble nmt_k_function_eval(nmt_k_function *f,flouble k,gsl_interp_accel *intacc);
+
 /**
  * @brief Flat-sky bandpowers.
  *
@@ -72,6 +119,10 @@ typedef struct {
   int n_bands; //!< Number of bandpowers stored
   flouble *ell_0_list; //!< Lower edge of each bandpower
   flouble *ell_f_list; //!< Upper edge of each bandpower
+  int nl_fl; //!< Number of ells in the f(l)
+  flouble *l_fl; //!< ells in the f(l)
+  flouble *f_fl; //!< f(l)
+  nmt_k_function *fl_f; //!< f(l)
 } nmt_binning_scheme_flat;
 
 /**
@@ -91,9 +142,14 @@ nmt_binning_scheme_flat *nmt_bins_flat_constant(int nlb,flouble lmax);
  * @param nell Number of bandpowers
  * @param l0 Lower edge of all bandpowers (should be allocated to nell elements).
  * @param lf Lower edge of all bandpowers (should be allocated to nell elements).
+ * @param nl_fl Number of ells for the f(l) prefactor (set to zero if you just want
+ *        to use constant weights).
+ * @param l_fl Multipoles for f(l).
+ * @param f_fl f(l) values.
  * @return Allocated binning structure.
  */
-nmt_binning_scheme_flat *nmt_bins_flat_create(int nell,flouble *l0,flouble *lf);
+nmt_binning_scheme_flat *nmt_bins_flat_create(int nell,flouble *l0,flouble *lf,
+                                              int nl_fl, flouble *l_fl, flouble *f_fl);
 
 /**
  * @brief nmt_binning_scheme_flat destructor
@@ -254,52 +310,6 @@ void nmt_unbin_cls(nmt_binning_scheme *bin,flouble **cls_in,flouble **cls_out,in
  *        Should be preallocated to the correct number of bandpowers.
  */
 void nmt_ell_eff(nmt_binning_scheme *bin,flouble *larr);
-
-/**
- * @brief Flat-sky Fourier-space function
- *
- * Unlike multipoles in harmonic space, in the case of full-sky operations,
- * wavenumbers k in Fourier space for flat-sky fields are in general continuous
- * variables. This structure helps define functions of these continuous variables.
- */
-typedef struct {
-  int is_const; //!< If >0, this function is just a constant
-  flouble x0; //!< Lower edge of spline interpolation
-  flouble xf; //!< Upper edge of spline interpolation
-  flouble y0; //!< Function will take this value for x < \p x0
-  flouble yf; //!< Function will take this value for x > \p xf
-  gsl_spline *spl; //!< GSL spline interpolator.
-} nmt_k_function;
-
-/**
- * @brief nmt_k_function creator.
- *
- * @param nk Number of elements in input arrays.
- * @param karr k-values at which the input function is sampled.
- * @param farr Function values at k = \p karr.
- * @param y0 Constant function value below interpolation range.
- * @param yf Constant function value above interpolation range.
- * @param is_const If non-zero, will create a constant function.
- *        In this case all previous arguments other than \p y0 are ignored
- *        and the function will take this value for all k.
- */
-nmt_k_function *nmt_k_function_alloc(int nk,flouble *karr,flouble *farr,
-				     flouble y0,flouble yf,int is_const);
-
-/**
- * @brief nmt_k_function destructor
- */
-void nmt_k_function_free(nmt_k_function *f);
-
-/**
- * @brief nmt_k_function evaluator.
- *
- * Returns value of function at \p k.
- * @param f nmt_k_function to evaluate.
- * @param k Value of k for which you want f(k).
- * @param intacc GSL interpolation accelerator. If you don't want any, just pass a NULL pointer.
- */
-flouble nmt_k_function_eval(nmt_k_function *f,flouble k,gsl_interp_accel *intacc);
 
 /**
  * @brief Flat-sky information.

@@ -38,7 +38,7 @@ CTEST(nmt,bins_flat_alloc) {
     l0[ii]=2+5*ii;
     lf[ii]=2+5*(ii+1);
   }
-  b_a=nmt_bins_flat_create(b_b->n_bands,l0,lf);
+  b_a=nmt_bins_flat_create(b_b->n_bands,l0,lf,0,NULL,NULL);
 
   for(ii=0;ii<b_b->n_bands;ii++) {
     ASSERT_DBL_NEAR_TOL(l0[ii],b_b->ell_0_list[ii],1E-10);

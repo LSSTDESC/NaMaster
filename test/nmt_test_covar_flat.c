@@ -14,7 +14,7 @@ CTEST(nmt,covar_flat) {
   double *larr_e=my_malloc((nell+1)*sizeof(double));
   for(ii=0;ii<=nell;ii++)
     larr_e[ii]=ii*dell+2;
-  bin=nmt_bins_flat_create(nell,larr_e,&(larr_e[1]));
+  bin=nmt_bins_flat_create(nell,larr_e,&(larr_e[1]),0,NULL,NULL);
   free(larr_e);
 
   nmt_field_flat *f0=nmt_field_flat_alloc(NX_TEST,NY_TEST,
@@ -81,8 +81,8 @@ CTEST(nmt,covar_flat_errors) {
   double *larr_e=my_malloc((nell+1)*sizeof(double));
   for(ii=0;ii<=nell;ii++)
     larr_e[ii]=ii*dell+2;
-  bin=nmt_bins_flat_create(nell,larr_e,&(larr_e[1]));
-  binb=nmt_bins_flat_create(nell,larr_e,&(larr_e[1]));
+  bin=nmt_bins_flat_create(nell,larr_e,&(larr_e[1]),0,NULL,NULL);
+  binb=nmt_bins_flat_create(nell,larr_e,&(larr_e[1]),0,NULL,NULL);
   free(larr_e);
 
   nmt_field_flat *f0=nmt_field_flat_alloc(NX_TEST,NY_TEST,

@@ -46,7 +46,8 @@ static nmt_workspace_flat *nmt_workspace_flat_new(int ncls,nmt_flatsky_info *fs,
   w->ellcut_y[0]=lmn_y;
   w->ellcut_y[1]=lmx_y;
 
-  w->bin=nmt_bins_flat_create(bin->n_bands,bin->ell_0_list,bin->ell_f_list);
+  w->bin=nmt_bins_flat_create(bin->n_bands,bin->ell_0_list,bin->ell_f_list,
+                              bin->nl_fl,bin->l_fl,bin->f_fl);
   w->lmax=w->bin->ell_f_list[w->bin->n_bands-1];
 
   w->fs=nmt_flatsky_info_alloc(fs->nx,fs->ny,fs->lx,fs->ly);
@@ -247,9 +248,11 @@ cond spin-2\n");
 	int ik1=i_band[index1];
 	if(ik1>=0) {
 	  flouble inv_k1=0;
+          flouble k1=kmodarr[index1];
+          flouble fk1=nmt_k_function_eval(w->bin->fl_f,k1,NULL);
 	  ik1*=w->ncls;
 	  if((index1>0) && (w->ncls>1))
-	    inv_k1=1./kmodarr[index1];
+	    inv_k1=1./k1;
 	  for(iy2=0;iy2<fs->ny;iy2++) {
 	    for(ix2=0;ix2<fs->nx;ix2++) {
 	      int index2=ix2+fs->nx*iy2;
@@ -259,6 +262,13 @@ cond spin-2\n");
 	      int index;
 	      int iy=iy1-iy2;
 	      int ix=ix1-ix2;
+              flouble k2=kmodarr[index2];
+              flouble fk2=nmt_k_function_eval(w->bin->fl_f,k2,NULL);
+              flouble fkr;
+              if(fk2==0)
+                fkr=1;
+              else
+                fkr=fk1/fk2;
 	      if(iy<0) iy+=fs->ny;
 	      if(ix<0) ix+=fs->nx;
 	      ik2*=w->ncls;
@@ -271,16 +281,16 @@ cond spin-2\n");
 		if((index1==0) && (index2==0))
 		  kr=1;
 		else
-		  kr=kmodarr[index2]*inv_k1;
+		  kr=k2*inv_k1;
 		kr*=kr;
 	      }
 	      mp=maskprod[index]*beamprod[index2];
 	      
 	      if(w->ncls==1) {
 		if(ir2>=0)
-		  coup_unbinned_thr[ik1+0][ir2+0]+=mp;
+		  coup_unbinned_thr[ik1+0][ir2+0]+=mp*fk1;
 		if(ik2>=0)
-		  coup_binned_thr[ik1+0][ik2+0]+=mp;
+		  coup_binned_thr[ik1+0][ik2+0]+=mp*fk1;
 	      }
 	      else if(w->ncls==2) {
 		flouble fc[2],fs[2];
@@ -290,16 +300,16 @@ cond spin-2\n");
 		  fc[1]=kr*mp; fs[1]=0;
 		}
 		if(ir2>=0) {
-		  coup_unbinned_thr[ik1+0][ir2+0]+=fc[pe1+pe2]; //TE,TE
-		  coup_unbinned_thr[ik1+0][ir2+1]-=fs[pe1+pe2]; //TE,TB
-		  coup_unbinned_thr[ik1+1][ir2+0]+=fs[pb1+pb2]; //TB,TE
-		  coup_unbinned_thr[ik1+1][ir2+1]+=fc[pb1+pb2]; //TB,TB
+		  coup_unbinned_thr[ik1+0][ir2+0]+=fc[pe1+pe2]*fk1; //TE,TE
+		  coup_unbinned_thr[ik1+0][ir2+1]-=fs[pe1+pe2]*fk1; //TE,TB
+		  coup_unbinned_thr[ik1+1][ir2+0]+=fs[pb1+pb2]*fk1; //TB,TE
+		  coup_unbinned_thr[ik1+1][ir2+1]+=fc[pb1+pb2]*fk1; //TB,TB
 		}
 		if(ik2>=0) {
-		  coup_binned_thr[ik1+0][ik2+0]+=fc[pe1+pe2]; //TE,TE
-		  coup_binned_thr[ik1+0][ik2+1]-=fs[pe1+pe2]; //TE,TB
-		  coup_binned_thr[ik1+1][ik2+0]+=fs[pb1+pb2]; //TB,TE
-		  coup_binned_thr[ik1+1][ik2+1]+=fc[pb1+pb2]; //TB,TB
+		  coup_binned_thr[ik1+0][ik2+0]+=fc[pe1+pe2]*fkr; //TE,TE
+		  coup_binned_thr[ik1+0][ik2+1]-=fs[pe1+pe2]*fkr; //TE,TB
+		  coup_binned_thr[ik1+1][ik2+0]+=fs[pb1+pb2]*fkr; //TB,TE
+		  coup_binned_thr[ik1+1][ik2+1]+=fc[pb1+pb2]*fkr; //TB,TB
 		}
 	      }
 	      else if(w->ncls==4) {
@@ -309,40 +319,40 @@ cond spin-2\n");
 		  fc[1]=kr; fs[1]=0;
 		}
 		if(ir2>=0) {
-		  coup_unbinned_thr[ik1+0][ir2+0]+=fc[pe1]*fc[pe2]*mp; //EE,EE
-		  coup_unbinned_thr[ik1+0][ir2+1]-=fc[pe1]*fs[pe2]*mp; //EE,EB
-		  coup_unbinned_thr[ik1+0][ir2+2]-=fs[pe1]*fc[pe2]*mp; //EE,BE
-		  coup_unbinned_thr[ik1+0][ir2+3]+=fs[pe1]*fs[pe2]*mp; //EE,BB
-		  coup_unbinned_thr[ik1+1][ir2+0]+=fc[pe1]*fs[pb2]*mp; //EB,EE
-		  coup_unbinned_thr[ik1+1][ir2+1]+=fc[pe1]*fc[pb2]*mp; //EB,EB
-		  coup_unbinned_thr[ik1+1][ir2+2]-=fs[pe1]*fs[pb2]*mp; //EB,BE
-		  coup_unbinned_thr[ik1+1][ir2+3]-=fs[pe1]*fc[pb2]*mp; //EB,BB
-		  coup_unbinned_thr[ik1+2][ir2+0]+=fs[pb1]*fc[pe2]*mp; //BE,EE
-		  coup_unbinned_thr[ik1+2][ir2+1]-=fs[pb1]*fs[pe2]*mp; //BE,EB
-		  coup_unbinned_thr[ik1+2][ir2+2]+=fc[pb1]*fc[pe2]*mp; //BE,BE
-		  coup_unbinned_thr[ik1+2][ir2+3]-=fc[pb1]*fs[pe2]*mp; //BE,BB
-		  coup_unbinned_thr[ik1+3][ir2+0]+=fs[pb1]*fs[pb2]*mp; //BB,EE
-		  coup_unbinned_thr[ik1+3][ir2+1]+=fs[pb1]*fc[pb2]*mp; //BB,EB
-		  coup_unbinned_thr[ik1+3][ir2+2]+=fc[pb1]*fs[pb2]*mp; //BB,BE
-		  coup_unbinned_thr[ik1+3][ir2+3]+=fc[pb1]*fc[pb2]*mp; //BB,BB
+		  coup_unbinned_thr[ik1+0][ir2+0]+=fc[pe1]*fc[pe2]*mp*fk1; //EE,EE
+		  coup_unbinned_thr[ik1+0][ir2+1]-=fc[pe1]*fs[pe2]*mp*fk1; //EE,EB
+		  coup_unbinned_thr[ik1+0][ir2+2]-=fs[pe1]*fc[pe2]*mp*fk1; //EE,BE
+		  coup_unbinned_thr[ik1+0][ir2+3]+=fs[pe1]*fs[pe2]*mp*fk1; //EE,BB
+		  coup_unbinned_thr[ik1+1][ir2+0]+=fc[pe1]*fs[pb2]*mp*fk1; //EB,EE
+		  coup_unbinned_thr[ik1+1][ir2+1]+=fc[pe1]*fc[pb2]*mp*fk1; //EB,EB
+		  coup_unbinned_thr[ik1+1][ir2+2]-=fs[pe1]*fs[pb2]*mp*fk1; //EB,BE
+		  coup_unbinned_thr[ik1+1][ir2+3]-=fs[pe1]*fc[pb2]*mp*fk1; //EB,BB
+		  coup_unbinned_thr[ik1+2][ir2+0]+=fs[pb1]*fc[pe2]*mp*fk1; //BE,EE
+		  coup_unbinned_thr[ik1+2][ir2+1]-=fs[pb1]*fs[pe2]*mp*fk1; //BE,EB
+		  coup_unbinned_thr[ik1+2][ir2+2]+=fc[pb1]*fc[pe2]*mp*fk1; //BE,BE
+		  coup_unbinned_thr[ik1+2][ir2+3]-=fc[pb1]*fs[pe2]*mp*fk1; //BE,BB
+		  coup_unbinned_thr[ik1+3][ir2+0]+=fs[pb1]*fs[pb2]*mp*fk1; //BB,EE
+		  coup_unbinned_thr[ik1+3][ir2+1]+=fs[pb1]*fc[pb2]*mp*fk1; //BB,EB
+		  coup_unbinned_thr[ik1+3][ir2+2]+=fc[pb1]*fs[pb2]*mp*fk1; //BB,BE
+		  coup_unbinned_thr[ik1+3][ir2+3]+=fc[pb1]*fc[pb2]*mp*fk1; //BB,BB
 		}
 		if(ik2>=0) {
-		  coup_binned_thr[ik1+0][ik2+0]+=fc[pe1]*fc[pe2]*mp; //EE,EE
-		  coup_binned_thr[ik1+0][ik2+1]-=fc[pe1]*fs[pe2]*mp; //EE,EB
-		  coup_binned_thr[ik1+0][ik2+2]-=fs[pe1]*fc[pe2]*mp; //EE,BE
-		  coup_binned_thr[ik1+0][ik2+3]+=fs[pe1]*fs[pe2]*mp; //EE,BB
-		  coup_binned_thr[ik1+1][ik2+0]+=fc[pe1]*fs[pb2]*mp; //EB,EE
-		  coup_binned_thr[ik1+1][ik2+1]+=fc[pe1]*fc[pb2]*mp; //EB,EB
-		  coup_binned_thr[ik1+1][ik2+2]-=fs[pe1]*fs[pb2]*mp; //EB,BE
-		  coup_binned_thr[ik1+1][ik2+3]-=fs[pe1]*fc[pb2]*mp; //EB,BB
-		  coup_binned_thr[ik1+2][ik2+0]+=fs[pb1]*fc[pe2]*mp; //BE,EE
-		  coup_binned_thr[ik1+2][ik2+1]-=fs[pb1]*fs[pe2]*mp; //BE,EB
-		  coup_binned_thr[ik1+2][ik2+2]+=fc[pb1]*fc[pe2]*mp; //BE,BE
-		  coup_binned_thr[ik1+2][ik2+3]-=fc[pb1]*fs[pe2]*mp; //BE,BB
-		  coup_binned_thr[ik1+3][ik2+0]+=fs[pb1]*fs[pb2]*mp; //BB,EE
-		  coup_binned_thr[ik1+3][ik2+1]+=fs[pb1]*fc[pb2]*mp; //BB,EB
-		  coup_binned_thr[ik1+3][ik2+2]+=fc[pb1]*fs[pb2]*mp; //BB,BE
-		  coup_binned_thr[ik1+3][ik2+3]+=fc[pb1]*fc[pb2]*mp; //BB,BB
+		  coup_binned_thr[ik1+0][ik2+0]+=fc[pe1]*fc[pe2]*mp*fkr; //EE,EE
+		  coup_binned_thr[ik1+0][ik2+1]-=fc[pe1]*fs[pe2]*mp*fkr; //EE,EB
+		  coup_binned_thr[ik1+0][ik2+2]-=fs[pe1]*fc[pe2]*mp*fkr; //EE,BE
+		  coup_binned_thr[ik1+0][ik2+3]+=fs[pe1]*fs[pe2]*mp*fkr; //EE,BB
+		  coup_binned_thr[ik1+1][ik2+0]+=fc[pe1]*fs[pb2]*mp*fkr; //EB,EE
+		  coup_binned_thr[ik1+1][ik2+1]+=fc[pe1]*fc[pb2]*mp*fkr; //EB,EB
+		  coup_binned_thr[ik1+1][ik2+2]-=fs[pe1]*fs[pb2]*mp*fkr; //EB,BE
+		  coup_binned_thr[ik1+1][ik2+3]-=fs[pe1]*fc[pb2]*mp*fkr; //EB,BB
+		  coup_binned_thr[ik1+2][ik2+0]+=fs[pb1]*fc[pe2]*mp*fkr; //BE,EE
+		  coup_binned_thr[ik1+2][ik2+1]-=fs[pb1]*fs[pe2]*mp*fkr; //BE,EB
+		  coup_binned_thr[ik1+2][ik2+2]+=fc[pb1]*fc[pe2]*mp*fkr; //BE,BE
+		  coup_binned_thr[ik1+2][ik2+3]-=fc[pb1]*fs[pe2]*mp*fkr; //BE,BB
+		  coup_binned_thr[ik1+3][ik2+0]+=fs[pb1]*fs[pb2]*mp*fkr; //BB,EE
+		  coup_binned_thr[ik1+3][ik2+1]+=fs[pb1]*fc[pb2]*mp*fkr; //BB,EB
+		  coup_binned_thr[ik1+3][ik2+2]+=fc[pb1]*fs[pb2]*mp*fkr; //BB,BE
+		  coup_binned_thr[ik1+3][ik2+3]+=fc[pb1]*fc[pb2]*mp*fkr; //BB,BB
 		}
 	      }
 	      else if(w->ncls==7) {
@@ -352,50 +362,50 @@ cond spin-2\n");
 		  fc[1]=kr; fs[1]=0;
 		}
 		if(ir2>=0) {
-		  coup_unbinned_thr[ik1+0][ir2+0]+=mp; //TT,TT
-		  coup_unbinned_thr[ik1+1][ir2+1]+=fc[pe1+pe2]*mp; //TE,TE
-		  coup_unbinned_thr[ik1+1][ir2+2]-=fs[pe1+pe2]*mp; //TE,TB
-		  coup_unbinned_thr[ik1+2][ir2+1]+=fs[pb1+pb2]*mp; //TB,TE
-		  coup_unbinned_thr[ik1+2][ir2+2]+=fc[pb1+pb2]*mp; //TB,TB
-		  coup_unbinned_thr[ik1+3][ir2+3]+=fc[pe2]*fc[pe2]*mp; //EE,EE
-		  coup_unbinned_thr[ik1+3][ir2+4]-=fc[pe2]*fs[pe2]*mp; //EE,EB
-		  coup_unbinned_thr[ik1+3][ir2+5]-=fs[pe2]*fc[pe2]*mp; //EE,BE
-		  coup_unbinned_thr[ik1+3][ir2+6]+=fs[pe2]*fs[pe2]*mp; //EE,BB
-		  coup_unbinned_thr[ik1+4][ir2+3]+=fc[pe2]*fs[pb2]*mp; //EB,EE
-		  coup_unbinned_thr[ik1+4][ir2+4]+=fc[pe2]*fc[pb2]*mp; //EB,EB
-		  coup_unbinned_thr[ik1+4][ir2+5]-=fs[pe2]*fs[pb2]*mp; //EB,BE
-		  coup_unbinned_thr[ik1+4][ir2+6]-=fs[pe2]*fc[pb2]*mp; //EB,BB
-		  coup_unbinned_thr[ik1+5][ir2+3]+=fs[pb2]*fc[pe2]*mp; //BE,EE
-		  coup_unbinned_thr[ik1+5][ir2+4]-=fs[pb2]*fs[pe2]*mp; //BE,EB
-		  coup_unbinned_thr[ik1+5][ir2+5]+=fc[pb2]*fc[pe2]*mp; //BE,BE
-		  coup_unbinned_thr[ik1+5][ir2+6]-=fc[pb2]*fs[pe2]*mp; //BE,BB
-		  coup_unbinned_thr[ik1+6][ir2+3]+=fs[pb2]*fs[pb2]*mp; //BB,EE
-		  coup_unbinned_thr[ik1+6][ir2+4]+=fs[pb2]*fc[pb2]*mp; //BB,EB
-		  coup_unbinned_thr[ik1+6][ir2+5]+=fc[pb2]*fs[pb2]*mp; //BB,BE
-		  coup_unbinned_thr[ik1+6][ir2+6]+=fc[pb2]*fc[pb2]*mp; //BB,BB
+		  coup_unbinned_thr[ik1+0][ir2+0]+=mp*fk1; //TT,TT
+		  coup_unbinned_thr[ik1+1][ir2+1]+=fc[pe1+pe2]*mp*fk1; //TE,TE
+		  coup_unbinned_thr[ik1+1][ir2+2]-=fs[pe1+pe2]*mp*fk1; //TE,TB
+		  coup_unbinned_thr[ik1+2][ir2+1]+=fs[pb1+pb2]*mp*fk1; //TB,TE
+		  coup_unbinned_thr[ik1+2][ir2+2]+=fc[pb1+pb2]*mp*fk1; //TB,TB
+		  coup_unbinned_thr[ik1+3][ir2+3]+=fc[pe2]*fc[pe2]*mp*fk1; //EE,EE
+		  coup_unbinned_thr[ik1+3][ir2+4]-=fc[pe2]*fs[pe2]*mp*fk1; //EE,EB
+		  coup_unbinned_thr[ik1+3][ir2+5]-=fs[pe2]*fc[pe2]*mp*fk1; //EE,BE
+		  coup_unbinned_thr[ik1+3][ir2+6]+=fs[pe2]*fs[pe2]*mp*fk1; //EE,BB
+		  coup_unbinned_thr[ik1+4][ir2+3]+=fc[pe2]*fs[pb2]*mp*fk1; //EB,EE
+		  coup_unbinned_thr[ik1+4][ir2+4]+=fc[pe2]*fc[pb2]*mp*fk1; //EB,EB
+		  coup_unbinned_thr[ik1+4][ir2+5]-=fs[pe2]*fs[pb2]*mp*fk1; //EB,BE
+		  coup_unbinned_thr[ik1+4][ir2+6]-=fs[pe2]*fc[pb2]*mp*fk1; //EB,BB
+		  coup_unbinned_thr[ik1+5][ir2+3]+=fs[pb2]*fc[pe2]*mp*fk1; //BE,EE
+		  coup_unbinned_thr[ik1+5][ir2+4]-=fs[pb2]*fs[pe2]*mp*fk1; //BE,EB
+		  coup_unbinned_thr[ik1+5][ir2+5]+=fc[pb2]*fc[pe2]*mp*fk1; //BE,BE
+		  coup_unbinned_thr[ik1+5][ir2+6]-=fc[pb2]*fs[pe2]*mp*fk1; //BE,BB
+		  coup_unbinned_thr[ik1+6][ir2+3]+=fs[pb2]*fs[pb2]*mp*fk1; //BB,EE
+		  coup_unbinned_thr[ik1+6][ir2+4]+=fs[pb2]*fc[pb2]*mp*fk1; //BB,EB
+		  coup_unbinned_thr[ik1+6][ir2+5]+=fc[pb2]*fs[pb2]*mp*fk1; //BB,BE
+		  coup_unbinned_thr[ik1+6][ir2+6]+=fc[pb2]*fc[pb2]*mp*fk1; //BB,BB
 		}
 		if(ik2>=0) {
-		  coup_binned_thr[ik1+0][ik2+0]+=mp; //TT,TT
-		  coup_binned_thr[ik1+1][ik2+1]+=fc[pe1+pe2]*mp; //TE,TE
-		  coup_binned_thr[ik1+1][ik2+2]-=fs[pe1+pe2]*mp; //TE,TB
-		  coup_binned_thr[ik1+2][ik2+1]+=fs[pb1+pb2]*mp; //TB,TE
-		  coup_binned_thr[ik1+2][ik2+2]+=fc[pb1+pb2]*mp; //TB,TB
-		  coup_binned_thr[ik1+3][ik2+3]+=fc[pe2]*fc[pe2]*mp; //EE,EE
-		  coup_binned_thr[ik1+3][ik2+4]-=fc[pe2]*fs[pe2]*mp; //EE,EB
-		  coup_binned_thr[ik1+3][ik2+5]-=fs[pe2]*fc[pe2]*mp; //EE,BE
-		  coup_binned_thr[ik1+3][ik2+6]+=fs[pe2]*fs[pe2]*mp; //EE,BB
-		  coup_binned_thr[ik1+4][ik2+3]+=fc[pe2]*fs[pb2]*mp; //EB,EE
-		  coup_binned_thr[ik1+4][ik2+4]+=fc[pe2]*fc[pb2]*mp; //EB,EB
-		  coup_binned_thr[ik1+4][ik2+5]-=fs[pe2]*fs[pb2]*mp; //EB,BE
-		  coup_binned_thr[ik1+4][ik2+6]-=fs[pe2]*fc[pb2]*mp; //EB,BB
-		  coup_binned_thr[ik1+5][ik2+3]+=fs[pb2]*fc[pe2]*mp; //BE,EE
-		  coup_binned_thr[ik1+5][ik2+4]-=fs[pb2]*fs[pe2]*mp; //BE,EB
-		  coup_binned_thr[ik1+5][ik2+5]+=fc[pb2]*fc[pe2]*mp; //BE,BE
-		  coup_binned_thr[ik1+5][ik2+6]-=fc[pb2]*fs[pe2]*mp; //BE,BB
-		  coup_binned_thr[ik1+6][ik2+3]+=fs[pb2]*fs[pb2]*mp; //BB,EE
-		  coup_binned_thr[ik1+6][ik2+4]+=fs[pb2]*fc[pb2]*mp; //BB,EB
-		  coup_binned_thr[ik1+6][ik2+5]+=fc[pb2]*fs[pb2]*mp; //BB,BE
-		  coup_binned_thr[ik1+6][ik2+6]+=fc[pb2]*fc[pb2]*mp; //BB,BB
+		  coup_binned_thr[ik1+0][ik2+0]+=mp*fkr; //TT,TT
+		  coup_binned_thr[ik1+1][ik2+1]+=fc[pe1+pe2]*mp*fkr; //TE,TE
+		  coup_binned_thr[ik1+1][ik2+2]-=fs[pe1+pe2]*mp*fkr; //TE,TB
+		  coup_binned_thr[ik1+2][ik2+1]+=fs[pb1+pb2]*mp*fkr; //TB,TE
+		  coup_binned_thr[ik1+2][ik2+2]+=fc[pb1+pb2]*mp*fkr; //TB,TB
+		  coup_binned_thr[ik1+3][ik2+3]+=fc[pe2]*fc[pe2]*mp*fkr; //EE,EE
+		  coup_binned_thr[ik1+3][ik2+4]-=fc[pe2]*fs[pe2]*mp*fkr; //EE,EB
+		  coup_binned_thr[ik1+3][ik2+5]-=fs[pe2]*fc[pe2]*mp*fkr; //EE,BE
+		  coup_binned_thr[ik1+3][ik2+6]+=fs[pe2]*fs[pe2]*mp*fkr; //EE,BB
+		  coup_binned_thr[ik1+4][ik2+3]+=fc[pe2]*fs[pb2]*mp*fkr; //EB,EE
+		  coup_binned_thr[ik1+4][ik2+4]+=fc[pe2]*fc[pb2]*mp*fkr; //EB,EB
+		  coup_binned_thr[ik1+4][ik2+5]-=fs[pe2]*fs[pb2]*mp*fkr; //EB,BE
+		  coup_binned_thr[ik1+4][ik2+6]-=fs[pe2]*fc[pb2]*mp*fkr; //EB,BB
+		  coup_binned_thr[ik1+5][ik2+3]+=fs[pb2]*fc[pe2]*mp*fkr; //BE,EE
+		  coup_binned_thr[ik1+5][ik2+4]-=fs[pb2]*fs[pe2]*mp*fkr; //BE,EB
+		  coup_binned_thr[ik1+5][ik2+5]+=fc[pb2]*fc[pe2]*mp*fkr; //BE,BE
+		  coup_binned_thr[ik1+5][ik2+6]-=fc[pb2]*fs[pe2]*mp*fkr; //BE,BB
+		  coup_binned_thr[ik1+6][ik2+3]+=fs[pb2]*fs[pb2]*mp*fkr; //BB,EE
+		  coup_binned_thr[ik1+6][ik2+4]+=fs[pb2]*fc[pb2]*mp*fkr; //BB,EB
+		  coup_binned_thr[ik1+6][ik2+5]+=fc[pb2]*fs[pb2]*mp*fkr; //BB,BE
+		  coup_binned_thr[ik1+6][ik2+6]+=fc[pb2]*fc[pb2]*mp*fkr; //BB,BB
 		}
 	      }		
 	    }
@@ -656,7 +666,8 @@ void nmt_compute_deprojection_bias_flat(nmt_field_flat *fl1,nmt_field_flat *fl2,
   return;
 }
 
-void nmt_couple_cl_l_flat_fast(nmt_workspace_flat *w,int nl,flouble *larr,flouble **cl_in,flouble **cl_out)
+void nmt_couple_cl_l_flat_fast(nmt_workspace_flat *w,int nl,flouble *larr,
+                               flouble **cl_in,flouble **cl_out)
 {
   int ii;
   flouble *cl_in_rings=my_calloc(w->ncls*w->fs->n_ell,sizeof(flouble));
@@ -742,7 +753,8 @@ void nmt_couple_cl_l_flat_fast(nmt_workspace_flat *w,int nl,flouble *larr,floubl
   free(fcl);
 }
 
-void nmt_couple_cl_l_flat_quick(nmt_workspace_flat *w,int nl,flouble *larr,flouble **cl_in,flouble **cl_out)
+void nmt_couple_cl_l_flat_quick(nmt_workspace_flat *w,int nl,flouble *larr,
+                                flouble **cl_in,flouble **cl_out)
 {
   int ii;
   flouble **cell_in=my_malloc(w->ncls*sizeof(flouble *));

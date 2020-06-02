@@ -380,7 +380,7 @@ void fs_alm2cl(nmt_flatsky_info *fs,nmt_binning_scheme_flat *bin,
 	  for(ix=0;ix<fs->nx;ix++) {
 	    int ix_here;
 	    long index;
-	    flouble kmod,kx;
+	    flouble kmod,kx,fk;
 	    if(2*ix<=fs->nx) {
 	      kx=ix*dkx;
 	      ix_here=ix;
@@ -394,10 +394,11 @@ void fs_alm2cl(nmt_flatsky_info *fs,nmt_binning_scheme_flat *bin,
 
 	    index=ix_here+(fs->nx/2+1)*iy;
 	    kmod=sqrt(kx*kx+ky*ky);
+            fk=nmt_k_function_eval(bin->fl_f,kmod,NULL);
 	    ik=nmt_bins_flat_search_fast(bin,kmod,ik);
 	    if(ik>=0) {
 #pragma omp atomic
-	      cls[index_cl][ik]+=(creal(alm1[index])*creal(alm2[index])+cimag(alm1[index])*cimag(alm2[index]));
+	      cls[index_cl][ik]+=fk*((creal(alm1[index])*creal(alm2[index])+cimag(alm1[index])*cimag(alm2[index])));
 #pragma omp atomic
 	      n_cells[ik]++;
 	    }

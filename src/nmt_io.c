@@ -644,6 +644,12 @@ static void nmt_binning_scheme_flat_tohdus(fitsfile *fptr,
   fits_write_col(fptr,TDOUBLE,1,1,1,b->n_bands,b->ell_0_list,status);
   fits_write_col(fptr,TDOUBLE,2,1,1,b->n_bands,b->ell_f_list,status);
 
+  sprintf(ttype[0],"L_FL");
+  sprintf(ttype[1],"F_FL");
+  fits_create_tbl(fptr,BINARY_TBL,0,2,ttype,tform,tunit,"BINS_FL",status);
+  fits_write_col(fptr,TDOUBLE,1,1,1,b->nl_fl,b->l_fl,status);
+  fits_write_col(fptr,TDOUBLE,2,1,1,b->nl_fl,b->f_fl,status);
+
   for(ii=0;ii<2;ii++) {
     free(ttype[ii]);
     free(tform[ii]);
@@ -671,6 +677,19 @@ static nmt_binning_scheme_flat *nmt_binning_scheme_flat_fromhdus(fitsfile *fptr,
 		b->ell_0_list,&anynul,status);
   fits_read_col(fptr,TDOUBLE,2,1,1,nrows,&nulval,
 		b->ell_f_list,&anynul,status);
+
+  fits_movnam_hdu(fptr,BINARY_TBL,"BINS_FL",0,status);
+  fits_get_num_rows(fptr,&nrows,status);
+  b->nl_fl=nrows;
+  b->l_fl=my_malloc(b->nl_fl*sizeof(flouble));
+  b->f_fl=my_malloc(b->nl_fl*sizeof(flouble));
+  fits_read_col(fptr,TDOUBLE,1,1,1,nrows,&nulval,
+		b->l_fl,&anynul,status);
+  fits_read_col(fptr,TDOUBLE,2,1,1,nrows,&nulval,
+		b->f_fl,&anynul,status);
+  b->fl_f=nmt_k_function_alloc(b->nl_fl, b->l_fl, b->f_fl,
+                               b->f_fl[0], b->f_fl[b->nl_fl-1],
+                               0);
 
   return b;
 }

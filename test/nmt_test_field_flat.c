@@ -313,7 +313,7 @@ CTEST(nmt,field_flat_synfast) {
   }
 
   //Count number of modes per bandpower
-  nmt_binning_scheme_flat *bpw=nmt_bins_flat_create(nbpw,larr,&(larr[1]));
+  nmt_binning_scheme_flat *bpw=nmt_bins_flat_create(nbpw,larr,&(larr[1]),0,NULL,NULL);
   double dkx=2*M_PI/fsk->lx,dky=2*M_PI/fsk->ly;
   for(ii=0;ii<fsk->ny;ii++) {
     int jj;

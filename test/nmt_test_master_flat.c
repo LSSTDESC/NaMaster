@@ -22,7 +22,7 @@ CTEST(nmt,master_teb_flat_full) {
 
   for(ii=0;ii<=nell;ii++)
     larr[ii]=ii*dell+2;
-  bin=nmt_bins_flat_create(nell,larr,&(larr[1]));
+  bin=nmt_bins_flat_create(nell,larr,&(larr[1]),0,NULL,NULL);
 
   //Init power spectra
   int ncls=7;
@@ -138,7 +138,7 @@ CTEST(nmt,master_22_flat_full) {
 
   for(ii=0;ii<=nell;ii++)
     larr[ii]=ii*dell+2;
-  bin=nmt_bins_flat_create(nell,larr,&(larr[1]));
+  bin=nmt_bins_flat_create(nell,larr,&(larr[1]),0,NULL,NULL);
 
   //Init power spectra
   int ncls=4;
@@ -287,7 +287,7 @@ CTEST(nmt,master_02_flat_full) {
 
   for(ii=0;ii<=nell;ii++)
     larr[ii]=ii*dell+2;
-  bin=nmt_bins_flat_create(nell,larr,&(larr[1]));
+  bin=nmt_bins_flat_create(nell,larr,&(larr[1]),0,NULL,NULL);
 
   //Init power spectra
   int ncls=2;
@@ -453,7 +453,7 @@ CTEST(nmt,master_00_flat_full) {
 
   for(ii=0;ii<=nell;ii++)
     larr[ii]=ii*dell+2;
-  bin=nmt_bins_flat_create(nell,larr,&(larr[1]));
+  bin=nmt_bins_flat_create(nell,larr,&(larr[1]),0,NULL,NULL);
 
   //Init power spectra
   int ncls=1;
@@ -576,7 +576,7 @@ CTEST(nmt,master_flat_errors) {
   ASSERT_NULL(w);
 
   //Mismatching resolutions
-  bin=nmt_bins_flat_create(nell,larr,&(larr[1]));
+  bin=nmt_bins_flat_create(nell,larr,&(larr[1]),0,NULL,NULL);
   try { w=nmt_compute_coupling_matrix_flat(f0,f0b,bin,1,-1,1,-1,0); }
   ASSERT_NOT_EQUAL(0,nmt_exception_status);
   ASSERT_NULL(w);
@@ -595,7 +595,7 @@ CTEST(nmt,master_flat_errors) {
   //nmt_compute_power_spectra with mis-matching input workspace
   w=nmt_compute_coupling_matrix_flat(f0,f0,bin,1,-1,1,-1,0);
   nmt_bins_flat_free(bin);
-  bin=nmt_bins_flat_create(nell/2,larr,&(larr[1]));
+  bin=nmt_bins_flat_create(nell/2,larr,&(larr[1]),0,NULL,NULL);
   try { wb=nmt_compute_power_spectra_flat(f0b,f0b,bin,1,-1,1,-1,w,NULL,0,NULL,NULL,NULL); }
   ASSERT_NOT_EQUAL(0,nmt_exception_status);
   ASSERT_NULL(wb);
