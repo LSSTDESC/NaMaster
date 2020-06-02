@@ -195,6 +195,7 @@
 <li><a class="reference internal" href="#pymaster.field.NmtFieldFlat" title="pymaster.field.NmtFieldFlat"><code class="xref py py-class docutils literal notranslate"><span class="pre">pymaster.field.NmtFieldFlat</span></code></a></li>
 <li><a class="reference internal" href="#pymaster.bins.NmtBinFlat" title="pymaster.bins.NmtBinFlat"><code class="xref py py-class docutils literal notranslate"><span class="pre">pymaster.bins.NmtBinFlat</span></code></a></li>
 <li><a class="reference internal" href="#pymaster.workspaces.NmtWorkspaceFlat" title="pymaster.workspaces.NmtWorkspaceFlat"><code class="xref py py-class docutils literal notranslate"><span class="pre">pymaster.workspaces.NmtWorkspaceFlat</span></code></a></li>
+<li><a class="reference internal" href="#pymaster.covariance.NmtCovarianceWorkspaceFlat" title="pymaster.covariance.NmtCovarianceWorkspaceFlat"><code class="xref py py-class docutils literal notranslate"><span class="pre">pymaster.covariance.NmtCovarianceWorkspaceFlat</span></code></a></li>
 <li><a class="reference internal" href="#pymaster.workspaces.deprojection_bias_flat" title="pymaster.workspaces.deprojection_bias_flat"><code class="xref py py-func docutils literal notranslate"><span class="pre">pymaster.workspaces.deprojection_bias_flat()</span></code></a></li>
 <li><a class="reference internal" href="#pymaster.workspaces.compute_coupled_cell_flat" title="pymaster.workspaces.compute_coupled_cell_flat"><code class="xref py py-func docutils literal notranslate"><span class="pre">pymaster.workspaces.compute_coupled_cell_flat()</span></code></a></li>
 <li><a class="reference internal" href="#pymaster.workspaces.compute_full_master_flat" title="pymaster.workspaces.compute_full_master_flat"><code class="xref py py-func docutils literal notranslate"><span class="pre">pymaster.workspaces.compute_full_master_flat()</span></code></a></li>
@@ -701,7 +702,7 @@ bandpower.</li>
 <dl class="method">
 <dt id="pymaster.workspaces.NmtWorkspace.read_from">
 <code class="descname">read_from</code><span class="sig-paren">(</span><em>fname</em><span class="sig-paren">)</span><a class="headerlink" href="#pymaster.workspaces.NmtWorkspace.read_from" title="Permalink to this definition">¶</a></dt>
-<dd><p>Reads the contents of an NmtWorkspace object from a file         (encoded using an internal binary format).</p>
+<dd><p>Reads the contents of an NmtWorkspace object from a FITS file.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -730,7 +731,7 @@ bandpower.</li>
 <dl class="method">
 <dt id="pymaster.workspaces.NmtWorkspace.write_to">
 <code class="descname">write_to</code><span class="sig-paren">(</span><em>fname</em><span class="sig-paren">)</span><a class="headerlink" href="#pymaster.workspaces.NmtWorkspace.write_to" title="Permalink to this definition">¶</a></dt>
-<dd><p>Writes the contents of an NmtWorkspace object to a file (encoded         using an internal binary format).</p>
+<dd><p>Writes the contents of an NmtWorkspace object to a FITS file.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -814,7 +815,7 @@ bandpower.</li>
 <dl class="method">
 <dt id="pymaster.workspaces.NmtWorkspaceFlat.read_from">
 <code class="descname">read_from</code><span class="sig-paren">(</span><em>fname</em><span class="sig-paren">)</span><a class="headerlink" href="#pymaster.workspaces.NmtWorkspaceFlat.read_from" title="Permalink to this definition">¶</a></dt>
-<dd><p>Reads the contents of an NmtWorkspaceFlat object from a file (encoded         using an internal binary format).</p>
+<dd><p>Reads the contents of an NmtWorkspaceFlat object from a FITS file.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -828,7 +829,7 @@ bandpower.</li>
 <dl class="method">
 <dt id="pymaster.workspaces.NmtWorkspaceFlat.write_to">
 <code class="descname">write_to</code><span class="sig-paren">(</span><em>fname</em><span class="sig-paren">)</span><a class="headerlink" href="#pymaster.workspaces.NmtWorkspaceFlat.write_to" title="Permalink to this definition">¶</a></dt>
-<dd><p>Writes the contents of an NmtWorkspaceFlat object to a file         (encoded using an internal binary format).</p>
+<dd><p>Writes the contents of an NmtWorkspaceFlat object to a FITS file.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -1041,7 +1042,7 @@ bandpower.</li>
 <dl class="method">
 <dt id="pymaster.covariance.NmtCovarianceWorkspace.read_from">
 <code class="descname">read_from</code><span class="sig-paren">(</span><em>fname</em><span class="sig-paren">)</span><a class="headerlink" href="#pymaster.covariance.NmtCovarianceWorkspace.read_from" title="Permalink to this definition">¶</a></dt>
-<dd><p>Reads the contents of an NmtCovarianceWorkspace object         from a file (encoded using an internal binary format).</p>
+<dd><p>Reads the contents of an NmtCovarianceWorkspace object         from a FITS file.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -1055,7 +1056,7 @@ bandpower.</li>
 <dl class="method">
 <dt id="pymaster.covariance.NmtCovarianceWorkspace.write_to">
 <code class="descname">write_to</code><span class="sig-paren">(</span><em>fname</em><span class="sig-paren">)</span><a class="headerlink" href="#pymaster.covariance.NmtCovarianceWorkspace.write_to" title="Permalink to this definition">¶</a></dt>
-<dd><p>Writes the contents of an NmtCovarianceWorkspace object to a file         (encoded using an internal binary format).</p>
+<dd><p>Writes the contents of an NmtCovarianceWorkspace object to a FITS file.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -1095,7 +1096,7 @@ bandpower.</li>
 <dl class="method">
 <dt id="pymaster.covariance.NmtCovarianceWorkspaceFlat.read_from">
 <code class="descname">read_from</code><span class="sig-paren">(</span><em>fname</em><span class="sig-paren">)</span><a class="headerlink" href="#pymaster.covariance.NmtCovarianceWorkspaceFlat.read_from" title="Permalink to this definition">¶</a></dt>
-<dd><p>Reads the contents of an NmtCovarianceWorkspaceFlat object from a         file (encoded using an internal binary format).</p>
+<dd><p>Reads the contents of an NmtCovarianceWorkspaceFlat object from a         FITS file.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -1109,7 +1110,7 @@ bandpower.</li>
 <dl class="method">
 <dt id="pymaster.covariance.NmtCovarianceWorkspaceFlat.write_to">
 <code class="descname">write_to</code><span class="sig-paren">(</span><em>fname</em><span class="sig-paren">)</span><a class="headerlink" href="#pymaster.covariance.NmtCovarianceWorkspaceFlat.write_to" title="Permalink to this definition">¶</a></dt>
-<dd><p>Writes the contents of an NmtCovarianceWorkspaceFlat object to         a file (encoded using an internal binary format).</p>
+<dd><p>Writes the contents of an NmtCovarianceWorkspaceFlat object to         a FITS file.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />

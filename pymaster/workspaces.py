@@ -20,8 +20,7 @@ class NmtWorkspace(object):
 
     def read_from(self, fname):
         """
-        Reads the contents of an NmtWorkspace object from a file \
-        (encoded using an internal binary format).
+        Reads the contents of an NmtWorkspace object from a FITS file.
 
         :param str fname: input file name
         """
@@ -75,8 +74,7 @@ class NmtWorkspace(object):
 
     def write_to(self, fname):
         """
-        Writes the contents of an NmtWorkspace object to a file (encoded \
-        using an internal binary format).
+        Writes the contents of an NmtWorkspace object to a FITS file.
 
         :param str fname: output file name
         """
@@ -227,8 +225,7 @@ class NmtWorkspaceFlat(object):
 
     def read_from(self, fname):
         """
-        Reads the contents of an NmtWorkspaceFlat object from a file (encoded \
-        using an internal binary format).
+        Reads the contents of an NmtWorkspaceFlat object from a FITS file.
 
         :param str fname: input file name
         """
@@ -270,8 +267,7 @@ class NmtWorkspaceFlat(object):
 
     def write_to(self, fname):
         """
-        Writes the contents of an NmtWorkspaceFlat object to a file \
-        (encoded using an internal binary format).
+        Writes the contents of an NmtWorkspaceFlat object to a FITS file.
 
         :param str fname: output file name
         """

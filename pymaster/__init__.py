@@ -21,6 +21,7 @@ and a number of functions
 - :class:`pymaster.field.NmtFieldFlat`
 - :class:`pymaster.bins.NmtBinFlat`
 - :class:`pymaster.workspaces.NmtWorkspaceFlat`
+- :class:`pymaster.covariance.NmtCovarianceWorkspaceFlat`
 
 - :func:`pymaster.workspaces.deprojection_bias_flat`
 - :func:`pymaster.workspaces.compute_coupled_cell_flat`
@@ -46,18 +47,18 @@ the ordering is as follows:
 All sky maps accepted and returned by these functions are \
 in the form of HEALPix maps exclusively with RING ordering.
 """
-from pymaster import nmtlib as lib
-import numpy as np
-from pymaster.utils import (
+from pymaster import nmtlib as lib  # noqa
+import numpy as np  # noqa
+from pymaster.utils import (  # noqa
     NmtWCSTranslator,
     mask_apodization,
     mask_apodization_flat,
     synfast_spherical,
     synfast_flat,
 )
-from pymaster.field import NmtField, NmtFieldFlat
-from pymaster.bins import NmtBin, NmtBinFlat
-from pymaster.workspaces import (
+from pymaster.field import NmtField, NmtFieldFlat  # noqa
+from pymaster.bins import NmtBin, NmtBinFlat  # noqa
+from pymaster.workspaces import (  # noqa
     NmtWorkspace,
     NmtWorkspaceFlat,
     deprojection_bias,
@@ -68,7 +69,7 @@ from pymaster.workspaces import (
     compute_full_master_flat,
     uncorr_noise_deprojection_bias,
 )
-from pymaster.covariance import (
+from pymaster.covariance import (  # noqa
     NmtCovarianceWorkspace,
     gaussian_covariance,
     NmtCovarianceWorkspaceFlat,
