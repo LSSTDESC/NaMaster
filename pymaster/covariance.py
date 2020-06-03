@@ -22,7 +22,7 @@ class NmtCovarianceWorkspace(object):
     def read_from(self, fname):
         """
         Reads the contents of an NmtCovarianceWorkspace object \
-        from a file (encoded using an internal binary format).
+        from a FITS file.
 
         :param str fname: input file name
         """
@@ -72,8 +72,7 @@ class NmtCovarianceWorkspace(object):
 
     def write_to(self, fname):
         """
-        Writes the contents of an NmtCovarianceWorkspace object to a file \
-        (encoded using an internal binary format).
+        Writes the contents of an NmtCovarianceWorkspace object to a FITS file.
 
         :param str fname: output file name
         """
@@ -102,7 +101,7 @@ class NmtCovarianceWorkspaceFlat(object):
     def read_from(self, fname):
         """
         Reads the contents of an NmtCovarianceWorkspaceFlat object from a \
-        file (encoded using an internal binary format).
+        FITS file.
 
         :param str fname: input file name
         """
@@ -157,7 +156,7 @@ class NmtCovarianceWorkspaceFlat(object):
     def write_to(self, fname):
         """
         Writes the contents of an NmtCovarianceWorkspaceFlat object to \
-        a file (encoded using an internal binary format).
+        a FITS file.
 
         :param str fname: output file name
         """
