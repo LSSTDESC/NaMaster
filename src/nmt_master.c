@@ -220,7 +220,10 @@ nmt_workspace *nmt_compute_coupling_matrix(nmt_field *fl1,nmt_field *fl2,
 
 #pragma omp for schedule(dynamic)
     for(ll2=lstart;ll2<=w->lmax;ll2++) {
-      for(ll3=lstart;ll3<=w->lmax;ll3++) {
+      int l3_start=lstart;
+      if(!pure_any) //We can use symmetry
+        l3_start=ll2;
+      for(ll3=l3_start;ll3<=w->lmax;ll3++) {
 	int jj,l1,lmin_here,lmax_here;
 	int lmin_here_00=0,lmax_here_00=2*(w->lmax_mask+1)+1;
 	int lmin_here_22=0,lmax_here_22=2*(w->lmax_mask+1)+1;
@@ -288,31 +291,28 @@ nmt_workspace *nmt_compute_coupling_matrix(nmt_field *fl1,nmt_field *fl2,
 	    }
 	    if(w->ncls==2) {
 	      double wfac_ispure[2];
-	      if(pure_any) {
-		wfac_ispure[0]=wigner_22[j22];
+              wfac_ispure[0]=wigner_22[j22];
+              wfac_ispure[0]*=w->pcl_masks[l1]*wigner_00[j00];
+              if(pure_any) {
 		wfac_ispure[1]=wigner_22[j22]+fac_12*wigner_12[j12]+fac_02*wigner_02[j02];
-		wfac_ispure[0]*=w->pcl_masks[l1]*wigner_00[j00];
 		wfac_ispure[1]*=w->pcl_masks[l1]*wigner_00[j00];
 	      }
-	      else {
-		wfac_ispure[0]=wigner_22[j22]*w->pcl_masks[l1]*wigner_00[j00];
+	      else
 		wfac_ispure[1]=wfac_ispure[0];
-	      }
 	      w->coupling_matrix_unbinned[2*ll2+0][2*ll3+0]+=wfac_ispure[pe1+pe2]; //TE,TE
 	      w->coupling_matrix_unbinned[2*ll2+1][2*ll3+1]+=wfac_ispure[pb1+pb2]; //TB,TB
 	    }
 	    if(w->ncls==4) {
 	      double wfac_ispure[3];
 	      int suml=l1+ll2+ll3;
+              wfac_ispure[0]=wigner_22[j22];
+              wfac_ispure[0]*=wigner_22[j22]*w->pcl_masks[l1];
 	      if(pure_any) {
-		wfac_ispure[0]=wigner_22[j22];
 		wfac_ispure[1]=wigner_22[j22]+fac_12*wigner_12[j12]+fac_02*wigner_02[j02];
 		wfac_ispure[2]=wfac_ispure[1]*wfac_ispure[1]*w->pcl_masks[l1];
 		wfac_ispure[1]*=wigner_22[j22]*w->pcl_masks[l1];
-		wfac_ispure[0]*=wigner_22[j22]*w->pcl_masks[l1];
 	      }
 	      else {
-		wfac_ispure[0]=wigner_22[j22]*wigner_22[j22]*w->pcl_masks[l1];
 		wfac_ispure[1]=wfac_ispure[0];
 		wfac_ispure[2]=wfac_ispure[0];
 	      }
@@ -335,21 +335,19 @@ nmt_workspace *nmt_compute_coupling_matrix(nmt_field *fl1,nmt_field *fl2,
 	      double wfac_ispure_22[3];
 	      int suml=l1+ll2+ll3;
 	      wfac=w->pcl_masks[l1]*wigner_00[j00]*wigner_00[j00];
+              wfac_ispure_02[0]=wigner_22[j22];
+              wfac_ispure_02[0]*=w->pcl_masks[l1]*wigner_00[j00];
+              wfac_ispure_22[0]=wigner_22[j22];
+              wfac_ispure_22[0]*=wigner_22[j22]*w->pcl_masks[l1];
 	      if(pure_any) {
-		wfac_ispure_02[0]=wigner_22[j22];
 		wfac_ispure_02[1]=wigner_22[j22]+fac_12*wigner_12[j12]+fac_02*wigner_02[j02];
-		wfac_ispure_02[0]*=w->pcl_masks[l1]*wigner_00[j00];
-		wfac_ispure_02[1]*=w->pcl_masks[l1]*wigner_00[j00];
-		wfac_ispure_22[0]=wigner_22[j22];
-		wfac_ispure_22[1]=wigner_22[j22]+fac_12*wigner_12[j12]+fac_02*wigner_02[j02];
+		wfac_ispure_22[1]=wfac_ispure_02[1];
 		wfac_ispure_22[2]=wfac_ispure_22[1]*wfac_ispure_22[1]*w->pcl_masks[l1];
 		wfac_ispure_22[1]*=wigner_22[j22]*w->pcl_masks[l1];
-		wfac_ispure_22[0]*=wigner_22[j22]*w->pcl_masks[l1];
+		wfac_ispure_02[1]*=wigner_00[j00]*w->pcl_masks[l1];
 	      }
 	      else {
-		wfac_ispure_02[0]=wigner_22[j22]*w->pcl_masks[l1]*wigner_00[j00];
 		wfac_ispure_02[1]=wfac_ispure_02[0];
-		wfac_ispure_22[0]=wigner_22[j22]*wigner_22[j22]*w->pcl_masks[l1];
 		wfac_ispure_22[1]=wfac_ispure_22[0];
 		wfac_ispure_22[2]=wfac_ispure_22[0];
 	      }
@@ -373,9 +371,14 @@ nmt_workspace *nmt_compute_coupling_matrix(nmt_field *fl1,nmt_field *fl2,
 	}
 	for(jj=0;jj<w->ncls;jj++) {
 	  int kk;
-	  for(kk=0;kk<w->ncls;kk++)
+	  for(kk=0;kk<w->ncls;kk++) {
+            if((!pure_any) && (ll2!=ll3)) { //Symmetry
+              w->coupling_matrix_unbinned[w->ncls*ll3+jj][w->ncls*ll2+kk]=w->coupling_matrix_unbinned[w->ncls*ll2+jj][w->ncls*ll3+kk];
+              w->coupling_matrix_unbinned[w->ncls*ll3+jj][w->ncls*ll2+kk]*=(2*ll2+1.)/(4*M_PI);
+            }
 	    w->coupling_matrix_unbinned[w->ncls*ll2+jj][w->ncls*ll3+kk]*=(2*ll3+1.)/(4*M_PI);
-	}
+          }
+        }
       }
     } //end omp for
     if((w->ncls==1) || (w->ncls==2) || (w->ncls==7))
