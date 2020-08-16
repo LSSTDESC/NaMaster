@@ -166,7 +166,8 @@ class NmtCovarianceWorkspaceFlat(object):
 
 
 def gaussian_covariance(cw, spin_a1, spin_a2, spin_b1, spin_b2,
-                        cla1b1, cla1b2, cla2b1, cla2b2, wa, wb=None):
+                        cla1b1, cla1b2, cla2b1, cla2b2, wa, wb=None,
+                        coupled=False):
     """
     Computes Gaussian covariance matrix for power spectra using the \
     information precomputed in cw (a NmtCovarianceWorkspace object). \
@@ -189,6 +190,9 @@ def gaussian_covariance(cw, spin_a1, spin_a2, spin_b1, spin_b2,
         fields Xn and Ym.
     :param NmtWorkspace wX: workspace containing the mode-coupling \
         matrix pair X. If `wb` is `None`, the code will assume `wb=wa`.
+    :param coupled: if `True`, the covariance matrix of the
+        mode-coupled pseudo-Cls will be computed. Otherwise it'll be
+        the covariance of decoupled bandpowers.
     """
     nm_a1 = 2 if spin_a1 else 1
     nm_a2 = 2 if spin_a2 else 1
@@ -214,15 +218,24 @@ def gaussian_covariance(cw, spin_a1, spin_a2, spin_b1, spin_b2,
        (len(cla2b2[0]) < cw.wsp.lmax + 1):
         raise ValueError("Input C_ls have a weird length")
 
-    len_a = wa.wsp.ncls * wa.wsp.bin.n_bands
-    len_b = wb.wsp.ncls * wa.wsp.bin.n_bands
+    if coupled:
+        len_a = wa.wsp.ncls * (cw.wsp.lmax+1)
+        len_b = wb.wsp.ncls * (cw.wsp.lmax+1)
 
-    covar1d = lib.comp_gaussian_covariance(
-        cw.wsp, spin_a1, spin_a2, spin_b1, spin_b2,
-        wa.wsp, wb.wsp, cla1b1, cla1b2, cla2b1, cla2b2, len_a * len_b
-    )
-    covar = np.reshape(covar1d, [len_a, len_b])
-    return covar
+        covar = lib.comp_gaussian_covariance_coupled(
+            cw.wsp, spin_a1, spin_a2, spin_b1, spin_b2,
+            wa.wsp, wb.wsp, cla1b1, cla1b2, cla2b1, cla2b2, len_a * len_b
+        )
+    else:
+        len_a = wa.wsp.ncls * wa.wsp.bin.n_bands
+        len_b = wb.wsp.ncls * wa.wsp.bin.n_bands
+
+        covar = lib.comp_gaussian_covariance(
+            cw.wsp, spin_a1, spin_a2, spin_b1, spin_b2,
+            wa.wsp, wb.wsp, cla1b1, cla1b2, cla2b1, cla2b2, len_a * len_b
+        )
+
+    return covar.reshape([len_a, len_b])
 
 
 def gaussian_covariance_flat(cw, spin_a1, spin_a2, spin_b1, spin_b2, larr,

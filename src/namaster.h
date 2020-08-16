@@ -1246,6 +1246,34 @@ void  nmt_compute_gaussian_covariance(nmt_covar_workspace *cw,
 				      flouble *covar_out);
 
 /**
+ * @brief Compute full-sky Gaussian covariance matrix
+ *
+ * Computes the covariance matrix for two sets of power spectra given input predicted spectra
+ * and a nmt_covar_workspace structure. Calculation done for the mode-coupled pseudo-Cls.
+ * @param cw nmt_covar_workspace structure containing the information necessary to compute the
+          covariance matrix.
+ * @param pol_a whether field a is spin-2
+ * @param pol_b whether field b is spin-2
+ * @param pol_c whether field c is spin-2
+ * @param pol_d whether field d is spin-2
+ * @param wa nmt_workspace structure containing the mode-coupling matrix for the first power spectra.
+ * @param wb nmt_workspace structure containing the mode-coupling matrix for the second power spectra.
+ * @param clac Cross-power spectra between field 1 in the first set and field 1 in the second set (ac)
+          All power spectra should be defined for all ell < lmax.
+ * @param clad Cross-power spectra between field 1 in the first set and field 2 in the second set (ad)
+ * @param clbc Cross-power spectra between field 2 in the first set and field 1 in the second set (bc)
+ * @param clbd Cross-power spectra between field 2 in the first set and field 2 in the second set (bd)
+ * @param covar_out flattened covariance matrix. Should be allocated to shape [ncls_1 * nbpw_1 * ncls_2 * nbpw_2],
+          where nbpw_X and ncls_X are the number of bandpowers and different power spectra in the X-th set of fields.
+ */
+void  nmt_compute_gaussian_covariance_coupled(nmt_covar_workspace *cw,
+                                              int pol_a,int pol_b,int pol_c,int pol_d,
+                                              nmt_workspace *wa,nmt_workspace *wb,
+                                              flouble **clac,flouble **clad,
+                                              flouble **clbc,flouble **clbd,
+                                              flouble *covar_out);
+
+/**
  * @brief Saves nmt_workspace structure to file
  *
  * The output file uses the FITS standard. In combination with nmt_workspace_read_fits(),

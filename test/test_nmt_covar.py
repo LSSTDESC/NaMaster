@@ -202,6 +202,17 @@ class TestCovarSph(unittest.TestCase):
         covar_bench = np.loadtxt("test/benchmarks/bm_nc_np_cov.txt",
                                  unpack=True)
         compare_covars(covar, covar_bench)
+        # Check coupled
+        covar_rc = nmt.gaussian_covariance(cw, 0, 0, 0, 0,
+                                           [self.cltt], [self.cltt],
+                                           [self.cltt], [self.cltt],
+                                           self.w, coupled=True)  # [nl, nl]
+        covar_c = np.array([self.w.decouple_cell([row])[0]
+                            for row in covar_rc])  # [nl, nbpw]
+        covar = np.array([self.w.decouple_cell([col])[0]
+                          for col in covar_c.T]).T  # [nbpw, nbpw]
+        compare_covars(covar, covar_bench)
+
         # [0,2 ; 0,2]
         covar = nmt.gaussian_covariance(cw, 0, 2, 0, 2,
                                         [self.cltt],

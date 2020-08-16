@@ -736,6 +736,36 @@ void comp_gaussian_covariance(nmt_covar_workspace *cw,
   free(c11p); free(c12p); free(c21p); free(c22p);
 }
 
+void comp_gaussian_covariance_coupled(nmt_covar_workspace *cw,
+                                      int pol_a1,int pol_a2,int pol_b1,int pol_b2,
+                                      nmt_workspace *wa,nmt_workspace *wb,
+                                      int ncl11,int nell11,double *c11,
+                                      int ncl12,int nell12,double *c12,
+                                      int ncl21,int nell21,double *c21,
+                                      int ncl22,int nell22,double *c22,
+                                      double *dout,int ndout)
+{
+  asserting(nell11==nell12);
+  asserting(nell11==nell21);
+  asserting(nell11==nell22);
+  int i;
+  double **c11p=malloc(ncl11*sizeof(double *));
+  for(i=0;i<ncl11;i++)
+    c11p[i]=&(c11[i*nell11]);
+  double **c12p=malloc(ncl12*sizeof(double *));
+  for(i=0;i<ncl12;i++)
+    c12p[i]=&(c12[i*nell12]);
+  double **c21p=malloc(ncl21*sizeof(double *));
+  for(i=0;i<ncl21;i++)
+    c21p[i]=&(c21[i*nell21]);
+  double **c22p=malloc(ncl22*sizeof(double *));
+  for(i=0;i<ncl22;i++)
+    c22p[i]=&(c22[i*nell22]);
+  nmt_compute_gaussian_covariance_coupled(cw,pol_a1,pol_a2,pol_b1,pol_b2,wa,wb,
+                                          c11p,c12p,c21p,c22p,dout);
+  free(c11p); free(c12p); free(c21p); free(c22p);
+}
+
 void comp_gaussian_covariance_flat(nmt_covar_workspace_flat *cw,
 				   int pol_a1,int pol_a2,int pol_b1,int pol_b2,
 				   nmt_workspace_flat *wa,nmt_workspace_flat *wb,
