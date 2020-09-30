@@ -116,7 +116,7 @@ CTEST(nmt,field_car_alloc) {
   ASSERT_EQUAL(0,f->pure_b);
   ASSERT_EQUAL(cs->nx*cs->ny,f->cs->npix);
   ASSERT_EQUAL((ny-1)/2,f->cs->n_eq);
-  ASSERT_EQUAL(0,f->pol);
+  ASSERT_EQUAL(0,f->spin);
   ASSERT_EQUAL(1,f->nmaps);
   //Harmonic transform
   ASSERT_DBL_NEAR_TOL(0.5,creal(f->alms[0][he_indexlm(2,2,lmax)]),1E-5);
@@ -154,9 +154,9 @@ CTEST(nmt,field_car_alloc) {
     temp[ii]=test_make_map_analytic_car(cs,1);
 
   //No templates
-  f=nmt_field_alloc_sph(cs,mask,1,maps,0,NULL,beam,0,0,0,1E-5,HE_NITER_DEFAULT,0);
+  f=nmt_field_alloc_sph(cs,mask,2,maps,0,NULL,beam,0,0,0,1E-5,HE_NITER_DEFAULT,0);
   //Sanity checks
-  ASSERT_EQUAL(1,f->pol);
+  ASSERT_EQUAL(2,f->spin);
   ASSERT_EQUAL(2,f->nmaps);
 
   //Harmonic transform
@@ -176,9 +176,9 @@ CTEST(nmt,field_car_alloc) {
   nmt_field_free(f);
 
   //With purification (nothing should change)
-  f=nmt_field_alloc_sph(cs,mask,1,maps,0,NULL,beam,1,1,5,1E-5,HE_NITER_DEFAULT,0);
+  f=nmt_field_alloc_sph(cs,mask,2,maps,0,NULL,beam,1,1,5,1E-5,HE_NITER_DEFAULT,0);
   //Sanity checks
-  ASSERT_EQUAL(1,f->pol);
+  ASSERT_EQUAL(2,f->spin);
   ASSERT_EQUAL(2,f->nmaps);
   //Harmonic transform
   ASSERT_DBL_NEAR_TOL(1.,creal(f->alms[0][he_indexlm(2,0,lmax)]),1E-5);
@@ -196,7 +196,7 @@ CTEST(nmt,field_car_alloc) {
   nmt_field_free(f);
   
   //With templates
-  f=nmt_field_alloc_sph(cs,mask,1,maps,ntemp,temp,beam,0,0,0,1E-5,HE_NITER_DEFAULT,0);
+  f=nmt_field_alloc_sph(cs,mask,2,maps,ntemp,temp,beam,0,0,0,1E-5,HE_NITER_DEFAULT,0);
   //Since maps and templates are the same, template-deprojected map should be 0
   for(ii=0;ii<nmaps;ii++) {
     int jj;
@@ -220,7 +220,7 @@ CTEST(nmt,field_car_alloc) {
   nmt_field_free(f);
   
   //With templates and purification (nothing should change)
-  f=nmt_field_alloc_sph(cs,mask,1,maps,ntemp,temp,beam,1,1,5,1E-5,HE_NITER_DEFAULT,0);
+  f=nmt_field_alloc_sph(cs,mask,2,maps,ntemp,temp,beam,1,1,5,1E-5,HE_NITER_DEFAULT,0);
   //Since maps and templates are the same, template-deprojected map should be 0
   for(ii=0;ii<nmaps;ii++) {
     int jj;

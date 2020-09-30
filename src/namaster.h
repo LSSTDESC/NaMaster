@@ -352,7 +352,7 @@ typedef struct {
   int pure_b; //!< >0 if B-modes have been purified.
   flouble *mask; //!< Field's mask (an array of \p npix values).
   fcomplex **a_mask; //!< Fourier transform of the mask. Only computed if E or B are purified.
-  int pol; //!< >0 if field is spin-2 (otherwise it's spin-0).
+  int spin; //!< field's spin (>=0).
   int nmaps; //!< Number of maps in the field (2 for spin-2, 1 for spin-0).
   flouble **maps; //!< Observed field values. When initialized, these maps are already multiplied by the mask, contaminant deprojected and purified if requested.
   fcomplex **alms; //!< Fourier-transfoms of the maps.
@@ -377,7 +377,7 @@ void nmt_field_flat_free(nmt_field_flat *fl);
  * @param lx Length of the x dimension (in steradians).
  * @param ly Length of the y dimension (in steradians).
  * @param mask Field's mask (an array of \p nx * \p ny values).
- * @param pol >0 if this is a spin-2 field (spin-0 otherwise).
+ * @param spin Field's spin.
  * @param maps Observed field values BEFORE multiplying by the mask
           (this is irrelevant for binary masks).
  * @param ntemp Number of contaminant templates affecting this field.
@@ -398,7 +398,7 @@ void nmt_field_flat_free(nmt_field_flat *fl);
           This is not advisable if using purification.
  */
 nmt_field_flat *nmt_field_flat_alloc(int nx,int ny,flouble lx,flouble ly,
-				     flouble *mask,int pol,flouble **maps,int ntemp,flouble ***temp,
+				     flouble *mask,int spin,flouble **maps,int ntemp,flouble ***temp,
 				     int nl_beam,flouble *l_beam,flouble *beam,
 				     int pure_e,int pure_b,double tol_pinv,int masked_input);
 
@@ -540,7 +540,7 @@ typedef struct {
   int pure_b; //!< >0 if B-modes have been purified
   flouble *mask; //!< Field's mask (an array of \p npix values).
   fcomplex **a_mask; //!< Spherical transform of the mask. Only computed if E or B are purified.
-  int pol; //!< >0 if field is spin-2 (otherwise it's spin-0).
+  int spin; //!< field's spin (>=0).
   int nmaps; //!< Number of maps in the field (2 for spin-2, 1 for spin-0).
   flouble **maps; //!< Observed field values. When initialized, these maps are already multiplied by the mask, contaminant-deprojected and purified if requested.
   fcomplex **alms; //!< Spherical harmonic transfoms of the maps.
@@ -562,7 +562,7 @@ void nmt_field_free(nmt_field *fl);
  * Builds an nmt_field structure from input maps and resolution parameters.
  * @param cs curved sky geometry info.
  * @param mask Field's mask.
- * @param pol >0 if this is a spin-2 field (spin-0 otherwise).
+ * @param spin Field's spin.
  * @param maps Observed field values BEFORE multiplying by the mask
           (this is irrelevant for binary masks).
  * @param ntemp Number of contaminant templates affecting this field.
@@ -586,7 +586,7 @@ void nmt_field_free(nmt_field *fl);
  * @param masked_input if not 0, input maps and templates have already been masked.
           This is not advisable if using purification.
  */
-nmt_field *nmt_field_alloc_sph(nmt_curvedsky_info *cs,flouble *mask,int pol,flouble **maps,
+nmt_field *nmt_field_alloc_sph(nmt_curvedsky_info *cs,flouble *mask,int spin,flouble **maps,
 			       int ntemp,flouble ***temp,flouble *beam,
 			       int pure_e,int pure_b,int n_iter_mask_purify,double tol_pinv,
 			       int niter,int masked_input);
@@ -597,11 +597,11 @@ nmt_field *nmt_field_alloc_sph(nmt_curvedsky_info *cs,flouble *mask,int pol,flou
  * Builds an nmt_field structure from data written in files.
  * @param is_healpix is the map stored in healpix format?
  * @param fname_mask Path to FITS file containing the field's mask (single HEALPix map).
- * @param pol >0 if this is a spin-2 field (spin-0 otherwise).
+ * @param spin Field's spin.
  * @param fname_maps Path to FITS file containing the field's observed maps
-          (1(2) maps if \p pol=0(1)).
+          (1(2) maps if \p spin=0(!=0)).
  * @param fname_temp Path to FITS file containing the field's contaminant templates.
-          If \p pol > 0, spin-2 is assumed, and the file should contain an even number
+          If \p spin > 0, the file should contain an even number
           of files. Each consecutive pair of maps will be interpreted as the Q and U
 	  components of a given contaminant. Pass "none" if you don't want any contaminants.
  * @param fname_beam Path to ASCII file containing the field's beam. The file should
@@ -623,7 +623,7 @@ nmt_field *nmt_field_alloc_sph(nmt_curvedsky_info *cs,flouble *mask,int pol,flou
  * @param niter number of iterations when computing alms (other than the mask's).
  */
 nmt_field *nmt_field_read(int is_healpix,char *fname_mask,char *fname_maps,char *fname_temp,
-			  char *fname_beam,int pol,int pure_e,int pure_b,
+			  char *fname_beam,int spin,int pure_e,int pure_b,
 			  int n_iter_mask_purify,double tol_pinv,int niter);
 
 /**
@@ -1156,10 +1156,10 @@ nmt_covar_workspace_flat *nmt_covar_workspace_flat_init(nmt_field_flat *fla1,nmt
  * and two nmt_covar_workspace_flat structures.
  * @param cw nmt_covar_workspace_flat structure containing the information necessary to compute the
           covariance matrix.
- * @param pol_a whether field a is spin-2
- * @param pol_b whether field b is spin-2
- * @param pol_c whether field c is spin-2
- * @param pol_d whether field d is spin-2
+ * @param spin_a field a spin.
+ * @param spin_b field b spin.
+ * @param spin_c field c spin.
+ * @param spin_d field d spin.
  * @param wa nmt_workspace_flat structure containing the mode-coupling matrix for the first power spectra (between fields a and b).
  * @param wb nmt_workspace_flat structure containing the mode-coupling matrix for the second power spectra (between fields c and d).
  * @param nl Number of multipoles in which input power spectra are computed.
@@ -1172,7 +1172,7 @@ nmt_covar_workspace_flat *nmt_covar_workspace_flat_init(nmt_field_flat *fla1,nmt
           where nbpw_X and ncls_X are the number of bandpowers and different power spectra in the X-th set of fields.
  */
 void nmt_compute_gaussian_covariance_flat(nmt_covar_workspace_flat *cw,
-					  int pol_a,int pol_b,int pol_c,int pol_d,
+					  int spin_a,int spin_b,int spin_c,int spin_d,
 					  nmt_workspace_flat *wa,nmt_workspace_flat *wb,
 					  int nl,flouble *larr,
 					  flouble **clac,flouble **clad,
@@ -1224,10 +1224,10 @@ nmt_covar_workspace *nmt_covar_workspace_init(nmt_field *fla1,nmt_field *fla2,
  * and a nmt_covar_workspace structure.
  * @param cw nmt_covar_workspace structure containing the information necessary to compute the
           covariance matrix.
- * @param pol_a whether field a is spin-2
- * @param pol_b whether field b is spin-2
- * @param pol_c whether field c is spin-2
- * @param pol_d whether field d is spin-2
+ * @param spin_a field a spin.
+ * @param spin_b field b spin.
+ * @param spin_c field c spin.
+ * @param spin_d field d spin.
  * @param wa nmt_workspace structure containing the mode-coupling matrix for the first power spectra.
  * @param wb nmt_workspace structure containing the mode-coupling matrix for the second power spectra.
  * @param clac Cross-power spectra between field 1 in the first set and field 1 in the second set (ac)
@@ -1239,7 +1239,7 @@ nmt_covar_workspace *nmt_covar_workspace_init(nmt_field *fla1,nmt_field *fla2,
           where nbpw_X and ncls_X are the number of bandpowers and different power spectra in the X-th set of fields.
  */
 void  nmt_compute_gaussian_covariance(nmt_covar_workspace *cw,
-				      int pol_a,int pol_b,int pol_c,int pol_d,
+				      int spin_a,int spin_b,int spin_c,int spin_d,
 				      nmt_workspace *wa,nmt_workspace *wb,
 				      flouble **clac,flouble **clad,
 				      flouble **clbc,flouble **clbd,
@@ -1252,10 +1252,10 @@ void  nmt_compute_gaussian_covariance(nmt_covar_workspace *cw,
  * and a nmt_covar_workspace structure. Calculation done for the mode-coupled pseudo-Cls.
  * @param cw nmt_covar_workspace structure containing the information necessary to compute the
           covariance matrix.
- * @param pol_a whether field a is spin-2
- * @param pol_b whether field b is spin-2
- * @param pol_c whether field c is spin-2
- * @param pol_d whether field d is spin-2
+ * @param spin_a field a spin.
+ * @param spin_b field b spin.
+ * @param spin_c field c spin.
+ * @param spin_d field d spin.
  * @param wa nmt_workspace structure containing the mode-coupling matrix for the first power spectra.
  * @param wb nmt_workspace structure containing the mode-coupling matrix for the second power spectra.
  * @param clac Cross-power spectra between field 1 in the first set and field 1 in the second set (ac)
@@ -1267,7 +1267,7 @@ void  nmt_compute_gaussian_covariance(nmt_covar_workspace *cw,
           where nbpw_X and ncls_X are the number of bandpowers and different power spectra in the X-th set of fields.
  */
 void  nmt_compute_gaussian_covariance_coupled(nmt_covar_workspace *cw,
-                                              int pol_a,int pol_b,int pol_c,int pol_d,
+                                              int spin_a,int spin_b,int spin_c,int spin_d,
                                               nmt_workspace *wa,nmt_workspace *wb,
                                               flouble **clac,flouble **clad,
                                               flouble **clbc,flouble **clbd,

@@ -11,7 +11,7 @@ static void purify_generic(nmt_field *fl,flouble *mask,fcomplex **walm0,
     int im1;
     for(im1=0;im1<fl->nmaps;im1++)
       he_map_product(fl->cs,maps_in[im1],mask,maps_in[im1]);
-    he_map2alm(fl->cs,fl->lmax,1,2*fl->pol,maps_in,alms_out,niter);
+    he_map2alm(fl->cs,fl->lmax,1,fl->spin,maps_in,alms_out,niter);
   }
 }
 
@@ -170,8 +170,8 @@ nmt_workspace *nmt_compute_coupling_matrix(nmt_field *fl1,nmt_field *fl2,
   nmt_workspace *w;
   int n_cl=fl1->nmaps*fl2->nmaps;
   if(is_teb) {
-    if(!((fl1->pol==0) && (fl2->pol==1)))
-      report_error(NMT_ERROR_INCONSISTENT,"For T-E-B MCM the first input field must be spin-0 and the second spin-2\n");
+    if(!((fl1->spin==0) && (fl2->spin!=0)))
+      report_error(NMT_ERROR_INCONSISTENT,"For T-E-B MCM the first input field must be spin-0 and the second spin-!=0\n");
     n_cl=7;
   }
 
@@ -200,23 +200,44 @@ nmt_workspace *nmt_compute_coupling_matrix(nmt_field *fl1,nmt_field *fl2,
 #pragma omp parallel default(none)		\
   shared(w,fl1,fl2)
   {
-    int ll2,ll3;
-    double *wigner_00=NULL,*wigner_22=NULL,*wigner_12=NULL,*wigner_02=NULL;
+    int ll2,ll3, s1, s2;
+    double *wigner_00=NULL,*wigner_ss1=NULL,*wigner_12=NULL,*wigner_02=NULL,*wigner_ss2=NULL;
     int lstart=0;
     int pe1=fl1->pure_e,pe2=fl2->pure_e,pb1=fl1->pure_b,pb2=fl2->pure_b;
     int pure_any=pe1 || pb1 || pe2 || pb2;
+    int max_spin=NMT_MAX(fl1->spin, fl2->spin);
+    int sign_overall=1;
+    if(fl1->spin==0) {
+      if(fl2->spin==0) {
+        s1=0; s2=0;
+      }
+      else {
+        s1=fl2->spin; s2=0;
+      }
+    }
+    else {
+      s1=fl1->spin;
+      s2=fl2->spin;
+    }
+    if((s1+s2) & 1)
+      sign_overall=-1;
 
     if((w->ncls==1) || (w->ncls==2) || (w->ncls==7))
       wigner_00=my_malloc(2*(w->lmax_mask+1)*sizeof(double));
-    if((w->ncls==2) || (w->ncls==4) || (w->ncls==7))
-      wigner_22=my_malloc(2*(w->lmax_mask+1)*sizeof(double));
+    if((w->ncls==2) || (w->ncls==4) || (w->ncls==7)) {
+      wigner_ss1=my_malloc(2*(w->lmax_mask+1)*sizeof(double));
+      if((s1 != s2) && (w->ncls!=7))
+        wigner_ss2=my_malloc(2*(w->lmax_mask+1)*sizeof(double));
+      else
+        wigner_ss2=wigner_ss1;
+    }
     if(pure_any) {
       wigner_12=my_malloc(2*(w->lmax_mask+1)*sizeof(double));
       wigner_02=my_malloc(2*(w->lmax_mask+1)*sizeof(double));
     }
 
     if((w->ncls!=1) && (w->ncls!=7))
-      lstart=2;
+      lstart=max_spin;
 
 #pragma omp for schedule(dynamic)
     for(ll2=lstart;ll2<=w->lmax;ll2++) {
@@ -226,26 +247,38 @@ nmt_workspace *nmt_compute_coupling_matrix(nmt_field *fl1,nmt_field *fl2,
       for(ll3=l3_start;ll3<=w->lmax;ll3++) {
 	int jj,l1,lmin_here,lmax_here;
 	int lmin_here_00=0,lmax_here_00=2*(w->lmax_mask+1)+1;
-	int lmin_here_22=0,lmax_here_22=2*(w->lmax_mask+1)+1;
+	int lmin_here_ss1=0,lmax_here_ss1=2*(w->lmax_mask+1)+1;
+	int lmin_here_ss2=0,lmax_here_ss2=2*(w->lmax_mask+1)+1;
 	int lmin_here_12=0,lmax_here_12=2*(w->lmax_mask+1)+1;
 	int lmin_here_02=0,lmax_here_02=2*(w->lmax_mask+1)+1;
 
 	if((w->ncls==1) || (w->ncls==2) || (w->ncls==7))
 	  drc3jj(ll2,ll3,0,0,&lmin_here_00,&lmax_here_00,wigner_00,2*(w->lmax_mask+1));
-	if((w->ncls==2) || (w->ncls==4) || (w->ncls==7))
-	  drc3jj(ll2,ll3,2,-2,&lmin_here_22,&lmax_here_22,wigner_22,2*(w->lmax_mask+1));
+	if((w->ncls==2) || (w->ncls==4) || (w->ncls==7)) {
+	  drc3jj(ll2,ll3,s1,-s1,&lmin_here_ss1,&lmax_here_ss1,wigner_ss1,2*(w->lmax_mask+1));
+          if((s1 != s2) && (w->ncls!=7))
+            drc3jj(ll2,ll3,s2,-s2,&lmin_here_ss2,&lmax_here_ss2,wigner_ss2,2*(w->lmax_mask+1));
+          else {
+            lmin_here_ss2=lmin_here_ss1;
+            lmax_here_ss2=lmax_here_ss1;
+          }
+        } 
 	if(pure_any) {
 	  drc3jj(ll2,ll3,1,-2,&lmin_here_12,&lmax_here_12,wigner_12,2*(w->lmax_mask+1));
 	  drc3jj(ll2,ll3,0,-2,&lmin_here_02,&lmax_here_02,wigner_02,2*(w->lmax_mask+1));
 	}
 
 	if(w->ncls!=7) {
-	  lmin_here=NMT_MAX(lmin_here_00,lmin_here_22);
-	  lmax_here=NMT_MIN(lmax_here_00,lmax_here_22);
+	  lmin_here=NMT_MAX(lmin_here_00,lmin_here_ss1);
+	  lmax_here=NMT_MIN(lmax_here_00,lmax_here_ss1);
+	  lmin_here=NMT_MAX(lmin_here,lmin_here_ss2);
+	  lmax_here=NMT_MIN(lmax_here,lmax_here_ss2);
 	}
 	else {
-	  lmin_here=NMT_MIN(lmin_here_00,lmin_here_22);
-	  lmax_here=NMT_MAX(lmax_here_00,lmax_here_22);
+	  lmin_here=NMT_MIN(lmin_here_00,lmin_here_ss1);
+	  lmax_here=NMT_MAX(lmax_here_00,lmax_here_ss1);
+	  lmin_here=NMT_MIN(lmin_here,lmin_here_ss1);
+	  lmax_here=NMT_MAX(lmax_here,lmax_here_ss1);
 	}
 	if(pure_any) {
 	  lmin_here=NMT_MIN(lmin_here,lmin_here_12);
@@ -260,7 +293,8 @@ nmt_workspace *nmt_compute_coupling_matrix(nmt_field *fl1,nmt_field *fl2,
 	    flouble wfac,fac_12=0,fac_02=0;
 	    int j02,j12;
 	    int j00=l1-lmin_here_00;
-	    int j22=l1-lmin_here_22;
+	    int jss1=l1-lmin_here_ss1;
+	    int jss2=l1-lmin_here_ss2;
 	    if(pure_any) {
 	      j12=l1-lmin_here_12;
 	      j02=l1-lmin_here_02;
@@ -291,10 +325,10 @@ nmt_workspace *nmt_compute_coupling_matrix(nmt_field *fl1,nmt_field *fl2,
 	    }
 	    if(w->ncls==2) {
 	      double wfac_ispure[2];
-              wfac_ispure[0]=wigner_22[j22];
+              wfac_ispure[0]=wigner_ss1[jss1];
               wfac_ispure[0]*=w->pcl_masks[l1]*wigner_00[j00];
               if(pure_any) {
-		wfac_ispure[1]=wigner_22[j22]+fac_12*wigner_12[j12]+fac_02*wigner_02[j02];
+		wfac_ispure[1]=wigner_ss1[jss1]+fac_12*wigner_12[j12]+fac_02*wigner_02[j02];
 		wfac_ispure[1]*=w->pcl_masks[l1]*wigner_00[j00];
 	      }
 	      else
@@ -305,12 +339,12 @@ nmt_workspace *nmt_compute_coupling_matrix(nmt_field *fl1,nmt_field *fl2,
 	    if(w->ncls==4) {
 	      double wfac_ispure[3];
 	      int suml=l1+ll2+ll3;
-              wfac_ispure[0]=wigner_22[j22];
-              wfac_ispure[0]*=wigner_22[j22]*w->pcl_masks[l1];
+              wfac_ispure[0]=wigner_ss1[jss1];
+              wfac_ispure[0]*=wigner_ss2[jss2]*w->pcl_masks[l1];
 	      if(pure_any) {
-		wfac_ispure[1]=wigner_22[j22]+fac_12*wigner_12[j12]+fac_02*wigner_02[j02];
+		wfac_ispure[1]=wigner_ss1[jss1]+fac_12*wigner_12[j12]+fac_02*wigner_02[j02];
 		wfac_ispure[2]=wfac_ispure[1]*wfac_ispure[1]*w->pcl_masks[l1];
-		wfac_ispure[1]*=wigner_22[j22]*w->pcl_masks[l1];
+		wfac_ispure[1]*=wigner_ss2[jss2]*w->pcl_masks[l1];
 	      }
 	      else {
 		wfac_ispure[1]=wfac_ispure[0];
@@ -331,40 +365,40 @@ nmt_workspace *nmt_compute_coupling_matrix(nmt_field *fl1,nmt_field *fl2,
 	      }
 	    }
 	    if(w->ncls==7) {
-	      double wfac_ispure_02[2];
-	      double wfac_ispure_22[3];
+	      double wfac_ispure_0s[2];
+	      double wfac_ispure_ss[3];
 	      int suml=l1+ll2+ll3;
 	      wfac=w->pcl_masks[l1]*wigner_00[j00]*wigner_00[j00];
-              wfac_ispure_02[0]=wigner_22[j22];
-              wfac_ispure_02[0]*=w->pcl_masks[l1]*wigner_00[j00];
-              wfac_ispure_22[0]=wigner_22[j22];
-              wfac_ispure_22[0]*=wigner_22[j22]*w->pcl_masks[l1];
+              wfac_ispure_0s[0]=wigner_ss1[jss1];
+              wfac_ispure_0s[0]*=w->pcl_masks[l1]*wigner_00[j00];
+              wfac_ispure_ss[0]=wigner_ss1[jss1];
+              wfac_ispure_ss[0]*=wigner_ss2[jss2]*w->pcl_masks[l1];
 	      if(pure_any) {
-		wfac_ispure_02[1]=wigner_22[j22]+fac_12*wigner_12[j12]+fac_02*wigner_02[j02];
-		wfac_ispure_22[1]=wfac_ispure_02[1];
-		wfac_ispure_22[2]=wfac_ispure_22[1]*wfac_ispure_22[1]*w->pcl_masks[l1];
-		wfac_ispure_22[1]*=wigner_22[j22]*w->pcl_masks[l1];
-		wfac_ispure_02[1]*=wigner_00[j00]*w->pcl_masks[l1];
+		wfac_ispure_0s[1]=wigner_ss1[jss1]+fac_12*wigner_12[j12]+fac_02*wigner_02[j02];
+		wfac_ispure_ss[1]=wfac_ispure_0s[1];
+		wfac_ispure_ss[2]=wfac_ispure_ss[1]*wfac_ispure_ss[1]*w->pcl_masks[l1];
+		wfac_ispure_ss[1]*=wigner_ss2[jss2]*w->pcl_masks[l1];
+		wfac_ispure_0s[1]*=wigner_00[j00]*w->pcl_masks[l1];
 	      }
 	      else {
-		wfac_ispure_02[1]=wfac_ispure_02[0];
-		wfac_ispure_22[1]=wfac_ispure_22[0];
-		wfac_ispure_22[2]=wfac_ispure_22[0];
+		wfac_ispure_0s[1]=wfac_ispure_0s[0];
+		wfac_ispure_ss[1]=wfac_ispure_ss[0];
+		wfac_ispure_ss[2]=wfac_ispure_ss[0];
 	      }
 	      w->coupling_matrix_unbinned[7*ll2+0][7*ll3+0]+=wfac; //TT,TT
-	      w->coupling_matrix_unbinned[7*ll2+1][7*ll3+1]+=wfac_ispure_02[pe2]; //TE,TE
-	      w->coupling_matrix_unbinned[7*ll2+2][7*ll3+2]+=wfac_ispure_02[pb2]; //TB,TB
+	      w->coupling_matrix_unbinned[7*ll2+1][7*ll3+1]+=wfac_ispure_0s[pe2]; //TE,TE
+	      w->coupling_matrix_unbinned[7*ll2+2][7*ll3+2]+=wfac_ispure_0s[pb2]; //TB,TB
 	      if(suml & 1) { //Odd sum
-		w->coupling_matrix_unbinned[7*ll2+3][7*ll3+6]+=wfac_ispure_22[pe2+pe2]; //EE,BB
-		w->coupling_matrix_unbinned[7*ll2+4][7*ll3+5]-=wfac_ispure_22[pe2+pb2]; //EB,BE
-		w->coupling_matrix_unbinned[7*ll2+5][7*ll3+4]-=wfac_ispure_22[pb2+pe2]; //BE,EB
-		w->coupling_matrix_unbinned[7*ll2+6][7*ll3+3]+=wfac_ispure_22[pb2+pb2]; //BB,EE
+		w->coupling_matrix_unbinned[7*ll2+3][7*ll3+6]+=wfac_ispure_ss[pe2+pe2]; //EE,BB
+		w->coupling_matrix_unbinned[7*ll2+4][7*ll3+5]-=wfac_ispure_ss[pe2+pb2]; //EB,BE
+		w->coupling_matrix_unbinned[7*ll2+5][7*ll3+4]-=wfac_ispure_ss[pb2+pe2]; //BE,EB
+		w->coupling_matrix_unbinned[7*ll2+6][7*ll3+3]+=wfac_ispure_ss[pb2+pb2]; //BB,EE
 	      }
 	      else {
-		w->coupling_matrix_unbinned[7*ll2+3][7*ll3+3]+=wfac_ispure_22[pe2+pe2]; //EE,EE
-		w->coupling_matrix_unbinned[7*ll2+4][7*ll3+4]+=wfac_ispure_22[pe2+pb2]; //EB,EB
-		w->coupling_matrix_unbinned[7*ll2+5][7*ll3+5]+=wfac_ispure_22[pb2+pe2]; //BE,BE
-		w->coupling_matrix_unbinned[7*ll2+6][7*ll3+6]+=wfac_ispure_22[pb2+pb2]; //BB,BB
+		w->coupling_matrix_unbinned[7*ll2+3][7*ll3+3]+=wfac_ispure_ss[pe2+pe2]; //EE,EE
+		w->coupling_matrix_unbinned[7*ll2+4][7*ll3+4]+=wfac_ispure_ss[pe2+pb2]; //EB,EB
+		w->coupling_matrix_unbinned[7*ll2+5][7*ll3+5]+=wfac_ispure_ss[pb2+pe2]; //BE,BE
+		w->coupling_matrix_unbinned[7*ll2+6][7*ll3+6]+=wfac_ispure_ss[pb2+pb2]; //BB,BB
 	      }
 	    }
 	  }
@@ -376,15 +410,18 @@ nmt_workspace *nmt_compute_coupling_matrix(nmt_field *fl1,nmt_field *fl2,
               w->coupling_matrix_unbinned[w->ncls*ll3+jj][w->ncls*ll2+kk]=w->coupling_matrix_unbinned[w->ncls*ll2+jj][w->ncls*ll3+kk];
               w->coupling_matrix_unbinned[w->ncls*ll3+jj][w->ncls*ll2+kk]*=(2*ll2+1.)/(4*M_PI);
             }
-	    w->coupling_matrix_unbinned[w->ncls*ll2+jj][w->ncls*ll3+kk]*=(2*ll3+1.)/(4*M_PI);
+	    w->coupling_matrix_unbinned[w->ncls*ll2+jj][w->ncls*ll3+kk]*=sign_overall*(2*ll3+1.)/(4*M_PI);
           }
         }
       }
     } //end omp for
     if((w->ncls==1) || (w->ncls==2) || (w->ncls==7))
       free(wigner_00);
-    if((w->ncls==2) || (w->ncls==4) || (w->ncls==7))
-      free(wigner_22);
+    if((w->ncls==2) || (w->ncls==4) || (w->ncls==7)) {
+      free(wigner_ss1);
+      if((s1 != s2) && (w->ncls!=7))
+        free(wigner_ss2);
+    }
     if(pure_any) {
       free(wigner_12);
       free(wigner_02);
@@ -439,9 +476,9 @@ void nmt_compute_uncorr_noise_deprojection_bias(nmt_field *fl1,flouble *map_var,
 	  mat_prod[iti*fl1->ntemp+itj]+=he_map_dot(fl1->cs,map_dum[im1],fl1->temp[iti][im1]);
 
 	//SHT[v^2*sigma^2*f^j]
-	he_map2alm(fl1->cs,fl1->lmax,1,2*fl1->pol,map_dum,alm_dum,niter);
+	he_map2alm(fl1->cs,fl1->lmax,1,fl1->spin,map_dum,alm_dum,niter);
 	//Sum_m(SHT[v^2*sigma^2*f^j]*f^i)/(2l+1)
-	he_alm2cl(alm_dum,fl1->a_temp[iti],fl1->pol,fl1->pol,cl_dum,lmax);
+	he_alm2cl(alm_dum,fl1->a_temp[iti],fl1->spin,fl1->spin,cl_dum,lmax);
 	for(im1=0;im1<nspec;im1++) {
 	  for(ip=0;ip<=lmax;ip++)
 	    cl_bias[im1][ip]-=2*cl_dum[im1][ip]*nij;
@@ -452,7 +489,7 @@ void nmt_compute_uncorr_noise_deprojection_bias(nmt_field *fl1,flouble *map_var,
     for(iti=0;iti<fl1->ntemp;iti++) {
       for(itp=0;itp<fl1->ntemp;itp++) {
 	//Sum_m(f^i*f^p*)/(2l+1)
-	he_alm2cl(fl1->a_temp[iti],fl1->a_temp[itp],fl1->pol,fl1->pol,cl_dum,lmax);
+	he_alm2cl(fl1->a_temp[iti],fl1->a_temp[itp],fl1->spin,fl1->spin,cl_dum,lmax);
 	for(itj=0;itj<fl1->ntemp;itj++) {
 	  double mij=gsl_matrix_get(fl1->matrix_M,iti,itj);
 	  for(itq=0;itq<fl1->ntemp;itq++) {
@@ -526,7 +563,7 @@ void nmt_compute_deprojection_bias(nmt_field *fl1,nmt_field *fl2,
 	for(im2=0;im2<fl2->nmaps;im2++)
 	  he_map_product(fl2->cs,fl2->temp[itj][im2],fl2->mask,map_2_dum[im2]);
 	//SHT[w*g^j]
-	he_map2alm(fl2->cs,fl2->lmax,1,2*fl2->pol,map_2_dum,alm_2_dum,niter);
+	he_map2alm(fl2->cs,fl2->lmax,1,fl2->spin,map_2_dum,alm_2_dum,niter);
 	//C^ab*SHT[w*g^j]
 	for(im1=0;im1<fl1->nmaps;im1++) {
 	  he_zero_alm(fl1->lmax,alm_1_dum[im1]);
@@ -534,11 +571,11 @@ void nmt_compute_deprojection_bias(nmt_field *fl1,nmt_field *fl2,
 	    he_alter_alm(lmax,-1.,alm_2_dum[im2],alm_1_dum[im1],cl_proposal[im1*fl2->nmaps+im2],1);
 	}
 	//SHT^-1[C^ab*SHT[w*g^j]]
-	he_alm2map(fl1->cs,fl1->lmax,1,2*fl1->pol,map_1_dum,alm_1_dum);
+	he_alm2map(fl1->cs,fl1->lmax,1,fl1->spin,map_1_dum,alm_1_dum);
 	//SHT[v*SHT^-1[C^ab*SHT[w*g^j]]]
 	purify_generic(fl1,fl1->mask,fl1->a_mask,map_1_dum,alm_1_dum,niter);
 	//Sum_m(SHT[v*SHT^-1[C^ab*SHT[w*g^j]]]*g^i*)/(2l+1)
-	he_alm2cl(alm_1_dum,fl2->a_temp[iti],fl1->pol,fl2->pol,cl_dum,lmax);
+	he_alm2cl(alm_1_dum,fl2->a_temp[iti],fl1->spin,fl2->spin,cl_dum,lmax);
 	for(im1=0;im1<nspec;im1++) {
 	  for(ip=0;ip<=lmax;ip++)
 	    cl_bias[im1][ip]-=cl_dum[im1][ip]*nij;
@@ -558,7 +595,7 @@ void nmt_compute_deprojection_bias(nmt_field *fl1,nmt_field *fl2,
 	for(im1=0;im1<fl1->nmaps;im1++)
 	  he_map_product(fl1->cs,fl1->temp[itj][im1],fl1->mask,map_1_dum[im1]);
 	//SHT[v*f^j]
-	he_map2alm(fl1->cs,fl1->lmax,1,2*fl1->pol,map_1_dum,alm_1_dum,niter);
+	he_map2alm(fl1->cs,fl1->lmax,1,fl1->spin,map_1_dum,alm_1_dum,niter);
 	//C^abT*SHT[v*f^j]
 	for(im2=0;im2<fl2->nmaps;im2++) {
 	  he_zero_alm(fl2->lmax,alm_2_dum[im2]);
@@ -566,11 +603,11 @@ void nmt_compute_deprojection_bias(nmt_field *fl1,nmt_field *fl2,
 	    he_alter_alm(lmax,-1.,alm_1_dum[im1],alm_2_dum[im2],cl_proposal[im1*fl2->nmaps+im2],1);
 	}
 	//SHT^-1[C^abT*SHT[v*f^j]]
-	he_alm2map(fl2->cs,fl2->lmax,1,2*fl2->pol,map_2_dum,alm_2_dum);
+	he_alm2map(fl2->cs,fl2->lmax,1,fl2->spin,map_2_dum,alm_2_dum);
 	//SHT[w*SHT^-1[C^abT*SHT[v*f^j]]]
 	purify_generic(fl2,fl2->mask,fl2->a_mask,map_2_dum,alm_2_dum,niter);
 	//Sum_m(f^i*SHT[w*SHT^-1[C^abT*SHT[v*f^j]]]^*)/(2l+1)
-	he_alm2cl(fl1->a_temp[iti],alm_2_dum,fl1->pol,fl2->pol,cl_dum,lmax);
+	he_alm2cl(fl1->a_temp[iti],alm_2_dum,fl1->spin,fl2->spin,cl_dum,lmax);
 	for(im1=0;im1<nspec;im1++) {
 	  for(ip=0;ip<=lmax;ip++)
 	    cl_bias[im1][ip]-=cl_dum[im1][ip]*mij;
@@ -588,7 +625,7 @@ void nmt_compute_deprojection_bias(nmt_field *fl1,nmt_field *fl2,
 	for(im2=0;im2<fl2->nmaps;im2++)
 	  he_map_product(fl2->cs,fl2->temp[itq][im2],fl2->mask,map_2_dum[im2]);
 	//SHT[w*g^q]
-	he_map2alm(fl2->cs,fl2->lmax,1,2*fl2->pol,map_2_dum,alm_2_dum,niter);
+	he_map2alm(fl2->cs,fl2->lmax,1,fl2->spin,map_2_dum,alm_2_dum,niter);
 	//C^ab*SHT[w*g^q]
 	for(im1=0;im1<fl1->nmaps;im1++) {
 	  he_zero_alm(fl1->lmax,alm_1_dum[im1]);
@@ -596,7 +633,7 @@ void nmt_compute_deprojection_bias(nmt_field *fl1,nmt_field *fl2,
 	    he_alter_alm(lmax,-1.,alm_2_dum[im2],alm_1_dum[im1],cl_proposal[im1*fl2->nmaps+im2],1);
 	}
 	//SHT^-1[C^ab*SHT[w*g^q]]
-	he_alm2map(fl1->cs,fl1->lmax,1,2*fl1->pol,map_1_dum,alm_1_dum);
+	he_alm2map(fl1->cs,fl1->lmax,1,fl1->spin,map_1_dum,alm_1_dum);
 	for(im1=0;im1<fl1->nmaps;im1++) {
 	  //v*SHT^-1[C^ab*SHT[w*g^q]]
 	  he_map_product(fl1->cs,map_1_dum[im1],fl1->mask,map_1_dum[im1]);
@@ -609,7 +646,7 @@ void nmt_compute_deprojection_bias(nmt_field *fl1,nmt_field *fl2,
     for(iti=0;iti<fl1->ntemp;iti++) {
       for(itp=0;itp<fl2->ntemp;itp++) {
 	//Sum_m(f^i*g^p*)/(2l+1)
-	he_alm2cl(fl1->a_temp[iti],fl2->a_temp[itp],fl1->pol,fl2->pol,cl_dum,lmax);
+	he_alm2cl(fl1->a_temp[iti],fl2->a_temp[itp],fl1->spin,fl2->spin,cl_dum,lmax);
 	for(itj=0;itj<fl1->ntemp;itj++) {
 	  double mij=gsl_matrix_get(fl1->matrix_M,iti,itj);
 	  for(itq=0;itq<fl2->ntemp;itq++) {
@@ -764,7 +801,7 @@ void nmt_compute_coupled_cell(nmt_field *fl1,nmt_field *fl2,flouble **cl_out)
   if(fl1->lmax!=fl2->lmax)
     report_error(NMT_ERROR_CONSISTENT_RESO,"Can't correlate fields with different resolutions\n");
 
-  he_alm2cl(fl1->alms,fl2->alms,fl1->pol,fl2->pol,cl_out,fl1->lmax);
+  he_alm2cl(fl1->alms,fl2->alms,fl1->spin,fl2->spin,cl_out,fl1->lmax);
 }
 
 nmt_workspace *nmt_compute_power_spectra(nmt_field *fl1,nmt_field *fl2,

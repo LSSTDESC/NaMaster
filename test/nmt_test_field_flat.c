@@ -41,7 +41,7 @@ CTEST(nmt,field_flat_alloc) {
   ASSERT_EQUAL(fsk->npix,f->npix);
   ASSERT_EQUAL(0,f->pure_e);
   ASSERT_EQUAL(0,f->pure_b);
-  ASSERT_EQUAL(0,f->pol);
+  ASSERT_EQUAL(0,f->spin);
   ASSERT_EQUAL(1,f->nmaps);
   ASSERT_EQUAL(0,f->ntemp);
   //Harmonic transform
@@ -109,10 +109,10 @@ CTEST(nmt,field_flat_alloc) {
     temp[ii]=test_make_map_analytic_flat(fsk,1,i0_x,i0_y);
 
   //No templates
-  f=nmt_field_flat_alloc(fsk->nx,fsk->ny,fsk->lx,fsk->ly,mask,1,maps,0,NULL,
+  f=nmt_field_flat_alloc(fsk->nx,fsk->ny,fsk->lx,fsk->ly,mask,2,maps,0,NULL,
 			 nbpw+1,larr,beam,0,0,1E-5,0);
   //Sanity checks
-  ASSERT_EQUAL(1,f->pol);
+  ASSERT_EQUAL(2,f->spin);
   ASSERT_EQUAL(2,f->nmaps);
   //Harmonic transform
   for(ii=0;ii<fsk->ny;ii++) {
@@ -139,10 +139,10 @@ CTEST(nmt,field_flat_alloc) {
   nmt_field_flat_free(f);
 
   //With purification (nothing should change)
-  f=nmt_field_flat_alloc(fsk->nx,fsk->ny,fsk->lx,fsk->ly,mask,1,maps,0,NULL,
+  f=nmt_field_flat_alloc(fsk->nx,fsk->ny,fsk->lx,fsk->ly,mask,2,maps,0,NULL,
 			 nbpw+1,larr,beam,1,1,1E-5,0);
   //Sanity checks
-  ASSERT_EQUAL(1,f->pol);
+  ASSERT_EQUAL(2,f->spin);
   ASSERT_EQUAL(2,f->nmaps);
   //Harmonic transform
   for(ii=0;ii<fsk->ny;ii++) {
@@ -169,7 +169,7 @@ CTEST(nmt,field_flat_alloc) {
   nmt_field_flat_free(f);
 
   //With templates
-  f=nmt_field_flat_alloc(fsk->nx,fsk->ny,fsk->lx,fsk->ly,mask,1,maps,ntemp,temp,
+  f=nmt_field_flat_alloc(fsk->nx,fsk->ny,fsk->lx,fsk->ly,mask,2,maps,ntemp,temp,
 			 0,NULL,NULL,0,0,1E-5,0);
   //Since maps and templates are the same, template-deprojected map should be 0
   for(ii=0;ii<nmaps;ii++) {
@@ -205,7 +205,7 @@ CTEST(nmt,field_flat_alloc) {
   nmt_field_flat_free(f);
 
   //With templates and purification (nothing should change)
-  f=nmt_field_flat_alloc(fsk->nx,fsk->ny,fsk->lx,fsk->ly,mask,1,maps,ntemp,temp,
+  f=nmt_field_flat_alloc(fsk->nx,fsk->ny,fsk->lx,fsk->ly,mask,2,maps,ntemp,temp,
 			 nbpw+1,larr,beam,1,1,1E-5,0);
   //Since maps and templates are the same, template-deprojected map should be 0
   for(ii=0;ii<nmaps;ii++) {

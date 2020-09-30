@@ -96,7 +96,7 @@ void run_master(nmt_field *fl1,nmt_field *fl2,
   }
 
   printf("Computing data pseudo-Cl\n");
-  he_alm2cl(fl1->alms,fl2->alms,fl1->pol,fl2->pol,cl_data,fl1->lmax);
+  he_alm2cl(fl1->alms,fl2->alms,fl1->spin,fl2->spin,cl_data,fl1->lmax);
 
   printf("Computing deprojection bias\n");
   nmt_compute_deprojection_bias(fl1,fl2,cl_proposal,cl_bias,HE_NITER_DEFAULT);
@@ -136,7 +136,7 @@ void run_master(nmt_field *fl1,nmt_field *fl2,
 
 int main(int argc,char **argv)
 {
-  int n_lbin=1,pol_1=0,pol_2=0,is_auto=0,print_help=0;
+  int n_lbin=1,spin_1=0,spin_2=0,is_auto=0,print_help=0;
   int pure_e_1=0,pure_b_1=0,pure_e_2=0,pure_b_2=0;
   char fname_map_1[256]="none";
   char fname_map_2[256]="none";
@@ -182,10 +182,10 @@ int main(int argc,char **argv)
       pure_e_2=atoi(*++c);
     else if(!strcmp(*c,"-pure_b_2"))
       pure_b_2=atoi(*++c);
-    else if(!strcmp(*c,"-pol"))
-      pol_1=atoi(*++c);
-    else if(!strcmp(*c,"-pol_2"))
-      pol_2=atoi(*++c);
+    else if(!strcmp(*c,"-spin"))
+      spin_1=atoi(*++c);
+    else if(!strcmp(*c,"-spin_2"))
+      spin_2=atoi(*++c);
     else if(!strcmp(*c,"-cl_noise"))
       sprintf(fname_cl_noise,"%s",*++c);
     else if(!strcmp(*c,"-cl_guess"))
@@ -233,8 +233,8 @@ int main(int argc,char **argv)
     fprintf(stderr,"  -temp     -> path to file containing contaminant templates (optional)\n");
     fprintf(stderr,"  -temp_2   -> path to file containing contaminant templates\n");
     fprintf(stderr,"               for 2nd map(s) (optional)\n");
-    fprintf(stderr,"  -pol      -> spin-0 (0) or spin-2 (1) input map(s)\n");
-    fprintf(stderr,"  -pol_2    -> spin-0 (0) or spin-2 (1) 2nd input map(s)\n");
+    fprintf(stderr,"  -spin     -> spin of first input map(s)\n");
+    fprintf(stderr,"  -spin_2   -> spin of 2nd input map(s)\n");
     fprintf(stderr,"  -pure_e   -> use pure E-modes for 1st maps? (0-> no or 1-> yes (default->no))\n");
     fprintf(stderr,"  -pure_b   -> use pure B-modes for 1st maps? (0-> no or 1-> yes (default->no))\n");
     fprintf(stderr,"  -pure_e_2 -> use pure E-modes for 2nd maps? (0-> no or 1-> yes (default->no))\n");
@@ -252,7 +252,7 @@ int main(int argc,char **argv)
   if(n_lbin<=0)
     report_error(NMT_ERROR_BADNO,"#ell per bin must be positive\n");
 
-  fl1=nmt_field_read(1,fname_mask_1,fname_map_1,fname_temp_1,fname_beam_1,pol_1,pure_e_1,pure_b_1,10,1E-10,HE_NITER_DEFAULT);
+  fl1=nmt_field_read(1,fname_mask_1,fname_map_1,fname_temp_1,fname_beam_1,spin_1,pure_e_1,pure_b_1,10,1E-10,HE_NITER_DEFAULT);
 
   if(!strcmp(fname_map_2,"none")) {
     fl2=fl1;
@@ -261,7 +261,7 @@ int main(int argc,char **argv)
   else {
     if(!strcmp(fname_mask_2,"none"))
       sprintf(fname_mask_2,"%s",fname_mask_1);
-    fl2=nmt_field_read(1,fname_mask_2,fname_map_2,fname_temp_2,fname_beam_2,pol_2,pure_e_2,pure_b_2,10,1E-10,HE_NITER_DEFAULT);
+    fl2=nmt_field_read(1,fname_mask_2,fname_map_2,fname_temp_2,fname_beam_2,spin_2,pure_e_2,pure_b_2,10,1E-10,HE_NITER_DEFAULT);
   }
 
   run_master(fl1,fl2,

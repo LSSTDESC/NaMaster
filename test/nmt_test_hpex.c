@@ -38,7 +38,7 @@ CTEST(nmt,he_synalm) {
   cells_pass[1]=cells_in[1];
   cells_pass[2]=cells_in[3];
   fcomplex **alms=he_synalm(cs,nmaps,lmax,cells_pass,beam,1234);
-  he_alm2cl(alms,alms,1,1,cells_out,lmax);
+  he_alm2cl(alms,alms,2,2,cells_out,lmax);
 
   for(l=0;l<=lmax;l++) {
     int im1;
@@ -100,7 +100,7 @@ CTEST(nmt,he_alm2cl)
   double **maps=my_malloc(3*sizeof(double *));
   fcomplex **alms=my_malloc(3*sizeof(fcomplex *));
   double **cls=my_malloc(7*sizeof(double *));
-  
+
   for(ii=0;ii<7;ii++)
     cls[ii]=my_malloc((lmax+1)*sizeof(double));
 
@@ -118,15 +118,15 @@ CTEST(nmt,he_alm2cl)
 
   //Power spectra
   he_alm2cl(&(alms[0]),&(alms[0]),0,0,&(cls[0]),lmax);
-  he_alm2cl(&(alms[0]),&(alms[1]),0,1,&(cls[1]),lmax);
-  he_alm2cl(&(alms[1]),&(alms[1]),1,1,&(cls[3]),lmax);
+  he_alm2cl(&(alms[0]),&(alms[1]),0,2,&(cls[1]),lmax);
+  he_alm2cl(&(alms[1]),&(alms[1]),2,2,&(cls[3]),lmax);
   for(ii=0;ii<7;ii++)
     test_compare_arrays(lmax+1,cls[ii],7,ii,"test/benchmarks/cls_afst.txt",1E-5);
 
   //Anafast
   he_anafast(&(maps[0]),&(maps[0]),0,0,&(cls[0]),cs,lmax,3);
-  he_anafast(&(maps[0]),&(maps[1]),0,1,&(cls[1]),cs,lmax,3);
-  he_anafast(&(maps[1]),&(maps[1]),1,1,&(cls[3]),cs,lmax,3);
+  he_anafast(&(maps[0]),&(maps[1]),0,2,&(cls[1]),cs,lmax,3);
+  he_anafast(&(maps[1]),&(maps[1]),2,2,&(cls[3]),cs,lmax,3);
   for(ii=0;ii<7;ii++)
     test_compare_arrays(lmax+1,cls[ii],7,ii,"test/benchmarks/cls_afst.txt",1E-5);
   

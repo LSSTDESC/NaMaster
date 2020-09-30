@@ -269,7 +269,7 @@ void nmt_purify_flat(nmt_field_flat *fl,flouble *mask,fcomplex **walm0,
 }
 
 nmt_field_flat *nmt_field_flat_alloc(int nx,int ny,flouble lx,flouble ly,
-				     flouble *mask,int pol,flouble **maps,int ntemp,flouble ***temp,
+				     flouble *mask,int spin,flouble **maps,int ntemp,flouble ***temp,
 				     int nl_beam,flouble *l_beam,flouble *beam,
 				     int pure_e,int pure_b,double tol_pinv,int masked_input)
 {
@@ -278,14 +278,16 @@ nmt_field_flat *nmt_field_flat_alloc(int nx,int ny,flouble lx,flouble ly,
   nmt_field_flat *fl=my_malloc(sizeof(nmt_field_flat));
   fl->fs=nmt_flatsky_info_alloc(nx,ny,lx,ly);
   fl->npix=nx*ny;
-  fl->pol=pol;
-  if(pol) fl->nmaps=2;
+  fl->spin=spin;
+  if(spin) fl->nmaps=2;
   else fl->nmaps=1;
   fl->ntemp=ntemp;
 
+  if((pure_e || pure_b) && (spin!=2))
+    report_error(NMT_ERROR_VALUE,"Purification only implemented for spin-2 fields\n");
   fl->pure_e=0;
   fl->pure_b=0;
-  if(pol) {
+  if(spin==2) {
     if(pure_e)
       fl->pure_e=1;
     if(pure_b)
@@ -381,7 +383,7 @@ nmt_field_flat *nmt_field_flat_alloc(int nx,int ny,flouble lx,flouble ly,
   }
 
 
-  if(fl->pol && (fl->pure_e || fl->pure_b)) {
+  if(fl->spin && (fl->pure_e || fl->pure_b)) {
     //If purification is needed:
     // 1- Compute mask alms
     // 2- Purify de-contaminated map
@@ -416,12 +418,12 @@ nmt_field_flat *nmt_field_flat_alloc(int nx,int ny,flouble lx,flouble ly,
     //Masked map and spherical harmonic coefficients
     for(imap=0;imap<fl->nmaps;imap++)
       fs_map_product(fl->fs,maps[imap],fl->mask,fl->maps[imap]);
-    fs_map2alm(fl->fs,1,2*fl->pol,fl->maps,fl->alms);
+    fs_map2alm(fl->fs,1,fl->spin,fl->maps,fl->alms);
 
     //Compute template DFT too
     if(fl->ntemp>0) {
       for(itemp=0;itemp<fl->ntemp;itemp++)
-	fs_map2alm(fl->fs,1,2*fl->pol,fl->temp[itemp],fl->a_temp[itemp]);
+	fs_map2alm(fl->fs,1,fl->spin,fl->temp[itemp],fl->a_temp[itemp]);
     }
   }
 

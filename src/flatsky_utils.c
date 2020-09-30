@@ -339,13 +339,13 @@ void fs_alter_alm(nmt_flatsky_info *fs,double fwhm_amin,fcomplex *alm_in,fcomple
 }
 
 void fs_alm2cl(nmt_flatsky_info *fs,nmt_binning_scheme_flat *bin,
-	       fcomplex **alms_1,fcomplex **alms_2,int pol_1,int pol_2,flouble **cls,
+	       fcomplex **alms_1,fcomplex **alms_2,int spin_1,int spin_2,flouble **cls,
 	       flouble lmn_x,flouble lmx_x,flouble lmn_y,flouble lmx_y)
 {
   int i1,nmaps_1=1,nmaps_2=1;
   int *n_cells=my_malloc(bin->n_bands*sizeof(int));
-  if(pol_1) nmaps_1=2;
-  if(pol_2) nmaps_2=2;
+  if(spin_1) nmaps_1=2;
+  if(spin_2) nmaps_2=2;
 
   for(i1=0;i1<nmaps_1;i1++) {
     int i2;
@@ -417,18 +417,18 @@ void fs_alm2cl(nmt_flatsky_info *fs,nmt_binning_scheme_flat *bin,
 }
 
 void fs_anafast(nmt_flatsky_info *fs,nmt_binning_scheme_flat *bin,
-		flouble **maps_1,flouble **maps_2,int pol_1,int pol_2,flouble **cls)
+		flouble **maps_1,flouble **maps_2,int spin_1,int spin_2,flouble **cls)
 {
   int i1;
   fcomplex **alms_1,**alms_2;
   int nmaps_1=1,nmaps_2=1;
-  if(pol_1) nmaps_1=2;
-  if(pol_2) nmaps_2=2;
+  if(spin_1) nmaps_1=2;
+  if(spin_2) nmaps_2=2;
 
   alms_1=my_malloc(nmaps_1*sizeof(fcomplex *));
   for(i1=0;i1<nmaps_1;i1++)
     alms_1[i1]=dftw_malloc(fs->ny*(fs->nx/2+1)*sizeof(fcomplex));
-  fs_map2alm(fs,1,2*pol_1,maps_1,alms_1);
+  fs_map2alm(fs,1,spin_1,maps_1,alms_1);
 
   if(maps_1==maps_2)
     alms_2=alms_1;
@@ -436,10 +436,10 @@ void fs_anafast(nmt_flatsky_info *fs,nmt_binning_scheme_flat *bin,
     alms_2=my_malloc(nmaps_2*sizeof(fcomplex *));
     for(i1=0;i1<nmaps_2;i1++)
       alms_2[i1]=dftw_malloc(fs->ny*(fs->nx/2+1)*sizeof(fcomplex));
-    fs_map2alm(fs,1,2*pol_2,maps_2,alms_2);
+    fs_map2alm(fs,1,spin_2,maps_2,alms_2);
   }
 
-  fs_alm2cl(fs,bin,alms_1,alms_2,pol_1,pol_2,cls,1.,-1.,1.,-1.);
+  fs_alm2cl(fs,bin,alms_1,alms_2,spin_1,spin_2,cls,1.,-1.,1.,-1.);
 
   for(i1=0;i1<nmaps_1;i1++)
     dftw_free(alms_1[i1]);

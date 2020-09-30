@@ -220,8 +220,8 @@ CTEST(nmt,fsk_cls) {
   }
 
   fs_anafast(fsk,bpw,maps0,maps0,0,0,&(cells[0]));
-  fs_anafast(fsk,bpw,maps0,maps2,0,1,&(cells[1]));
-  fs_anafast(fsk,bpw,maps2,maps2,1,1,&(cells[3]));
+  fs_anafast(fsk,bpw,maps0,maps2,0,2,&(cells[1]));
+  fs_anafast(fsk,bpw,maps2,maps2,2,2,&(cells[3]));
   for(ii=0;ii<nbpw;ii++) {
     int jj;
     double pred=0;

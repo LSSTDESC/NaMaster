@@ -268,7 +268,7 @@ void nmt_purify(nmt_field *fl,flouble *mask,fcomplex **walm0,
   free(f_l);
 }
 
-nmt_field *nmt_field_alloc_sph(nmt_curvedsky_info *cs,flouble *mask,int pol,flouble **maps,
+nmt_field *nmt_field_alloc_sph(nmt_curvedsky_info *cs,flouble *mask,int spin,flouble **maps,
 			       int ntemp,flouble ***temp,flouble *beam,
 			       int pure_e,int pure_b,int n_iter_mask_purify,double tol_pinv,
 			       int niter,int masked_input)
@@ -279,8 +279,8 @@ nmt_field *nmt_field_alloc_sph(nmt_curvedsky_info *cs,flouble *mask,int pol,flou
   fl->cs=nmt_curvedsky_info_copy(cs);
   fl->lmax=he_get_lmax(fl->cs);
   fl->npix=cs->npix;
-  fl->pol=pol;
-  if(pol) fl->nmaps=2;
+  fl->spin=spin;
+  if(spin) fl->nmaps=2;
   else fl->nmaps=1;
   fl->ntemp=ntemp;
 
@@ -288,10 +288,12 @@ nmt_field *nmt_field_alloc_sph(nmt_curvedsky_info *cs,flouble *mask,int pol,flou
     npix_short=fl->cs->npix;
   else
     npix_short=fl->cs->nx_short*fl->cs->ny;
-  
+
+  if((pure_e || pure_b) && (spin!=2))
+    report_error(NMT_ERROR_VALUE,"Purification only implemented for spin-2 fields\n");
   fl->pure_e=0;
   fl->pure_b=0;
-  if(pol) {
+  if(spin==2) {
     if(pure_e)
       fl->pure_e=1;
     if(pure_b)
@@ -312,7 +314,7 @@ nmt_field *nmt_field_alloc_sph(nmt_curvedsky_info *cs,flouble *mask,int pol,flou
   for(imap=0;imap<fl->nmaps;imap++) {//Need to multiply observed map by mask first
     fl->maps[imap]=nmt_extend_CAR_map(fl->cs,maps[imap]);
     if(masked_input) { //If input maps are already masked, we need to unmask them for purification.
-      if(fl->pol && (fl->pure_e || fl->pure_b)) {
+      if(fl->spin && (fl->pure_e || fl->pure_b)) {
 	long ip;
 	for(ip=0;ip<npix_short;ip++) {
           if(mask[ip]>0)
@@ -332,7 +334,7 @@ nmt_field *nmt_field_alloc_sph(nmt_curvedsky_info *cs,flouble *mask,int pol,flou
       for(imap=0;imap<fl->nmaps;imap++) {
 	fl->temp[itemp][imap]=nmt_extend_CAR_map(fl->cs,temp[itemp][imap]);
         if(masked_input) { //If input maps are already masked, we need to unmask them for purification.
-          if(fl->pol && (fl->pure_e || fl->pure_b)) {
+          if(fl->spin && (fl->pure_e || fl->pure_b)) {
             long ip;
             for(ip=0;ip<npix_short;ip++) {
               if(mask[ip]>0)
@@ -379,7 +381,7 @@ nmt_field *nmt_field_alloc_sph(nmt_curvedsky_info *cs,flouble *mask,int pol,flou
 	long ip;
 	for(ip=0;ip<fl->npix;ip++)
 	  fl->maps[imap][ip]-=alpha*fl->temp[itemp][imap][ip]; //Correct masked field
-	if(fl->pol && (fl->pure_e || fl->pure_b)) { //Correct unmasked field too if purifying
+	if(fl->spin && (fl->pure_e || fl->pure_b)) { //Correct unmasked field too if purifying
 	  for(ip=0;ip<npix_short;ip++)
 	    maps[imap][ip]-=alpha*temp[itemp][imap][ip]; 
 	}
@@ -401,7 +403,7 @@ nmt_field *nmt_field_alloc_sph(nmt_curvedsky_info *cs,flouble *mask,int pol,flou
     }
   }
 
-  if(fl->pol && (fl->pure_e || fl->pure_b)) {
+  if(fl->spin && (fl->pure_e || fl->pure_b)) {
     //If purification is needed:
     // 1- Compute mask alms
     // 2- Purify de-contaminated map
@@ -444,12 +446,12 @@ nmt_field *nmt_field_alloc_sph(nmt_curvedsky_info *cs,flouble *mask,int pol,flou
     fl->a_mask=NULL; //No need to store extra-pure mask harmonic coefficients
 
     //Masked map and harmonic coefficients
-    he_map2alm(fl->cs,fl->lmax,1,2*fl->pol,fl->maps,fl->alms,niter);
+    he_map2alm(fl->cs,fl->lmax,1,fl->spin,fl->maps,fl->alms,niter);
 
     //Compute template harmonic coefficients too
     if(fl->ntemp>0) {
       for(itemp=0;itemp<fl->ntemp;itemp++)
-	he_map2alm(fl->cs,fl->lmax,1,2*fl->pol,fl->temp[itemp],fl->a_temp[itemp],niter);
+	he_map2alm(fl->cs,fl->lmax,1,fl->spin,fl->temp[itemp],fl->a_temp[itemp],niter);
     }
   }
 
@@ -503,7 +505,7 @@ flouble **nmt_synfast_sph(nmt_curvedsky_info *cs,int nfields,int *spin_arr,int l
 }
 
 nmt_field *nmt_field_read(int is_healpix,char *fname_mask,char *fname_maps,char *fname_temp,
-			  char *fname_beam,int pol,int pure_e,int pure_b,
+			  char *fname_beam,int spin,int pure_e,int pure_b,
 			  int n_iter_mask_purify,double tol_pinv,int niter)
 {
   nmt_curvedsky_info *cs,*cs_dum;
@@ -513,7 +515,7 @@ nmt_field *nmt_field_read(int is_healpix,char *fname_mask,char *fname_maps,char 
   flouble **maps;
   flouble ***temp;
   int ii,ntemp,itemp,imap,lmax,nmaps=1;
-  if(pol) nmaps=2;
+  if(spin) nmaps=2;
 
   cs=my_malloc(sizeof(nmt_curvedsky_info));
   cs->is_healpix=is_healpix;
@@ -575,7 +577,7 @@ nmt_field *nmt_field_read(int is_healpix,char *fname_mask,char *fname_maps,char 
     temp=NULL;
   }
 
-  fl=nmt_field_alloc_sph(cs,mask,pol,maps,ntemp,temp,beam,pure_e,pure_b,
+  fl=nmt_field_alloc_sph(cs,mask,spin,maps,ntemp,temp,beam,pure_e,pure_b,
 			 n_iter_mask_purify,tol_pinv,niter,0);
 
   if(beam!=NULL)
