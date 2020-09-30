@@ -184,11 +184,18 @@ void  nmt_compute_gaussian_covariance_coupled(nmt_covar_workspace *cw,
 		  for(ilb=0;ilb<wb->bin->nell_list[band_b];ilb++) {
 		    int iap;
 		    int lb=wb->bin->ell_list[band_b][ilb];
-		    double xis_1122[6]={cw->xi00_1122[la][lb],cw->xi02_1122[la][lb],cw->xi22p_1122[la][lb],
-					cw->xi22m_1122[la][lb],-cw->xi22m_1122[la][lb],0};
-		    double xis_1221[6]={cw->xi00_1221[la][lb],cw->xi02_1221[la][lb],cw->xi22p_1221[la][lb],
-					cw->xi22m_1221[la][lb],-cw->xi22m_1221[la][lb],0};
+		    double xis_1122[6]={cw->xi00_1122[la][lb],
+                                        cw->xi02_1122[la][lb],
+                                        cw->xi22p_1122[la][lb],
+					cw->xi22m_1122[la][lb],
+                                        -cw->xi22m_1122[la][lb],0};
+		    double xis_1221[6]={cw->xi00_1221[la][lb],
+                                        cw->xi02_1221[la][lb],
+                                        cw->xi22p_1221[la][lb],
+					cw->xi22m_1221[la][lb],
+                                        -cw->xi22m_1221[la][lb],0};
 		    double prefac_ell=wa->bin->f_ell[band_a][ila]*wb->bin->f_ell[band_b][ilb];
+                    double cov_element=0;
 		    for(iap=0;iap<nmaps_a;iap++) {
 		      int ibp;
 		      for(ibp=0;ibp<nmaps_b;ibp++) {
@@ -207,11 +214,12 @@ void  nmt_compute_gaussian_covariance_coupled(nmt_covar_workspace *cw,
 			    int ind_1221=cov_get_coupling_pair_index(nmaps_a,nmaps_d,nmaps_b,nmaps_c,
 								     ia,iap,id,idp,ib,ibp,ic,icp);
 			    
-			    covar_out[((wa->ncls*la+icl_a)*(cw->lmax+1)+lb)*wb->ncls+icl_b]=(xis_1122[ind_1122]*fac_1122+xis_1221[ind_1221]*fac_1221)*prefac_ell;
+                            cov_element+=(xis_1122[ind_1122]*fac_1122+xis_1221[ind_1221]*fac_1221)*prefac_ell;
 			  }
 			}
 		      }
 		    }
+                    covar_out[((wa->ncls*la+icl_a)*(cw->lmax+1)+lb)*wb->ncls+icl_b]=cov_element;
 		  }
 		}
 	      }
