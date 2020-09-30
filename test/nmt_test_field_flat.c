@@ -104,9 +104,9 @@ CTEST(nmt,field_flat_alloc) {
   //Spin-2
   nmaps=2;
   //Create inputs
-  maps=test_make_map_analytic_flat(fsk,1,i0_x,i0_y);
+  maps=test_make_map_analytic_flat(fsk,2,i0_x,i0_y);
   for(ii=0;ii<ntemp;ii++)
-    temp[ii]=test_make_map_analytic_flat(fsk,1,i0_x,i0_y);
+    temp[ii]=test_make_map_analytic_flat(fsk,2,i0_x,i0_y);
 
   //No templates
   f=nmt_field_flat_alloc(fsk->nx,fsk->ny,fsk->lx,fsk->ly,mask,2,maps,0,NULL,

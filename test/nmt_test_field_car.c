@@ -149,9 +149,9 @@ CTEST(nmt,field_car_alloc) {
   //Spin-2
   nmaps=2;
   //Create inputs
-  maps=test_make_map_analytic_car(cs,1);
+  maps=test_make_map_analytic_car(cs,2);
   for(ii=0;ii<ntemp;ii++)
-    temp[ii]=test_make_map_analytic_car(cs,1);
+    temp[ii]=test_make_map_analytic_car(cs,2);
 
   //No templates
   f=nmt_field_alloc_sph(cs,mask,2,maps,0,NULL,beam,0,0,0,1E-5,HE_NITER_DEFAULT,0);

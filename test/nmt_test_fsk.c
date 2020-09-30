@@ -160,7 +160,7 @@ CTEST(nmt,fsk_cls) {
   double k0_x=i0_x*2*M_PI/fsk->lx;
   double k0_y=i0_y*2*M_PI/fsk->ly;
   double **maps0=test_make_map_analytic_flat(fsk,0,i0_x,i0_y);
-  double **maps2=test_make_map_analytic_flat(fsk,1,i0_x,i0_y);
+  double **maps2=test_make_map_analytic_flat(fsk,2,i0_x,i0_y);
   fcomplex **alms0=my_malloc(1*sizeof(fcomplex *));
   fcomplex **alms2=my_malloc(2*sizeof(fcomplex *));
   alms0[0]=dftw_malloc(fsk->ny*(fsk->nx/2+1)*sizeof(fcomplex));
@@ -324,7 +324,7 @@ CTEST(nmt,fsk_fft) {
   //Spin-2. map = 2*pi/A * (cos(2*phi_k0),-sin(2*phi_k0)) Re[exp(i*k0*x)] ->
   //        a_E(k) = (delta_{k,k0}+delta_{k,-k0})/2
   //        a_B(k) = 0
-  maps=test_make_map_analytic_flat(fsk,1,i0_x,i0_y);
+  maps=test_make_map_analytic_flat(fsk,2,i0_x,i0_y);
   fs_map2alm(fsk,1,2,maps,alms);
   for(ii=0;ii<fsk->ny;ii++) {
     int jj;
