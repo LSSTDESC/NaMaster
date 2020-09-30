@@ -98,6 +98,9 @@ class NmtField(object):
                 raise ValueError("Spin-zero fields are "
                                  "associated with a single map")
 
+        if (pure_e or pure_b) and spin != 2:
+            raise ValueError("Purification only implemented for spin-2 fields")
+
         if wt.is_healpix == 0:  # Flatten if 2D maps
             try:
                 maps = np.array(maps)
@@ -280,6 +283,9 @@ class NmtFieldFlat(object):
                     ((spin == 0) and nmaps != 1)):
                 raise ValueError("Spin-zero fields are "
                                  "associated with a single map")
+
+        if (pure_e or pure_b) and spin != 2:
+            raise ValueError("Purification only implemented for spin-2 fields")
 
         # Flatten mask
         msk = (mask.astype(np.float64)).flatten()
