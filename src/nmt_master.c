@@ -224,9 +224,10 @@ nmt_workspace *nmt_compute_coupling_matrix(nmt_field *fl1,nmt_field *fl2,
 
     if((w->ncls==1) || (w->ncls==2) || (w->ncls==7))
       wigner_00=my_malloc(2*(w->lmax_mask+1)*sizeof(double));
-    if((w->ncls==2) || (w->ncls==4) || (w->ncls==7)) {
+    if((w->ncls==2) || (w->ncls==4) || (w->ncls==7))
       wigner_ss1=my_malloc(2*(w->lmax_mask+1)*sizeof(double));
-      if((s1 != s2) && (w->ncls!=7))
+    if(w->ncls==4) {
+      if(s1 != s2)
         wigner_ss2=my_malloc(2*(w->lmax_mask+1)*sizeof(double));
       else
         wigner_ss2=wigner_ss1;
@@ -254,15 +255,16 @@ nmt_workspace *nmt_compute_coupling_matrix(nmt_field *fl1,nmt_field *fl2,
 
 	if((w->ncls==1) || (w->ncls==2) || (w->ncls==7))
 	  drc3jj(ll2,ll3,0,0,&lmin_here_00,&lmax_here_00,wigner_00,2*(w->lmax_mask+1));
-	if((w->ncls==2) || (w->ncls==4) || (w->ncls==7)) {
+	if((w->ncls==2) || (w->ncls==4) || (w->ncls==7))
 	  drc3jj(ll2,ll3,s1,-s1,&lmin_here_ss1,&lmax_here_ss1,wigner_ss1,2*(w->lmax_mask+1));
-          if((s1 != s2) && (w->ncls!=7))
+        if(w->ncls==4) {
+          if(s1 != s2)
             drc3jj(ll2,ll3,s2,-s2,&lmin_here_ss2,&lmax_here_ss2,wigner_ss2,2*(w->lmax_mask+1));
           else {
             lmin_here_ss2=lmin_here_ss1;
             lmax_here_ss2=lmax_here_ss1;
           }
-        } 
+        }
 	if(pure_any) {
 	  drc3jj(ll2,ll3,1,-2,&lmin_here_12,&lmax_here_12,wigner_12,2*(w->lmax_mask+1));
 	  drc3jj(ll2,ll3,0,-2,&lmin_here_02,&lmax_here_02,wigner_02,2*(w->lmax_mask+1));
@@ -271,14 +273,12 @@ nmt_workspace *nmt_compute_coupling_matrix(nmt_field *fl1,nmt_field *fl2,
 	if(w->ncls!=7) {
 	  lmin_here=NMT_MAX(lmin_here_00,lmin_here_ss1);
 	  lmax_here=NMT_MIN(lmax_here_00,lmax_here_ss1);
-	  lmin_here=NMT_MAX(lmin_here,lmin_here_ss2);
-	  lmax_here=NMT_MIN(lmax_here,lmax_here_ss2);
-	}
+          lmin_here=NMT_MAX(lmin_here,lmin_here_ss2);
+          lmax_here=NMT_MIN(lmax_here,lmax_here_ss2);
+        }
 	else {
 	  lmin_here=NMT_MIN(lmin_here_00,lmin_here_ss1);
 	  lmax_here=NMT_MAX(lmax_here_00,lmax_here_ss1);
-	  lmin_here=NMT_MIN(lmin_here,lmin_here_ss1);
-	  lmax_here=NMT_MAX(lmax_here,lmax_here_ss1);
 	}
 	if(pure_any) {
 	  lmin_here=NMT_MIN(lmin_here,lmin_here_12);
@@ -372,12 +372,12 @@ nmt_workspace *nmt_compute_coupling_matrix(nmt_field *fl1,nmt_field *fl2,
               wfac_ispure_0s[0]=wigner_ss1[jss1];
               wfac_ispure_0s[0]*=w->pcl_masks[l1]*wigner_00[j00];
               wfac_ispure_ss[0]=wigner_ss1[jss1];
-              wfac_ispure_ss[0]*=wigner_ss2[jss2]*w->pcl_masks[l1];
+              wfac_ispure_ss[0]*=wigner_ss1[jss1]*w->pcl_masks[l1];
 	      if(pure_any) {
 		wfac_ispure_0s[1]=wigner_ss1[jss1]+fac_12*wigner_12[j12]+fac_02*wigner_02[j02];
 		wfac_ispure_ss[1]=wfac_ispure_0s[1];
 		wfac_ispure_ss[2]=wfac_ispure_ss[1]*wfac_ispure_ss[1]*w->pcl_masks[l1];
-		wfac_ispure_ss[1]*=wigner_ss2[jss2]*w->pcl_masks[l1];
+		wfac_ispure_ss[1]*=wigner_ss1[jss1]*w->pcl_masks[l1];
 		wfac_ispure_0s[1]*=wigner_00[j00]*w->pcl_masks[l1];
 	      }
 	      else {
@@ -408,7 +408,7 @@ nmt_workspace *nmt_compute_coupling_matrix(nmt_field *fl1,nmt_field *fl2,
 	  for(kk=0;kk<w->ncls;kk++) {
             if((!pure_any) && (ll2!=ll3)) { //Symmetry
               w->coupling_matrix_unbinned[w->ncls*ll3+jj][w->ncls*ll2+kk]=w->coupling_matrix_unbinned[w->ncls*ll2+jj][w->ncls*ll3+kk];
-              w->coupling_matrix_unbinned[w->ncls*ll3+jj][w->ncls*ll2+kk]*=(2*ll2+1.)/(4*M_PI);
+              w->coupling_matrix_unbinned[w->ncls*ll3+jj][w->ncls*ll2+kk]*=sign_overall*(2*ll2+1.)/(4*M_PI);
             }
 	    w->coupling_matrix_unbinned[w->ncls*ll2+jj][w->ncls*ll3+kk]*=sign_overall*(2*ll3+1.)/(4*M_PI);
           }
@@ -417,9 +417,10 @@ nmt_workspace *nmt_compute_coupling_matrix(nmt_field *fl1,nmt_field *fl2,
     } //end omp for
     if((w->ncls==1) || (w->ncls==2) || (w->ncls==7))
       free(wigner_00);
-    if((w->ncls==2) || (w->ncls==4) || (w->ncls==7)) {
+    if((w->ncls==2) || (w->ncls==4) || (w->ncls==7))
       free(wigner_ss1);
-      if((s1 != s2) && (w->ncls!=7))
+    if(w->ncls==4) {
+      if(s1 != s2)
         free(wigner_ss2);
     }
     if(pure_any) {
