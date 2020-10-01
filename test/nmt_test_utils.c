@@ -30,6 +30,10 @@ double **test_make_map_analytic_flat(nmt_flatsky_info *fsk,int spin,int i0_x,int
 	maps[0][jj+fsk->nx*ii]= 2*M_PI*c2phi0*cos(phase)/(fsk->lx*fsk->ly);
 	maps[1][jj+fsk->nx*ii]=-2*M_PI*s2phi0*cos(phase)/(fsk->lx*fsk->ly);
       }
+      else if(spin==1) {
+	maps[0][jj+fsk->nx*ii]=-2*M_PI*cphi0*sin(phase)/(fsk->lx*fsk->ly);
+	maps[1][jj+fsk->nx*ii]= 2*M_PI*sphi0*sin(phase)/(fsk->lx*fsk->ly);
+      }
       else 
 	maps[0][jj+fsk->nx*ii]=2*M_PI*cos(phase)/(fsk->lx*fsk->ly);
     }

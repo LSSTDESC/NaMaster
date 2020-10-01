@@ -146,6 +146,33 @@ CTEST(nmt,field_car_alloc) {
   free(maps);
 
   ////////
+  //Spin-1
+  nmaps=2;
+  //Create inputs
+  maps=test_make_map_analytic_car(cs,1);
+
+  //No templates
+  f=nmt_field_alloc_sph(cs,mask,1,maps,0,NULL,beam,0,0,0,1E-5,HE_NITER_DEFAULT,0);
+  //Sanity checks
+  ASSERT_EQUAL(1,f->spin);
+  ASSERT_EQUAL(2,f->nmaps);
+
+  //Harmonic transform
+  ASSERT_DBL_NEAR_TOL(1.,creal(f->alms[0][he_indexlm(1,0,lmax)]),1E-5);
+  ASSERT_DBL_NEAR_TOL(0.,cimag(f->alms[0][he_indexlm(1,0,lmax)]),1E-5);
+  ASSERT_DBL_NEAR_TOL(0.,creal(f->alms[0][he_indexlm(1,1,lmax)]),1E-5);
+  ASSERT_DBL_NEAR_TOL(0.,cimag(f->alms[0][he_indexlm(1,1,lmax)]),1E-5);
+  ASSERT_DBL_NEAR_TOL(3.,creal(f->alms[1][he_indexlm(1,0,lmax)]),1E-5);
+  ASSERT_DBL_NEAR_TOL(0.,cimag(f->alms[1][he_indexlm(1,0,lmax)]),1E-5);
+  ASSERT_DBL_NEAR_TOL(0.,creal(f->alms[1][he_indexlm(1,1,lmax)]),1E-5);
+  ASSERT_DBL_NEAR_TOL(0.,cimag(f->alms[1][he_indexlm(1,1,lmax)]),1E-5);
+  nmt_field_free(f);
+  //Free inputs
+  for(ii=0;ii<nmaps;ii++)
+    free(maps[ii]);
+  free(maps);
+
+  ////////
   //Spin-2
   nmaps=2;
   //Create inputs

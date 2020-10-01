@@ -101,6 +101,46 @@ CTEST(nmt,field_flat_alloc) {
   ////////
 
   ////////
+  //Spin-1
+  nmaps=2;
+  //Create inputs
+  maps=test_make_map_analytic_flat(fsk,1,i0_x,i0_y);
+
+  //No templates
+  f=nmt_field_flat_alloc(fsk->nx,fsk->ny,fsk->lx,fsk->ly,mask,1,maps,0,NULL,
+			 nbpw+1,larr,beam,0,0,1E-5,0);
+  //Sanity checks
+  ASSERT_EQUAL(1,f->spin);
+  ASSERT_EQUAL(2,f->nmaps);
+  //Harmonic transform
+  for(ii=0;ii<fsk->ny;ii++) {
+    int jj;
+    for(jj=0;jj<=fsk->nx/2;jj++) {
+      double re0=creal(f->alms[0][jj+(fsk->nx/2+1)*ii]);
+      double im0=cimag(f->alms[0][jj+(fsk->nx/2+1)*ii]);
+      double re1=creal(f->alms[1][jj+(fsk->nx/2+1)*ii]);
+      double im1=cimag(f->alms[1][jj+(fsk->nx/2+1)*ii]);
+      if((jj==i0_x) && (ii==i0_y)) {
+	ASSERT_DBL_NEAR_TOL(0.5,re0,1E-5);
+	ASSERT_DBL_NEAR_TOL(0.0,im0,1E-5);
+	ASSERT_DBL_NEAR_TOL(0.0,re1,1E-5);
+	ASSERT_DBL_NEAR_TOL(0.0,im1,1E-5);
+      }
+      else {
+	ASSERT_DBL_NEAR_TOL(0.0,re0,1E-5);
+	ASSERT_DBL_NEAR_TOL(0.0,im0,1E-5);
+	ASSERT_DBL_NEAR_TOL(0.0,re1,1E-5);
+	ASSERT_DBL_NEAR_TOL(0.0,im1,1E-5);
+      }
+    }
+  }
+  nmt_field_flat_free(f);
+  for(ii=0;ii<nmaps;ii++)
+    dftw_free(maps[ii]);
+  free(maps);
+  ////////
+
+  ////////
   //Spin-2
   nmaps=2;
   //Create inputs
