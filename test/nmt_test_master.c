@@ -319,6 +319,57 @@ CTEST(nmt,master_22_full) {
   free(cs);
 }
 
+CTEST(nmt,master_11_full) {
+  //Generate fields and compute coupling matrix
+  int ii;
+  long ipix;
+  nmt_field *f1;
+  nmt_workspace *w11;
+  nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(1,1,-1,-1,-1,-1,-1,-1,-1);
+  double **mps1=my_malloc(2*sizeof(double *));
+  double *msk=he_read_map("test/benchmarks/msk.fits",cs,0);
+  long lmax=he_get_lmax(cs);
+  nmt_binning_scheme *bin=nmt_bins_constant(16,lmax,0);
+  mps1[0]=he_read_map("test/benchmarks/mps_sp1.fits",cs,1);
+  mps1[1]=he_read_map("test/benchmarks/mps_sp1.fits",cs,2);
+  
+  //Init power spectra
+  int ncls=4;
+  double **cell=my_malloc(ncls*sizeof(double *));
+  double **cell_out=my_malloc(ncls*sizeof(double *));
+  double **cell0=my_malloc(ncls*sizeof(double *));
+  for(ii=0;ii<ncls;ii++) {
+    cell[ii]=my_malloc((lmax+1)*sizeof(double));
+    cell0[ii]=my_calloc((lmax+1),sizeof(double));
+    cell_out[ii]=my_malloc(bin->n_bands*sizeof(double));
+  }
+  
+  //No contaminants
+  f1=nmt_field_alloc_sph(cs,msk,1,mps1,0,NULL,NULL,0,0,3,1E-10,HE_NITER_DEFAULT,0);
+  w11=nmt_compute_coupling_matrix(f1,f1,bin,0,HE_NITER_DEFAULT,-1);
+  nmt_compute_coupled_cell(f1,f1,cell);
+  nmt_decouple_cl_l(w11,cell,cell0,cell0,cell_out);
+  for(ii=0;ii<ncls;ii++)
+    test_compare_arrays(bin->n_bands,cell_out[ii],ncls,ii,"test/benchmarks/bm_sp1_c11.txt",1E-3);
+  nmt_workspace_free(w11);
+  nmt_field_free(f1);
+  
+  //Free up power spectra
+  for(ii=0;ii<ncls;ii++) {
+    free(cell[ii]);
+    free(cell0[ii]);
+    free(cell_out[ii]);
+  }
+  free(cell); free(cell0); free(cell_out);
+
+  nmt_bins_free(bin);
+  for(ii=0;ii<2;ii++)
+    free(mps1[ii]);
+  free(mps1);
+  free(msk);
+  free(cs);
+}
+
 CTEST(nmt,master_02_full) {
   //Generate fields and compute coupling matrix
   int ii;
@@ -447,6 +498,150 @@ CTEST(nmt,master_02_full) {
   free(cs);
 }
 
+CTEST(nmt,master_sp1_full) {
+  //Generate fields and compute coupling matrix
+  int ii;
+  long ipix;
+  nmt_field *f0,*f1;
+  nmt_workspace *w00,*w01,*w11;
+  nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(1,1,-1,-1,-1,-1,-1,-1,-1);
+  double **mps0=my_malloc(sizeof(double *));
+  double **mps1=my_malloc(2*sizeof(double *));
+  double *msk=he_read_map("test/benchmarks/msk.fits",cs,0);
+  long lmax=he_get_lmax(cs);
+  nmt_binning_scheme *bin=nmt_bins_constant(16,lmax,0);
+  mps0[0]=he_read_map("test/benchmarks/mps_sp1.fits",cs,0);
+  mps1[0]=he_read_map("test/benchmarks/mps_sp1.fits",cs,1);
+  mps1[1]=he_read_map("test/benchmarks/mps_sp1.fits",cs,2);
+  
+  //Init power spectra
+  int ncls=4;
+  double **cell00=my_malloc(ncls*sizeof(double *));
+  double **cell01=my_malloc(ncls*sizeof(double *));
+  double **cell11=my_malloc(ncls*sizeof(double *));
+  double **cell_out00=my_malloc(ncls*sizeof(double *));
+  double **cell_out01=my_malloc(ncls*sizeof(double *));
+  double **cell_out11=my_malloc(ncls*sizeof(double *));
+  double **cell0=my_malloc(ncls*sizeof(double *));
+  for(ii=0;ii<ncls;ii++) {
+    cell00[ii]=my_malloc((lmax+1)*sizeof(double));
+    cell01[ii]=my_malloc((lmax+1)*sizeof(double));
+    cell11[ii]=my_malloc((lmax+1)*sizeof(double));
+    cell0[ii]=my_calloc((lmax+1),sizeof(double));
+    cell_out00[ii]=my_malloc(bin->n_bands*sizeof(double));
+    cell_out01[ii]=my_malloc(bin->n_bands*sizeof(double));
+    cell_out11[ii]=my_malloc(bin->n_bands*sizeof(double));
+  }
+  
+  //No contaminants
+  f0=nmt_field_alloc_sph(cs,msk,0,mps0,0,NULL,NULL,0,0,3,1E-10,HE_NITER_DEFAULT,0);
+  f1=nmt_field_alloc_sph(cs,msk,1,mps1,0,NULL,NULL,0,0,3,1E-10,HE_NITER_DEFAULT,0);
+  w00=nmt_compute_coupling_matrix(f0,f0,bin,0,HE_NITER_DEFAULT,-1);
+  w01=nmt_compute_coupling_matrix(f0,f1,bin,0,HE_NITER_DEFAULT,-1);
+  w11=nmt_compute_coupling_matrix(f1,f1,bin,0,HE_NITER_DEFAULT,-1);
+  nmt_compute_coupled_cell(f0,f0,cell00);
+  nmt_decouple_cl_l(w00,cell00,cell0,cell0,cell_out00);
+  nmt_compute_coupled_cell(f0,f1,cell01);
+  nmt_decouple_cl_l(w01,cell01,cell0,cell0,cell_out01);
+  nmt_compute_coupled_cell(f1,f1,cell11);
+  nmt_decouple_cl_l(w11,cell11,cell0,cell0,cell_out11);
+  for(ii=0;ii<bin->n_bands;ii++) {
+    double cl00=cell_out00[0][ii];
+    double tol=0.05*cl00;
+    ASSERT_DBL_NEAR_TOL(cl00,cell_out01[0][ii],tol);
+    ASSERT_DBL_NEAR_TOL(cl00,cell_out11[0][ii],tol);
+  }
+  nmt_workspace_free(w00);
+  nmt_workspace_free(w01);
+  nmt_workspace_free(w11);
+  nmt_field_free(f0);
+  nmt_field_free(f1);
+
+  //Free up power spectra
+  for(ii=0;ii<ncls;ii++) {
+    free(cell00[ii]);
+    free(cell01[ii]);
+    free(cell11[ii]);
+    free(cell0[ii]);
+    free(cell_out00[ii]);
+    free(cell_out01[ii]);
+    free(cell_out11[ii]);
+  }
+  free(cell00);
+  free(cell01);
+  free(cell11);
+  free(cell0);
+  free(cell_out00);
+  free(cell_out01);
+  free(cell_out11);
+
+  nmt_bins_free(bin);
+  for(ii=0;ii<2;ii++)
+    free(mps1[ii]);
+  free(mps0[0]);
+  free(mps0);
+  free(mps1);
+  free(msk);
+  free(cs);
+}
+
+CTEST(nmt,master_01_full) {
+  //Generate fields and compute coupling matrix
+  int ii;
+  long ipix;
+  nmt_field *f0,*f1;
+  nmt_workspace *w01;
+  nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(1,1,-1,-1,-1,-1,-1,-1,-1);
+  double **mps0=my_malloc(sizeof(double *));
+  double **mps1=my_malloc(2*sizeof(double *));
+  double *msk=he_read_map("test/benchmarks/msk.fits",cs,0);
+  long lmax=he_get_lmax(cs);
+  nmt_binning_scheme *bin=nmt_bins_constant(16,lmax,0);
+  mps0[0]=he_read_map("test/benchmarks/mps_sp1.fits",cs,0);
+  mps1[0]=he_read_map("test/benchmarks/mps_sp1.fits",cs,1);
+  mps1[1]=he_read_map("test/benchmarks/mps_sp1.fits",cs,2);
+  
+  //Init power spectra
+  int ncls=2;
+  double **cell=my_malloc(ncls*sizeof(double *));
+  double **cell_out=my_malloc(ncls*sizeof(double *));
+  double **cell0=my_malloc(ncls*sizeof(double *));
+  for(ii=0;ii<ncls;ii++) {
+    cell[ii]=my_malloc((lmax+1)*sizeof(double));
+    cell0[ii]=my_calloc((lmax+1),sizeof(double));
+    cell_out[ii]=my_malloc(bin->n_bands*sizeof(double));
+  }
+  
+  //No contaminants
+  f0=nmt_field_alloc_sph(cs,msk,0,mps0,0,NULL,NULL,0,0,3,1E-10,HE_NITER_DEFAULT,0);
+  f1=nmt_field_alloc_sph(cs,msk,1,mps1,0,NULL,NULL,0,0,3,1E-10,HE_NITER_DEFAULT,0);
+  w01=nmt_compute_coupling_matrix(f0,f1,bin,0,HE_NITER_DEFAULT,-1);
+  nmt_compute_coupled_cell(f0,f1,cell);
+  nmt_decouple_cl_l(w01,cell,cell0,cell0,cell_out);
+  for(ii=0;ii<ncls;ii++)
+    test_compare_arrays(bin->n_bands,cell_out[ii],ncls,ii,"test/benchmarks/bm_sp1_c01.txt",1E-3);
+  nmt_workspace_free(w01);
+  nmt_field_free(f0);
+  nmt_field_free(f1);
+
+  //Free up power spectra
+  for(ii=0;ii<ncls;ii++) {
+    free(cell[ii]);
+    free(cell0[ii]);
+    free(cell_out[ii]);
+  }
+  free(cell); free(cell0); free(cell_out);
+
+  nmt_bins_free(bin);
+  for(ii=0;ii<2;ii++)
+    free(mps1[ii]);
+  free(mps0[0]);
+  free(mps0);
+  free(mps1);
+  free(msk);
+  free(cs);
+}
+
 CTEST(nmt,master_sp1) {
   int ii;
   long ipix, lmax;
@@ -483,10 +678,10 @@ CTEST(nmt,master_sp1) {
   for(ii=2;ii<2*cs->n_eq;ii++) {
     ASSERT_DBL_NEAR_TOL(cell00[0][ii], cell01[0][ii], cell00[0][ii]*2E-3);
     ASSERT_DBL_NEAR_TOL(cell00[0][ii], cell11[0][ii], cell00[0][ii]*3E-3);
-    ASSERT_DBL_NEAR_TOL(0., cell01[1][ii], 1E-10);
-    ASSERT_DBL_NEAR_TOL(0., cell11[1][ii], 1E-10);
-    ASSERT_DBL_NEAR_TOL(0., cell11[2][ii], 1E-10);
-    ASSERT_DBL_NEAR_TOL(0., cell11[3][ii], 1E-10);
+    ASSERT_DBL_NEAR_TOL(0., cell01[1][ii], 1E-9);
+    ASSERT_DBL_NEAR_TOL(0., cell11[1][ii], 1E-9);
+    ASSERT_DBL_NEAR_TOL(0., cell11[2][ii], 1E-9);
+    ASSERT_DBL_NEAR_TOL(0., cell11[3][ii], 1E-9);
   }
   nmt_field_free(f0);
   nmt_field_free(f1);
