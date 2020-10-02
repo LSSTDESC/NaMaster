@@ -2,7 +2,6 @@ import unittest
 import numpy as np
 import pymaster as nmt
 import healpy as hp
-from parameterized import parameterized
 
 # Unit tests associated with the NmtField and NmtFieldFlat classes
 
@@ -126,8 +125,13 @@ class TestUtilsSynfastFsk(unittest.TestCase):
                              seed=1234)
         self.assertEqual(m.shape, (3, self.ny, self.nx))
 
-    @parameterized.expand([[1], [2]])
-    def test_synfast_flat_stats(self, spin):
+    def test_synfast_flat_spin1(self):
+        self.synfast_flat_stats(1)
+
+    def test_synfast_flat_spin2(self):
+        self.synfast_flat_stats(2)
+
+    def synfast_flat_stats(self, spin):
         # Temperature only
         m_t = nmt.synfast_flat(self.nx, self.ny, self.lx, self.ly,
                                self.cl1, [0], beam=np.array([self.beam]),
@@ -220,8 +224,14 @@ class TestUtilsSynfastSph(unittest.TestCase):
                                   seed=1234)
         self.assertEqual(m.shape, (3, hp.nside2npix(self.nside)))
 
-    @parameterized.expand([[1], [2]])
-    def test_synfast_stats(self, spin):
+
+    def test_synfast_spin1(self):
+        self.synfast_stats(1)
+
+    def test_synfast_spin2(self):
+        self.synfast_stats(1)
+
+    def synfast_stats(self, spin):
         # Temperature only
         m_t = nmt.synfast_spherical(self.nside, self.cl1, [0],
                                     beam=np.array([self.beam]),
