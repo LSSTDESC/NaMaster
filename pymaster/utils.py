@@ -205,9 +205,9 @@ def synfast_spherical(nside, cls, spin_arr, beam=None, seed=-1, wcs=None):
     spin_arr = np.array(spin_arr).astype(np.int32)
     nfields = len(spin_arr)
 
-    if np.sum((spin_arr == 0) | (spin_arr == 2)) != nfields:
-        raise ValueError("All spins must be 0 or 2")
-    nmaps = int(1 * np.sum(spin_arr == 0) + 2 * np.sum(spin_arr == 2))
+    if np.any(spin_arr < 0):
+        raise ValueError("Spins must be positive")
+    nmaps = int(1 * np.sum(spin_arr == 0) + 2 * np.sum(spin_arr != 0))
 
     ncls = (nmaps * (nmaps + 1)) // 2
     if ncls != len(cls):
@@ -274,9 +274,9 @@ def synfast_flat(nx, ny, lx, ly, cls, spin_arr, beam=None, seed=-1):
     spin_arr = np.array(spin_arr).astype(np.int32)
     nfields = len(spin_arr)
 
-    if np.sum((spin_arr == 0) | (spin_arr == 2)) != nfields:
-        raise ValueError("All spins must be 0 or 2")
-    nmaps = int(1 * np.sum(spin_arr == 0) + 2 * np.sum(spin_arr == 2))
+    if np.any(spin_arr < 0):
+        raise ValueError("Spins must be positive")
+    nmaps = int(1 * np.sum(spin_arr == 0) + 2 * np.sum(spin_arr != 0))
 
     ncls = (nmaps * (nmaps + 1)) // 2
     if ncls != len(cls):

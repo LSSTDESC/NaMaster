@@ -484,7 +484,7 @@ void synfast_new(int is_healpix,int nside,int nx,int ny,double delta_phi,
   for(ii=0;ii<nfields;ii++) {
     if(spin_arr[ii]==0)
       nmaps+=1;
-    else if(spin_arr[ii]==2)
+    else
       nmaps+=2;
   }
 
@@ -529,7 +529,7 @@ void synfast_new_flat(int nx,int ny,double lx,double ly,
   for(ii=0;ii<nfields;ii++) {
     if(spin_arr[ii]==0)
       nmaps+=1;
-    else if(spin_arr[ii]==2)
+    else
       nmaps+=2;
   }
   asserting(lx>0);
