@@ -41,8 +41,8 @@ with the spins of the two fields being correlated, and \
 the ordering is as follows:
 
 - Two spin-0 fields: n_cls=1, [C_T1T2]
-- One spin-0 field and one spin-2 field: n_cls=2, [C_TE,C_TB]
-- Two spin-2 fields: n_cls=4, [C_E1E2,C_E1B2,C_E2B1,C_B1B2]
+- One spin-0 field and one spin>0 field: n_cls=2, [C_TE,C_TB]
+- Two spin>0 fields: n_cls=4, [C_E1E2,C_E1B2,C_E2B1,C_B1B2]
 
 All sky maps accepted and returned by these functions are \
 in the form of HEALPix maps exclusively with RING ordering.

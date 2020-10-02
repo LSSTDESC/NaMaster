@@ -27,7 +27,7 @@ class NmtField(object):
         NmtField. See more \
         `here <https://healpix.jpl.nasa.gov/html/intronode12.htm>`_ .
     :param spin: field's spin. If `None` it will be set to 0 if there is
-        a single on input, and will default to 2 if there are 2 maps.
+        a single map on input, and will default to 2 if there are 2 maps.
     :param templates: array containing a set of contaminant templates for \
         this field. This array should have shape [ntemp][nmap]..., where \
         ntemp is the number of templates, nmap should be 1 for spin-0 fields \
@@ -220,9 +220,9 @@ class NmtFieldFlat(object):
         to the field's mask.
     :param maps: 2 2D arrays (nmaps,nx,ny) containing the observed maps \
         for this field. The first dimension corresponds to the number of \
-        maps, which should be 1 for a spin-0 field and 2 for a spin-2 field.
+        maps, which should be 1 for a spin-0 field and 2 otherwise.
     :param spin: field's spin. If `None` it will be set to 0 if there is
-        a single on input, and will default to 2 if there are 2 maps.
+        a single map on input, and will default to 2 if there are 2 maps.
     :param templates: array of maps (ntemp,nmaps,nx,ny) containing a set \
         of contaminant templates for this field. This array should have \
         shape [ntemp][nmap][nx][ny], where ntemp is the number of \

@@ -206,13 +206,13 @@
 <p>Many of these function accept or return sets of power spectra (arrays with one element per angular multipole) or bandpowers (binned versions of power spectra). In all cases, these are returned and provided as 2D arrays with shape [n_cls][nl], where n_cls is the number of power spectra and nl is either the number of multipoles or bandpowers. In all cases, n_cls should correspond with the spins of the two fields being correlated, and the ordering is as follows:</p>
 <ul class="simple">
 <li>Two spin-0 fields: n_cls=1, [C_T1T2]</li>
-<li>One spin-0 field and one spin-2 field: n_cls=2, [C_TE,C_TB]</li>
-<li>Two spin-2 fields: n_cls=4, [C_E1E2,C_E1B2,C_E2B1,C_B1B2]</li>
+<li>One spin-0 field and one spin&gt;0 field: n_cls=2, [C_TE,C_TB]</li>
+<li>Two spin&gt;0 fields: n_cls=4, [C_E1E2,C_E1B2,C_E2B1,C_B1B2]</li>
 </ul>
 <p>All sky maps accepted and returned by these functions are in the form of HEALPix maps exclusively with RING ordering.</p>
 <span class="target" id="module-pymaster.field"></span><dl class="class">
 <dt id="pymaster.field.NmtField">
-<em class="property">class </em><code class="descclassname">pymaster.field.</code><code class="descname">NmtField</code><span class="sig-paren">(</span><em>mask</em>, <em>maps</em>, <em>templates=None</em>, <em>beam=None</em>, <em>purify_e=False</em>, <em>purify_b=False</em>, <em>n_iter_mask_purify=3</em>, <em>tol_pinv=1e-10</em>, <em>wcs=None</em>, <em>n_iter=3</em>, <em>lmax_sht=-1</em>, <em>masked_on_input=False</em><span class="sig-paren">)</span><a class="headerlink" href="#pymaster.field.NmtField" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">pymaster.field.</code><code class="descname">NmtField</code><span class="sig-paren">(</span><em>mask</em>, <em>maps</em>, <em>spin=None</em>, <em>templates=None</em>, <em>beam=None</em>, <em>purify_e=False</em>, <em>purify_b=False</em>, <em>n_iter_mask_purify=3</em>, <em>tol_pinv=1e-10</em>, <em>wcs=None</em>, <em>n_iter=3</em>, <em>lmax_sht=-1</em>, <em>masked_on_input=False</em><span class="sig-paren">)</span><a class="headerlink" href="#pymaster.field.NmtField" title="Permalink to this definition">¶</a></dt>
 <dd><p>An NmtField object contains all the information describing the fields to
 correlate, including their observed maps, masks and contaminant templates.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -221,12 +221,14 @@ correlate, including their observed maps, masks and contaminant templates.</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>mask</strong> – array containing a map corresponding to the field’s mask.         Should be 1-dimensional for a HEALPix map or 2-dimensional for a map         with rectangular pixelization.</li>
-<li><strong>maps</strong> – array containing the observed maps for this field. Should be         at least 2-dimensional. The first dimension corresponds to the number         of maps, which should be 1 for a spin-0 field and 2 for a spin-2         field. The other dimensions should be [npix] for HEALPix maps or         [ny,nx] for maps with rectangular pixels. For a spin-2 field, the two         maps to pass should be the usual Q/U Stokes parameters for         polarization, or e1/e2 (gamma1/gamma2 etc.) in the case of cosmic         shear. It is important to note that NaMaster uses the same         polarization convention as HEALPix (i.e. with the x-coordinate         growing with increasing colatitude theta). It is however more common         for galaxy ellipticities to be provided using the IAU convention         (i.e. x grows with declination). In this case, the sign of the         e2/gamma2 map should be swapped before using it to create an         NmtField. See more         <a class="reference external" href="https://healpix.jpl.nasa.gov/html/intronode12.htm">here</a> .</li>
-<li><strong>templates</strong> – array containing a set of contaminant templates for         this field. This array should have shape [ntemp][nmap]…, where         ntemp is the number of templates, nmap should be 1 for spin-0 fields         and 2 for spin-2 fields. The other dimensions should be [npix] for         HEALPix maps or [ny,nx] for maps with rectangular pixels. The         best-fit contribution from each contaminant is automatically removed         from the maps unless templates=None.</li>
+<li><strong>maps</strong> – array containing the observed maps for this field. Should be         at least 2-dimensional. The first dimension corresponds to the number         of maps, which should be 1 for a spin-0 field and 2 otherwise.         The other dimensions should be [npix] for HEALPix maps or         [ny,nx] for maps with rectangular pixels. For a spin&gt;0 field, the two         maps to pass should be the usual Q/U Stokes parameters for         polarization, or e1/e2 (gamma1/gamma2 etc.) in the case of cosmic         shear. It is important to note that NaMaster uses the same         polarization convention as HEALPix (i.e. with the x-coordinate         growing with increasing colatitude theta). It is however more common         for galaxy ellipticities to be provided using the IAU convention         (i.e. x grows with declination). In this case, the sign of the         e2/gamma2 map should be swapped before using it to create an         NmtField. See more         <a class="reference external" href="https://healpix.jpl.nasa.gov/html/intronode12.htm">here</a> .</li>
+<li><strong>spin</strong> – field’s spin. If <cite>None</cite> it will be set to 0 if there is
+a single map on input, and will default to 2 if there are 2 maps.</li>
+<li><strong>templates</strong> – array containing a set of contaminant templates for         this field. This array should have shape [ntemp][nmap]…, where         ntemp is the number of templates, nmap should be 1 for spin-0 fields         and 2 otherwise. The other dimensions should be [npix] for         HEALPix maps or [ny,nx] for maps with rectangular pixels. The         best-fit contribution from each contaminant is automatically removed         from the maps unless templates=None.</li>
 <li><strong>beam</strong> – spherical harmonic transform of the instrumental beam         (assumed to be rotationally symmetric - i.e. no m dependence). If         None, no beam will be corrected for. Otherwise, this array should         have at least as many elements as the maximum multipole sampled by         the maps + 1 (e.g. if a HEALPix map, it should contain 3*nside         elements, corresponding to multipoles from 0 to 3*nside-1).</li>
 <li><strong>purify_e</strong> – use pure E-modes?</li>
 <li><strong>purify_b</strong> – use pure B-modes?</li>
-<li><strong>n_iter_mask_purify</strong> – number of iterations used to compute an         accurate SHT of the mask when using E/B purification</li>
+<li><strong>n_iter_mask_purify</strong> – number of iterations used to compute an         accurate SHT of the mask when using E/B purification.</li>
 <li><strong>tol_pinv</strong> – when computing the pseudo-inverse of the contaminant         covariance matrix, all eigenvalues below tol_pinv * max_eval will be         treated as singular values, where max_eval is the largest eigenvalue.         Only relevant if passing contaminant templates that are likely to be         highly correlated.</li>
 <li><strong>wcs</strong> – a WCS object if using rectangular pixels (see         <a class="reference external" href="http://docs.astropy.org/en/stable/wcs/index.html">http://docs.astropy.org/en/stable/wcs/index.html</a>).</li>
 <li><strong>n_iter</strong> – number of iterations when computing a_lms.</li>
@@ -273,7 +275,7 @@ if you’re using purification.</li>
 
 <dl class="class">
 <dt id="pymaster.field.NmtFieldFlat">
-<em class="property">class </em><code class="descclassname">pymaster.field.</code><code class="descname">NmtFieldFlat</code><span class="sig-paren">(</span><em>lx</em>, <em>ly</em>, <em>mask</em>, <em>maps</em>, <em>templates=None</em>, <em>beam=None</em>, <em>purify_e=False</em>, <em>purify_b=False</em>, <em>tol_pinv=1e-10</em>, <em>masked_on_input=False</em><span class="sig-paren">)</span><a class="headerlink" href="#pymaster.field.NmtFieldFlat" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">pymaster.field.</code><code class="descname">NmtFieldFlat</code><span class="sig-paren">(</span><em>lx</em>, <em>ly</em>, <em>mask</em>, <em>maps</em>, <em>spin=None</em>, <em>templates=None</em>, <em>beam=None</em>, <em>purify_e=False</em>, <em>purify_b=False</em>, <em>tol_pinv=1e-10</em>, <em>masked_on_input=False</em><span class="sig-paren">)</span><a class="headerlink" href="#pymaster.field.NmtFieldFlat" title="Permalink to this definition">¶</a></dt>
 <dd><p>An NmtFieldFlat object contains all the information describing the     flat-sky fields to correlate, including their observed maps, masks     and contaminant templates.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -282,7 +284,9 @@ if you’re using purification.</li>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>lx</strong><strong>,</strong><strong>ly</strong> (<em>float</em>) – size of the patch in the x and y directions (in         radians)</li>
 <li><strong>mask</strong> – 2D array (nx,ny) containing a HEALPix map corresponding         to the field’s mask.</li>
-<li><strong>maps</strong> – 2 2D arrays (nmaps,nx,ny) containing the observed maps         for this field. The first dimension corresponds to the number of         maps, which should be 1 for a spin-0 field and 2 for a spin-2 field.</li>
+<li><strong>maps</strong> – 2 2D arrays (nmaps,nx,ny) containing the observed maps         for this field. The first dimension corresponds to the number of         maps, which should be 1 for a spin-0 field and 2 otherwise.</li>
+<li><strong>spin</strong> – field’s spin. If <cite>None</cite> it will be set to 0 if there is
+a single map on input, and will default to 2 if there are 2 maps.</li>
 <li><strong>templates</strong> – array of maps (ntemp,nmaps,nx,ny) containing a set         of contaminant templates for this field. This array should have         shape [ntemp][nmap][nx][ny], where ntemp is the number of         templates, nmap should be 1 for spin-0 fields and 2 for spin-2         fields, and nx,ny define the patch. The best-fit contribution         from each contaminant is automatically removed from the maps         unless templates=None</li>
 <li><strong>beam</strong> – 2D array (2,nl) defining the FT of the instrumental beam         (assumed to be rotationally symmetric). beam[0] should contain         the values of l for which de beam is defined, with beam[1]         containing the beam values. If None, no beam will be corrected         for.</li>
 <li><strong>purify_e</strong> – use pure E-modes?</li>
@@ -1125,7 +1129,7 @@ bandpower.</li>
 
 <dl class="function">
 <dt id="pymaster.covariance.gaussian_covariance">
-<code class="descclassname">pymaster.covariance.</code><code class="descname">gaussian_covariance</code><span class="sig-paren">(</span><em>cw</em>, <em>spin_a1</em>, <em>spin_a2</em>, <em>spin_b1</em>, <em>spin_b2</em>, <em>cla1b1</em>, <em>cla1b2</em>, <em>cla2b1</em>, <em>cla2b2</em>, <em>wa</em>, <em>wb=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pymaster.covariance.gaussian_covariance" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">pymaster.covariance.</code><code class="descname">gaussian_covariance</code><span class="sig-paren">(</span><em>cw</em>, <em>spin_a1</em>, <em>spin_a2</em>, <em>spin_b1</em>, <em>spin_b2</em>, <em>cla1b1</em>, <em>cla1b2</em>, <em>cla2b1</em>, <em>cla2b2</em>, <em>wa</em>, <em>wb=None</em>, <em>coupled=False</em><span class="sig-paren">)</span><a class="headerlink" href="#pymaster.covariance.gaussian_covariance" title="Permalink to this definition">¶</a></dt>
 <dd><p>Computes Gaussian covariance matrix for power spectra using the     information precomputed in cw (a NmtCovarianceWorkspace object).     cw should have been initialized using four NmtField objects (let’s     call them a1, a2, b1 and b2), corresponding to the two pairs of     fields whose power spectra we want the covariance of. These power     spectra should have been computed using two NmtWorkspace objects,     wa and wb, which must be passed as arguments of this function (the     power spectrum for fields a1 and a2 was computed with wa, and that     of b1 and b2 with wb). Using the same notation, clXnYm should be a     prediction for the power spectrum between fields Xn and Ym. These     predicted input power spectra should be defined for all     ells &lt;=3*nside (where nside is the HEALPix resolution parameter of     the fields that were correlated).</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -1136,6 +1140,9 @@ bandpower.</li>
 <li><strong>spin_Xn</strong> (<em>int</em>) – spin for the n-th field in pair X.</li>
 <li><strong>clXnYm</strong> – prediction for the cross-power spectrum between         fields Xn and Ym.</li>
 <li><strong>wX</strong> (<a class="reference internal" href="#pymaster.workspaces.NmtWorkspace" title="pymaster.workspaces.NmtWorkspace"><em>NmtWorkspace</em></a>) – workspace containing the mode-coupling         matrix pair X. If <cite>wb</cite> is <cite>None</cite>, the code will assume <cite>wb=wa</cite>.</li>
+<li><strong>coupled</strong> – if <cite>True</cite>, the covariance matrix of the
+mode-coupled pseudo-Cls will be computed. Otherwise it’ll be
+the covariance of decoupled bandpowers.</li>
 </ul>
 </td>
 </tr>
@@ -1242,7 +1249,7 @@ bandpower.</li>
 <li><strong>ny</strong> (<em>int</em>) – number of pixels in the y-axis</li>
 <li><strong>lx</strong> (<em>float</em>) – patch size in the x-axis (in radians)</li>
 <li><strong>ly</strong> (<em>float</em>) – patch size in the y-axis (in radians)</li>
-<li><strong>cls</strong> (<em>array-like</em>) – array containing power spectra. Shape should be         [n_cls][n_ell], where n_cls is the number of power spectra needed         to define all the fields. This should be         n_cls = n_maps * (n_maps + 1) / 2, where n_maps is the total number         of maps required (1 for each spin-0 field, 2 for each spin-2 field).         Power spectra must be provided only for the upper-triangular part in         row-major order (e.g. if n_maps is 3, there will be 6 power spectra         ordered as [1-1,1-2,1-3,2-2,2-3,3-3].</li>
+<li><strong>cls</strong> (<em>array-like</em>) – array containing power spectra. Shape should be         [n_cls][n_ell], where n_cls is the number of power spectra needed         to define all the fields. This should be         n_cls = n_maps * (n_maps + 1) / 2, where n_maps is the total number         of maps required (1 for each spin-0 field, 2 for each spin&gt;0 field).         Power spectra must be provided only for the upper-triangular part in         row-major order (e.g. if n_maps is 3, there will be 6 power spectra         ordered as [1-1,1-2,1-3,2-2,2-3,3-3].</li>
 <li><strong>spin_arr</strong> (<em>array-like</em>) – array containing the spins of all the fields         to generate.</li>
 <li><strong>array-like</strong> (<em>beam</em>) – 2D array containing the instrumental beam of each         field to simulate (the output map(s) will be convolved with it)</li>
 <li><strong>seed</strong> (<em>int</em>) – RNG seed. If negative, will use a random seed.</li>
@@ -1266,7 +1273,7 @@ bandpower.</li>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>nside</strong> (<em>int</em>) – HEALpix resolution parameter. If you want         rectangular pixel maps, ignore this parameter and pass a         WCS object as <cite>wcs</cite> (see below).</li>
-<li><strong>cls</strong> (<em>array-like</em>) – array containing power spectra. Shape         should be [n_cls][n_ell], where n_cls is the number of power         spectra needed to define all the fields. This should be         n_cls = n_maps * (n_maps + 1) / 2, where n_maps is the total         number of maps required (1 for each spin-0 field, 2 for each         spin-2 field). Power spectra must be provided only for the         upper-triangular part in row-major order (e.g. if n_maps is         3, there will be 6 power spectra ordered as         [1-1,1-2,1-3,2-2,2-3,3-3].</li>
+<li><strong>cls</strong> (<em>array-like</em>) – array containing power spectra. Shape         should be [n_cls][n_ell], where n_cls is the number of power         spectra needed to define all the fields. This should be         n_cls = n_maps * (n_maps + 1) / 2, where n_maps is the total         number of maps required (1 for each spin-0 field, 2 for each         spin&gt;0 field). Power spectra must be provided only for the         upper-triangular part in row-major order (e.g. if n_maps is         3, there will be 6 power spectra ordered as         [1-1,1-2,1-3,2-2,2-3,3-3].</li>
 <li><strong>spin_arr</strong> (<em>array-like</em>) – array containing the spins of all the         fields to generate.</li>
 <li><strong>array-like</strong> (<em>beam</em>) – 2D array containing the instrumental beam         of each field to simulate (the output map(s) will be convolved         with it)</li>
 <li><strong>seed</strong> (<em>int</em>) – RNG seed. If negative, will use a random seed.</li>

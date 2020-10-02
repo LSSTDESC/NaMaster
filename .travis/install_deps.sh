@@ -2,7 +2,7 @@
 
 # Install healpy and nose
 
-pip install nose healpy scipy
+pip install nose healpy scipy parameterize
 
 #### Install GSL2.0+ ####
 

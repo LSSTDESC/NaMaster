@@ -113,9 +113,9 @@ Data Fields</h2></td></tr>
 <tr class="memitem:a8ecb035f08467cb2044f6c26ca9630f6"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namaster_8h.html#a8f59ea55fc4d564945b2e8712a6ef482">fcomplex</a> **&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structnmt__field__flat.html#a8ecb035f08467cb2044f6c26ca9630f6">a_mask</a></td></tr>
 <tr class="memdesc:a8ecb035f08467cb2044f6c26ca9630f6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Fourier transform of the mask. Only computed if E or B are purified.  <a href="#a8ecb035f08467cb2044f6c26ca9630f6">More...</a><br /></td></tr>
 <tr class="separator:a8ecb035f08467cb2044f6c26ca9630f6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2df4d558662f6a5886ca90243edc1719"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structnmt__field__flat.html#a2df4d558662f6a5886ca90243edc1719">pol</a></td></tr>
-<tr class="memdesc:a2df4d558662f6a5886ca90243edc1719"><td class="mdescLeft">&#160;</td><td class="mdescRight">&gt;0 if field is spin-2 (otherwise it's spin-0).  <a href="#a2df4d558662f6a5886ca90243edc1719">More...</a><br /></td></tr>
-<tr class="separator:a2df4d558662f6a5886ca90243edc1719"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1b43ed81f32bd28a92288f50e81f929c"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structnmt__field__flat.html#a1b43ed81f32bd28a92288f50e81f929c">spin</a></td></tr>
+<tr class="memdesc:a1b43ed81f32bd28a92288f50e81f929c"><td class="mdescLeft">&#160;</td><td class="mdescRight">field's spin (&gt;=0).  <a href="#a1b43ed81f32bd28a92288f50e81f929c">More...</a><br /></td></tr>
+<tr class="separator:a1b43ed81f32bd28a92288f50e81f929c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:addc025f35cd7cb6a9563e5311de829a3"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structnmt__field__flat.html#addc025f35cd7cb6a9563e5311de829a3">nmaps</a></td></tr>
 <tr class="memdesc:addc025f35cd7cb6a9563e5311de829a3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of maps in the field (2 for spin-2, 1 for spin-0).  <a href="#addc025f35cd7cb6a9563e5311de829a3">More...</a><br /></td></tr>
 <tr class="separator:addc025f35cd7cb6a9563e5311de829a3"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -299,20 +299,6 @@ Data Fields</h2></td></tr>
 
 </div>
 </div>
-<a class="anchor" id="a2df4d558662f6a5886ca90243edc1719"></a>
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">int nmt_field_flat::pol</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>&gt;0 if field is spin-2 (otherwise it's spin-0). </p>
-
-</div>
-</div>
 <a class="anchor" id="a169f5da8dbf26f1855fc90776f3c647c"></a>
 <div class="memitem">
 <div class="memproto">
@@ -338,6 +324,20 @@ Data Fields</h2></td></tr>
 </div><div class="memdoc">
 
 <p>&gt;0 if E-modes have been purified. </p>
+
+</div>
+</div>
+<a class="anchor" id="a1b43ed81f32bd28a92288f50e81f929c"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int nmt_field_flat::spin</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>field's spin (&gt;=0). </p>
 
 </div>
 </div>
