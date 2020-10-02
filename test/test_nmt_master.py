@@ -155,6 +155,9 @@ class TestWorkspaceHPX(unittest.TestCase):
         self.mps = np.array(hp.read_map("test/benchmarks/mps.fits",
                                         verbose=False,
                                         field=[0, 1, 2]))
+        self.mps_s1 = np.array(hp.read_map("test/benchmarks/mps_sp1.fits",
+                                           verbose=False,
+                                           field=[0, 1, 2]))
         self.tmp = np.array(hp.read_map("test/benchmarks/tmp.fits",
                                         verbose=False,
                                         field=[0, 1, 2]))
@@ -187,6 +190,26 @@ class TestWorkspaceHPX(unittest.TestCase):
         self.nlee = nlee[:3*self.nside]
         self.nlbb = nlbb[:3*self.nside]
         self.nlte = nlte[:3*self.nside]
+
+    def test_spin1(self):
+        prefix = "test/benchmarks/bm_sp1"
+        f0 = nmt.NmtField(self.msk, [self.mps_s1[0]])
+        f1 = nmt.NmtField(self.msk,
+                          [self.mps_s1[1], self.mps_s1[2]],
+                          spin=1)
+        f = [f0, f1]
+
+        for ip1 in range(2):
+            for ip2 in range(ip1, 2):
+                w = nmt.NmtWorkspace()
+                w.compute_coupling_matrix(f[ip1], f[ip2], self.b)
+                cl = w.decouple_cell(nmt.compute_coupled_cell(f[ip1],
+                                                              f[ip2]))[0]
+                tl = np.loadtxt(prefix+'_c%d%d.txt' % (ip1, ip2),
+                                unpack=True)[1]
+                self.assertTrue((np.fabs(cl-tl) <=
+                                 np.fmin(np.fabs(cl),
+                                         np.fabs(tl))*1E-5).all())
 
     def mastest(self, wtemp, wpure, do_teb=False):
         prefix = "test/benchmarks/bm"
@@ -492,6 +515,8 @@ class TestWorkspaceFsk(unittest.TestCase):
         self.ly = np.radians(np.fabs(self.ny*self.wcs.wcs.cdelt[1]))
         self.mps = np.array([read_flat_map("test/benchmarks/mps_flat.fits",
                                            i_map=i)[1] for i in range(3)])
+        self.mps_s1 = np.array([read_flat_map("test/benchmarks/mps_sp1_flat.fits",
+                                              i_map=i)[1] for i in range(3)])
         self.tmp = np.array([read_flat_map("test/benchmarks/tmp_flat.fits",
                                            i_map=i)[1] for i in range(3)])
         self.d_ell = 20
@@ -527,6 +552,28 @@ class TestWorkspaceFsk(unittest.TestCase):
         self.n_bad = np.zeros([2, len(l)])
         self.nb_good = np.zeros([1, self.b.bin.n_bands])
         self.nb_bad = np.zeros([2, self.b.bin.n_bands])
+
+    def test_spin1(self):
+        prefix = "test/benchmarks/bm_f_sp1"
+        f0 = nmt.NmtFieldFlat(self.lx, self.ly, self.msk,
+                              [self.mps_s1[0]])
+        f1 = nmt.NmtFieldFlat(self.lx, self.ly, self.msk,
+                              [self.mps_s1[1], self.mps_s1[2]],
+                              spin=1)
+        f = [f0, f1]
+
+        for ip1 in range(2):
+            for ip2 in range(ip1, 2):
+                w = nmt.NmtWorkspaceFlat()
+                w.compute_coupling_matrix(f[ip1], f[ip2], self.b)
+                cl = w.decouple_cell(nmt.compute_coupled_cell_flat(f[ip1],
+                                                                   f[ip2],
+                                                                   self.b))[0]
+                tl = np.loadtxt(prefix+'_c%d%d.txt' % (ip1, ip2),
+                                unpack=True)[1]
+                self.assertTrue((np.fabs(cl-tl) <=
+                                 np.fmin(np.fabs(cl),
+                                         np.fabs(tl))*1E-5).all())
 
     def mastest(self, wtemp, wpure, do_teb=False):
         prefix = "test/benchmarks/bm_f"

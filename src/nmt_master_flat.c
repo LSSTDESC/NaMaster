@@ -10,7 +10,7 @@ static void purify_generic_flat(nmt_field_flat *fl,flouble *mask,fcomplex **walm
     int im1;
     for(im1=0;im1<fl->nmaps;im1++)
       fs_map_product(fl->fs,maps_in[im1],mask,maps_in[im1]);
-    fs_map2alm(fl->fs,1,2*fl->pol,maps_in,alms_out);
+    fs_map2alm(fl->fs,1,fl->spin,maps_in,alms_out);
   }
 }
 
@@ -86,12 +86,27 @@ nmt_workspace_flat *nmt_compute_coupling_matrix_flat(nmt_field_flat *fl1,nmt_fie
 
   int n_cl=fl1->nmaps*fl2->nmaps;
   if(is_teb) {
-    if(!((fl1->pol==0) && (fl2->pol==1)))
-      report_error(NMT_ERROR_INCONSISTENT,"For T-E-B MCM the first input field must be spin-0 and the se\
-cond spin-2\n");
+    if(!((fl1->spin==0) && (fl2->spin!=0)))
+      report_error(NMT_ERROR_INCONSISTENT,"For T-E-B MCM the first input field must be spin-0 and the second spin-!=0\n");
     n_cl=7;
   }
-  
+
+  int spin_1, spin_2;
+  if(fl1->spin==0) {
+    if(fl2->spin==0) {
+      spin_1=0; spin_2=0;
+    }
+    else {
+      spin_1=fl2->spin; spin_2=0;
+    }
+  }
+  else {
+    spin_1=fl1->spin;
+    spin_2=fl2->spin;
+  }
+  if(n_cl==7)
+    spin_2=spin_1;
+
   int ii;
   nmt_workspace_flat *w=nmt_workspace_flat_new(n_cl,fl1->fs,bin,
 					       lmn_x,lmx_x,lmn_y,lmx_y,is_teb);
@@ -102,7 +117,8 @@ cond spin-2\n");
   w->pb2=fl2->pure_b;
 
   fcomplex *cmask1,*cmask2;
-  flouble *maskprod,*cosarr,*sinarr,*kmodarr,*beamprod;
+  flouble *maskprod,*beamprod;
+  flouble *cosarr1,*sinarr1,*cosarr2,*sinarr2,*kmodarr;
   int *i_band,*i_band_nocut,*i_ring;
   cmask1=dftw_malloc(fs->ny*(fs->nx/2+1)*sizeof(fcomplex));
   fs_map2alm(fl1->fs,1,0,&(fl1->mask),&cmask1);
@@ -119,8 +135,10 @@ cond spin-2\n");
   kmodarr=dftw_malloc(w->fs->npix*sizeof(flouble));
   beamprod=dftw_malloc(w->fs->npix*sizeof(flouble));
   if(w->ncls>1) {
-    cosarr=dftw_malloc(w->fs->npix*sizeof(flouble));
-    sinarr=dftw_malloc(w->fs->npix*sizeof(flouble));
+    cosarr1=dftw_malloc(w->fs->npix*sizeof(flouble));
+    sinarr1=dftw_malloc(w->fs->npix*sizeof(flouble));
+    cosarr2=dftw_malloc(w->fs->npix*sizeof(flouble));
+    sinarr2=dftw_malloc(w->fs->npix*sizeof(flouble));
   }
 
   int *x_out_range,*y_out_range;
@@ -143,8 +161,8 @@ cond spin-2\n");
 
 #pragma omp parallel default(none)				\
   shared(fl1,fl2,fs,cmask1,cmask2,w,i_ring,i_band,i_band_nocut)	\
-  shared(cosarr,sinarr,kmodarr,beamprod,maskprod)		\
-  shared(x_out_range,y_out_range)
+  shared(cosarr1,sinarr1,cosarr2,sinarr2,kmodarr,spin_1,spin_2) \
+  shared(beamprod,maskprod,x_out_range,y_out_range)
   {
     flouble dkx=2*M_PI/fs->lx;
     flouble dky=2*M_PI/fs->ly;
@@ -199,7 +217,8 @@ cond spin-2\n");
 	if((i_ring[index]<0) || (i_ring[index]>=w->fs->n_ell))
 	  i_ring[index]=-1;
 	if(w->ncls>1) {
-	  flouble c,s;
+          int spin;
+	  flouble c,s,csphi,ssphi;
 	  if(kmod>0) {
 	    c=kx/kmod;
 	    s=ky/kmod;
@@ -208,8 +227,34 @@ cond spin-2\n");
 	    c=1.;
 	    s=0.;
 	  }
-	  cosarr[index]=c*c-s*s;
-	  sinarr[index]=2*s*c;
+
+          spin=0; csphi=1; ssphi=0;
+          while(spin<spin_1) {
+            flouble c2=csphi*c-ssphi*s;
+            flouble s2=ssphi*c+csphi*s;
+            csphi=c2;
+            ssphi=s2;
+            spin++;
+          }
+	  cosarr1[index]=csphi;
+	  sinarr1[index]=ssphi;
+
+          if(spin_2 != spin_1) {
+            spin=0; csphi=1; ssphi=0;
+            while(spin<spin_2) {
+              flouble c2=csphi*c-ssphi*s;
+              flouble s2=ssphi*c+csphi*s;
+              csphi=c2;
+              ssphi=s2;
+              spin++;
+            }
+            cosarr2[index]=csphi;
+            sinarr2[index]=ssphi;
+          }
+          else {
+            cosarr2[index]=cosarr1[index];
+            sinarr2[index]=sinarr1[index];
+          }
 	}
       }
     } //end omp for
@@ -227,7 +272,8 @@ cond spin-2\n");
 
 #pragma omp parallel default(none)			\
   shared(fs,i_ring,i_band,i_band_nocut,w)		\
-  shared(cosarr,sinarr,kmodarr,maskprod,beamprod)
+  shared(cosarr1,sinarr1,cosarr2,sinarr2,kmodarr)       \
+  shared(maskprod,beamprod,spin_1,spin_2)
   {
     int iy1,ix1,ix2,iy2;
     int pe1=w->pe1,pe2=w->pe2,pb1=w->pb1,pb2=w->pb2;
@@ -255,7 +301,7 @@ cond spin-2\n");
 	      int index2=ix2+fs->nx*iy2;
 	      int ir2=i_ring[index2];
 	      int ik2=i_band_nocut[index2];
-	      flouble cdiff=1,sdiff=0,kr=1,mp;
+	      flouble cdiff1=1,sdiff1=0,cdiff2=1,sdiff2=0,kr=1,mp;
 	      int index;
 	      int iy=iy1-iy2;
 	      int ix=ix1-ix2;
@@ -266,8 +312,10 @@ cond spin-2\n");
 	      index=ix+fs->nx*iy;
 	      
 	      if(w->ncls>1) {
-		cdiff=cosarr[index1]*cosarr[index2]+sinarr[index1]*sinarr[index2];
-		sdiff=sinarr[index1]*cosarr[index2]-cosarr[index1]*sinarr[index2];
+		cdiff1=cosarr1[index1]*cosarr1[index2]+sinarr1[index1]*sinarr1[index2];
+		sdiff1=sinarr1[index1]*cosarr1[index2]-cosarr1[index1]*sinarr1[index2];
+		cdiff2=cosarr2[index1]*cosarr2[index2]+sinarr2[index1]*sinarr2[index2];
+		sdiff2=sinarr2[index1]*cosarr2[index2]-cosarr2[index1]*sinarr2[index2];
 		if((index1==0) && (index2==0))
 		  kr=1;
 		else
@@ -284,8 +332,8 @@ cond spin-2\n");
 	      }
 	      else if(w->ncls==2) {
 		flouble fc[2],fs[2];
-		fc[0]=cdiff*mp;
-		fs[0]=sdiff*mp;
+		fc[0]=cdiff1*mp;
+		fs[0]=sdiff1*mp;
 		if(pure_any) {
 		  fc[1]=kr*mp; fs[1]=0;
 		}
@@ -303,99 +351,105 @@ cond spin-2\n");
 		}
 	      }
 	      else if(w->ncls==4) {
-		flouble fc[2],fs[2];
-		fc[0]=cdiff; fs[0]=sdiff;
+		flouble fc1[2],fs1[2];
+		flouble fc2[2],fs2[2];
+		fc1[0]=cdiff1; fs1[0]=sdiff1;
+		fc2[0]=cdiff2; fs2[0]=sdiff2;
 		if(pure_any) {
-		  fc[1]=kr; fs[1]=0;
+		  fc1[1]=kr; fs1[1]=0;
+		  fc2[1]=kr; fs2[1]=0;
 		}
 		if(ir2>=0) {
-		  coup_unbinned_thr[ik1+0][ir2+0]+=fc[pe1]*fc[pe2]*mp; //EE,EE
-		  coup_unbinned_thr[ik1+0][ir2+1]-=fc[pe1]*fs[pe2]*mp; //EE,EB
-		  coup_unbinned_thr[ik1+0][ir2+2]-=fs[pe1]*fc[pe2]*mp; //EE,BE
-		  coup_unbinned_thr[ik1+0][ir2+3]+=fs[pe1]*fs[pe2]*mp; //EE,BB
-		  coup_unbinned_thr[ik1+1][ir2+0]+=fc[pe1]*fs[pb2]*mp; //EB,EE
-		  coup_unbinned_thr[ik1+1][ir2+1]+=fc[pe1]*fc[pb2]*mp; //EB,EB
-		  coup_unbinned_thr[ik1+1][ir2+2]-=fs[pe1]*fs[pb2]*mp; //EB,BE
-		  coup_unbinned_thr[ik1+1][ir2+3]-=fs[pe1]*fc[pb2]*mp; //EB,BB
-		  coup_unbinned_thr[ik1+2][ir2+0]+=fs[pb1]*fc[pe2]*mp; //BE,EE
-		  coup_unbinned_thr[ik1+2][ir2+1]-=fs[pb1]*fs[pe2]*mp; //BE,EB
-		  coup_unbinned_thr[ik1+2][ir2+2]+=fc[pb1]*fc[pe2]*mp; //BE,BE
-		  coup_unbinned_thr[ik1+2][ir2+3]-=fc[pb1]*fs[pe2]*mp; //BE,BB
-		  coup_unbinned_thr[ik1+3][ir2+0]+=fs[pb1]*fs[pb2]*mp; //BB,EE
-		  coup_unbinned_thr[ik1+3][ir2+1]+=fs[pb1]*fc[pb2]*mp; //BB,EB
-		  coup_unbinned_thr[ik1+3][ir2+2]+=fc[pb1]*fs[pb2]*mp; //BB,BE
-		  coup_unbinned_thr[ik1+3][ir2+3]+=fc[pb1]*fc[pb2]*mp; //BB,BB
+		  coup_unbinned_thr[ik1+0][ir2+0]+=fc1[pe1]*fc2[pe2]*mp; //EE,EE
+		  coup_unbinned_thr[ik1+0][ir2+1]-=fc1[pe1]*fs2[pe2]*mp; //EE,EB
+		  coup_unbinned_thr[ik1+0][ir2+2]-=fs1[pe1]*fc2[pe2]*mp; //EE,BE
+		  coup_unbinned_thr[ik1+0][ir2+3]+=fs1[pe1]*fs2[pe2]*mp; //EE,BB
+		  coup_unbinned_thr[ik1+1][ir2+0]+=fc1[pe1]*fs2[pb2]*mp; //EB,EE
+		  coup_unbinned_thr[ik1+1][ir2+1]+=fc1[pe1]*fc2[pb2]*mp; //EB,EB
+		  coup_unbinned_thr[ik1+1][ir2+2]-=fs1[pe1]*fs2[pb2]*mp; //EB,BE
+		  coup_unbinned_thr[ik1+1][ir2+3]-=fs1[pe1]*fc2[pb2]*mp; //EB,BB
+		  coup_unbinned_thr[ik1+2][ir2+0]+=fs1[pb1]*fc2[pe2]*mp; //BE,EE
+		  coup_unbinned_thr[ik1+2][ir2+1]-=fs1[pb1]*fs2[pe2]*mp; //BE,EB
+		  coup_unbinned_thr[ik1+2][ir2+2]+=fc1[pb1]*fc2[pe2]*mp; //BE,BE
+		  coup_unbinned_thr[ik1+2][ir2+3]-=fc1[pb1]*fs2[pe2]*mp; //BE,BB
+		  coup_unbinned_thr[ik1+3][ir2+0]+=fs1[pb1]*fs2[pb2]*mp; //BB,EE
+		  coup_unbinned_thr[ik1+3][ir2+1]+=fs1[pb1]*fc2[pb2]*mp; //BB,EB
+		  coup_unbinned_thr[ik1+3][ir2+2]+=fc1[pb1]*fs2[pb2]*mp; //BB,BE
+		  coup_unbinned_thr[ik1+3][ir2+3]+=fc1[pb1]*fc2[pb2]*mp; //BB,BB
 		}
 		if(ik2>=0) {
-		  coup_binned_thr[ik1+0][ik2+0]+=fc[pe1]*fc[pe2]*mp; //EE,EE
-		  coup_binned_thr[ik1+0][ik2+1]-=fc[pe1]*fs[pe2]*mp; //EE,EB
-		  coup_binned_thr[ik1+0][ik2+2]-=fs[pe1]*fc[pe2]*mp; //EE,BE
-		  coup_binned_thr[ik1+0][ik2+3]+=fs[pe1]*fs[pe2]*mp; //EE,BB
-		  coup_binned_thr[ik1+1][ik2+0]+=fc[pe1]*fs[pb2]*mp; //EB,EE
-		  coup_binned_thr[ik1+1][ik2+1]+=fc[pe1]*fc[pb2]*mp; //EB,EB
-		  coup_binned_thr[ik1+1][ik2+2]-=fs[pe1]*fs[pb2]*mp; //EB,BE
-		  coup_binned_thr[ik1+1][ik2+3]-=fs[pe1]*fc[pb2]*mp; //EB,BB
-		  coup_binned_thr[ik1+2][ik2+0]+=fs[pb1]*fc[pe2]*mp; //BE,EE
-		  coup_binned_thr[ik1+2][ik2+1]-=fs[pb1]*fs[pe2]*mp; //BE,EB
-		  coup_binned_thr[ik1+2][ik2+2]+=fc[pb1]*fc[pe2]*mp; //BE,BE
-		  coup_binned_thr[ik1+2][ik2+3]-=fc[pb1]*fs[pe2]*mp; //BE,BB
-		  coup_binned_thr[ik1+3][ik2+0]+=fs[pb1]*fs[pb2]*mp; //BB,EE
-		  coup_binned_thr[ik1+3][ik2+1]+=fs[pb1]*fc[pb2]*mp; //BB,EB
-		  coup_binned_thr[ik1+3][ik2+2]+=fc[pb1]*fs[pb2]*mp; //BB,BE
-		  coup_binned_thr[ik1+3][ik2+3]+=fc[pb1]*fc[pb2]*mp; //BB,BB
+		  coup_binned_thr[ik1+0][ik2+0]+=fc1[pe1]*fc2[pe2]*mp; //EE,EE
+		  coup_binned_thr[ik1+0][ik2+1]-=fc1[pe1]*fs2[pe2]*mp; //EE,EB
+		  coup_binned_thr[ik1+0][ik2+2]-=fs1[pe1]*fc2[pe2]*mp; //EE,BE
+		  coup_binned_thr[ik1+0][ik2+3]+=fs1[pe1]*fs2[pe2]*mp; //EE,BB
+		  coup_binned_thr[ik1+1][ik2+0]+=fc1[pe1]*fs2[pb2]*mp; //EB,EE
+		  coup_binned_thr[ik1+1][ik2+1]+=fc1[pe1]*fc2[pb2]*mp; //EB,EB
+		  coup_binned_thr[ik1+1][ik2+2]-=fs1[pe1]*fs2[pb2]*mp; //EB,BE
+		  coup_binned_thr[ik1+1][ik2+3]-=fs1[pe1]*fc2[pb2]*mp; //EB,BB
+		  coup_binned_thr[ik1+2][ik2+0]+=fs1[pb1]*fc2[pe2]*mp; //BE,EE
+		  coup_binned_thr[ik1+2][ik2+1]-=fs1[pb1]*fs2[pe2]*mp; //BE,EB
+		  coup_binned_thr[ik1+2][ik2+2]+=fc1[pb1]*fc2[pe2]*mp; //BE,BE
+		  coup_binned_thr[ik1+2][ik2+3]-=fc1[pb1]*fs2[pe2]*mp; //BE,BB
+		  coup_binned_thr[ik1+3][ik2+0]+=fs1[pb1]*fs2[pb2]*mp; //BB,EE
+		  coup_binned_thr[ik1+3][ik2+1]+=fs1[pb1]*fc2[pb2]*mp; //BB,EB
+		  coup_binned_thr[ik1+3][ik2+2]+=fc1[pb1]*fs2[pb2]*mp; //BB,BE
+		  coup_binned_thr[ik1+3][ik2+3]+=fc1[pb1]*fc2[pb2]*mp; //BB,BB
 		}
 	      }
 	      else if(w->ncls==7) {
-		flouble fc[2],fs[2];
-		fc[0]=cdiff; fs[0]=sdiff;
+		flouble fc1[2],fs1[2];
+		flouble fc2[2],fs2[2];
+		fc1[0]=cdiff1; fs1[0]=sdiff1;
+		fc2[0]=cdiff2; fs2[0]=sdiff2;
 		if(pure_any) {
-		  fc[1]=kr; fs[1]=0;
+		  fc1[1]=kr; fs1[1]=0;
+		  fc2[1]=kr; fs2[1]=0;
 		}
 		if(ir2>=0) {
 		  coup_unbinned_thr[ik1+0][ir2+0]+=mp; //TT,TT
-		  coup_unbinned_thr[ik1+1][ir2+1]+=fc[pe1+pe2]*mp; //TE,TE
-		  coup_unbinned_thr[ik1+1][ir2+2]-=fs[pe1+pe2]*mp; //TE,TB
-		  coup_unbinned_thr[ik1+2][ir2+1]+=fs[pb1+pb2]*mp; //TB,TE
-		  coup_unbinned_thr[ik1+2][ir2+2]+=fc[pb1+pb2]*mp; //TB,TB
-		  coup_unbinned_thr[ik1+3][ir2+3]+=fc[pe2]*fc[pe2]*mp; //EE,EE
-		  coup_unbinned_thr[ik1+3][ir2+4]-=fc[pe2]*fs[pe2]*mp; //EE,EB
-		  coup_unbinned_thr[ik1+3][ir2+5]-=fs[pe2]*fc[pe2]*mp; //EE,BE
-		  coup_unbinned_thr[ik1+3][ir2+6]+=fs[pe2]*fs[pe2]*mp; //EE,BB
-		  coup_unbinned_thr[ik1+4][ir2+3]+=fc[pe2]*fs[pb2]*mp; //EB,EE
-		  coup_unbinned_thr[ik1+4][ir2+4]+=fc[pe2]*fc[pb2]*mp; //EB,EB
-		  coup_unbinned_thr[ik1+4][ir2+5]-=fs[pe2]*fs[pb2]*mp; //EB,BE
-		  coup_unbinned_thr[ik1+4][ir2+6]-=fs[pe2]*fc[pb2]*mp; //EB,BB
-		  coup_unbinned_thr[ik1+5][ir2+3]+=fs[pb2]*fc[pe2]*mp; //BE,EE
-		  coup_unbinned_thr[ik1+5][ir2+4]-=fs[pb2]*fs[pe2]*mp; //BE,EB
-		  coup_unbinned_thr[ik1+5][ir2+5]+=fc[pb2]*fc[pe2]*mp; //BE,BE
-		  coup_unbinned_thr[ik1+5][ir2+6]-=fc[pb2]*fs[pe2]*mp; //BE,BB
-		  coup_unbinned_thr[ik1+6][ir2+3]+=fs[pb2]*fs[pb2]*mp; //BB,EE
-		  coup_unbinned_thr[ik1+6][ir2+4]+=fs[pb2]*fc[pb2]*mp; //BB,EB
-		  coup_unbinned_thr[ik1+6][ir2+5]+=fc[pb2]*fs[pb2]*mp; //BB,BE
-		  coup_unbinned_thr[ik1+6][ir2+6]+=fc[pb2]*fc[pb2]*mp; //BB,BB
+		  coup_unbinned_thr[ik1+1][ir2+1]+=fc1[pe1+pe2]*mp; //TE,TE
+		  coup_unbinned_thr[ik1+1][ir2+2]-=fs1[pe1+pe2]*mp; //TE,TB
+		  coup_unbinned_thr[ik1+2][ir2+1]+=fs1[pb1+pb2]*mp; //TB,TE
+		  coup_unbinned_thr[ik1+2][ir2+2]+=fc1[pb1+pb2]*mp; //TB,TB
+		  coup_unbinned_thr[ik1+3][ir2+3]+=fc1[pe2]*fc2[pe2]*mp; //EE,EE
+		  coup_unbinned_thr[ik1+3][ir2+4]-=fc1[pe2]*fs2[pe2]*mp; //EE,EB
+		  coup_unbinned_thr[ik1+3][ir2+5]-=fs1[pe2]*fc2[pe2]*mp; //EE,BE
+		  coup_unbinned_thr[ik1+3][ir2+6]+=fs1[pe2]*fs2[pe2]*mp; //EE,BB
+		  coup_unbinned_thr[ik1+4][ir2+3]+=fc1[pe2]*fs2[pb2]*mp; //EB,EE
+		  coup_unbinned_thr[ik1+4][ir2+4]+=fc1[pe2]*fc2[pb2]*mp; //EB,EB
+		  coup_unbinned_thr[ik1+4][ir2+5]-=fs1[pe2]*fs2[pb2]*mp; //EB,BE
+		  coup_unbinned_thr[ik1+4][ir2+6]-=fs1[pe2]*fc2[pb2]*mp; //EB,BB
+		  coup_unbinned_thr[ik1+5][ir2+3]+=fs1[pb2]*fc2[pe2]*mp; //BE,EE
+		  coup_unbinned_thr[ik1+5][ir2+4]-=fs1[pb2]*fs2[pe2]*mp; //BE,EB
+		  coup_unbinned_thr[ik1+5][ir2+5]+=fc1[pb2]*fc2[pe2]*mp; //BE,BE
+		  coup_unbinned_thr[ik1+5][ir2+6]-=fc1[pb2]*fs2[pe2]*mp; //BE,BB
+		  coup_unbinned_thr[ik1+6][ir2+3]+=fs1[pb2]*fs2[pb2]*mp; //BB,EE
+		  coup_unbinned_thr[ik1+6][ir2+4]+=fs1[pb2]*fc2[pb2]*mp; //BB,EB
+		  coup_unbinned_thr[ik1+6][ir2+5]+=fc1[pb2]*fs2[pb2]*mp; //BB,BE
+		  coup_unbinned_thr[ik1+6][ir2+6]+=fc1[pb2]*fc2[pb2]*mp; //BB,BB
 		}
 		if(ik2>=0) {
 		  coup_binned_thr[ik1+0][ik2+0]+=mp; //TT,TT
-		  coup_binned_thr[ik1+1][ik2+1]+=fc[pe1+pe2]*mp; //TE,TE
-		  coup_binned_thr[ik1+1][ik2+2]-=fs[pe1+pe2]*mp; //TE,TB
-		  coup_binned_thr[ik1+2][ik2+1]+=fs[pb1+pb2]*mp; //TB,TE
-		  coup_binned_thr[ik1+2][ik2+2]+=fc[pb1+pb2]*mp; //TB,TB
-		  coup_binned_thr[ik1+3][ik2+3]+=fc[pe2]*fc[pe2]*mp; //EE,EE
-		  coup_binned_thr[ik1+3][ik2+4]-=fc[pe2]*fs[pe2]*mp; //EE,EB
-		  coup_binned_thr[ik1+3][ik2+5]-=fs[pe2]*fc[pe2]*mp; //EE,BE
-		  coup_binned_thr[ik1+3][ik2+6]+=fs[pe2]*fs[pe2]*mp; //EE,BB
-		  coup_binned_thr[ik1+4][ik2+3]+=fc[pe2]*fs[pb2]*mp; //EB,EE
-		  coup_binned_thr[ik1+4][ik2+4]+=fc[pe2]*fc[pb2]*mp; //EB,EB
-		  coup_binned_thr[ik1+4][ik2+5]-=fs[pe2]*fs[pb2]*mp; //EB,BE
-		  coup_binned_thr[ik1+4][ik2+6]-=fs[pe2]*fc[pb2]*mp; //EB,BB
-		  coup_binned_thr[ik1+5][ik2+3]+=fs[pb2]*fc[pe2]*mp; //BE,EE
-		  coup_binned_thr[ik1+5][ik2+4]-=fs[pb2]*fs[pe2]*mp; //BE,EB
-		  coup_binned_thr[ik1+5][ik2+5]+=fc[pb2]*fc[pe2]*mp; //BE,BE
-		  coup_binned_thr[ik1+5][ik2+6]-=fc[pb2]*fs[pe2]*mp; //BE,BB
-		  coup_binned_thr[ik1+6][ik2+3]+=fs[pb2]*fs[pb2]*mp; //BB,EE
-		  coup_binned_thr[ik1+6][ik2+4]+=fs[pb2]*fc[pb2]*mp; //BB,EB
-		  coup_binned_thr[ik1+6][ik2+5]+=fc[pb2]*fs[pb2]*mp; //BB,BE
-		  coup_binned_thr[ik1+6][ik2+6]+=fc[pb2]*fc[pb2]*mp; //BB,BB
+		  coup_binned_thr[ik1+1][ik2+1]+=fc1[pe1+pe2]*mp; //TE,TE
+		  coup_binned_thr[ik1+1][ik2+2]-=fs1[pe1+pe2]*mp; //TE,TB
+		  coup_binned_thr[ik1+2][ik2+1]+=fs1[pb1+pb2]*mp; //TB,TE
+		  coup_binned_thr[ik1+2][ik2+2]+=fc1[pb1+pb2]*mp; //TB,TB
+		  coup_binned_thr[ik1+3][ik2+3]+=fc1[pe2]*fc2[pe2]*mp; //EE,EE
+		  coup_binned_thr[ik1+3][ik2+4]-=fc1[pe2]*fs2[pe2]*mp; //EE,EB
+		  coup_binned_thr[ik1+3][ik2+5]-=fs1[pe2]*fc2[pe2]*mp; //EE,BE
+		  coup_binned_thr[ik1+3][ik2+6]+=fs1[pe2]*fs2[pe2]*mp; //EE,BB
+		  coup_binned_thr[ik1+4][ik2+3]+=fc1[pe2]*fs2[pb2]*mp; //EB,EE
+		  coup_binned_thr[ik1+4][ik2+4]+=fc1[pe2]*fc2[pb2]*mp; //EB,EB
+		  coup_binned_thr[ik1+4][ik2+5]-=fs1[pe2]*fs2[pb2]*mp; //EB,BE
+		  coup_binned_thr[ik1+4][ik2+6]-=fs1[pe2]*fc2[pb2]*mp; //EB,BB
+		  coup_binned_thr[ik1+5][ik2+3]+=fs1[pb2]*fc2[pe2]*mp; //BE,EE
+		  coup_binned_thr[ik1+5][ik2+4]-=fs1[pb2]*fs2[pe2]*mp; //BE,EB
+		  coup_binned_thr[ik1+5][ik2+5]+=fc1[pb2]*fc2[pe2]*mp; //BE,BE
+		  coup_binned_thr[ik1+5][ik2+6]-=fc1[pb2]*fs2[pe2]*mp; //BE,BB
+		  coup_binned_thr[ik1+6][ik2+3]+=fs1[pb2]*fs2[pb2]*mp; //BB,EE
+		  coup_binned_thr[ik1+6][ik2+4]+=fs1[pb2]*fc2[pb2]*mp; //BB,EB
+		  coup_binned_thr[ik1+6][ik2+5]+=fc1[pb2]*fs2[pb2]*mp; //BB,BE
+		  coup_binned_thr[ik1+6][ik2+6]+=fc1[pb2]*fc2[pb2]*mp; //BB,BB
 		}
 	      }		
 	    }
@@ -475,8 +529,10 @@ cond spin-2\n");
   dftw_free(beamprod);
   free(maskprod);
   if(w->ncls>1) {
-    dftw_free(cosarr);
-    dftw_free(sinarr);
+    dftw_free(cosarr1);
+    dftw_free(sinarr1);
+    dftw_free(cosarr2);
+    dftw_free(sinarr2);
   }
 
   return w;
@@ -531,7 +587,7 @@ void nmt_compute_deprojection_bias_flat(nmt_field_flat *fl1,nmt_field_flat *fl2,
 	for(im2=0;im2<fl2->nmaps;im2++)
 	  fs_map_product(fl2->fs,fl2->temp[itj][im2],fl2->mask,map_2_dum[im2]);
 	//DFT[w*g^j]
-	fs_map2alm(fl2->fs,1,2*fl2->pol,map_2_dum,alm_2_dum);
+	fs_map2alm(fl2->fs,1,fl2->spin,map_2_dum,alm_2_dum);
 	//C^ab*DFT[w*g^j]
 	for(im1=0;im1<fl1->nmaps;im1++) {
 	  fs_zero_alm(fl1->fs,alm_1_dum[im1]);
@@ -539,11 +595,11 @@ void nmt_compute_deprojection_bias_flat(nmt_field_flat *fl1,nmt_field_flat *fl2,
 	    fs_alter_alm(fl2->fs,-1.,alm_2_dum[im2],alm_1_dum[im1],cl_proposal_f[im1*fl2->nmaps+im2],1);
 	}
 	//DFT^-1[C^ab*DFT[w*g^j]]
-	fs_alm2map(fl1->fs,1,2*fl1->pol,map_1_dum,alm_1_dum);
+	fs_alm2map(fl1->fs,1,fl1->spin,map_1_dum,alm_1_dum);
 	//DFT[v*DFT^-1[C^ab*DFT[w*g^j]]]
 	purify_generic_flat(fl1,fl1->mask,fl1->a_mask,map_1_dum,alm_1_dum);
 	//Sum_m(DFT[v*DFT^-1[C^ab*DFT[w*g^j]]]*g^i*)/(2l+1)
-	fs_alm2cl(fl1->fs,bin,alm_1_dum,fl2->a_temp[iti],fl1->pol,fl2->pol,cl_dum,
+	fs_alm2cl(fl1->fs,bin,alm_1_dum,fl2->a_temp[iti],fl1->spin,fl2->spin,cl_dum,
 		  lmn_x,lmx_x,lmn_y,lmx_y);
 	for(im1=0;im1<nspec;im1++) {
 	  for(ip=0;ip<bin->n_bands;ip++)
@@ -564,7 +620,7 @@ void nmt_compute_deprojection_bias_flat(nmt_field_flat *fl1,nmt_field_flat *fl2,
 	for(im1=0;im1<fl1->nmaps;im1++)
 	  fs_map_product(fl1->fs,fl1->temp[itj][im1],fl1->mask,map_1_dum[im1]);
 	//DFT[v*f^j]
-	fs_map2alm(fl1->fs,1,2*fl1->pol,map_1_dum,alm_1_dum);
+	fs_map2alm(fl1->fs,1,fl1->spin,map_1_dum,alm_1_dum);
 	//C^abT*DFT[v*f^j]
 	for(im2=0;im2<fl2->nmaps;im2++) {
 	  fs_zero_alm(fl2->fs,alm_2_dum[im2]);
@@ -572,11 +628,11 @@ void nmt_compute_deprojection_bias_flat(nmt_field_flat *fl1,nmt_field_flat *fl2,
 	    fs_alter_alm(fl1->fs,-1.,alm_1_dum[im1],alm_2_dum[im2],cl_proposal_f[im1*fl2->nmaps+im2],1);
 	}
 	//DFT^-1[C^abT*DFT[v*f^j]]
-	fs_alm2map(fl2->fs,1,2*fl2->pol,map_2_dum,alm_2_dum);
+	fs_alm2map(fl2->fs,1,fl2->spin,map_2_dum,alm_2_dum);
 	//DFT[w*DFT^-1[C^abT*DFT[v*f^j]]]
 	purify_generic_flat(fl2,fl2->mask,fl2->a_mask,map_2_dum,alm_2_dum);
 	//Sum_m(f^i*DFT[w*DFT^-1[C^abT*DFT[v*f^j]]]^*)/(2l+1)
-	fs_alm2cl(fl1->fs,bin,fl1->a_temp[iti],alm_2_dum,fl1->pol,fl2->pol,cl_dum,
+	fs_alm2cl(fl1->fs,bin,fl1->a_temp[iti],alm_2_dum,fl1->spin,fl2->spin,cl_dum,
 		  lmn_x,lmx_x,lmn_y,lmx_y);
 	for(im1=0;im1<nspec;im1++) {
 	  for(ip=0;ip<bin->n_bands;ip++)
@@ -595,7 +651,7 @@ void nmt_compute_deprojection_bias_flat(nmt_field_flat *fl1,nmt_field_flat *fl2,
 	for(im2=0;im2<fl2->nmaps;im2++)
 	  fs_map_product(fl2->fs,fl2->temp[itq][im2],fl2->mask,map_2_dum[im2]);
 	//DFT[w*g^q]
-	fs_map2alm(fl2->fs,1,2*fl2->pol,map_2_dum,alm_2_dum);
+	fs_map2alm(fl2->fs,1,fl2->spin,map_2_dum,alm_2_dum);
 	//C^ab*DFT[w*g^q]
 	for(im1=0;im1<fl1->nmaps;im1++) {
 	  fs_zero_alm(fl1->fs,alm_1_dum[im1]);
@@ -603,7 +659,7 @@ void nmt_compute_deprojection_bias_flat(nmt_field_flat *fl1,nmt_field_flat *fl2,
 	    fs_alter_alm(fl2->fs,-1.,alm_2_dum[im2],alm_1_dum[im1],cl_proposal_f[im1*fl2->nmaps+im2],1);
 	}
 	//DFT^-1[C^ab*DFT[w*g^q]]
-	fs_alm2map(fl1->fs,1,2*fl1->pol,map_1_dum,alm_1_dum);
+	fs_alm2map(fl1->fs,1,fl1->spin,map_1_dum,alm_1_dum);
 	for(im1=0;im1<fl1->nmaps;im1++) {
 	  //v*DFT^-1[C^ab*DFT[w*g^q]]
 	  fs_map_product(fl1->fs,map_1_dum[im1],fl1->mask,map_1_dum[im1]);
@@ -616,7 +672,7 @@ void nmt_compute_deprojection_bias_flat(nmt_field_flat *fl1,nmt_field_flat *fl2,
     for(iti=0;iti<fl1->ntemp;iti++) {
       for(itp=0;itp<fl2->ntemp;itp++) {
 	//Sum_m(f^i*g^p*)/(2l+1)
-	fs_alm2cl(fl1->fs,bin,fl1->a_temp[iti],fl2->a_temp[itp],fl1->pol,fl2->pol,cl_dum,
+	fs_alm2cl(fl1->fs,bin,fl1->a_temp[iti],fl2->a_temp[itp],fl1->spin,fl2->spin,cl_dum,
 		  lmn_x,lmx_x,lmn_y,lmx_y);
 	for(itj=0;itj<fl1->ntemp;itj++) {
 	  double mij=gsl_matrix_get(fl1->matrix_M,iti,itj);
@@ -842,7 +898,7 @@ void nmt_compute_coupled_cell_flat(nmt_field_flat *fl1,nmt_field_flat *fl2,
 {
   if(check_flatsky_infos(fl1->fs,fl2->fs))
     report_error(NMT_ERROR_CONSISTENT_RESO,"Can only correlate fields defined on the same pixels!\n");
-  fs_alm2cl(fl1->fs,bin,fl1->alms,fl2->alms,fl1->pol,fl2->pol,cl_out,lmn_x,lmx_x,lmn_y,lmx_y);
+  fs_alm2cl(fl1->fs,bin,fl1->alms,fl2->alms,fl1->spin,fl2->spin,cl_out,lmn_x,lmx_x,lmn_y,lmx_y);
 }
 
 nmt_workspace_flat *nmt_compute_power_spectra_flat(nmt_field_flat *fl1,nmt_field_flat *fl2,

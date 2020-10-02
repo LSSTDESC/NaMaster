@@ -317,8 +317,8 @@ void fs_alter_alm(nmt_flatsky_info *fs,double fwhm_amin,fcomplex *alm_in,fcomple
  * @param bin nmt_binning_scheme_flat structure defining the bandpowers to use.
  * @param alms_1 First set of Fourier coefficients to correlate.
  * @param alms_2 Second set of Fourier coefficients to correlate.
- * @param pol_1 >0 if alms_1 has spin-2 (otherwise it's spin-0).
- * @param pol_2 >0 if alms_2 has spin-2 (otherwise it's spin-0).
+ * @param spin_1 alms_1 spin.
+ * @param spin_2 alms_2 spin.
  * @param cls Will hold the output power spectra. Should have shape [\p ncls][\p nbands],
           where \p ncls is the appropriate number of power spectra given the
 	  spins of the input fields  (e.g. \p ncls = 2*2 = 4 if both fields have
@@ -330,7 +330,7 @@ void fs_alter_alm(nmt_flatsky_info *fs,double fwhm_amin,fcomplex *alm_in,fcomple
  * @param lmx_y Same as \p lmx_x for the y direction.
  */
 void fs_alm2cl(nmt_flatsky_info *fs,nmt_binning_scheme_flat *bin,
-	       fcomplex **alms_1,fcomplex **alms_2,int pol_1,int pol_2,flouble **cls,
+	       fcomplex **alms_1,fcomplex **alms_2,int spin_1,int spin_2,flouble **cls,
 	       flouble lmn_x,flouble lmx_x,flouble lmn_y,flouble lmx_y);
 
 /**
@@ -341,15 +341,15 @@ void fs_alm2cl(nmt_flatsky_info *fs,nmt_binning_scheme_flat *bin,
  * @param bin nmt_binning_scheme_flat structure defining the bandpowers to use.
  * @param maps_1 First set of maps to correlate.
  * @param maps_2 Second set of maps to correlate.
- * @param pol_1 >0 if alms_1 has spin-2 (otherwise it's spin-0).
- * @param pol_2 >0 if alms_2 has spin-2 (otherwise it's spin-0).
+ * @param spin_1 maps_1 spin.
+ * @param spin_2 maps_2 spin.
  * @param cls Will hold the output power spectra. Should have shape [\p ncls][\p nbands],
           where \p ncls is the appropriate number of power spectra given the
 	  spins of the input fields  (e.g. \p ncls = 2*2 = 4 if both fields have
 	  spin=2). and \p nbpw is the number of bandpowers defined by \p bin.
  */
 void fs_anafast(nmt_flatsky_info *fs,nmt_binning_scheme_flat *bin,
-		flouble **maps_1,flouble **maps_2,int pol_1,int pol_2,flouble **cls);
+		flouble **maps_1,flouble **maps_2,int spin_1,int spin_2,flouble **cls);
 
 /**
  * @brief Gaussian realizations of flat-sky Fourier coefficients.
@@ -482,14 +482,14 @@ void he_map2alm(nmt_curvedsky_info *cs,int lmax,int ntrans,int spin,flouble **ma
  * Computes the angular power spectrum of two sets of harmonic coefficients
  * @param alms_1 First set of harmonic coefficients to correlate.
  * @param alms_2 Second set of harmonic coefficients to correlate.
- * @param pol_1 >0 if alms_1 has spin-2 (otherwise it's spin-0).
- * @param pol_2 >0 if alms_2 has spin-2 (otherwise it's spin-0).
+ * @param spin_1 alms_1 spin.
+ * @param spin_2 alms_2 spin.
  * @param cls Will hold the output power spectra. Should have shape [\p ncls][\p lmax + 1],
           where \p ncls is the appropriate number of power spectra given the
 	  spins of the input fields  (e.g. \p ncls = 2*2 = 4 if both fields have spin=2).
  * @param lmax maximum multipole order.
  */
-void he_alm2cl(fcomplex **alms_1,fcomplex **alms_2,int pol_1,int pol_2,flouble **cls,int lmax);
+void he_alm2cl(fcomplex **alms_1,fcomplex **alms_2,int spin_1,int spin_2,flouble **cls,int lmax);
 
 /**
  * @brief Gets the multipole approximately corresponding to the Nyquist frequency.
@@ -515,8 +515,8 @@ int he_get_lmax(nmt_curvedsky_info *cs);
  * Computes the angular power spectrum of two sets of maps.
  * @param maps_1 First set of maps to correlate.
  * @param maps_2 Second set of maps to correlate.
- * @param pol_1 >0 if alms_1 has spin-2 (otherwise it's spin-0).
- * @param pol_2 >0 if alms_2 has spin-2 (otherwise it's spin-0).
+ * @param spin_1 maps_1 spin.
+ * @param spin_2 maps_2 spin.
  * @param cls Will hold the output power spectra. Should have shape [\p ncls][\p lmax + 1],
           where \p ncls is the appropriate number of power spectra given the
 	  spins of the input fields  (e.g. \p ncls = 2*2 = 4 if both fields have spin=2).
@@ -524,7 +524,7 @@ int he_get_lmax(nmt_curvedsky_info *cs);
  * @param lmax maximum multipole order.
  * @param iter Number of iterations to use when computing the spherical harmonic transforms.
  */
-void he_anafast(flouble **maps_1,flouble **maps_2,int pol_1,int pol_2,flouble **cls,
+void he_anafast(flouble **maps_1,flouble **maps_2,int spin_1,int spin_2,flouble **cls,
 		nmt_curvedsky_info *cs,int lmax,int iter);
 
 /**

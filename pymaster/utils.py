@@ -170,7 +170,7 @@ def synfast_spherical(nside, cls, spin_arr, beam=None, seed=-1, wcs=None):
         spectra needed to define all the fields. This should be \
         n_cls = n_maps * (n_maps + 1) / 2, where n_maps is the total \
         number of maps required (1 for each spin-0 field, 2 for each \
-        spin-2 field). Power spectra must be provided only for the \
+        spin>0 field). Power spectra must be provided only for the \
         upper-triangular part in row-major order (e.g. if n_maps is \
         3, there will be 6 power spectra ordered as \
         [1-1,1-2,1-3,2-2,2-3,3-3].
@@ -205,9 +205,9 @@ def synfast_spherical(nside, cls, spin_arr, beam=None, seed=-1, wcs=None):
     spin_arr = np.array(spin_arr).astype(np.int32)
     nfields = len(spin_arr)
 
-    if np.sum((spin_arr == 0) | (spin_arr == 2)) != nfields:
-        raise ValueError("All spins must be 0 or 2")
-    nmaps = int(1 * np.sum(spin_arr == 0) + 2 * np.sum(spin_arr == 2))
+    if np.any(spin_arr < 0):
+        raise ValueError("Spins must be positive")
+    nmaps = int(1 * np.sum(spin_arr == 0) + 2 * np.sum(spin_arr != 0))
 
     ncls = (nmaps * (nmaps + 1)) // 2
     if ncls != len(cls):
@@ -256,7 +256,7 @@ def synfast_flat(nx, ny, lx, ly, cls, spin_arr, beam=None, seed=-1):
         [n_cls][n_ell], where n_cls is the number of power spectra needed \
         to define all the fields. This should be \
         n_cls = n_maps * (n_maps + 1) / 2, where n_maps is the total number \
-        of maps required (1 for each spin-0 field, 2 for each spin-2 field). \
+        of maps required (1 for each spin-0 field, 2 for each spin>0 field). \
         Power spectra must be provided only for the upper-triangular part in \
         row-major order (e.g. if n_maps is 3, there will be 6 power spectra \
         ordered as [1-1,1-2,1-3,2-2,2-3,3-3].
@@ -274,9 +274,9 @@ def synfast_flat(nx, ny, lx, ly, cls, spin_arr, beam=None, seed=-1):
     spin_arr = np.array(spin_arr).astype(np.int32)
     nfields = len(spin_arr)
 
-    if np.sum((spin_arr == 0) | (spin_arr == 2)) != nfields:
-        raise ValueError("All spins must be 0 or 2")
-    nmaps = int(1 * np.sum(spin_arr == 0) + 2 * np.sum(spin_arr == 2))
+    if np.any(spin_arr < 0):
+        raise ValueError("Spins must be positive")
+    nmaps = int(1 * np.sum(spin_arr == 0) + 2 * np.sum(spin_arr != 0))
 
     ncls = (nmaps * (nmaps + 1)) // 2
     if ncls != len(cls):

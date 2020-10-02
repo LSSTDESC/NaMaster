@@ -36,7 +36,7 @@ class TestUtilsSynfastFsk(unittest.TestCase):
                               self.clbb])
         self.beam = np.ones_like(self.cltt)
 
-    def anafast(self, mps):
+    def anafast(self, mps, spin):
         if mps.ndim == 2:
             scalar_input = True
         else:
@@ -76,8 +76,12 @@ class TestUtilsSynfastFsk(unittest.TestCase):
             sink = k_y[:, None]/k_mod
             sink[0, 0] = 0.
             k_mod[0, 0] = 0
-            cos2k = cosk**2-sink**2
-            sin2k = 2*sink*cosk
+            if spin == 1:
+                cos2k = cosk
+                sin2k = sink
+            else:
+                cos2k = cosk**2-sink**2
+                sin2k = 2*sink*cosk
             a_t = alms_tqu[0, :, :]
             a_e = cos2k*alms_tqu[1, :, :]-sin2k*alms_tqu[2, :, :]
             a_b = sin2k*alms_tqu[1, :, :]+cos2k*alms_tqu[2, :, :]
@@ -93,9 +97,9 @@ class TestUtilsSynfastFsk(unittest.TestCase):
         return kmean, nk, cls*dkvol
 
     def test_synfast_flat_errors(self):
-        with self.assertRaises(ValueError):  # Spin != 0 or 2
+        with self.assertRaises(ValueError):  # Negative spin
             nmt.synfast_flat(self.nx, self.ny, self.lx, self.ly,
-                             self.cl1, [1], beam=self.beam, seed=1234)
+                             self.cl1, [-1], beam=self.beam, seed=1234)
         with self.assertRaises(ValueError):  # Not enough power spectra
             nmt.synfast_flat(self.nx, self.ny, self.lx, self.ly,
                              self.cl2, [0, 2],
@@ -121,18 +125,24 @@ class TestUtilsSynfastFsk(unittest.TestCase):
                              seed=1234)
         self.assertEqual(m.shape, (3, self.ny, self.nx))
 
-    def test_synfast_flat_stats(self):
+    def test_synfast_flat_spin1(self):
+        self.synfast_flat_stats(1)
+
+    def test_synfast_flat_spin2(self):
+        self.synfast_flat_stats(2)
+
+    def synfast_flat_stats(self, spin):
         # Temperature only
         m_t = nmt.synfast_flat(self.nx, self.ny, self.lx, self.ly,
                                self.cl1, [0], beam=np.array([self.beam]),
                                seed=1234)[0]
         # Polarization
         m_p1 = nmt.synfast_flat(self.nx, self.ny, self.lx, self.ly,
-                                self.cl12, [0, 2],
+                                self.cl12, [0, spin],
                                 beam=np.array([self.beam, self.beam]),
                                 seed=1234)
-        km, nk, ctt1 = self.anafast(m_t)
-        km, nk, [ctt2, cee2, cbb2, cte2, ceb2, ctb2] = self.anafast(m_p1)
+        km, nk, ctt1 = self.anafast(m_t, 0)
+        km, nk, [ctt2, cee2, cbb2, cte2, ceb2, ctb2] = self.anafast(m_p1, spin)
         lint = km.astype(int)
 
         def get_diff(c_d, c_t, c11, c22, c12, nmodes, facsig=5):
@@ -187,12 +197,18 @@ class TestUtilsSynfastSph(unittest.TestCase):
                               self.clbb])
         self.beam = np.ones_like(self.cltt)
 
-    def anafast(self, mps):
-        return hp.anafast(mps)
+    def anafast(self, mps1, spin1, mps2=None, spin2=None):
+        msk = np.ones(hp.nside2npix(self.nside))
+        f1 = nmt.NmtField(msk, mps1, spin=spin1, n_iter=0)
+        if mps2 is None:
+            f2 = f1
+        else:
+            f2 = nmt.NmtField(msk, mps2, spin=spin2, n_iter=0)
+        return nmt.compute_coupled_cell(f1, f2)
 
     def test_synfast_errors(self):
-        with self.assertRaises(ValueError):  # Spin != 0 or 2
-            nmt.synfast_spherical(self.nside, self.cl1, [1], seed=1234)
+        with self.assertRaises(ValueError):  # Negative spin
+            nmt.synfast_spherical(self.nside, self.cl1, [-1], seed=1234)
         with self.assertRaises(ValueError):  # Not enough power spectra
             nmt.synfast_spherical(self.nside, self.cl2, [0, 2], seed=1234)
         with self.assertRaises(ValueError):  # Not enough beams
@@ -208,23 +224,34 @@ class TestUtilsSynfastSph(unittest.TestCase):
                                   seed=1234)
         self.assertEqual(m.shape, (3, hp.nside2npix(self.nside)))
 
-    def test_synfast_stats(self):
+
+    def test_synfast_spin1(self):
+        self.synfast_stats(1)
+
+    def test_synfast_spin2(self):
+        self.synfast_stats(1)
+
+    def synfast_stats(self, spin):
         # Temperature only
         m_t = nmt.synfast_spherical(self.nside, self.cl1, [0],
                                     beam=np.array([self.beam]),
                                     seed=1234)
         # Polarization
-        m_p1 = nmt.synfast_spherical(self.nside, self.cl12, [0, 2],
+        m_p1 = nmt.synfast_spherical(self.nside, self.cl12, [0, spin],
                                      beam=np.array([self.beam, self.beam]),
                                      seed=1234)
-        ctt1 = self.anafast(m_t)
-        ctt2, cee2, cbb2, cte2, ceb2, ctb2 = self.anafast(m_p1)
+        ctt1 = self.anafast(m_t, 0)[0]
+        ctt2 = self.anafast([m_p1[0]], 0)[0]
+        cte2, ctb2 = self.anafast([m_p1[0]], 0,
+                                  m_p1[1:], spin)
+        cee2, ceb2, _, cbb2 = self.anafast(m_p1[1:], spin,
+                                           m_p1[1:], spin)
 
         def get_diff(c_d, c_t, c11, c22, c12, facsig=5):
             diff = np.fabs(c_d-c_t)  # Residuals
             # 1-sigma expected errors
             sig = np.sqrt((c11*c22+c12**2)/(2*self.larr+1.))
-            return diff < facsig*sig
+            return diff[2*self.nside] < facsig*sig[2*self.nside]
 
         # Check TT
         self.assertTrue(get_diff(ctt1, self.cltt, self.cltt,

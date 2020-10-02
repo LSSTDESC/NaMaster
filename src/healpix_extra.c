@@ -915,12 +915,12 @@ void he_map2alm(nmt_curvedsky_info *cs,int lmax,int ntrans,int spin,flouble **ma
   }
 }
 
-void he_alm2cl(fcomplex **alms_1,fcomplex **alms_2,int pol_1,int pol_2,flouble **cls,int lmax)
+void he_alm2cl(fcomplex **alms_1,fcomplex **alms_2,int spin_1,int spin_2,flouble **cls,int lmax)
 {
   int i1,index_cl;
   int nmaps_1=1,nmaps_2=1;
-  if(pol_1) nmaps_1=2;
-  if(pol_2) nmaps_2=2;
+  if(spin_1) nmaps_1=2;
+  if(spin_2) nmaps_2=2;
 
   index_cl=0;
   for(i1=0;i1<nmaps_1;i1++) {
@@ -961,19 +961,19 @@ int he_get_lmax(nmt_curvedsky_info *cs)
 }
 
 void he_anafast(flouble **maps_1,flouble **maps_2,
-		int pol_1,int pol_2,flouble **cls,
+		int spin_1,int spin_2,flouble **cls,
 		nmt_curvedsky_info *cs,int lmax,int iter)
 {
   fcomplex **alms_1,**alms_2;
   int i1,lmax_here=NMT_MAX(lmax,(he_get_lmax(cs)));
   int nmaps_1=1, nmaps_2=1;
-  if(pol_1) nmaps_1=2;
-  if(pol_2) nmaps_2=2;
+  if(spin_1) nmaps_1=2;
+  if(spin_2) nmaps_2=2;
 
   alms_1=my_malloc(nmaps_1*sizeof(fcomplex *));
   for(i1=0;i1<nmaps_1;i1++)
     alms_1[i1]=my_malloc(he_nalms(lmax_here)*sizeof(fcomplex));
-  he_map2alm(cs,lmax,1,2*pol_1,maps_1,alms_1,iter);
+  he_map2alm(cs,lmax,1,spin_1,maps_1,alms_1,iter);
 
   if(maps_1==maps_2)
     alms_2=alms_1;
@@ -981,10 +981,10 @@ void he_anafast(flouble **maps_1,flouble **maps_2,
     alms_2=my_malloc(nmaps_2*sizeof(fcomplex *));
     for(i1=0;i1<nmaps_2;i1++)
       alms_2[i1]=my_malloc(he_nalms(lmax_here)*sizeof(fcomplex));
-    he_map2alm(cs,lmax,1,2*pol_2,maps_2,alms_2,iter);
+    he_map2alm(cs,lmax,1,spin_2,maps_2,alms_2,iter);
   }
 
-  he_alm2cl(alms_1,alms_2,pol_1,pol_2,cls,lmax);
+  he_alm2cl(alms_1,alms_2,spin_1,spin_2,cls,lmax);
 
   for(i1=0;i1<nmaps_1;i1++)
     free(alms_1[i1]);

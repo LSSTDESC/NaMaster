@@ -13,9 +13,9 @@ class NmtField(object):
         with rectangular pixelization.
     :param maps: array containing the observed maps for this field. Should be \
         at least 2-dimensional. The first dimension corresponds to the number \
-        of maps, which should be 1 for a spin-0 field and 2 for a spin-2 \
-        field. The other dimensions should be [npix] for HEALPix maps or \
-        [ny,nx] for maps with rectangular pixels. For a spin-2 field, the two \
+        of maps, which should be 1 for a spin-0 field and 2 otherwise. \
+        The other dimensions should be [npix] for HEALPix maps or \
+        [ny,nx] for maps with rectangular pixels. For a spin>0 field, the two \
         maps to pass should be the usual Q/U Stokes parameters for \
         polarization, or e1/e2 (gamma1/gamma2 etc.) in the case of cosmic \
         shear. It is important to note that NaMaster uses the same \
@@ -26,10 +26,12 @@ class NmtField(object):
         e2/gamma2 map should be swapped before using it to create an \
         NmtField. See more \
         `here <https://healpix.jpl.nasa.gov/html/intronode12.htm>`_ .
+    :param spin: field's spin. If `None` it will be set to 0 if there is
+        a single map on input, and will default to 2 if there are 2 maps.
     :param templates: array containing a set of contaminant templates for \
         this field. This array should have shape [ntemp][nmap]..., where \
         ntemp is the number of templates, nmap should be 1 for spin-0 fields \
-        and 2 for spin-2 fields. The other dimensions should be [npix] for \
+        and 2 otherwise. The other dimensions should be [npix] for \
         HEALPix maps or [ny,nx] for maps with rectangular pixels. The \
         best-fit contribution from each contaminant is automatically removed \
         from the maps unless templates=None.
@@ -42,7 +44,7 @@ class NmtField(object):
     :param purify_e: use pure E-modes?
     :param purify_b: use pure B-modes?
     :param n_iter_mask_purify: number of iterations used to compute an \
-        accurate SHT of the mask when using E/B purification
+        accurate SHT of the mask when using E/B purification.
     :param tol_pinv: when computing the pseudo-inverse of the contaminant \
         covariance matrix, all eigenvalues below tol_pinv * max_eval will be \
         treated as singular values, where max_eval is the largest eigenvalue. \
@@ -58,7 +60,7 @@ class NmtField(object):
         already multiplied by the masks. Note that this is not advisable
         if you're using purification.
     """
-    def __init__(self, mask, maps, templates=None, beam=None,
+    def __init__(self, mask, maps, spin=None, templates=None, beam=None,
                  purify_e=False, purify_b=False, n_iter_mask_purify=3,
                  tol_pinv=1E-10, wcs=None, n_iter=3, lmax_sht=-1,
                  masked_on_input=False):
@@ -84,6 +86,20 @@ class NmtField(object):
 
         if (len(maps) != 1) and (len(maps) != 2):
             raise ValueError("Must supply 1 or 2 maps per field")
+
+        if spin is None:
+            if len(maps) == 1:
+                spin = 0
+            else:
+                spin = 2
+        else:
+            if (((spin != 0) and len(maps) == 1) or
+                    ((spin == 0) and len(maps) != 1)):
+                raise ValueError("Spin-zero fields are "
+                                 "associated with a single map")
+
+        if (pure_e or pure_b) and spin != 2:
+            raise ValueError("Purification only implemented for spin-2 fields")
 
         if wt.is_healpix == 0:  # Flatten if 2D maps
             try:
@@ -142,14 +158,14 @@ class NmtField(object):
             self.fl = lib.field_alloc_new(wt.is_healpix, wt.nside, lmax_sht,
                                           wt.nx, wt.ny,
                                           wt.d_phi, wt.d_theta,
-                                          wt.phi0, wt.theta_max,
+                                          wt.phi0, wt.theta_max, spin,
                                           mask, maps, templates, beam_use,
                                           pure_e, pure_b, n_iter_mask_purify,
                                           tol_pinv, n_iter, masked_input)
         else:
             self.fl = lib.field_alloc_new_notemp(
                 wt.is_healpix, wt.nside, lmax_sht, wt.nx, wt.ny, wt.d_phi,
-                wt.d_theta, wt.phi0, wt.theta_max,
+                wt.d_theta, wt.phi0, wt.theta_max, spin,
                 mask, maps, beam_use, pure_e, pure_b, n_iter_mask_purify,
                 n_iter, masked_input)
 
@@ -204,7 +220,9 @@ class NmtFieldFlat(object):
         to the field's mask.
     :param maps: 2 2D arrays (nmaps,nx,ny) containing the observed maps \
         for this field. The first dimension corresponds to the number of \
-        maps, which should be 1 for a spin-0 field and 2 for a spin-2 field.
+        maps, which should be 1 for a spin-0 field and 2 otherwise.
+    :param spin: field's spin. If `None` it will be set to 0 if there is
+        a single map on input, and will default to 2 if there are 2 maps.
     :param templates: array of maps (ntemp,nmaps,nx,ny) containing a set \
         of contaminant templates for this field. This array should have \
         shape [ntemp][nmap][nx][ny], where ntemp is the number of \
@@ -229,7 +247,7 @@ class NmtFieldFlat(object):
         if you're using purification.
     """
 
-    def __init__(self, lx, ly, mask, maps, templates=None,
+    def __init__(self, lx, ly, mask, maps, spin=None, templates=None,
                  beam=None, purify_e=False, purify_b=False,
                  tol_pinv=1E-10, masked_on_input=False):
         self.fl = None
@@ -254,6 +272,20 @@ class NmtFieldFlat(object):
         self.nx = shape_2D[1]
         if (nmaps != 1) and (nmaps != 2):
             raise ValueError("Must supply 1 or 2 maps per field")
+
+        if spin is None:
+            if nmaps == 1:
+                spin = 0
+            else:
+                spin = 2
+        else:
+            if (((spin != 0) and nmaps == 1) or
+                    ((spin == 0) and nmaps != 1)):
+                raise ValueError("Spin-zero fields are "
+                                 "associated with a single map")
+
+        if (pure_e or pure_b) and spin != 2:
+            raise ValueError("Purification only implemented for spin-2 fields")
 
         # Flatten mask
         msk = (mask.astype(np.float64)).flatten()
@@ -298,13 +330,13 @@ class NmtFieldFlat(object):
 
         # Generate field
         if isinstance(templates, (list, tuple, np.ndarray)):
-            self.fl = lib.field_alloc_new_flat(self.nx, self.ny, lx, ly,
+            self.fl = lib.field_alloc_new_flat(self.nx, self.ny, lx, ly, spin,
                                                msk, mps, tmps, beam_use,
                                                pure_e, pure_b, tol_pinv,
                                                masked_input)
         else:
             self.fl = lib.field_alloc_new_notemp_flat(self.nx, self.ny,
-                                                      lx, ly, msk, mps,
+                                                      lx, ly, spin, msk, mps,
                                                       beam_use, pure_e,
                                                       pure_b, masked_input)
 

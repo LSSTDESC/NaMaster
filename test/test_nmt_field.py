@@ -9,6 +9,7 @@ from .testutils import normdiff, read_flat_map
 # Unit tests associated with the NmtField and NmtFieldFlat classes
 
 
+@unittest.skip('slow')
 class TestFieldCAR(unittest.TestCase):
     def setUp(self):
         # This is to avoid showing an ugly warning that
@@ -296,6 +297,21 @@ class TestFieldHPX(unittest.TestCase):
         with self.assertRaises(ValueError):  # Passing crap as beam
             nmt.NmtField(self.msk, [self.mps[0]], beam=1)
 
+        # Automatically assign spin = 0 for a single map
+        f = nmt.NmtField(self.msk, [self.mps[0]], n_iter=0)
+        self.assertTrue(f.fl.spin == 0)
+        # Automatically assign spin = 2 for 2 maps
+        f = nmt.NmtField(self.msk, [self.mps[1], self.mps[2]], n_iter=0)
+        self.assertTrue(f.fl.spin == 2)
+        with self.assertRaises(ValueError):  # Spin=0 but 2 maps
+            f = nmt.NmtField(self.msk, [self.mps[1], self.mps[2]],
+                             spin=0, n_iter=0)
+        with self.assertRaises(ValueError):  # Spin=1 but 1 maps
+            f = nmt.NmtField(self.msk, [self.mps[0]], spin=1, n_iter=0)
+        with self.assertRaises(ValueError):
+            f = nmt.NmtField(self.msk, [self.mps[1], self.mps[2]], spin=1,
+                             purify_b=True, n_iter=0)
+
 
 class TestFieldFsk(unittest.TestCase):
     def setUp(self):
@@ -436,6 +452,25 @@ class TestFieldFsk(unittest.TestCase):
                              templates=1)
         with self.assertRaises(ValueError):  # Passing crap beam
             nmt.NmtFieldFlat(self.lx, self.ly, self.msk, [self.mps[0]], beam=1)
+
+        # Automatically assign spin = 0 for a single map
+        f = nmt.NmtFieldFlat(self.lx, self.ly, self.msk,
+                             [self.mps[0]])
+        self.assertTrue(f.fl.spin == 0)
+        # Automatically assign spin = 2 for 2 maps
+        f = nmt.NmtFieldFlat(self.lx, self.ly, self.msk,
+                             [self.mps[1], self.mps[2]])
+        self.assertTrue(f.fl.spin == 2)
+        with self.assertRaises(ValueError):  # Spin=0 but 2 maps
+            f = nmt.NmtFieldFlat(self.lx, self.ly, self.msk,
+                                 [self.mps[1], self.mps[2]], spin=0)
+        with self.assertRaises(ValueError):  # Spin=1 but 1 maps
+            f = nmt.NmtFieldFlat(self.lx, self.ly, self.msk,
+                                 [self.mps[0]], spin=1)
+        with self.assertRaises(ValueError):
+            f = nmt.NmtFieldFlat(self.lx, self.ly, self.msk,
+                                 [self.mps[1], self.mps[2]], spin=1,
+                                 purify_b=True)
 
 
 if __name__ == '__main__':

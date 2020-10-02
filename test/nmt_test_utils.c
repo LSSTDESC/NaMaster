@@ -4,7 +4,7 @@
 #include "nmt_test_utils.h"
 #include <chealpix.h>
 
-double **test_make_map_analytic_flat(nmt_flatsky_info *fsk,int pol,int i0_x,int i0_y)
+double **test_make_map_analytic_flat(nmt_flatsky_info *fsk,int spin,int i0_x,int i0_y)
 {
   int ii;
   double k0_x=i0_x*2*M_PI/fsk->lx;
@@ -14,7 +14,7 @@ double **test_make_map_analytic_flat(nmt_flatsky_info *fsk,int pol,int i0_x,int 
   double c2phi0=cphi0*cphi0-sphi0*sphi0;
   double s2phi0=2*sphi0*cphi0;
   int nmaps=1;
-  if(pol) nmaps=2;
+  if(spin) nmaps=2;
   
   double **maps=my_malloc(nmaps*sizeof(double *));
   for(ii=0;ii<nmaps;ii++)
@@ -26,9 +26,13 @@ double **test_make_map_analytic_flat(nmt_flatsky_info *fsk,int pol,int i0_x,int 
     for(jj=0;jj<fsk->nx;jj++) {
       double x=jj*fsk->lx/fsk->nx;
       double phase=k0_x*x+k0_y*y;
-      if(pol) {
+      if(spin==2) {
 	maps[0][jj+fsk->nx*ii]= 2*M_PI*c2phi0*cos(phase)/(fsk->lx*fsk->ly);
 	maps[1][jj+fsk->nx*ii]=-2*M_PI*s2phi0*cos(phase)/(fsk->lx*fsk->ly);
+      }
+      else if(spin==1) {
+	maps[0][jj+fsk->nx*ii]=-2*M_PI*cphi0*sin(phase)/(fsk->lx*fsk->ly);
+	maps[1][jj+fsk->nx*ii]= 2*M_PI*sphi0*sin(phase)/(fsk->lx*fsk->ly);
       }
       else 
 	maps[0][jj+fsk->nx*ii]=2*M_PI*cos(phase)/(fsk->lx*fsk->ly);
@@ -38,13 +42,13 @@ double **test_make_map_analytic_flat(nmt_flatsky_info *fsk,int pol,int i0_x,int 
   return maps;
 }
 
-double **test_make_map_analytic(long nside,int pol)
+double **test_make_map_analytic(long nside,int spin)
 {
   int ii;
   double **maps;
   int nmaps=1;
   long npix=he_nside2npix(nside);
-  if(pol)
+  if(spin)
     nmaps=2;
 
   maps=my_malloc(nmaps*sizeof(double *));
@@ -55,10 +59,15 @@ double **test_make_map_analytic(long nside,int pol)
     double th,ph,sth;
     pix2ang_ring(nside,ii,&th,&ph);
     sth=sin(th);
-    if(pol) {
+    if(spin==2) {
       //spin-2, map = _2Y^E_20+2* _2Y^B_30)
       maps[0][ii]=-sqrt(15./2./M_PI)*sth*sth/4.;
       maps[1][ii]=-sqrt(105./2./M_PI)*cos(th)*sth*sth/2.;
+    }
+    else if(spin==1) {
+      //spin-1, map = _1Y^E_10+3*_1Y^B_10
+      maps[0][ii]=-sqrt(3./8./M_PI)*sth;
+      maps[1][ii]=-3*sqrt(3./8./M_PI)*sth;
     }
     else {
       //spin-0, map = Re(Y_22)
@@ -69,13 +78,13 @@ double **test_make_map_analytic(long nside,int pol)
   return maps;
 }
 
-double **test_make_map_analytic_car(nmt_curvedsky_info *cs,int pol)
+double **test_make_map_analytic_car(nmt_curvedsky_info *cs,int spin)
 {
   int ii;
   double **maps;
   int nmaps=1;
   int npix_short=cs->nx_short*cs->ny;
-  if(pol)
+  if(spin)
     nmaps=2;
 
   maps=my_malloc(nmaps*sizeof(double *));
@@ -90,10 +99,15 @@ double **test_make_map_analytic_car(nmt_curvedsky_info *cs,int pol)
     for(jj=0;jj<cs->nx_short;jj++) {
       double ph=cs->phi0+jj*cs->Delta_phi;
       int ipix=jj+cs->nx_short*ii;
-      if(pol) {
+      if(spin==2) {
 	//spin-2, map = _2Y^E_20+2* _2Y^B_30)
 	maps[0][ipix]=-sqrt(15./2./M_PI)*sth*sth/4.;
 	maps[1][ipix]=-sqrt(105./2./M_PI)*cth*sth*sth/2.;
+      }
+      else if(spin==1) {
+        //spin-1, map = _1Y^E_10+3*_1Y^B_10
+        maps[0][ipix]=-sqrt(3./8./M_PI)*sth;
+        maps[1][ipix]=-3*sqrt(3./8./M_PI)*sth;
       }
       else {
 	//spin-0, map = Re(Y_22)

@@ -239,7 +239,7 @@ void unbin_cl_flat(nmt_binning_scheme_flat *bins,
 }
 
 nmt_field *field_alloc_new(int is_healpix,int nside,int lmax_sht,int nx,int ny,double delta_phi,
-			   double delta_theta,double phi0,double theta0,
+			   double delta_theta,double phi0,double theta0, int spin,
 			   int npix_1,double *mask,
 			   int nmap_2,int npix_2,double *mps,
 			   int ntmp_3,int nmap_3,int npix_3,double *tmp,
@@ -250,7 +250,7 @@ nmt_field *field_alloc_new(int is_healpix,int nside,int lmax_sht,int nx,int ny,d
 {
   int ii,jj;
   long nside_l=(long)nside;
-  int pol=0,ntemp=0;
+  int ntemp=0;
   double **maps;
   double ***temp=NULL;
   nmt_field *fl;
@@ -268,8 +268,6 @@ nmt_field *field_alloc_new(int is_healpix,int nside,int lmax_sht,int nx,int ny,d
 						  delta_theta,delta_phi,phi0,theta0);
   asserting(nell3>he_get_lmax(cs));
 
-  if(nmap_2==2) pol=1;
-
   if(tmp!=NULL) {
     ntemp=ntmp_3;
     temp=malloc(ntmp_3*sizeof(double **));
@@ -284,7 +282,7 @@ nmt_field *field_alloc_new(int is_healpix,int nside,int lmax_sht,int nx,int ny,d
   for(ii=0;ii<nmap_2;ii++)
     maps[ii]=mps+npix_2*ii;
 
-  fl=nmt_field_alloc_sph(cs,mask,pol,maps,ntemp,temp,weights,pure_e,pure_b,
+  fl=nmt_field_alloc_sph(cs,mask,spin,maps,ntemp,temp,weights,pure_e,pure_b,
 			 n_iter_mask_purify,tol_pinv,n_iter,masked_input);
 
   if(tmp!=NULL) {
@@ -299,7 +297,7 @@ nmt_field *field_alloc_new(int is_healpix,int nside,int lmax_sht,int nx,int ny,d
 }
 
 nmt_field *field_alloc_new_notemp(int is_healpix,int nside,int lmax_sht,int nx,int ny,double delta_phi,
-				  double delta_theta,double phi0,double theta0,
+				  double delta_theta,double phi0,double theta0,int spin,
 				  int npix_1,double *mask,
 				  int nmap_2,int npix_2,double *mps,
 				  int nell3,double *weights,
@@ -308,7 +306,7 @@ nmt_field *field_alloc_new_notemp(int is_healpix,int nside,int lmax_sht,int nx,i
 {
   int ii;
   long nside_l=(long)nside;
-  int pol=0,ntemp=0;
+  int ntemp=0;
   double **maps;
   nmt_field *fl;
   asserting(npix_1==npix_2);
@@ -323,13 +321,11 @@ nmt_field *field_alloc_new_notemp(int is_healpix,int nside,int lmax_sht,int nx,i
 						  delta_theta,delta_phi,phi0,theta0);
   asserting(nell3>he_get_lmax(cs));
 
-  if(nmap_2==2) pol=1;
-
   maps=malloc(nmap_2*sizeof(double *));
   for(ii=0;ii<nmap_2;ii++)
     maps[ii]=mps+npix_2*ii;
 
-  fl=nmt_field_alloc_sph(cs,mask,pol,maps,ntemp,NULL,weights,pure_e,pure_b,n_iter_mask_purify,
+  fl=nmt_field_alloc_sph(cs,mask,spin,maps,ntemp,NULL,weights,pure_e,pure_b,n_iter_mask_purify,
 			 0.,n_iter,masked_input);
 
   free(maps);
@@ -338,7 +334,7 @@ nmt_field *field_alloc_new_notemp(int is_healpix,int nside,int lmax_sht,int nx,i
   return fl;
 }
 
-nmt_field_flat *field_alloc_new_flat(int nx,int ny,double lx,double ly,
+nmt_field_flat *field_alloc_new_flat(int nx,int ny,double lx,double ly,int spin,
 				     int npix_1,double *mask,
 				     int nmap_2,int npix_2,double *mps,
 				     int ntmp_3,int nmap_3,int npix_3,double *tmp,
@@ -347,7 +343,7 @@ nmt_field_flat *field_alloc_new_flat(int nx,int ny,double lx,double ly,
                                      int masked_input)
 {
   int ii,jj;
-  int pol=0,ntemp=0;
+  int ntemp=0;
   double **maps;
   double ***temp=NULL;
   nmt_field_flat *fl;
@@ -357,8 +353,6 @@ nmt_field_flat *field_alloc_new_flat(int nx,int ny,double lx,double ly,
   asserting(ncl1==2);
   asserting(lx>0);
   asserting(ly>0);
-
-  if(nmap_2==2) pol=1;
 
   if(tmp!=NULL) {
     asserting(npix_2==npix_3);
@@ -385,7 +379,7 @@ nmt_field_flat *field_alloc_new_flat(int nx,int ny,double lx,double ly,
     beam=&(cls1[nell1]);
   }
 
-  fl=nmt_field_flat_alloc(nx,ny,lx,ly,mask,pol,maps,ntemp,temp,
+  fl=nmt_field_flat_alloc(nx,ny,lx,ly,mask,spin,maps,ntemp,temp,
 			  nell1,larr,beam,pure_e,pure_b,tol_pinv,
                           masked_input);
 
@@ -399,7 +393,7 @@ nmt_field_flat *field_alloc_new_flat(int nx,int ny,double lx,double ly,
   return fl;
 }
 
-nmt_field_flat *field_alloc_new_notemp_flat(int nx,int ny,double lx,double ly,
+nmt_field_flat *field_alloc_new_notemp_flat(int nx,int ny,double lx,double ly,int spin,
 					    int npix_1,double *mask,
 					    int nmap_2,int npix_2,double *mps,
 					    int ncl1,int nell1,double *cls1,
@@ -408,7 +402,7 @@ nmt_field_flat *field_alloc_new_notemp_flat(int nx,int ny,double lx,double ly,
 {
   asserting(lx>0);
   asserting(ly>0);
-  return field_alloc_new_flat(nx,ny,lx,ly,npix_1,mask,nmap_2,npix_2,mps,
+  return field_alloc_new_flat(nx,ny,lx,ly,spin,npix_1,mask,nmap_2,npix_2,mps,
 			      -1,-1,-1,NULL,ncl1,nell1,cls1,pure_e,pure_b,0.,
                               masked_input);
 }
@@ -490,7 +484,7 @@ void synfast_new(int is_healpix,int nside,int nx,int ny,double delta_phi,
   for(ii=0;ii<nfields;ii++) {
     if(spin_arr[ii]==0)
       nmaps+=1;
-    else if(spin_arr[ii]==2)
+    else
       nmaps+=2;
   }
 
@@ -535,7 +529,7 @@ void synfast_new_flat(int nx,int ny,double lx,double ly,
   for(ii=0;ii<nfields;ii++) {
     if(spin_arr[ii]==0)
       nmaps+=1;
-    else if(spin_arr[ii]==2)
+    else
       nmaps+=2;
   }
   asserting(lx>0);
@@ -707,7 +701,7 @@ nmt_covar_workspace_flat *covar_workspace_flat_init_py(nmt_field_flat *fa1,nmt_f
 }
 
 void comp_gaussian_covariance(nmt_covar_workspace *cw,
-			      int pol_a1,int pol_a2,int pol_b1,int pol_b2,
+			      int spin_a1,int spin_a2,int spin_b1,int spin_b2,
 			      nmt_workspace *wa,nmt_workspace *wb,
 			      int ncl11,int nell11,double *c11,
 			      int ncl12,int nell12,double *c12,
@@ -731,13 +725,13 @@ void comp_gaussian_covariance(nmt_covar_workspace *cw,
   double **c22p=malloc(ncl22*sizeof(double *));
   for(i=0;i<ncl22;i++)
     c22p[i]=&(c22[i*nell22]);
-  nmt_compute_gaussian_covariance(cw,pol_a1,pol_a2,pol_b1,pol_b2,wa,wb,
+  nmt_compute_gaussian_covariance(cw,spin_a1,spin_a2,spin_b1,spin_b2,wa,wb,
 				  c11p,c12p,c21p,c22p,dout);
   free(c11p); free(c12p); free(c21p); free(c22p);
 }
 
 void comp_gaussian_covariance_coupled(nmt_covar_workspace *cw,
-                                      int pol_a1,int pol_a2,int pol_b1,int pol_b2,
+                                      int spin_a1,int spin_a2,int spin_b1,int spin_b2,
                                       nmt_workspace *wa,nmt_workspace *wb,
                                       int ncl11,int nell11,double *c11,
                                       int ncl12,int nell12,double *c12,
@@ -761,13 +755,13 @@ void comp_gaussian_covariance_coupled(nmt_covar_workspace *cw,
   double **c22p=malloc(ncl22*sizeof(double *));
   for(i=0;i<ncl22;i++)
     c22p[i]=&(c22[i*nell22]);
-  nmt_compute_gaussian_covariance_coupled(cw,pol_a1,pol_a2,pol_b1,pol_b2,wa,wb,
+  nmt_compute_gaussian_covariance_coupled(cw,spin_a1,spin_a2,spin_b1,spin_b2,wa,wb,
                                           c11p,c12p,c21p,c22p,dout);
   free(c11p); free(c12p); free(c21p); free(c22p);
 }
 
 void comp_gaussian_covariance_flat(nmt_covar_workspace_flat *cw,
-				   int pol_a1,int pol_a2,int pol_b1,int pol_b2,
+				   int spin_a1,int spin_a2,int spin_b1,int spin_b2,
 				   nmt_workspace_flat *wa,nmt_workspace_flat *wb,
 				   int nell3,double *weights,
 				   int ncl11,int nell11,double *c11,
@@ -793,7 +787,7 @@ void comp_gaussian_covariance_flat(nmt_covar_workspace_flat *cw,
   double **c22p=malloc(ncl22*sizeof(double *));
   for(i=0;i<ncl22;i++)
     c22p[i]=&(c22[i*nell22]);
-  nmt_compute_gaussian_covariance_flat(cw,pol_a1,pol_a2,pol_b1,pol_b2,wa,wb,
+  nmt_compute_gaussian_covariance_flat(cw,spin_a1,spin_a2,spin_b1,spin_b2,wa,wb,
 				       nell3,weights,c11p,c12p,c21p,c22p,dout);
   free(c11p); free(c12p); free(c21p); free(c22p);
 }

@@ -38,7 +38,7 @@ CTEST(nmt,he_synalm) {
   cells_pass[1]=cells_in[1];
   cells_pass[2]=cells_in[3];
   fcomplex **alms=he_synalm(cs,nmaps,lmax,cells_pass,beam,1234);
-  he_alm2cl(alms,alms,1,1,cells_out,lmax);
+  he_alm2cl(alms,alms,2,2,cells_out,lmax);
 
   for(l=0;l<=lmax;l++) {
     int im1;
@@ -100,7 +100,7 @@ CTEST(nmt,he_alm2cl)
   double **maps=my_malloc(3*sizeof(double *));
   fcomplex **alms=my_malloc(3*sizeof(fcomplex *));
   double **cls=my_malloc(7*sizeof(double *));
-  
+
   for(ii=0;ii<7;ii++)
     cls[ii]=my_malloc((lmax+1)*sizeof(double));
 
@@ -118,15 +118,15 @@ CTEST(nmt,he_alm2cl)
 
   //Power spectra
   he_alm2cl(&(alms[0]),&(alms[0]),0,0,&(cls[0]),lmax);
-  he_alm2cl(&(alms[0]),&(alms[1]),0,1,&(cls[1]),lmax);
-  he_alm2cl(&(alms[1]),&(alms[1]),1,1,&(cls[3]),lmax);
+  he_alm2cl(&(alms[0]),&(alms[1]),0,2,&(cls[1]),lmax);
+  he_alm2cl(&(alms[1]),&(alms[1]),2,2,&(cls[3]),lmax);
   for(ii=0;ii<7;ii++)
     test_compare_arrays(lmax+1,cls[ii],7,ii,"test/benchmarks/cls_afst.txt",1E-5);
 
   //Anafast
   he_anafast(&(maps[0]),&(maps[0]),0,0,&(cls[0]),cs,lmax,3);
-  he_anafast(&(maps[0]),&(maps[1]),0,1,&(cls[1]),cs,lmax,3);
-  he_anafast(&(maps[1]),&(maps[1]),1,1,&(cls[3]),cs,lmax,3);
+  he_anafast(&(maps[0]),&(maps[1]),0,2,&(cls[1]),cs,lmax,3);
+  he_anafast(&(maps[1]),&(maps[1]),2,2,&(cls[3]),cs,lmax,3);
   for(ii=0;ii<7;ii++)
     test_compare_arrays(lmax+1,cls[ii],7,ii,"test/benchmarks/cls_afst.txt",1E-5);
   
@@ -203,10 +203,24 @@ CTEST(nmt,he_sht) {
   ASSERT_DBL_NEAR_TOL(0.5,creal(alms[0][he_indexlm(2,2,lmax)]),1E-5);
   ASSERT_DBL_NEAR_TOL(0.0,cimag(alms[0][he_indexlm(2,2,lmax)]),1E-5);
   free(maps[0]); free(maps);
+  //spin-1, map = _1Y^E_10+3* _1Y^B_10) ->
+  //        E_lm =   delta_l1 delta_m0
+  //        B_lm = 3 delta_l1 delta_m0
+  maps=test_make_map_analytic(nside,1);
+  he_map2alm(cs,lmax,1,1,maps,alms,0);
+  ASSERT_DBL_NEAR_TOL(1.,creal(alms[0][he_indexlm(1,0,lmax)]),1E-5);
+  ASSERT_DBL_NEAR_TOL(0.,cimag(alms[0][he_indexlm(1,0,lmax)]),1E-5);
+  ASSERT_DBL_NEAR_TOL(0.,creal(alms[0][he_indexlm(1,1,lmax)]),1E-5);
+  ASSERT_DBL_NEAR_TOL(0.,cimag(alms[0][he_indexlm(1,1,lmax)]),1E-5);
+  ASSERT_DBL_NEAR_TOL(3.,creal(alms[1][he_indexlm(1,0,lmax)]),1E-5);
+  ASSERT_DBL_NEAR_TOL(0.,cimag(alms[1][he_indexlm(1,0,lmax)]),1E-5);
+  ASSERT_DBL_NEAR_TOL(0.,creal(alms[1][he_indexlm(1,1,lmax)]),1E-5);
+  ASSERT_DBL_NEAR_TOL(0.,cimag(alms[1][he_indexlm(1,1,lmax)]),1E-5);
+  free(maps[0]); free(maps[1]); free(maps);
   //spin-2, map = _2Y^E_20+2* _2Y^B_30) ->
   //        E_lm =   delta_l2 delta_m0
   //        B_lm = 2 delta_l3 delta_m0
-  maps=test_make_map_analytic(nside,1);
+  maps=test_make_map_analytic(nside,2);
   he_map2alm(cs,lmax,1,2,maps,alms,0);
   ASSERT_DBL_NEAR_TOL(1.,creal(alms[0][he_indexlm(2,0,lmax)]),1E-5);
   ASSERT_DBL_NEAR_TOL(0.,cimag(alms[0][he_indexlm(2,0,lmax)]),1E-5);
@@ -298,10 +312,25 @@ CTEST(nmt,he_sht_car) {
   ASSERT_DBL_NEAR_TOL(0.0,cimag(alms[0][he_indexlm(2,2,lmax)]),1E-5);
   free(maps[0]); free(maps);
 
+  //spin-1, map = _1Y^E_10+3* _1Y^B_10) ->
+  //        E_lm =   delta_l1 delta_m0
+  //        B_lm = 3 delta_l1 delta_m0
+  maps=test_make_map_analytic_car(cs,1);
+  he_map2alm(cs,lmax,1,1,maps,alms,0);
+  ASSERT_DBL_NEAR_TOL(1.,creal(alms[0][he_indexlm(1,0,lmax)]),1E-5);
+  ASSERT_DBL_NEAR_TOL(0.,cimag(alms[0][he_indexlm(1,0,lmax)]),1E-5);
+  ASSERT_DBL_NEAR_TOL(0.,creal(alms[0][he_indexlm(1,1,lmax)]),1E-5);
+  ASSERT_DBL_NEAR_TOL(0.,cimag(alms[0][he_indexlm(1,1,lmax)]),1E-5);
+  ASSERT_DBL_NEAR_TOL(3.,creal(alms[1][he_indexlm(1,0,lmax)]),1E-5);
+  ASSERT_DBL_NEAR_TOL(0.,cimag(alms[1][he_indexlm(1,0,lmax)]),1E-5);
+  ASSERT_DBL_NEAR_TOL(0.,creal(alms[1][he_indexlm(1,1,lmax)]),1E-5);
+  ASSERT_DBL_NEAR_TOL(0.,cimag(alms[1][he_indexlm(1,1,lmax)]),1E-5);
+  free(maps[0]); free(maps[1]); free(maps);
+
   //spin-2, map = _2Y^E_20+2* _2Y^B_30) ->
   //        E_lm =   delta_l2 delta_m0
   //        B_lm = 2 delta_l3 delta_m0
-  maps=test_make_map_analytic_car(cs,1);
+  maps=test_make_map_analytic_car(cs,2);
   he_map2alm(cs,lmax,1,2,maps,alms,0);
   ASSERT_DBL_NEAR_TOL(1.,creal(alms[0][he_indexlm(2,0,lmax)]),1E-5);
   ASSERT_DBL_NEAR_TOL(0.,cimag(alms[0][he_indexlm(2,0,lmax)]),1E-5);

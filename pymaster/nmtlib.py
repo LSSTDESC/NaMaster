@@ -368,10 +368,10 @@ class field_flat(_object):
     __swig_getmethods__["a_mask"] = _nmtlib.field_flat_a_mask_get
     if _newclass:
         a_mask = _swig_property(_nmtlib.field_flat_a_mask_get, _nmtlib.field_flat_a_mask_set)
-    __swig_setmethods__["pol"] = _nmtlib.field_flat_pol_set
-    __swig_getmethods__["pol"] = _nmtlib.field_flat_pol_get
+    __swig_setmethods__["spin"] = _nmtlib.field_flat_spin_set
+    __swig_getmethods__["spin"] = _nmtlib.field_flat_spin_get
     if _newclass:
-        pol = _swig_property(_nmtlib.field_flat_pol_get, _nmtlib.field_flat_pol_set)
+        spin = _swig_property(_nmtlib.field_flat_spin_get, _nmtlib.field_flat_spin_set)
     __swig_setmethods__["nmaps"] = _nmtlib.field_flat_nmaps_set
     __swig_getmethods__["nmaps"] = _nmtlib.field_flat_nmaps_get
     if _newclass:
@@ -421,8 +421,8 @@ def field_flat_free(fl):
     return _nmtlib.field_flat_free(fl)
 field_flat_free = _nmtlib.field_flat_free
 
-def field_flat_alloc(nx, ny, lx, ly, mask, pol, maps, ntemp, temp, nl_beam, l_beam, beam, pure_e, pure_b, tol_pinv, masked_input):
-    return _nmtlib.field_flat_alloc(nx, ny, lx, ly, mask, pol, maps, ntemp, temp, nl_beam, l_beam, beam, pure_e, pure_b, tol_pinv, masked_input)
+def field_flat_alloc(nx, ny, lx, ly, mask, spin, maps, ntemp, temp, nl_beam, l_beam, beam, pure_e, pure_b, tol_pinv, masked_input):
+    return _nmtlib.field_flat_alloc(nx, ny, lx, ly, mask, spin, maps, ntemp, temp, nl_beam, l_beam, beam, pure_e, pure_b, tol_pinv, masked_input)
 field_flat_alloc = _nmtlib.field_flat_alloc
 
 def synfast_flat(nx, ny, lx, ly, nfields, spin_arr, nl_beam, l_beam, beam_fields, nl_cell, l_cell, cell_fields, seed):
@@ -544,10 +544,10 @@ class field(_object):
     __swig_getmethods__["a_mask"] = _nmtlib.field_a_mask_get
     if _newclass:
         a_mask = _swig_property(_nmtlib.field_a_mask_get, _nmtlib.field_a_mask_set)
-    __swig_setmethods__["pol"] = _nmtlib.field_pol_set
-    __swig_getmethods__["pol"] = _nmtlib.field_pol_get
+    __swig_setmethods__["spin"] = _nmtlib.field_spin_set
+    __swig_getmethods__["spin"] = _nmtlib.field_spin_get
     if _newclass:
-        pol = _swig_property(_nmtlib.field_pol_get, _nmtlib.field_pol_set)
+        spin = _swig_property(_nmtlib.field_spin_get, _nmtlib.field_spin_set)
     __swig_setmethods__["nmaps"] = _nmtlib.field_nmaps_set
     __swig_getmethods__["nmaps"] = _nmtlib.field_nmaps_get
     if _newclass:
@@ -597,12 +597,12 @@ def field_free(fl):
     return _nmtlib.field_free(fl)
 field_free = _nmtlib.field_free
 
-def field_alloc_sph(cs, mask, pol, maps, ntemp, temp, beam, pure_e, pure_b, n_iter_mask_purify, tol_pinv, niter, masked_input):
-    return _nmtlib.field_alloc_sph(cs, mask, pol, maps, ntemp, temp, beam, pure_e, pure_b, n_iter_mask_purify, tol_pinv, niter, masked_input)
+def field_alloc_sph(cs, mask, spin, maps, ntemp, temp, beam, pure_e, pure_b, n_iter_mask_purify, tol_pinv, niter, masked_input):
+    return _nmtlib.field_alloc_sph(cs, mask, spin, maps, ntemp, temp, beam, pure_e, pure_b, n_iter_mask_purify, tol_pinv, niter, masked_input)
 field_alloc_sph = _nmtlib.field_alloc_sph
 
-def field_read(is_healpix, fname_mask, fname_maps, fname_temp, fname_beam, pol, pure_e, pure_b, n_iter_mask_purify, tol_pinv, niter):
-    return _nmtlib.field_read(is_healpix, fname_mask, fname_maps, fname_temp, fname_beam, pol, pure_e, pure_b, n_iter_mask_purify, tol_pinv, niter)
+def field_read(is_healpix, fname_mask, fname_maps, fname_temp, fname_beam, spin, pure_e, pure_b, n_iter_mask_purify, tol_pinv, niter):
+    return _nmtlib.field_read(is_healpix, fname_mask, fname_maps, fname_temp, fname_beam, spin, pure_e, pure_b, n_iter_mask_purify, tol_pinv, niter)
 field_read = _nmtlib.field_read
 
 def synfast_sph(cs, nfields, spin_arr, lmax, cells, beam_fields, seed):
@@ -911,8 +911,8 @@ def covar_workspace_flat_init(fla1, fla2, ba, flb1, flb2, bb):
     return _nmtlib.covar_workspace_flat_init(fla1, fla2, ba, flb1, flb2, bb)
 covar_workspace_flat_init = _nmtlib.covar_workspace_flat_init
 
-def compute_gaussian_covariance_flat(cw, pol_a, pol_b, pol_c, pol_d, wa, wb, nl, larr, clac, clad, clbc, clbd, covar_out):
-    return _nmtlib.compute_gaussian_covariance_flat(cw, pol_a, pol_b, pol_c, pol_d, wa, wb, nl, larr, clac, clad, clbc, clbd, covar_out)
+def compute_gaussian_covariance_flat(cw, spin_a, spin_b, spin_c, spin_d, wa, wb, nl, larr, clac, clad, clbc, clbd, covar_out):
+    return _nmtlib.compute_gaussian_covariance_flat(cw, spin_a, spin_b, spin_c, spin_d, wa, wb, nl, larr, clac, clad, clbc, clbd, covar_out)
 compute_gaussian_covariance_flat = _nmtlib.compute_gaussian_covariance_flat
 class covar_workspace(_object):
     __swig_setmethods__ = {}
@@ -977,12 +977,12 @@ def covar_workspace_init(fla1, fla2, flb1, flb2, lmax, niter):
     return _nmtlib.covar_workspace_init(fla1, fla2, flb1, flb2, lmax, niter)
 covar_workspace_init = _nmtlib.covar_workspace_init
 
-def compute_gaussian_covariance(cw, pol_a, pol_b, pol_c, pol_d, wa, wb, clac, clad, clbc, clbd, covar_out):
-    return _nmtlib.compute_gaussian_covariance(cw, pol_a, pol_b, pol_c, pol_d, wa, wb, clac, clad, clbc, clbd, covar_out)
+def compute_gaussian_covariance(cw, spin_a, spin_b, spin_c, spin_d, wa, wb, clac, clad, clbc, clbd, covar_out):
+    return _nmtlib.compute_gaussian_covariance(cw, spin_a, spin_b, spin_c, spin_d, wa, wb, clac, clad, clbc, clbd, covar_out)
 compute_gaussian_covariance = _nmtlib.compute_gaussian_covariance
 
-def compute_gaussian_covariance_coupled(cw, pol_a, pol_b, pol_c, pol_d, wa, wb, clac, clad, clbc, clbd, covar_out):
-    return _nmtlib.compute_gaussian_covariance_coupled(cw, pol_a, pol_b, pol_c, pol_d, wa, wb, clac, clad, clbc, clbd, covar_out)
+def compute_gaussian_covariance_coupled(cw, spin_a, spin_b, spin_c, spin_d, wa, wb, clac, clad, clbc, clbd, covar_out):
+    return _nmtlib.compute_gaussian_covariance_coupled(cw, spin_a, spin_b, spin_c, spin_d, wa, wb, clac, clad, clbc, clbd, covar_out)
 compute_gaussian_covariance_coupled = _nmtlib.compute_gaussian_covariance_coupled
 
 def workspace_write_fits(w, fname):
@@ -1085,20 +1085,20 @@ def unbin_cl_flat(bins, ncl1, nell3, dout):
     return _nmtlib.unbin_cl_flat(bins, ncl1, nell3, dout)
 unbin_cl_flat = _nmtlib.unbin_cl_flat
 
-def field_alloc_new(is_healpix, nside, lmax_sht, nx, ny, delta_phi, delta_theta, phi0, theta0, npix_1, nmap_2, ntmp_3, nell3, pure_e, pure_b, n_iter_mask_purify, tol_pinv, n_iter, masked_input):
-    return _nmtlib.field_alloc_new(is_healpix, nside, lmax_sht, nx, ny, delta_phi, delta_theta, phi0, theta0, npix_1, nmap_2, ntmp_3, nell3, pure_e, pure_b, n_iter_mask_purify, tol_pinv, n_iter, masked_input)
+def field_alloc_new(is_healpix, nside, lmax_sht, nx, ny, delta_phi, delta_theta, phi0, theta0, spin, npix_1, nmap_2, ntmp_3, nell3, pure_e, pure_b, n_iter_mask_purify, tol_pinv, n_iter, masked_input):
+    return _nmtlib.field_alloc_new(is_healpix, nside, lmax_sht, nx, ny, delta_phi, delta_theta, phi0, theta0, spin, npix_1, nmap_2, ntmp_3, nell3, pure_e, pure_b, n_iter_mask_purify, tol_pinv, n_iter, masked_input)
 field_alloc_new = _nmtlib.field_alloc_new
 
-def field_alloc_new_notemp(is_healpix, nside, lmax_sht, nx, ny, delta_phi, delta_theta, phi0, theta0, npix_1, nmap_2, nell3, pure_e, pure_b, n_iter_mask_purify, n_iter, masked_input):
-    return _nmtlib.field_alloc_new_notemp(is_healpix, nside, lmax_sht, nx, ny, delta_phi, delta_theta, phi0, theta0, npix_1, nmap_2, nell3, pure_e, pure_b, n_iter_mask_purify, n_iter, masked_input)
+def field_alloc_new_notemp(is_healpix, nside, lmax_sht, nx, ny, delta_phi, delta_theta, phi0, theta0, spin, npix_1, nmap_2, nell3, pure_e, pure_b, n_iter_mask_purify, n_iter, masked_input):
+    return _nmtlib.field_alloc_new_notemp(is_healpix, nside, lmax_sht, nx, ny, delta_phi, delta_theta, phi0, theta0, spin, npix_1, nmap_2, nell3, pure_e, pure_b, n_iter_mask_purify, n_iter, masked_input)
 field_alloc_new_notemp = _nmtlib.field_alloc_new_notemp
 
-def field_alloc_new_flat(nx, ny, lx, ly, npix_1, nmap_2, ntmp_3, ncl1, pure_e, pure_b, tol_pinv, masked_input):
-    return _nmtlib.field_alloc_new_flat(nx, ny, lx, ly, npix_1, nmap_2, ntmp_3, ncl1, pure_e, pure_b, tol_pinv, masked_input)
+def field_alloc_new_flat(nx, ny, lx, ly, spin, npix_1, nmap_2, ntmp_3, ncl1, pure_e, pure_b, tol_pinv, masked_input):
+    return _nmtlib.field_alloc_new_flat(nx, ny, lx, ly, spin, npix_1, nmap_2, ntmp_3, ncl1, pure_e, pure_b, tol_pinv, masked_input)
 field_alloc_new_flat = _nmtlib.field_alloc_new_flat
 
-def field_alloc_new_notemp_flat(nx, ny, lx, ly, npix_1, nmap_2, ncl1, pure_e, pure_b, masked_input):
-    return _nmtlib.field_alloc_new_notemp_flat(nx, ny, lx, ly, npix_1, nmap_2, ncl1, pure_e, pure_b, masked_input)
+def field_alloc_new_notemp_flat(nx, ny, lx, ly, spin, npix_1, nmap_2, ncl1, pure_e, pure_b, masked_input):
+    return _nmtlib.field_alloc_new_notemp_flat(nx, ny, lx, ly, spin, npix_1, nmap_2, ncl1, pure_e, pure_b, masked_input)
 field_alloc_new_notemp_flat = _nmtlib.field_alloc_new_notemp_flat
 
 def get_map(fl, imap, ldout):
@@ -1193,16 +1193,16 @@ def covar_workspace_flat_init_py(fa1, fa2, ba, fb1, fb2, bb):
     return _nmtlib.covar_workspace_flat_init_py(fa1, fa2, ba, fb1, fb2, bb)
 covar_workspace_flat_init_py = _nmtlib.covar_workspace_flat_init_py
 
-def comp_gaussian_covariance(cw, pol_a1, pol_a2, pol_b1, pol_b2, wa, wb, ncl11, ncl12, ncl21, ncl22, dout):
-    return _nmtlib.comp_gaussian_covariance(cw, pol_a1, pol_a2, pol_b1, pol_b2, wa, wb, ncl11, ncl12, ncl21, ncl22, dout)
+def comp_gaussian_covariance(cw, spin_a1, spin_a2, spin_b1, spin_b2, wa, wb, ncl11, ncl12, ncl21, ncl22, dout):
+    return _nmtlib.comp_gaussian_covariance(cw, spin_a1, spin_a2, spin_b1, spin_b2, wa, wb, ncl11, ncl12, ncl21, ncl22, dout)
 comp_gaussian_covariance = _nmtlib.comp_gaussian_covariance
 
-def comp_gaussian_covariance_coupled(cw, pol_a1, pol_a2, pol_b1, pol_b2, wa, wb, ncl11, ncl12, ncl21, ncl22, dout):
-    return _nmtlib.comp_gaussian_covariance_coupled(cw, pol_a1, pol_a2, pol_b1, pol_b2, wa, wb, ncl11, ncl12, ncl21, ncl22, dout)
+def comp_gaussian_covariance_coupled(cw, spin_a1, spin_a2, spin_b1, spin_b2, wa, wb, ncl11, ncl12, ncl21, ncl22, dout):
+    return _nmtlib.comp_gaussian_covariance_coupled(cw, spin_a1, spin_a2, spin_b1, spin_b2, wa, wb, ncl11, ncl12, ncl21, ncl22, dout)
 comp_gaussian_covariance_coupled = _nmtlib.comp_gaussian_covariance_coupled
 
-def comp_gaussian_covariance_flat(cw, pol_a1, pol_a2, pol_b1, pol_b2, wa, wb, nell3, ncl11, ncl12, ncl21, ncl22, dout):
-    return _nmtlib.comp_gaussian_covariance_flat(cw, pol_a1, pol_a2, pol_b1, pol_b2, wa, wb, nell3, ncl11, ncl12, ncl21, ncl22, dout)
+def comp_gaussian_covariance_flat(cw, spin_a1, spin_a2, spin_b1, spin_b2, wa, wb, nell3, ncl11, ncl12, ncl21, ncl22, dout):
+    return _nmtlib.comp_gaussian_covariance_flat(cw, spin_a1, spin_a2, spin_b1, spin_b2, wa, wb, nell3, ncl11, ncl12, ncl21, ncl22, dout)
 comp_gaussian_covariance_flat = _nmtlib.comp_gaussian_covariance_flat
 
 def comp_pspec_coupled(fl1, fl2, dout):

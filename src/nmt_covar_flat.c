@@ -313,7 +313,7 @@ void nmt_covar_workspace_flat_free(nmt_covar_workspace_flat *cw)
 }
 
 void nmt_compute_gaussian_covariance_flat(nmt_covar_workspace_flat *cw,
-					  int pol_a,int pol_b,int pol_c,int pol_d,
+					  int spin_a,int spin_b,int spin_c,int spin_d,
 					  nmt_workspace_flat *wa,nmt_workspace_flat *wb,
 					  int nl,flouble *larr,
 					  flouble **clac,flouble **clad,
@@ -322,10 +322,10 @@ void nmt_compute_gaussian_covariance_flat(nmt_covar_workspace_flat *cw,
   if((wa->bin->n_bands!=cw->bin->n_bands) || (wb->bin->n_bands!=cw->bin->n_bands))
     report_error(NMT_ERROR_COVAR,"Coupling coefficients were computed for a different binning scheme\n");
 
-  int nmaps_a=pol_a ? 2 : 1;
-  int nmaps_b=pol_b ? 2 : 1;
-  int nmaps_c=pol_c ? 2 : 1;
-  int nmaps_d=pol_d ? 2 : 1;
+  int nmaps_a=spin_a ? 2 : 1;
+  int nmaps_b=spin_b ? 2 : 1;
+  int nmaps_c=spin_c ? 2 : 1;
+  int nmaps_d=spin_d ? 2 : 1;
   if((wa->ncls!=nmaps_a*nmaps_b) || (wb->ncls!=nmaps_c*nmaps_d))
     report_error(NMT_ERROR_COVAR,"Input spins don't match input workspaces\n");
 
@@ -351,7 +351,7 @@ void nmt_compute_gaussian_covariance_flat(nmt_covar_workspace_flat *cw,
   //Convolve with Xi
   gsl_matrix *covar_binned=gsl_matrix_alloc(wa->ncls*cw->bin->n_bands,wb->ncls*cw->bin->n_bands);
 #pragma omp parallel default(none)		\
-  shared(cw,pol_a,pol_b,pol_c,pol_d)		\
+  shared(cw,spin_a,spin_b,spin_c,spin_d)        \
   shared(wa,wb,nl,larr,covar_binned)		\
   shared(nmaps_a,nmaps_b,nmaps_c,nmaps_d)	\
   shared(cblac,cblad,cblbc,cblbd)
