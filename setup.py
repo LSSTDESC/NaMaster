@@ -32,7 +32,7 @@ else:
 
 libs = [
     'sharp', 'fftpack', 'c_utils', 'cfitsio',
-    'gsl', 'gslcblas', 'm', 'nmt', 'chealpix'] + FFTW_LIBS
+    'gsl', 'gslcblas', 'm'] + FFTW_LIBS
 
 use_icc = False  # Set to True if you compiled libsharp with icc
 if use_icc:
@@ -73,22 +73,22 @@ def _compile_libnmt(): # RM
 class build(_build): # RM
     """Specialized Python source builder.""" # RM
     def run(self): # RM
-        # _compile_libsharp() # RM
-        # _compile_libchealpix() # RM
+        _compile_libsharp() # RM
+        _compile_libchealpix() # RM
         _compile_libnmt() # RM
         _build.run(self) # RM
 
 class develop(_develop): # RM
     """Specialized Python develop mode.""" # RM
     def run(self): # RM
-        # _compile_libsharp() # RM
-        # _compile_libchealpix() # RM
+        _compile_libsharp() # RM
+        _compile_libchealpix() # RM
         _compile_libnmt() # RM
         _build.run(self) # RM
 
 _nmtlib = Extension("_nmtlib",
                     ["pymaster/namaster_wrap.c"],
-                    extra_objects=["./_deps/lib/libnmt.a"],#, "./_deps/lib/libchealpix.a"],
+                    extra_objects=["./_deps/lib/libnmt.a", "./_deps/lib/libchealpix.a"],
                     libraries=libs,
                     library_dirs=["./_deps/lib/"],
                     include_dirs=[numpy_include, "./src/","./_deps/include/"],
