@@ -176,6 +176,24 @@ class NmtBin(object):
         """
         return lib.get_nell_list(self.bin, self.bin.n_bands)
 
+    def get_ell_min(self, b):
+        """
+        Returns the minimum ell value used by bandpower with \
+        index b
+
+        :return: minimum ell value
+        """
+        return self.get_ell_list(b)[0]
+
+    def get_ell_max(self, b):
+        """
+        Returns the maximum ell value used by bandpower with \
+        index b
+
+        :return: maximum ell value
+        """
+        return self.get_ell_list(b)[-1]
+
     def get_ell_list(self, ibin):
         """
         Returns an array with the multipoles in the ibin-th bandpower
