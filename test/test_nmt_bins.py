@@ -63,7 +63,7 @@ class TestBinsSph(unittest.TestCase):
                                        self.be.get_effective_ells())) < 1E-10)
 
     def test_min_max(self):
-        n = self.get_n_bands()
+        n = self.be.get_n_bands()
         self.assertEqual(self.be.get_ell_min(0), self.ell_edges[0])
         self.assertEqual(self.be.get_ell_max(0), self.ell_edges[1])
         self.assertEqual(self.be.get_ell_min(n - 1), self.ell_edges[-2])
