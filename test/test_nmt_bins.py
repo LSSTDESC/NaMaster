@@ -35,8 +35,8 @@ class TestBinsSph(unittest.TestCase):
                                weights=weights,
                                lmax=self.lmax,
                                f_ell=fell)
-        l_edges = np.arange(2, self.lmax+2, 4, dtype=int)
-        self.be = nmt.NmtBin.from_edges(l_edges[:-1], l_edges[1:])
+        self.l_edges = np.arange(2, self.lmax+2, 4, dtype=int)
+        self.be = nmt.NmtBin.from_edges(self.l_edges[:-1], self.l_edges[1:])
 
     def test_bins_errors(self):
         # Tests raised exceptions
@@ -61,6 +61,15 @@ class TestBinsSph(unittest.TestCase):
                          self.be.get_n_bands())
         self.assertTrue(np.sum(np.fabs(self.bc.get_effective_ells() -
                                        self.be.get_effective_ells())) < 1E-10)
+
+    def test_min_max(self):
+        n = self.be.get_n_bands()
+        self.assertEqual(self.be.get_ell_min(0), self.l_edges[0])
+        self.assertEqual(self.be.get_ell_max(0), self.l_edges[1] - 1)
+        self.assertEqual(self.be.get_ell_min(1), self.l_edges[1])
+        self.assertEqual(self.be.get_ell_max(1), self.l_edges[2] - 1)
+        self.assertEqual(self.be.get_ell_min(n - 1), self.l_edges[-2])
+        self.assertEqual(self.be.get_ell_max(n - 1), self.l_edges[-1] - 1)
 
     def test_bins_constant(self):
         # Tests constant bandpower initialization
