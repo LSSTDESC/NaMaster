@@ -65,9 +65,11 @@ class TestBinsSph(unittest.TestCase):
     def test_min_max(self):
         n = self.be.get_n_bands()
         self.assertEqual(self.be.get_ell_min(0), self.l_edges[0])
-        self.assertEqual(self.be.get_ell_max(0), self.l_edges[1])
+        self.assertEqual(self.be.get_ell_max(0), self.l_edges[1] - 1)
+        self.assertEqual(self.be.get_ell_min(1), self.l_edges[1])
+        self.assertEqual(self.be.get_ell_max(1), self.l_edges[2] - 1)
         self.assertEqual(self.be.get_ell_min(n - 1), self.l_edges[-2])
-        self.assertEqual(self.be.get_ell_max(n - 1), self.l_edges[-1])
+        self.assertEqual(self.be.get_ell_max(n - 1), self.l_edges[-1] - 1)
 
     def test_bins_constant(self):
         # Tests constant bandpower initialization
