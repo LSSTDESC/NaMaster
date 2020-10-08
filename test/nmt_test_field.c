@@ -31,7 +31,7 @@ CTEST(nmt,field_alloc) {
     temp[ii]=test_make_map_analytic(nside,0);
 
   //No templates
-  f=nmt_field_alloc_sph(cs,mask,0,maps,0,NULL,beam,0,0,0,1E-5,HE_NITER_DEFAULT,0,0);
+  f=nmt_field_alloc_sph(cs,mask,0,maps,0,NULL,beam,0,0,0,1E-5,HE_NITER_DEFAULT,0,0,0);
   //Sanity checks
   ASSERT_EQUAL(lmax,f->lmax);
   ASSERT_EQUAL(0,f->pure_e);
@@ -46,7 +46,7 @@ CTEST(nmt,field_alloc) {
   nmt_field_free(f);
   
   //With templates
-  f=nmt_field_alloc_sph(cs,mask,0,maps,ntemp,temp,NULL,0,0,0,1E-5,HE_NITER_DEFAULT,0,0);
+  f=nmt_field_alloc_sph(cs,mask,0,maps,ntemp,temp,NULL,0,0,0,1E-5,HE_NITER_DEFAULT,0,0,0);
   //Since maps and templates are the same, template-deprojected map should be 0
   for(ii=0;ii<npix;ii++)
     ASSERT_DBL_NEAR_TOL(0.0,f->maps[0][ii],1E-10);
@@ -73,7 +73,7 @@ CTEST(nmt,field_alloc) {
   maps=test_make_map_analytic(nside,1);
 
   //No templates
-  f=nmt_field_alloc_sph(cs,mask,1,maps,0,NULL,beam,0,0,0,1E-5,HE_NITER_DEFAULT,0,0);
+  f=nmt_field_alloc_sph(cs,mask,1,maps,0,NULL,beam,0,0,0,1E-5,HE_NITER_DEFAULT,0,0,0);
   //Sanity checks
   ASSERT_EQUAL(1,f->spin);
   ASSERT_EQUAL(2,f->nmaps);
@@ -101,7 +101,7 @@ CTEST(nmt,field_alloc) {
     temp[ii]=test_make_map_analytic(nside,2);
 
   //No templates
-  f=nmt_field_alloc_sph(cs,mask,2,maps,0,NULL,beam,0,0,0,1E-5,HE_NITER_DEFAULT,0,0);
+  f=nmt_field_alloc_sph(cs,mask,2,maps,0,NULL,beam,0,0,0,1E-5,HE_NITER_DEFAULT,0,0,0);
   //Sanity checks
   ASSERT_EQUAL(2,f->spin);
   ASSERT_EQUAL(2,f->nmaps);
@@ -129,7 +129,7 @@ CTEST(nmt,field_alloc) {
       free(temp[ii][jj]);
     temp[ii]=test_make_map_analytic(nside,2);
   }
-  f=nmt_field_alloc_sph(cs,mask,2,maps,0,NULL,beam,1,1,5,1E-5,HE_NITER_DEFAULT,0,0);
+  f=nmt_field_alloc_sph(cs,mask,2,maps,0,NULL,beam,1,1,5,1E-5,HE_NITER_DEFAULT,0,0,0);
   //Sanity checks
   ASSERT_EQUAL(2,f->spin);
   ASSERT_EQUAL(2,f->nmaps);
@@ -157,7 +157,7 @@ CTEST(nmt,field_alloc) {
       free(temp[ii][jj]);
     temp[ii]=test_make_map_analytic(nside,2);
   }
-  f=nmt_field_alloc_sph(cs,mask,2,maps,ntemp,temp,beam,0,0,0,1E-5,HE_NITER_DEFAULT,0,0);
+  f=nmt_field_alloc_sph(cs,mask,2,maps,ntemp,temp,beam,0,0,0,1E-5,HE_NITER_DEFAULT,0,0,0);
   //Since maps and templates are the same, template-deprojected map should be 0
   for(ii=0;ii<nmaps;ii++) {
     for(jj=0;jj<npix;jj++)
@@ -188,7 +188,7 @@ CTEST(nmt,field_alloc) {
       free(temp[ii][jj]);
     temp[ii]=test_make_map_analytic(nside,2);
   }
-  f=nmt_field_alloc_sph(cs,mask,2,maps,ntemp,temp,beam,1,1,5,1E-5,HE_NITER_DEFAULT,0,0);
+  f=nmt_field_alloc_sph(cs,mask,2,maps,ntemp,temp,beam,1,1,5,1E-5,HE_NITER_DEFAULT,0,0,0);
   //Since maps and templates are the same, template-deprojected map should be 0
   for(ii=0;ii<nmaps;ii++) {
     for(jj=0;jj<npix;jj++)

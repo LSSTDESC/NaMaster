@@ -584,6 +584,10 @@ class field(_object):
     __swig_getmethods__["lite"] = _nmtlib.field_lite_get
     if _newclass:
         lite = _swig_property(_nmtlib.field_lite_get, _nmtlib.field_lite_set)
+    __swig_setmethods__["mask_only"] = _nmtlib.field_mask_only_set
+    __swig_getmethods__["mask_only"] = _nmtlib.field_mask_only_get
+    if _newclass:
+        mask_only = _swig_property(_nmtlib.field_mask_only_get, _nmtlib.field_mask_only_set)
 
     def __init__(self):
         this = _nmtlib.new_field()
@@ -601,8 +605,8 @@ def field_free(fl):
     return _nmtlib.field_free(fl)
 field_free = _nmtlib.field_free
 
-def field_alloc_sph(cs, mask, spin, maps, ntemp, temp, beam, pure_e, pure_b, n_iter_mask_purify, tol_pinv, niter, masked_input, is_lite):
-    return _nmtlib.field_alloc_sph(cs, mask, spin, maps, ntemp, temp, beam, pure_e, pure_b, n_iter_mask_purify, tol_pinv, niter, masked_input, is_lite)
+def field_alloc_sph(cs, mask, spin, maps, ntemp, temp, beam, pure_e, pure_b, n_iter_mask_purify, tol_pinv, niter, masked_input, is_lite, mask_only):
+    return _nmtlib.field_alloc_sph(cs, mask, spin, maps, ntemp, temp, beam, pure_e, pure_b, n_iter_mask_purify, tol_pinv, niter, masked_input, is_lite, mask_only)
 field_alloc_sph = _nmtlib.field_alloc_sph
 
 def field_read(is_healpix, fname_mask, fname_maps, fname_temp, fname_beam, spin, pure_e, pure_b, n_iter_mask_purify, tol_pinv, niter):

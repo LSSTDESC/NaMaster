@@ -117,12 +117,14 @@ void nmt_field_free(nmt_field *fl)
 
   free(fl->cs);
   free(fl->beam);
-  for(imap=0;imap<fl->nmaps;imap++)
-    free(fl->alms[imap]);
   free(fl->mask);
-  free(fl->alms);
-  if(fl->ntemp>0)
-    gsl_matrix_free(fl->matrix_M);
+  if(!(fl->mask_only)) {
+    for(imap=0;imap<fl->nmaps;imap++)
+      free(fl->alms[imap]);
+    free(fl->alms);
+    if(fl->ntemp>0)
+      gsl_matrix_free(fl->matrix_M);
+  }
 
   if(!(fl->lite)) {
     for(imap=0;imap<fl->nmaps;imap++)
@@ -270,7 +272,7 @@ void nmt_purify(nmt_field *fl,flouble *mask,fcomplex **walm0,
 nmt_field *nmt_field_alloc_sph(nmt_curvedsky_info *cs,flouble *mask,int spin,flouble **maps,
                                int ntemp,flouble ***temp,flouble *beam,
                                int pure_e,int pure_b,int n_iter_mask_purify,double tol_pinv,
-                               int niter,int masked_input,int is_lite)
+                               int niter,int masked_input,int is_lite,int mask_only)
 {
   int ii,itemp,itemp2,imap;
   long npix_short;
@@ -282,6 +284,9 @@ nmt_field *nmt_field_alloc_sph(nmt_curvedsky_info *cs,flouble *mask,int spin,flo
   if(spin) fl->nmaps=2;
   else fl->nmaps=1;
   fl->ntemp=ntemp;
+  fl->mask_only=mask_only;
+  if(mask_only)
+    is_lite=1;
   fl->lite=is_lite;
 
   if(fl->cs->is_healpix)
@@ -311,8 +316,16 @@ nmt_field *nmt_field_alloc_sph(nmt_curvedsky_info *cs,flouble *mask,int spin,flo
   // Store mask
   fl->mask=nmt_extend_CAR_map(fl->cs,mask);
 
+  // If this is a mask-only field, just return
   fl->maps=NULL;
   fl->temp=NULL;
+  if(mask_only) {
+    fl->a_mask=NULL;
+    fl->alms=NULL;
+    fl->a_temp=NULL;
+    return fl;
+  }
+
   flouble **maps_full;
   flouble ***temp_full;
   if(cs->is_healpix) {
@@ -661,7 +674,7 @@ nmt_field *nmt_field_read(int is_healpix,char *fname_mask,char *fname_maps,char 
   }
 
   fl=nmt_field_alloc_sph(cs,mask,spin,maps,ntemp,temp,beam,pure_e,pure_b,
-			 n_iter_mask_purify,tol_pinv,niter,0,0);
+			 n_iter_mask_purify,tol_pinv,niter,0,0,0);
 
   if(beam!=NULL)
     free(beam);

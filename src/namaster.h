@@ -550,6 +550,7 @@ typedef struct {
   gsl_matrix *matrix_M; //!< Inverse contaminant covariance matrix (see scientific documentation or companion paper).
   flouble *beam; //!< Field's beam (defined on all multipoles up to \p lmax).
   int lite; //!< lightweight field (no maps, temp, a_temp or a_mask)
+  int mask_only; //!< this field only contains a mask, and beam. No alms, maps or anything else.
 } nmt_field;
 
 /**
@@ -589,11 +590,14 @@ void nmt_field_free(nmt_field *fl);
  * @param is_lite if not 0, only the map alms and the mask will be stored. You can then
           use this field to compute the standard pseudo-C_ell with deprojection and purification,
           but you won't be able to compute the deprojection bias or examine any maps.
+ * @param mask_only if not 0, this field will only store a mask and a beam. You will
+          be able to use it to compute the PCL and covariance mode coupling matrices, but that's
+          it (no actual power spectra, deprojection biases etc.).
  */
 nmt_field *nmt_field_alloc_sph(nmt_curvedsky_info *cs,flouble *mask,int spin,flouble **maps,
 			       int ntemp,flouble ***temp,flouble *beam,
 			       int pure_e,int pure_b,int n_iter_mask_purify,double tol_pinv,
-			       int niter,int masked_input,int is_lite);
+			       int niter,int masked_input,int is_lite,int mask_only);
 
 /**
  * @brief nmt_field constructor from file.
