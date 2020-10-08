@@ -33,6 +33,7 @@ extern char nmt_error_message[256];
 #define NMT_ERROR_INCONSISTENT 1013
 #define NMT_ERROR_VALUE 1014
 #define NMT_ERROR_NOT_IMPLEMENTED 1015
+#define NMT_ERROR_LITE 1016
 #endif //NO_DOXY
 
 /**

@@ -9,7 +9,7 @@ CTEST(nmt,covar_f_ell) {
   double *msk=he_read_map("test/benchmarks/msk.fits",cs,0);
   double *map=he_read_map("test/benchmarks/mps.fits",cs,0);
   nmt_workspace *w=nmt_workspace_read_fits("test/benchmarks/bm_nc_np_w00.fits");
-  nmt_field *f0=nmt_field_alloc_sph(cs,msk,0,&map,0,NULL,NULL,0,0,3,1E-10,HE_NITER_DEFAULT,0);
+  nmt_field *f0=nmt_field_alloc_sph(cs,msk,0,&map,0,NULL,NULL,0,0,3,1E-10,HE_NITER_DEFAULT,0,0);
   nmt_covar_workspace *cw=nmt_covar_workspace_init(f0,f0,f0,f0,w->bin->ell_max,HE_NITER_DEFAULT);
   nmt_field_free(f0);
   free(msk); free(map);
@@ -56,7 +56,7 @@ CTEST(nmt,covar) {
   double *msk=he_read_map("test/benchmarks/msk.fits",cs,0);
   double *map=he_read_map("test/benchmarks/mps.fits",cs,0);
   nmt_workspace *w=nmt_workspace_read_fits("test/benchmarks/bm_nc_np_w00.fits");
-  nmt_field *f0=nmt_field_alloc_sph(cs,msk,0,&map,0,NULL,NULL,0,0,3,1E-10,HE_NITER_DEFAULT,0);
+  nmt_field *f0=nmt_field_alloc_sph(cs,msk,0,&map,0,NULL,NULL,0,0,3,1E-10,HE_NITER_DEFAULT,0,0);
   nmt_covar_workspace *cw=nmt_covar_workspace_init(f0,f0,f0,f0,w->bin->ell_max,HE_NITER_DEFAULT);
   nmt_covar_workspace *cwr=nmt_covar_workspace_read_fits("test/benchmarks/bm_nc_np_cw00.fits");
   nmt_field_free(f0);
@@ -111,8 +111,8 @@ CTEST(nmt,covar_errors) {
   nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(1,1,-1,-1,-1,-1,-1,-1,-1);
   double *msk=he_read_map("test/benchmarks/msk.fits",cs,0);
   double *map=he_read_map("test/benchmarks/mps.fits",cs,0);
-  nmt_field *f0=nmt_field_alloc_sph(cs,msk,0,&map,0,NULL,NULL,0,0,3,1E-10,HE_NITER_DEFAULT,0);
-  nmt_field *f0b=nmt_field_alloc_sph(cs,msk,0,&map,0,NULL,NULL,0,0,3,1E-10,HE_NITER_DEFAULT,0);
+  nmt_field *f0=nmt_field_alloc_sph(cs,msk,0,&map,0,NULL,NULL,0,0,3,1E-10,HE_NITER_DEFAULT,0,0);
+  nmt_field *f0b=nmt_field_alloc_sph(cs,msk,0,&map,0,NULL,NULL,0,0,3,1E-10,HE_NITER_DEFAULT,0,0);
   nmt_binning_scheme *binb=nmt_bins_constant(16,191,2);
   int nside=f0->cs->n_eq;
   free(msk); free(map);
