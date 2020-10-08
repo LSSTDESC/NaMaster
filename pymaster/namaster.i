@@ -246,7 +246,7 @@ nmt_field *field_alloc_new(int is_healpix,int nside,int lmax_sht,int nx,int ny,d
 			   int nell3,double *weights,
 			   int pure_e,int pure_b,
 			   int n_iter_mask_purify,double tol_pinv,int n_iter,
-                           int masked_input)
+                           int masked_input,int lite)
 {
   int ii,jj;
   long nside_l=(long)nside;
@@ -283,7 +283,7 @@ nmt_field *field_alloc_new(int is_healpix,int nside,int lmax_sht,int nx,int ny,d
     maps[ii]=mps+npix_2*ii;
 
   fl=nmt_field_alloc_sph(cs,mask,spin,maps,ntemp,temp,weights,pure_e,pure_b,
-			 n_iter_mask_purify,tol_pinv,n_iter,masked_input,0);
+			 n_iter_mask_purify,tol_pinv,n_iter,masked_input,lite);
 
   if(tmp!=NULL) {
     for(ii=0;ii<ntmp_3;ii++)
@@ -302,7 +302,7 @@ nmt_field *field_alloc_new_notemp(int is_healpix,int nside,int lmax_sht,int nx,i
 				  int nmap_2,int npix_2,double *mps,
 				  int nell3,double *weights,
 				  int pure_e,int pure_b,int n_iter_mask_purify,int n_iter,
-                                  int masked_input)
+                                  int masked_input,int lite)
 {
   int ii;
   long nside_l=(long)nside;
@@ -326,7 +326,7 @@ nmt_field *field_alloc_new_notemp(int is_healpix,int nside,int lmax_sht,int nx,i
     maps[ii]=mps+npix_2*ii;
 
   fl=nmt_field_alloc_sph(cs,mask,spin,maps,ntemp,NULL,weights,pure_e,pure_b,n_iter_mask_purify,
-			 0.,n_iter,masked_input);
+			 0.,n_iter,masked_input,lite);
 
   free(maps);
   free(cs);

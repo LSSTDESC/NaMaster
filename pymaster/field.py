@@ -53,17 +53,25 @@ class NmtField(object):
     :param wcs: a WCS object if using rectangular pixels (see \
         http://docs.astropy.org/en/stable/wcs/index.html).
     :param n_iter: number of iterations when computing a_lms.
-    :param lmax_sht: maximum multipole up to which map power spectra will be
-        computed. If negative or zero, the maximum multipole given the map
+    :param lmax_sht: maximum multipole up to which map power spectra will be \
+        computed. If negative or zero, the maximum multipole given the map \
         resolution will be used (e.g. 3 * nside - 1 for HEALPix maps).
-    :param masked_on_input: set to `True` if input maps and templates are
-        already multiplied by the masks. Note that this is not advisable
+    :param masked_on_input: set to `True` if input maps and templates are \
+        already multiplied by the masks. Note that this is not advisable \
         if you're using purification.
+    :param lite: set to `True` if you want to only store the bare minimum \
+        necessary to run a standard pseudo-Cl with deprojection and \
+        purification, but you don't care about template deprojection. This \
+        will reduce the memory taken up by the resulting object.
+    :param ultra_lite: set to `True` if you want to make things extra \
+        lightweight memory-wise. This is similar to `lite`, but the input \
+        maps will be modified (masked, purified, deprojected) on output. \
+        Use with care!
     """
     def __init__(self, mask, maps, spin=None, templates=None, beam=None,
                  purify_e=False, purify_b=False, n_iter_mask_purify=3,
                  tol_pinv=1E-10, wcs=None, n_iter=3, lmax_sht=-1,
-                 masked_on_input=False):
+                 masked_on_input=False, lite=False):
         self.fl = None
 
         pure_e = 0
@@ -154,20 +162,34 @@ class NmtField(object):
             else:
                 raise ValueError("Input beam can only be an array or None\n")
 
+        if ultra_lite:
+            lite = True
+            mask_use = mask
+            maps_use = maps
+        else:
+            mask_use = mask.copy()
+            maps_use = maps.copy()
+
         if isinstance(templates, (list, tuple, np.ndarray)):
+            if ultra_lite:
+                templates_use = templates
+            else:
+                templates_use = templates.copy()
             self.fl = lib.field_alloc_new(wt.is_healpix, wt.nside, lmax_sht,
                                           wt.nx, wt.ny,
                                           wt.d_phi, wt.d_theta,
                                           wt.phi0, wt.theta_max, spin,
-                                          mask, maps, templates, beam_use,
+                                          mask_use, maps_use,
+                                          templates_use, beam_use,
                                           pure_e, pure_b, n_iter_mask_purify,
-                                          tol_pinv, n_iter, masked_input)
+                                          tol_pinv, n_iter, masked_input, int(lite))
         else:
             self.fl = lib.field_alloc_new_notemp(
                 wt.is_healpix, wt.nside, lmax_sht, wt.nx, wt.ny, wt.d_phi,
                 wt.d_theta, wt.phi0, wt.theta_max, spin,
-                mask, maps, beam_use, pure_e, pure_b, n_iter_mask_purify,
-                n_iter, masked_input)
+                mask_use, maps_use, beam_use, pure_e, pure_b, n_iter_mask_purify,
+                n_iter, masked_input, int(lite))
+        self.lite = lite
 
     def __del__(self):
         if self.fl is not None:
@@ -183,6 +205,8 @@ class NmtField(object):
 
         :return: 2D array of maps
         """
+        if self.lite:
+            raise ValueError("Input maps unavailable for lightweight fields")
         maps = np.zeros([self.fl.nmaps, self.fl.npix])
         for imap in range(self.fl.nmaps):
             maps[imap, :] = lib.get_map(self.fl, imap, int(self.fl.npix))
@@ -197,6 +221,8 @@ class NmtField(object):
 
         :return: 3D array of maps
         """
+        if self.lite:
+            raise ValueError("Input maps unavailable for lightweight fields")
         temp = np.zeros([self.fl.ntemp, self.fl.nmaps, self.fl.npix])
         for itemp in range(self.fl.ntemp):
             for imap in range(self.fl.nmaps):

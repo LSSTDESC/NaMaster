@@ -3532,7 +3532,7 @@ nmt_field *field_alloc_new(int is_healpix,int nside,int lmax_sht,int nx,int ny,d
 			   int nell3,double *weights,
 			   int pure_e,int pure_b,
 			   int n_iter_mask_purify,double tol_pinv,int n_iter,
-                           int masked_input)
+                           int masked_input,int lite)
 {
   int ii,jj;
   long nside_l=(long)nside;
@@ -3569,7 +3569,7 @@ nmt_field *field_alloc_new(int is_healpix,int nside,int lmax_sht,int nx,int ny,d
     maps[ii]=mps+npix_2*ii;
 
   fl=nmt_field_alloc_sph(cs,mask,spin,maps,ntemp,temp,weights,pure_e,pure_b,
-			 n_iter_mask_purify,tol_pinv,n_iter,masked_input,0);
+			 n_iter_mask_purify,tol_pinv,n_iter,masked_input,lite);
 
   if(tmp!=NULL) {
     for(ii=0;ii<ntmp_3;ii++)
@@ -3588,7 +3588,7 @@ nmt_field *field_alloc_new_notemp(int is_healpix,int nside,int lmax_sht,int nx,i
 				  int nmap_2,int npix_2,double *mps,
 				  int nell3,double *weights,
 				  int pure_e,int pure_b,int n_iter_mask_purify,int n_iter,
-                                  int masked_input)
+                                  int masked_input,int lite)
 {
   int ii;
   long nside_l=(long)nside;
@@ -3612,7 +3612,7 @@ nmt_field *field_alloc_new_notemp(int is_healpix,int nside,int lmax_sht,int nx,i
     maps[ii]=mps+npix_2*ii;
 
   fl=nmt_field_alloc_sph(cs,mask,spin,maps,ntemp,NULL,weights,pure_e,pure_b,n_iter_mask_purify,
-			 0.,n_iter,masked_input);
+			 0.,n_iter,masked_input,lite);
 
   free(maps);
   free(cs);
@@ -16442,6 +16442,7 @@ SWIGINTERN PyObject *_wrap_field_alloc_new(PyObject *SWIGUNUSEDPARM(self), PyObj
   double arg25 ;
   int arg26 ;
   int arg27 ;
+  int arg28 ;
   int val1 ;
   int ecode1 = 0 ;
   int val2 ;
@@ -16482,6 +16483,8 @@ SWIGINTERN PyObject *_wrap_field_alloc_new(PyObject *SWIGUNUSEDPARM(self), PyObj
   int ecode26 = 0 ;
   int val27 ;
   int ecode27 = 0 ;
+  int val28 ;
+  int ecode28 = 0 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   PyObject * obj2 = 0 ;
@@ -16502,9 +16505,10 @@ SWIGINTERN PyObject *_wrap_field_alloc_new(PyObject *SWIGUNUSEDPARM(self), PyObj
   PyObject * obj17 = 0 ;
   PyObject * obj18 = 0 ;
   PyObject * obj19 = 0 ;
+  PyObject * obj20 = 0 ;
   nmt_field *result = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"OOOOOOOOOOOOOOOOOOOO:field_alloc_new",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6,&obj7,&obj8,&obj9,&obj10,&obj11,&obj12,&obj13,&obj14,&obj15,&obj16,&obj17,&obj18,&obj19)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOOOOOOOOOOOOOOOOOOOO:field_alloc_new",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6,&obj7,&obj8,&obj9,&obj10,&obj11,&obj12,&obj13,&obj14,&obj15,&obj16,&obj17,&obj18,&obj19,&obj20)) SWIG_fail;
   ecode1 = SWIG_AsVal_int(obj0, &val1);
   if (!SWIG_IsOK(ecode1)) {
     SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "field_alloc_new" "', argument " "1"" of type '" "int""'");
@@ -16635,9 +16639,14 @@ SWIGINTERN PyObject *_wrap_field_alloc_new(PyObject *SWIGUNUSEDPARM(self), PyObj
     SWIG_exception_fail(SWIG_ArgError(ecode27), "in method '" "field_alloc_new" "', argument " "27"" of type '" "int""'");
   } 
   arg27 = (int)(val27);
+  ecode28 = SWIG_AsVal_int(obj20, &val28);
+  if (!SWIG_IsOK(ecode28)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode28), "in method '" "field_alloc_new" "', argument " "28"" of type '" "int""'");
+  } 
+  arg28 = (int)(val28);
   {
     try {
-      result = (nmt_field *)field_alloc_new(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13,arg14,arg15,arg16,arg17,arg18,arg19,arg20,arg21,arg22,arg23,arg24,arg25,arg26,arg27);
+      result = (nmt_field *)field_alloc_new(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13,arg14,arg15,arg16,arg17,arg18,arg19,arg20,arg21,arg22,arg23,arg24,arg25,arg26,arg27,arg28);
     }
     finally {
       SWIG_exception(SWIG_RuntimeError,nmt_error_message);
@@ -16722,6 +16731,7 @@ SWIGINTERN PyObject *_wrap_field_alloc_new_notemp(PyObject *SWIGUNUSEDPARM(self)
   int arg20 ;
   int arg21 ;
   int arg22 ;
+  int arg23 ;
   int val1 ;
   int ecode1 = 0 ;
   int val2 ;
@@ -16758,6 +16768,8 @@ SWIGINTERN PyObject *_wrap_field_alloc_new_notemp(PyObject *SWIGUNUSEDPARM(self)
   int ecode21 = 0 ;
   int val22 ;
   int ecode22 = 0 ;
+  int val23 ;
+  int ecode23 = 0 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   PyObject * obj2 = 0 ;
@@ -16776,9 +16788,10 @@ SWIGINTERN PyObject *_wrap_field_alloc_new_notemp(PyObject *SWIGUNUSEDPARM(self)
   PyObject * obj15 = 0 ;
   PyObject * obj16 = 0 ;
   PyObject * obj17 = 0 ;
+  PyObject * obj18 = 0 ;
   nmt_field *result = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"OOOOOOOOOOOOOOOOOO:field_alloc_new_notemp",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6,&obj7,&obj8,&obj9,&obj10,&obj11,&obj12,&obj13,&obj14,&obj15,&obj16,&obj17)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOOOOOOOOOOOOOOOOOO:field_alloc_new_notemp",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6,&obj7,&obj8,&obj9,&obj10,&obj11,&obj12,&obj13,&obj14,&obj15,&obj16,&obj17,&obj18)) SWIG_fail;
   ecode1 = SWIG_AsVal_int(obj0, &val1);
   if (!SWIG_IsOK(ecode1)) {
     SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "field_alloc_new_notemp" "', argument " "1"" of type '" "int""'");
@@ -16891,9 +16904,14 @@ SWIGINTERN PyObject *_wrap_field_alloc_new_notemp(PyObject *SWIGUNUSEDPARM(self)
     SWIG_exception_fail(SWIG_ArgError(ecode22), "in method '" "field_alloc_new_notemp" "', argument " "22"" of type '" "int""'");
   } 
   arg22 = (int)(val22);
+  ecode23 = SWIG_AsVal_int(obj18, &val23);
+  if (!SWIG_IsOK(ecode23)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode23), "in method '" "field_alloc_new_notemp" "', argument " "23"" of type '" "int""'");
+  } 
+  arg23 = (int)(val23);
   {
     try {
-      result = (nmt_field *)field_alloc_new_notemp(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13,arg14,arg15,arg16,arg17,arg18,arg19,arg20,arg21,arg22);
+      result = (nmt_field *)field_alloc_new_notemp(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13,arg14,arg15,arg16,arg17,arg18,arg19,arg20,arg21,arg22,arg23);
     }
     finally {
       SWIG_exception(SWIG_RuntimeError,nmt_error_message);
