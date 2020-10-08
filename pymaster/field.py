@@ -63,15 +63,11 @@ class NmtField(object):
         necessary to run a standard pseudo-Cl with deprojection and \
         purification, but you don't care about template deprojection. This \
         will reduce the memory taken up by the resulting object.
-    :param ultra_lite: set to `True` if you want to make things extra \
-        lightweight memory-wise. This is similar to `lite`, but the input \
-        maps will be modified (masked, purified, deprojected) on output. \
-        Use with care!
     """
     def __init__(self, mask, maps, spin=None, templates=None, beam=None,
                  purify_e=False, purify_b=False, n_iter_mask_purify=3,
                  tol_pinv=1E-10, wcs=None, n_iter=3, lmax_sht=-1,
-                 masked_on_input=False, lite=False, ultra_lite=False):
+                 masked_on_input=False, lite=False):
         self.fl = None
 
         pure_e = 0
@@ -162,32 +158,19 @@ class NmtField(object):
             else:
                 raise ValueError("Input beam can only be an array or None\n")
 
-        if ultra_lite:
-            lite = True
-            mask_use = mask
-            maps_use = maps
-        else:
-            mask_use = mask.copy()
-            maps_use = maps.copy()
-
         if isinstance(templates, (list, tuple, np.ndarray)):
-            if ultra_lite:
-                templates_use = templates
-            else:
-                templates_use = templates.copy()
             self.fl = lib.field_alloc_new(wt.is_healpix, wt.nside, lmax_sht,
                                           wt.nx, wt.ny,
                                           wt.d_phi, wt.d_theta,
                                           wt.phi0, wt.theta_max, spin,
-                                          mask_use, maps_use,
-                                          templates_use, beam_use,
+                                          mask, maps, templates, beam_use,
                                           pure_e, pure_b, n_iter_mask_purify,
                                           tol_pinv, n_iter, masked_input, int(lite))
         else:
             self.fl = lib.field_alloc_new_notemp(
                 wt.is_healpix, wt.nside, lmax_sht, wt.nx, wt.ny, wt.d_phi,
                 wt.d_theta, wt.phi0, wt.theta_max, spin,
-                mask_use, maps_use, beam_use, pure_e, pure_b, n_iter_mask_purify,
+                mask, maps, beam_use, pure_e, pure_b, n_iter_mask_purify,
                 n_iter, masked_input, int(lite))
         self.lite = lite
 
