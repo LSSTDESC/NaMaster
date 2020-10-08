@@ -71,7 +71,7 @@ class NmtField(object):
     def __init__(self, mask, maps, spin=None, templates=None, beam=None,
                  purify_e=False, purify_b=False, n_iter_mask_purify=3,
                  tol_pinv=1E-10, wcs=None, n_iter=3, lmax_sht=-1,
-                 masked_on_input=False, lite=False, ultra_lite=True):
+                 masked_on_input=False, lite=False, ultra_lite=False):
         self.fl = None
 
         pure_e = 0
