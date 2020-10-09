@@ -211,6 +211,15 @@ void *dftw_malloc(size_t n);
 void dftw_free(void *p);
 
 /**
+ * @brief Copies a map.
+ *
+ * @param fs nmt_flatsky_info structure describing the flat-sky patch.
+ * @param destmap Map to copy into.
+ * @param destmap Map to copy from.
+ */
+void fs_mapcpy(nmt_flatsky_info *fs,flouble *destmap,flouble *srcmap);
+
+/**
  * @brief Multiplies two flat-sky maps.
  *
  * @param fs nmt_flatsky_info structure describing the flat-sky patch.

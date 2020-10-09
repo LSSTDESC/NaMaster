@@ -398,12 +398,18 @@ void nmt_field_flat_free(nmt_field_flat *fl);
 	  eigenvalue will be discarded.
  * @param masked_input if not 0, input maps and templates have already been masked.
           This is not advisable if using purification.
+ * @param is_lite if not 0, only the map alms and the mask will be stored. You can then
+          use this field to compute the standard pseudo-C_ell with deprojection and purification,
+          but you won't be able to compute the deprojection bias or examine any maps.
+ * @param mask_only if not 0, this field will only store a mask and a beam. You will
+          be able to use it to compute the PCL and covariance mode coupling matrices, but that's
+          it (no actual power spectra, deprojection biases etc.).
  */
 nmt_field_flat *nmt_field_flat_alloc(int nx,int ny,flouble lx,flouble ly,
 				     flouble *mask,int spin,flouble **maps,int ntemp,flouble ***temp,
 				     int nl_beam,flouble *l_beam,flouble *beam,
-				     int pure_e,int pure_b,double tol_pinv,int masked_input);
-
+				     int pure_e,int pure_b,double tol_pinv,int masked_input,
+                                     int is_lite,int mask_only);
 /**
  * @brief Gaussian realizations of flat-sky fields
  *

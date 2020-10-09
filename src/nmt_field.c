@@ -453,11 +453,13 @@ nmt_field *nmt_field_alloc_sph(nmt_curvedsky_info *cs,flouble *mask,int spin,flo
   if(is_lite)
     fl->a_temp=NULL;
   else {
-    fl->a_temp=my_malloc(fl->ntemp*sizeof(fcomplex **));
-    for(itemp=0;itemp<fl->ntemp;itemp++) {
-      fl->a_temp[itemp]=my_malloc(fl->nmaps*sizeof(fcomplex *));
-      for(imap=0;imap<fl->nmaps;imap++)
-        fl->a_temp[itemp][imap]=my_malloc(he_nalms(fl->lmax)*sizeof(fcomplex));
+    if(fl->ntemp>0) {
+      fl->a_temp=my_malloc(fl->ntemp*sizeof(fcomplex **));
+      for(itemp=0;itemp<fl->ntemp;itemp++) {
+        fl->a_temp[itemp]=my_malloc(fl->nmaps*sizeof(fcomplex *));
+        for(imap=0;imap<fl->nmaps;imap++)
+          fl->a_temp[itemp][imap]=my_malloc(he_nalms(fl->lmax)*sizeof(fcomplex));
+      }
     }
   }
   fl->a_mask=NULL;
@@ -507,7 +509,7 @@ nmt_field *nmt_field_alloc_sph(nmt_curvedsky_info *cs,flouble *mask,int spin,flo
       fl->a_mask=a_mask;
   }
   else {
-    //If no purification, just multiply by mask and SHT
+    //If no purification, just SHT
     //Masked map and harmonic coefficients
     he_map2alm(fl->cs,fl->lmax,1,fl->spin,maps_full,fl->alms,niter);
 

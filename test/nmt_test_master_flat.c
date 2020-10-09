@@ -63,11 +63,11 @@ CTEST(nmt,master_teb_flat_full) {
   f0=nmt_field_flat_alloc(NX_TEST,NY_TEST,
   			  DX_TEST*NX_TEST*M_PI/180,
 			  DY_TEST*NY_TEST*M_PI/180,
-			  msk,0,mps0,0,NULL,0,NULL,NULL,0,0,1E-10,0);
+			  msk,0,mps0,0,NULL,0,NULL,NULL,0,0,1E-10,0,0,0);
   f2=nmt_field_flat_alloc(NX_TEST,NY_TEST,
   			  DX_TEST*NX_TEST*M_PI/180,
 			  DY_TEST*NY_TEST*M_PI/180,
-			  msk,2,mps2,0,NULL,0,NULL,NULL,0,0,1E-10,0);
+			  msk,2,mps2,0,NULL,0,NULL,NULL,0,0,1E-10,0,0,0);
   w_teb=nmt_compute_coupling_matrix_flat(f0,f2,bin,1,-1,1,-1,1);
   w00=nmt_compute_coupling_matrix_flat(f0,f0,bin,1,-1,1,-1,0);
   w02=nmt_compute_coupling_matrix_flat(f0,f2,bin,1,-1,1,-1,0);
@@ -130,10 +130,6 @@ CTEST(nmt,master_22_flat_full) {
   double *msk=fs_read_flat_map("test/benchmarks/msk_flat.fits",&nx,&ny,&lx,&ly,0);
   double **mps2=my_malloc(2*sizeof(double *));
   double **tmp2=my_malloc(2*sizeof(double *));
-  mps2[0]=fs_read_flat_map("test/benchmarks/mps_flat.fits",&nx,&ny,&lx,&ly,1);
-  mps2[1]=fs_read_flat_map("test/benchmarks/mps_flat.fits",&nx,&ny,&lx,&ly,2);
-  tmp2[0]=fs_read_flat_map("test/benchmarks/tmp_flat.fits",&nx,&ny,&lx,&ly,1);
-  tmp2[1]=fs_read_flat_map("test/benchmarks/tmp_flat.fits",&nx,&ny,&lx,&ly,2);
 
   for(ii=0;ii<=nell;ii++)
     larr[ii]=ii*dell+2;
@@ -173,10 +169,12 @@ CTEST(nmt,master_22_flat_full) {
   fclose(fi);
 
   //No contaminants
+  mps2[0]=fs_read_flat_map("test/benchmarks/mps_flat.fits",&nx,&ny,&lx,&ly,1);
+  mps2[1]=fs_read_flat_map("test/benchmarks/mps_flat.fits",&nx,&ny,&lx,&ly,2);
   f2=nmt_field_flat_alloc(NX_TEST,NY_TEST,
   			  DX_TEST*NX_TEST*M_PI/180,
 			  DY_TEST*NY_TEST*M_PI/180,
-			  msk,2,mps2,0,NULL,0,NULL,NULL,0,0,1E-10,0);
+			  msk,2,mps2,0,NULL,0,NULL,NULL,0,0,1E-10,0,0,0);
   w22=nmt_compute_coupling_matrix_flat(f2,f2,bin,1,-1,1,-1,0);
   nmt_couple_cl_l_flat_fast(w22,nlth,lth,cell_noise,cell_noise_coup);
   nmt_compute_coupled_cell_flat(f2,f2,bin,cell,1,-1,1,-1);
@@ -185,12 +183,16 @@ CTEST(nmt,master_22_flat_full) {
     test_compare_arrays(bin->n_bands,cell_out[ii],ncls,ii,"test/benchmarks/bm_f_nc_np_c22.txt",1E-3);
   nmt_workspace_flat_free(w22);
   nmt_field_flat_free(f2);
+  for(ii=0;ii<2;ii++)
+    free(mps2[ii]);
 
   //With purification
+  mps2[0]=fs_read_flat_map("test/benchmarks/mps_flat.fits",&nx,&ny,&lx,&ly,1);
+  mps2[1]=fs_read_flat_map("test/benchmarks/mps_flat.fits",&nx,&ny,&lx,&ly,2);
   f2=nmt_field_flat_alloc(NX_TEST,NY_TEST,
   			  DX_TEST*NX_TEST*M_PI/180,
 			  DY_TEST*NY_TEST*M_PI/180,
-			  msk,2,mps2,0,NULL,0,NULL,NULL,0,1,1E-10,0);
+			  msk,2,mps2,0,NULL,0,NULL,NULL,0,1,1E-10,0,0,0);
   w22=nmt_compute_coupling_matrix_flat(f2,f2,bin,1,-1,1,-1,0);
   nmt_couple_cl_l_flat_fast(w22,nlth,lth,cell_noise,cell_noise_coup);
   nmt_compute_coupled_cell_flat(f2,f2,bin,cell,1,-1,1,-1);
@@ -199,12 +201,18 @@ CTEST(nmt,master_22_flat_full) {
     test_compare_arrays(bin->n_bands,cell_out[ii],ncls,ii,"test/benchmarks/bm_f_nc_yp_c22.txt",1E-3);
   nmt_workspace_flat_free(w22);
   nmt_field_flat_free(f2);
+  for(ii=0;ii<2;ii++)
+    free(mps2[ii]);
 
   //With contaminants
+  mps2[0]=fs_read_flat_map("test/benchmarks/mps_flat.fits",&nx,&ny,&lx,&ly,1);
+  mps2[1]=fs_read_flat_map("test/benchmarks/mps_flat.fits",&nx,&ny,&lx,&ly,2);
+  tmp2[0]=fs_read_flat_map("test/benchmarks/tmp_flat.fits",&nx,&ny,&lx,&ly,1);
+  tmp2[1]=fs_read_flat_map("test/benchmarks/tmp_flat.fits",&nx,&ny,&lx,&ly,2);
   f2=nmt_field_flat_alloc(NX_TEST,NY_TEST,
   			  DX_TEST*NX_TEST*M_PI/180,
 			  DY_TEST*NY_TEST*M_PI/180,
-			  msk,2,mps2,1,&tmp2,0,NULL,NULL,0,0,1E-10,0);
+			  msk,2,mps2,1,&tmp2,0,NULL,NULL,0,0,1E-10,0,0,0);
   w22=nmt_compute_coupling_matrix_flat(f2,f2,bin,1,-1,1,-1,0);
   nmt_couple_cl_l_flat_fast(w22,nlth,lth,cell_noise,cell_noise_coup);
   nmt_compute_deprojection_bias_flat(f2,f2,bin,1,-1,1,-1,nlth,lth,cell_signal,cell_deproj);
@@ -218,12 +226,20 @@ CTEST(nmt,master_22_flat_full) {
     test_compare_arrays(bin->n_bands,cell_out[ii],ncls,ii,"test/benchmarks/bm_f_yc_np_c22.txt",1E-3);
   nmt_workspace_flat_free(w22);
   nmt_field_flat_free(f2);
+  for(ii=0;ii<2;ii++) {
+    free(tmp2[ii]);
+    free(mps2[ii]);
+  }
 
   //With contaminants, with purification
+  mps2[0]=fs_read_flat_map("test/benchmarks/mps_flat.fits",&nx,&ny,&lx,&ly,1);
+  mps2[1]=fs_read_flat_map("test/benchmarks/mps_flat.fits",&nx,&ny,&lx,&ly,2);
+  tmp2[0]=fs_read_flat_map("test/benchmarks/tmp_flat.fits",&nx,&ny,&lx,&ly,1);
+  tmp2[1]=fs_read_flat_map("test/benchmarks/tmp_flat.fits",&nx,&ny,&lx,&ly,2);
   f2=nmt_field_flat_alloc(NX_TEST,NY_TEST,
   			  DX_TEST*NX_TEST*M_PI/180,
 			  DY_TEST*NY_TEST*M_PI/180,
-			  msk,2,mps2,1,&tmp2,0,NULL,NULL,0,1,1E-10,0);
+			  msk,2,mps2,1,&tmp2,0,NULL,NULL,0,1,1E-10,0,0,0);
   w22=nmt_compute_coupling_matrix_flat(f2,f2,bin,1,-1,1,-1,0);
   nmt_couple_cl_l_flat_fast(w22,nlth,lth,cell_noise,cell_noise_coup);
   nmt_compute_deprojection_bias_flat(f2,f2,bin,1,-1,1,-1,nlth,lth,cell_signal,cell_deproj);
@@ -237,6 +253,10 @@ CTEST(nmt,master_22_flat_full) {
     test_compare_arrays(bin->n_bands,cell_out[ii],ncls,ii,"test/benchmarks/bm_f_yc_yp_c22.txt",1E-3);
   nmt_workspace_flat_free(w22);
   nmt_field_flat_free(f2);
+  for(ii=0;ii<2;ii++) {
+    free(tmp2[ii]);
+    free(mps2[ii]);
+  }
   
   //Free up power spectra
   for(ii=0;ii<ncls;ii++) {
@@ -252,10 +272,6 @@ CTEST(nmt,master_22_flat_full) {
 
   nmt_bins_flat_free(bin);
   free(larr);
-  for(ii=0;ii<2;ii++) {
-    free(tmp2[ii]);
-    free(mps2[ii]);
-  }
   free(mps2);
   free(tmp2);
   free(msk);
@@ -310,7 +326,7 @@ CTEST(nmt,master_11_flat_full) {
   f1=nmt_field_flat_alloc(NX_TEST,NY_TEST,
   			  DX_TEST*NX_TEST*M_PI/180,
 			  DY_TEST*NY_TEST*M_PI/180,
-			  msk,1,mps1,0,NULL,0,NULL,NULL,0,0,1E-10,0);
+			  msk,1,mps1,0,NULL,0,NULL,NULL,0,0,1E-10,0,0,0);
   w11=nmt_compute_coupling_matrix_flat(f1,f1,bin,1,-1,1,-1,0);
   nmt_couple_cl_l_flat_fast(w11,nlth,lth,cell0,cell0_coup);
   nmt_compute_coupled_cell_flat(f1,f1,bin,cell,1,-1,1,-1);
@@ -353,12 +369,6 @@ CTEST(nmt,master_02_flat_full) {
   double **mps2=my_malloc(2*sizeof(double *));
   double **tmp0=my_malloc(sizeof(double *));
   double **tmp2=my_malloc(2*sizeof(double *));
-  mps0[0]=fs_read_flat_map("test/benchmarks/mps_flat.fits",&nx,&ny,&lx,&ly,0);
-  mps2[0]=fs_read_flat_map("test/benchmarks/mps_flat.fits",&nx,&ny,&lx,&ly,1);
-  mps2[1]=fs_read_flat_map("test/benchmarks/mps_flat.fits",&nx,&ny,&lx,&ly,2);
-  tmp0[0]=fs_read_flat_map("test/benchmarks/tmp_flat.fits",&nx,&ny,&lx,&ly,0);
-  tmp2[0]=fs_read_flat_map("test/benchmarks/tmp_flat.fits",&nx,&ny,&lx,&ly,1);
-  tmp2[1]=fs_read_flat_map("test/benchmarks/tmp_flat.fits",&nx,&ny,&lx,&ly,2);
 
   for(ii=0;ii<=nell;ii++)
     larr[ii]=ii*dell+2;
@@ -398,14 +408,17 @@ CTEST(nmt,master_02_flat_full) {
   fclose(fi);
 
   //No contaminants
+  mps0[0]=fs_read_flat_map("test/benchmarks/mps_flat.fits",&nx,&ny,&lx,&ly,0);
+  mps2[0]=fs_read_flat_map("test/benchmarks/mps_flat.fits",&nx,&ny,&lx,&ly,1);
+  mps2[1]=fs_read_flat_map("test/benchmarks/mps_flat.fits",&nx,&ny,&lx,&ly,2);
   f0=nmt_field_flat_alloc(NX_TEST,NY_TEST,
   			  DX_TEST*NX_TEST*M_PI/180,
 			  DY_TEST*NY_TEST*M_PI/180,
-			  msk,0,mps0,0,NULL,0,NULL,NULL,0,0,1E-10,0);
+			  msk,0,mps0,0,NULL,0,NULL,NULL,0,0,1E-10,0,0,0);
   f2=nmt_field_flat_alloc(NX_TEST,NY_TEST,
   			  DX_TEST*NX_TEST*M_PI/180,
 			  DY_TEST*NY_TEST*M_PI/180,
-			  msk,2,mps2,0,NULL,0,NULL,NULL,0,0,1E-10,0);
+			  msk,2,mps2,0,NULL,0,NULL,NULL,0,0,1E-10,0,0,0);
   w02=nmt_compute_coupling_matrix_flat(f0,f2,bin,1,-1,1,-1,0);
   nmt_couple_cl_l_flat_fast(w02,nlth,lth,cell_noise,cell_noise_coup);
   nmt_compute_coupled_cell_flat(f0,f2,bin,cell,1,-1,1,-1);
@@ -415,16 +428,22 @@ CTEST(nmt,master_02_flat_full) {
   nmt_workspace_flat_free(w02);
   nmt_field_flat_free(f0);
   nmt_field_flat_free(f2);
+  for(ii=0;ii<2;ii++)
+    free(mps2[ii]);
+  free(mps0[0]);
 
   //With purification
+  mps0[0]=fs_read_flat_map("test/benchmarks/mps_flat.fits",&nx,&ny,&lx,&ly,0);
+  mps2[0]=fs_read_flat_map("test/benchmarks/mps_flat.fits",&nx,&ny,&lx,&ly,1);
+  mps2[1]=fs_read_flat_map("test/benchmarks/mps_flat.fits",&nx,&ny,&lx,&ly,2);
   f0=nmt_field_flat_alloc(NX_TEST,NY_TEST,
   			  DX_TEST*NX_TEST*M_PI/180,
 			  DY_TEST*NY_TEST*M_PI/180,
-			  msk,0,mps0,0,NULL,0,NULL,NULL,0,0,1E-10,0);
+			  msk,0,mps0,0,NULL,0,NULL,NULL,0,0,1E-10,0,0,0);
   f2=nmt_field_flat_alloc(NX_TEST,NY_TEST,
   			  DX_TEST*NX_TEST*M_PI/180,
 			  DY_TEST*NY_TEST*M_PI/180,
-			  msk,2,mps2,0,NULL,0,NULL,NULL,0,1,1E-10,0);
+			  msk,2,mps2,0,NULL,0,NULL,NULL,0,1,1E-10,0,0,0);
   w02=nmt_compute_coupling_matrix_flat(f0,f2,bin,1,-1,1,-1,0);
   nmt_couple_cl_l_flat_fast(w02,nlth,lth,cell_noise,cell_noise_coup);
   nmt_compute_coupled_cell_flat(f0,f2,bin,cell,1,-1,1,-1);
@@ -434,16 +453,25 @@ CTEST(nmt,master_02_flat_full) {
   nmt_workspace_flat_free(w02);
   nmt_field_flat_free(f0);
   nmt_field_flat_free(f2);
+  for(ii=0;ii<2;ii++)
+    free(mps2[ii]);
+  free(mps0[0]);
 
   //With contaminants
+  mps0[0]=fs_read_flat_map("test/benchmarks/mps_flat.fits",&nx,&ny,&lx,&ly,0);
+  mps2[0]=fs_read_flat_map("test/benchmarks/mps_flat.fits",&nx,&ny,&lx,&ly,1);
+  mps2[1]=fs_read_flat_map("test/benchmarks/mps_flat.fits",&nx,&ny,&lx,&ly,2);
+  tmp0[0]=fs_read_flat_map("test/benchmarks/tmp_flat.fits",&nx,&ny,&lx,&ly,0);
+  tmp2[0]=fs_read_flat_map("test/benchmarks/tmp_flat.fits",&nx,&ny,&lx,&ly,1);
+  tmp2[1]=fs_read_flat_map("test/benchmarks/tmp_flat.fits",&nx,&ny,&lx,&ly,2);
   f0=nmt_field_flat_alloc(NX_TEST,NY_TEST,
   			  DX_TEST*NX_TEST*M_PI/180,
 			  DY_TEST*NY_TEST*M_PI/180,
-			  msk,0,mps0,1,&tmp0,0,NULL,NULL,0,0,1E-10,0);
+			  msk,0,mps0,1,&tmp0,0,NULL,NULL,0,0,1E-10,0,0,0);
   f2=nmt_field_flat_alloc(NX_TEST,NY_TEST,
   			  DX_TEST*NX_TEST*M_PI/180,
 			  DY_TEST*NY_TEST*M_PI/180,
-			  msk,2,mps2,1,&tmp2,0,NULL,NULL,0,0,1E-10,0);
+			  msk,2,mps2,1,&tmp2,0,NULL,NULL,0,0,1E-10,0,0,0);
   w02=nmt_compute_coupling_matrix_flat(f0,f2,bin,1,-1,1,-1,0);
   nmt_couple_cl_l_flat_fast(w02,nlth,lth,cell_noise,cell_noise_coup);
   nmt_compute_deprojection_bias_flat(f0,f2,bin,1,-1,1,-1,nlth,lth,cell_signal,cell_deproj);
@@ -458,16 +486,28 @@ CTEST(nmt,master_02_flat_full) {
   nmt_workspace_flat_free(w02);
   nmt_field_flat_free(f0);
   nmt_field_flat_free(f2);
+  for(ii=0;ii<2;ii++) {
+    free(tmp2[ii]);
+    free(mps2[ii]);
+  }
+  free(tmp0[0]);
+  free(mps0[0]);
 
   //With contaminants, with purification
+  mps0[0]=fs_read_flat_map("test/benchmarks/mps_flat.fits",&nx,&ny,&lx,&ly,0);
+  mps2[0]=fs_read_flat_map("test/benchmarks/mps_flat.fits",&nx,&ny,&lx,&ly,1);
+  mps2[1]=fs_read_flat_map("test/benchmarks/mps_flat.fits",&nx,&ny,&lx,&ly,2);
+  tmp0[0]=fs_read_flat_map("test/benchmarks/tmp_flat.fits",&nx,&ny,&lx,&ly,0);
+  tmp2[0]=fs_read_flat_map("test/benchmarks/tmp_flat.fits",&nx,&ny,&lx,&ly,1);
+  tmp2[1]=fs_read_flat_map("test/benchmarks/tmp_flat.fits",&nx,&ny,&lx,&ly,2);
   f0=nmt_field_flat_alloc(NX_TEST,NY_TEST,
     			  DX_TEST*NX_TEST*M_PI/180,
 			  DY_TEST*NY_TEST*M_PI/180,
-			  msk,0,mps0,1,&tmp0,0,NULL,NULL,0,0,1E-10,0);
+			  msk,0,mps0,1,&tmp0,0,NULL,NULL,0,0,1E-10,0,0,0);
   f2=nmt_field_flat_alloc(NX_TEST,NY_TEST,
     			  DX_TEST*NX_TEST*M_PI/180,
 			  DY_TEST*NY_TEST*M_PI/180,
-			  msk,2,mps2,1,&tmp2,0,NULL,NULL,0,1,1E-10,0);
+			  msk,2,mps2,1,&tmp2,0,NULL,NULL,0,1,1E-10,0,0,0);
   w02=nmt_compute_coupling_matrix_flat(f0,f2,bin,1,-1,1,-1,0);
   nmt_couple_cl_l_flat_fast(w02,nlth,lth,cell_noise,cell_noise_coup);
   nmt_compute_deprojection_bias_flat(f0,f2,bin,1,-1,1,-1,nlth,lth,cell_signal,cell_deproj);
@@ -482,6 +522,12 @@ CTEST(nmt,master_02_flat_full) {
   nmt_workspace_flat_free(w02);
   nmt_field_flat_free(f0);
   nmt_field_flat_free(f2);
+  for(ii=0;ii<2;ii++) {
+    free(tmp2[ii]);
+    free(mps2[ii]);
+  }
+  free(tmp0[0]);
+  free(mps0[0]);
   
   //Free up power spectra
   for(ii=0;ii<ncls;ii++) {
@@ -497,12 +543,6 @@ CTEST(nmt,master_02_flat_full) {
 
   nmt_bins_flat_free(bin);
   free(larr);
-  for(ii=0;ii<2;ii++) {
-    free(tmp2[ii]);
-    free(mps2[ii]);
-  }
-  free(tmp0[0]);
-  free(mps0[0]);
   free(mps0);
   free(mps2);
   free(tmp0);
@@ -561,11 +601,11 @@ CTEST(nmt,master_01_flat_full) {
   f0=nmt_field_flat_alloc(NX_TEST,NY_TEST,
   			  DX_TEST*NX_TEST*M_PI/180,
 			  DY_TEST*NY_TEST*M_PI/180,
-			  msk,0,mps0,0,NULL,0,NULL,NULL,0,0,1E-10,0);
+			  msk,0,mps0,0,NULL,0,NULL,NULL,0,0,1E-10,0,0,0);
   f1=nmt_field_flat_alloc(NX_TEST,NY_TEST,
   			  DX_TEST*NX_TEST*M_PI/180,
 			  DY_TEST*NY_TEST*M_PI/180,
-			  msk,1,mps1,0,NULL,0,NULL,NULL,0,0,1E-10,0);
+			  msk,1,mps1,0,NULL,0,NULL,NULL,0,0,1E-10,0,0,0);
   w01=nmt_compute_coupling_matrix_flat(f0,f1,bin,1,-1,1,-1,0);
   nmt_couple_cl_l_flat_fast(w01,nlth,lth,cell0,cell0_coup);
   nmt_compute_coupled_cell_flat(f0,f1,bin,cell,1,-1,1,-1);
@@ -655,11 +695,11 @@ CTEST(nmt,master_sp1_flat_full) {
   f0=nmt_field_flat_alloc(NX_TEST,NY_TEST,
   			  DX_TEST*NX_TEST*M_PI/180,
 			  DY_TEST*NY_TEST*M_PI/180,
-			  msk,0,mps0,0,NULL,0,NULL,NULL,0,0,1E-10,0);
+			  msk,0,mps0,0,NULL,0,NULL,NULL,0,0,1E-10,0,0,0);
   f1=nmt_field_flat_alloc(NX_TEST,NY_TEST,
   			  DX_TEST*NX_TEST*M_PI/180,
 			  DY_TEST*NY_TEST*M_PI/180,
-			  msk,1,mps1,0,NULL,0,NULL,NULL,0,0,1E-10,0);
+			  msk,1,mps1,0,NULL,0,NULL,NULL,0,0,1E-10,0,0,0);
   w00=nmt_compute_coupling_matrix_flat(f0,f0,bin,1,-1,1,-1,0);
   w01=nmt_compute_coupling_matrix_flat(f0,f1,bin,1,-1,1,-1,0);
   w11=nmt_compute_coupling_matrix_flat(f1,f1,bin,1,-1,1,-1,0);
@@ -718,9 +758,8 @@ CTEST(nmt,master_00_flat_full) {
   double dell=20.;
   double *larr=my_malloc((nell+1)*sizeof(double));
   double *msk=fs_read_flat_map("test/benchmarks/msk_flat.fits",&nx,&ny,&lx,&ly,0);
-  double *mps=fs_read_flat_map("test/benchmarks/mps_flat.fits",&nx,&ny,&lx,&ly,0);
+  double *mps;
   double **tmp=my_malloc(sizeof(double *));
-  tmp[0]=fs_read_flat_map("test/benchmarks/tmp_flat.fits",&nx,&ny,&lx,&ly,0);
 
   for(ii=0;ii<=nell;ii++)
     larr[ii]=ii*dell+2;
@@ -760,10 +799,11 @@ CTEST(nmt,master_00_flat_full) {
   fclose(fi);
 
   //No contaminants
+  mps=fs_read_flat_map("test/benchmarks/mps_flat.fits",&nx,&ny,&lx,&ly,0);
   f0=nmt_field_flat_alloc(NX_TEST,NY_TEST,
   			  DX_TEST*NX_TEST*M_PI/180,
 			  DY_TEST*NY_TEST*M_PI/180,
-			  msk,0,&mps,0,NULL,0,NULL,NULL,0,0,1E-10,0);
+			  msk,0,&mps,0,NULL,0,NULL,NULL,0,0,1E-10,0,0,0);
   w00=nmt_compute_coupling_matrix_flat(f0,f0,bin,1,-1,1,-1,0);
   nmt_couple_cl_l_flat_fast(w00,nlth,lth,cell_noise,cell_noise_coup);
   nmt_compute_coupled_cell_flat(f0,f0,bin,cell,1,-1,1,-1);
@@ -772,12 +812,15 @@ CTEST(nmt,master_00_flat_full) {
     test_compare_arrays(bin->n_bands,cell_out[ii],ncls,ii,"test/benchmarks/bm_f_nc_np_c00.txt",1E-3);
   nmt_workspace_flat_free(w00);
   nmt_field_flat_free(f0);
+  free(mps);
 
   //With contaminants
+  mps=fs_read_flat_map("test/benchmarks/mps_flat.fits",&nx,&ny,&lx,&ly,0);
+  tmp[0]=fs_read_flat_map("test/benchmarks/tmp_flat.fits",&nx,&ny,&lx,&ly,0);
   f0=nmt_field_flat_alloc(NX_TEST,NY_TEST,
   			  DX_TEST*NX_TEST*M_PI/180,
 			  DY_TEST*NY_TEST*M_PI/180,
-			  msk,0,&mps,1,&tmp,0,NULL,NULL,0,0,1E-10,0);
+			  msk,0,&mps,1,&tmp,0,NULL,NULL,0,0,1E-10,0,0,0);
   w00=nmt_compute_coupling_matrix_flat(f0,f0,bin,1,-1,1,-1,0);
   nmt_couple_cl_l_flat_fast(w00,nlth,lth,cell_noise,cell_noise_coup);
   nmt_compute_deprojection_bias_flat(f0,f0,bin,1,-1,1,-1,nlth,lth,cell_signal,cell_deproj);
@@ -791,6 +834,8 @@ CTEST(nmt,master_00_flat_full) {
     test_compare_arrays(bin->n_bands,cell_out[ii],ncls,ii,"test/benchmarks/bm_f_yc_np_c00.txt",1E-3);
   nmt_workspace_flat_free(w00);
   nmt_field_flat_free(f0);
+  free(tmp[0]);
+  free(mps);
   
   //Free up power spectra
   for(ii=0;ii<ncls;ii++) {
@@ -806,8 +851,6 @@ CTEST(nmt,master_00_flat_full) {
 
   nmt_bins_flat_free(bin);
   free(larr);
-  free(tmp[0]);
-  free(mps);
   free(tmp);
   free(msk);
 }
@@ -832,11 +875,11 @@ CTEST(nmt,master_flat_errors) {
   nmt_field_flat *f0=nmt_field_flat_alloc(NX_TEST,NY_TEST,
 					  DX_TEST*NX_TEST*M_PI/180,
 					  DY_TEST*NY_TEST*M_PI/180,
-					  msk,0,mps,0,NULL,0,NULL,NULL,0,0,1E-10,0);
+					  msk,0,mps,0,NULL,0,NULL,NULL,0,0,1E-10,0,0,0);
   nmt_field_flat *f0b=nmt_field_flat_alloc(NX_TEST/2,NY_TEST/2,
 					   DX_TEST*(NX_TEST/2)*M_PI/180,
 					   DY_TEST*(NY_TEST/2)*M_PI/180,
-					   msk,0,mps,0,NULL,0,NULL,NULL,0,0,1E-10,0);
+					   msk,0,mps,0,NULL,0,NULL,NULL,0,0,1E-10,0,0,0);
   
   set_error_policy(THROW_ON_ERROR);
 

@@ -805,6 +805,9 @@ void nmt_decouple_cl_l(nmt_workspace *w,flouble **cl_in,flouble **cl_noise_in,
 
 void nmt_compute_coupled_cell(nmt_field *fl1,nmt_field *fl2,flouble **cl_out)
 {
+  if(fl1->mask_only || fl2->mask_only)
+    report_error(NMT_ERROR_LITE,"Can't correlate mapless fields!\n");
+
   if(fl1->lmax!=fl2->lmax)
     report_error(NMT_ERROR_CONSISTENT_RESO,"Can't correlate fields with different resolutions\n");
 

@@ -404,6 +404,14 @@ class field_flat(_object):
     __swig_getmethods__["beam"] = _nmtlib.field_flat_beam_get
     if _newclass:
         beam = _swig_property(_nmtlib.field_flat_beam_get, _nmtlib.field_flat_beam_set)
+    __swig_setmethods__["lite"] = _nmtlib.field_flat_lite_set
+    __swig_getmethods__["lite"] = _nmtlib.field_flat_lite_get
+    if _newclass:
+        lite = _swig_property(_nmtlib.field_flat_lite_get, _nmtlib.field_flat_lite_set)
+    __swig_setmethods__["mask_only"] = _nmtlib.field_flat_mask_only_set
+    __swig_getmethods__["mask_only"] = _nmtlib.field_flat_mask_only_get
+    if _newclass:
+        mask_only = _swig_property(_nmtlib.field_flat_mask_only_get, _nmtlib.field_flat_mask_only_set)
 
     def __init__(self):
         this = _nmtlib.new_field_flat()
@@ -421,8 +429,8 @@ def field_flat_free(fl):
     return _nmtlib.field_flat_free(fl)
 field_flat_free = _nmtlib.field_flat_free
 
-def field_flat_alloc(nx, ny, lx, ly, mask, spin, maps, ntemp, temp, nl_beam, l_beam, beam, pure_e, pure_b, tol_pinv, masked_input):
-    return _nmtlib.field_flat_alloc(nx, ny, lx, ly, mask, spin, maps, ntemp, temp, nl_beam, l_beam, beam, pure_e, pure_b, tol_pinv, masked_input)
+def field_flat_alloc(nx, ny, lx, ly, mask, spin, maps, ntemp, temp, nl_beam, l_beam, beam, pure_e, pure_b, tol_pinv, masked_input, is_lite, mask_only):
+    return _nmtlib.field_flat_alloc(nx, ny, lx, ly, mask, spin, maps, ntemp, temp, nl_beam, l_beam, beam, pure_e, pure_b, tol_pinv, masked_input, is_lite, mask_only)
 field_flat_alloc = _nmtlib.field_flat_alloc
 
 def synfast_flat(nx, ny, lx, ly, nfields, spin_arr, nl_beam, l_beam, beam_fields, nl_cell, l_cell, cell_fields, seed):
@@ -1105,12 +1113,16 @@ def field_alloc_new_notemp(is_healpix, nside, lmax_sht, nx, ny, delta_phi, delta
     return _nmtlib.field_alloc_new_notemp(is_healpix, nside, lmax_sht, nx, ny, delta_phi, delta_theta, phi0, theta0, spin, npix_1, nmap_2, nell3, pure_e, pure_b, n_iter_mask_purify, n_iter, masked_input, lite)
 field_alloc_new_notemp = _nmtlib.field_alloc_new_notemp
 
-def field_alloc_new_flat(nx, ny, lx, ly, spin, npix_1, nmap_2, ntmp_3, ncl1, pure_e, pure_b, tol_pinv, masked_input):
-    return _nmtlib.field_alloc_new_flat(nx, ny, lx, ly, spin, npix_1, nmap_2, ntmp_3, ncl1, pure_e, pure_b, tol_pinv, masked_input)
+def field_alloc_empty_flat(nx, ny, lx, ly, spin, npix_1, ncl1, pure_e, pure_b):
+    return _nmtlib.field_alloc_empty_flat(nx, ny, lx, ly, spin, npix_1, ncl1, pure_e, pure_b)
+field_alloc_empty_flat = _nmtlib.field_alloc_empty_flat
+
+def field_alloc_new_flat(nx, ny, lx, ly, spin, npix_1, nmap_2, ntmp_3, ncl1, pure_e, pure_b, tol_pinv, masked_input, lite):
+    return _nmtlib.field_alloc_new_flat(nx, ny, lx, ly, spin, npix_1, nmap_2, ntmp_3, ncl1, pure_e, pure_b, tol_pinv, masked_input, lite)
 field_alloc_new_flat = _nmtlib.field_alloc_new_flat
 
-def field_alloc_new_notemp_flat(nx, ny, lx, ly, spin, npix_1, nmap_2, ncl1, pure_e, pure_b, masked_input):
-    return _nmtlib.field_alloc_new_notemp_flat(nx, ny, lx, ly, spin, npix_1, nmap_2, ncl1, pure_e, pure_b, masked_input)
+def field_alloc_new_notemp_flat(nx, ny, lx, ly, spin, npix_1, nmap_2, ncl1, pure_e, pure_b, masked_input, lite):
+    return _nmtlib.field_alloc_new_notemp_flat(nx, ny, lx, ly, spin, npix_1, nmap_2, ncl1, pure_e, pure_b, masked_input, lite)
 field_alloc_new_notemp_flat = _nmtlib.field_alloc_new_notemp_flat
 
 def get_map(fl, imap, ldout):

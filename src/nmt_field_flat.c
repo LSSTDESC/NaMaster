@@ -75,35 +75,37 @@ void nmt_field_flat_free(nmt_field_flat *fl)
   nmt_k_function_free(fl->beam);
 
   nmt_flatsky_info_free(fl->fs);
-  for(imap=0;imap<fl->nmaps;imap++) {
-    dftw_free(fl->maps[imap]);
-    dftw_free(fl->alms[imap]);
-  }
   dftw_free(fl->mask);
-  if(fl->ntemp>0) {
-    for(itemp=0;itemp<fl->ntemp;itemp++) {
-      for(imap=0;imap<fl->nmaps;imap++) {
-	dftw_free(fl->temp[itemp][imap]);
-	dftw_free(fl->a_temp[itemp][imap]);
-      }
-    }
+  if(!(fl->mask_only)) {
+    for(imap=0;imap<fl->nmaps;imap++)
+      dftw_free(fl->alms[imap]);
+    free(fl->alms);
+    if(fl->ntemp>0)
+      gsl_matrix_free(fl->matrix_M);
   }
 
-  free(fl->alms);
-  free(fl->maps);
-  if(fl->ntemp>0) {
-    for(itemp=0;itemp<fl->ntemp;itemp++) {
-      free(fl->temp[itemp]);
-      free(fl->a_temp[itemp]);
-    }
-    free(fl->temp);
-    free(fl->a_temp);
-    gsl_matrix_free(fl->matrix_M);
-  }
-  if(fl->a_mask!=NULL) {
+  if(!(fl->lite)) {
     for(imap=0;imap<fl->nmaps;imap++)
-      dftw_free(fl->a_mask[imap]);
-    free(fl->a_mask);
+      dftw_free(fl->maps[imap]);
+    free(fl->maps);
+    if(fl->ntemp>0) {
+      for(itemp=0;itemp<fl->ntemp;itemp++) {
+        for(imap=0;imap<fl->nmaps;imap++) {
+          dftw_free(fl->temp[itemp][imap]);
+          dftw_free(fl->a_temp[itemp][imap]);
+        }
+        free(fl->temp[itemp]);
+        free(fl->a_temp[itemp]);
+      }
+      free(fl->temp);
+      free(fl->a_temp);
+    }
+
+    if(fl->a_mask!=NULL) {
+      for(imap=0;imap<fl->nmaps;imap++)
+        dftw_free(fl->a_mask[imap]);
+      free(fl->a_mask);
+    }
   }
   free(fl);
 }
@@ -271,7 +273,8 @@ void nmt_purify_flat(nmt_field_flat *fl,flouble *mask,fcomplex **walm0,
 nmt_field_flat *nmt_field_flat_alloc(int nx,int ny,flouble lx,flouble ly,
 				     flouble *mask,int spin,flouble **maps,int ntemp,flouble ***temp,
 				     int nl_beam,flouble *l_beam,flouble *beam,
-				     int pure_e,int pure_b,double tol_pinv,int masked_input)
+				     int pure_e,int pure_b,double tol_pinv,int masked_input,
+                                     int is_lite,int mask_only)
 {
   long ip;
   int ii,itemp,itemp2,imap;
@@ -282,6 +285,10 @@ nmt_field_flat *nmt_field_flat_alloc(int nx,int ny,flouble lx,flouble ly,
   if(spin) fl->nmaps=2;
   else fl->nmaps=1;
   fl->ntemp=ntemp;
+  fl->mask_only=mask_only;
+  if(mask_only)
+    is_lite=1;
+  fl->lite=is_lite;
 
   if((pure_e || pure_b) && (spin!=2))
     report_error(NMT_ERROR_VALUE,"Purification only implemented for spin-2 fields\n");
@@ -303,40 +310,79 @@ nmt_field_flat *nmt_field_flat_alloc(int nx,int ny,flouble lx,flouble ly,
   for(ip=0;ip<fl->npix;ip++)
     fl->mask[ip]=mask[ip];
 
-  fl->maps=my_malloc(fl->nmaps*sizeof(flouble *));
-  for(ii=0;ii<fl->nmaps;ii++) {
-    fl->maps[ii]=dftw_malloc(fl->npix*sizeof(flouble));
-    if(masked_input) { //If input maps are already masked, we need to unmask them for purification
-      for(ip=0;ip<fl->npix;ip++) {
-        if(mask[ip]>0)
-          maps[ii][ip]/=mask[ip];
+  fl->maps=NULL;
+  fl->temp=NULL;
+  if(mask_only) {
+    fl->a_mask=NULL;
+    fl->alms=NULL;
+    fl->a_temp=NULL;
+    return fl;
+  }
+
+  //Store unmasked fields if purifying
+  // Instead of doing this we could just unmask the maps
+  // before purifying, but it turns out that the floating point
+  // errors incurred while doing that are pretty nasty around
+  // the mask edges, so this is safer.
+  flouble **maps_unmasked;
+  flouble ***temp_unmasked;
+  if(fl->spin && (fl->pure_e || fl->pure_b)) {
+    maps_unmasked=my_malloc(fl->nmaps*sizeof(flouble *));
+    for(imap=0;imap<fl->nmaps;imap++) {
+      maps_unmasked[imap]=dftw_malloc(fl->npix*sizeof(flouble));
+      fs_mapcpy(fl->fs,maps_unmasked[imap],maps[imap]);
+      //Unmask if masked
+      if(masked_input) {
+        for(ip=0;ip<fl->npix;ip++) {
+          if(fl->mask[ip]>0)
+            maps_unmasked[imap][ip]/=fl->mask[ip];
+          else
+            maps_unmasked[imap][ip]=0;
+        }
+      }
+    }
+    if((fl->ntemp>0) && (!is_lite)) {
+      temp_unmasked=my_malloc(fl->ntemp*sizeof(flouble **));
+      for(itemp=0;itemp<fl->ntemp;itemp++) {
+        temp_unmasked[itemp]=my_malloc(fl->nmaps*sizeof(flouble *));
+        for(imap=0;imap<fl->nmaps;imap++) {
+          temp_unmasked[itemp][imap]=dftw_malloc(fl->npix*sizeof(flouble));
+          fs_mapcpy(fl->fs,temp_unmasked[itemp][imap],temp[itemp][imap]);
+          //Unmask if masked
+          if(masked_input) {
+            for(ip=0;ip<fl->npix;ip++) {
+              if(mask[ip]>0)
+                temp_unmasked[itemp][imap][ip]/=fl->mask[ip];
+              else
+                temp_unmasked[itemp][imap][ip]=0;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  //Mask if unmasked
+  if(!masked_input) {
+    for(imap=0;imap<fl->nmaps;imap++)
+      fs_map_product(fl->fs,maps[imap],fl->mask,maps[imap]);
+
+    if(fl->ntemp>0) {
+      for(itemp=0;itemp<fl->ntemp;itemp++) {
+        for(imap=0;imap<fl->nmaps;imap++)
+          fs_map_product(fl->fs,temp[itemp][imap],fl->mask,temp[itemp][imap]);
       }
     }
   }
 
   if(fl->ntemp>0) {
-    fl->temp=my_malloc(fl->ntemp*sizeof(flouble **));
-    for(itemp=0;itemp<fl->ntemp;itemp++) {
-      fl->temp[itemp]=my_malloc(fl->nmaps*sizeof(flouble *));
-      for(imap=0;imap<fl->nmaps;imap++) {
-	fl->temp[itemp][imap]=dftw_malloc(fl->npix*sizeof(flouble));
-        if(masked_input) { //If input maps are already masked, we need to unmask them for purification
-          for(ip=0;ip<fl->npix;ip++) {
-            if(mask[ip]>0)
-              temp[itemp][imap][ip]/=mask[ip];
-          }
-        }
-        fs_map_product(fl->fs,temp[itemp][imap],fl->mask,fl->temp[itemp][imap]);
-      }
-    }
-    
     //Compute normalization matrix
     fl->matrix_M=gsl_matrix_alloc(fl->ntemp,fl->ntemp);
     for(itemp=0;itemp<fl->ntemp;itemp++) {
       for(itemp2=itemp;itemp2<fl->ntemp;itemp2++) {
 	flouble matrix_element=0;
 	for(imap=0;imap<fl->nmaps;imap++)
-	  matrix_element+=fs_map_dot(fl->fs,fl->temp[itemp][imap],fl->temp[itemp2][imap]);
+	  matrix_element+=fs_map_dot(fl->fs,temp[itemp][imap],temp[itemp2][imap]);
 	gsl_matrix_set(fl->matrix_M,itemp,itemp2,matrix_element);
 	if(itemp2!=itemp)
 	  gsl_matrix_set(fl->matrix_M,itemp2,itemp,matrix_element);
@@ -345,12 +391,10 @@ nmt_field_flat *nmt_field_flat_alloc(int nx,int ny,flouble lx,flouble ly,
     moore_penrose_pinv(fl->matrix_M,tol_pinv);
 
     //Deproject
-    for(ii=0;ii<fl->nmaps;ii++)
-      fs_map_product(fl->fs,maps[ii],fl->mask,fl->maps[ii]);
     flouble *prods=my_calloc(fl->ntemp,sizeof(flouble));
     for(itemp=0;itemp<fl->ntemp;itemp++) {
       for(imap=0;imap<fl->nmaps;imap++) 
-	prods[itemp]+=fs_map_dot(fl->fs,fl->temp[itemp][imap],fl->maps[imap]);
+	prods[itemp]+=fs_map_dot(fl->fs,temp[itemp][imap],maps[imap]);
     }
     for(itemp=0;itemp<fl->ntemp;itemp++) {
       flouble alpha=0;
@@ -363,25 +407,34 @@ nmt_field_flat *nmt_field_flat_alloc(int nx,int ny,flouble lx,flouble ly,
 #endif //_DEBUG
       for(imap=0;imap<fl->nmaps;imap++) {
 	long ip;
-	for(ip=0;ip<fl->npix;ip++)
-	  maps[imap][ip]-=alpha*temp[itemp][imap][ip]; //Correct unmasked field (in case of purification)
+	for(ip=0;ip<fl->npix;ip++) {
+	  maps[imap][ip]-=alpha*temp[itemp][imap][ip];
+          //Unmasked fields too if purifying!
+          if(fl->spin && (fl->pure_e || fl->pure_b))
+            maps_unmasked[imap][ip]-=alpha*temp_unmasked[itemp][imap][ip];
+        }
       }
     }
     free(prods);
   }
 
+  //Allocate Fourier coefficients
   fl->alms=my_malloc(fl->nmaps*sizeof(fcomplex *));
   for(ii=0;ii<fl->nmaps;ii++)
     fl->alms[ii]=dftw_malloc(fl->fs->ny*(fl->fs->nx/2+1)*sizeof(fcomplex));
-  if(fl->ntemp>0) {
-    fl->a_temp=my_malloc(fl->ntemp*sizeof(fcomplex **));
-    for(itemp=0;itemp<fl->ntemp;itemp++) {
-      fl->a_temp[itemp]=my_malloc(fl->nmaps*sizeof(fcomplex *));
-      for(imap=0;imap<fl->nmaps;imap++)
-	fl->a_temp[itemp][imap]=dftw_malloc(fl->fs->ny*(fl->fs->nx/2+1)*sizeof(fcomplex));
+  if(is_lite)
+    fl->a_temp=NULL;
+  else {
+    if(fl->ntemp>0) {
+      fl->a_temp=my_malloc(fl->ntemp*sizeof(fcomplex **));
+      for(itemp=0;itemp<fl->ntemp;itemp++) {
+        fl->a_temp[itemp]=my_malloc(fl->nmaps*sizeof(fcomplex *));
+        for(imap=0;imap<fl->nmaps;imap++)
+          fl->a_temp[itemp][imap]=dftw_malloc(fl->fs->ny*(fl->fs->nx/2+1)*sizeof(fcomplex));
+      }
     }
   }
-
+  fl->a_mask=NULL;
 
   if(fl->spin && (fl->pure_e || fl->pure_b)) {
     //If purification is needed:
@@ -390,40 +443,68 @@ nmt_field_flat *nmt_field_flat_alloc(int nx,int ny,flouble lx,flouble ly,
     // 3- Compute purified contaminats
 
     //Compute mask DFT (store in fl->a_mask
-    fl->a_mask=my_malloc(fl->nmaps*sizeof(fcomplex *));
+    fcomplex **a_mask=my_malloc(fl->nmaps*sizeof(fcomplex *));
     for(imap=0;imap<fl->nmaps;imap++)
-      fl->a_mask[imap]=dftw_malloc(fl->fs->ny*(fl->fs->nx/2+1)*sizeof(fcomplex));
-    fs_map2alm(fl->fs,1,0,&(fl->mask),fl->a_mask);
+      a_mask[imap]=dftw_malloc(fl->fs->ny*(fl->fs->nx/2+1)*sizeof(fcomplex));
+    fs_map2alm(fl->fs,1,0,&(fl->mask),a_mask);
 
     //Purify map
-    nmt_purify_flat(fl,fl->mask,fl->a_mask,maps,fl->maps,fl->alms);
+    nmt_purify_flat(fl,fl->mask,a_mask,maps_unmasked,maps,fl->alms);
+    for(imap=0;imap<fl->nmaps;imap++)
+      dftw_free(maps_unmasked[imap]);
+    free(maps_unmasked);
 
-    //Compute purified contaminant DFTs
-    if(fl->ntemp>0) {
+    if((!is_lite) && (fl->ntemp>0)) {
+      //Compute purified contaminant DFTs
       for(itemp=0;itemp<fl->ntemp;itemp++) {
-	nmt_purify_flat(fl,fl->mask,fl->a_mask,temp[itemp],fl->temp[itemp],fl->a_temp[itemp]);
-	for(imap=0;imap<fl->nmaps;imap++) //Store non-pure map
-	  fs_map_product(fl->fs,temp[itemp][imap],fl->mask,fl->temp[itemp][imap]);
-      }    
+	nmt_purify_flat(fl,fl->mask,a_mask,temp_unmasked[itemp],temp[itemp],fl->a_temp[itemp]);
+	for(imap=0;imap<fl->nmaps;imap++) {//Store non-pure map
+	  fs_map_product(fl->fs,temp_unmasked[itemp][imap],fl->mask,temp[itemp][imap]);
+          dftw_free(temp_unmasked[itemp][imap]);
+        }
+        free(temp_unmasked[itemp]);
+      }
+      free(temp_unmasked);
       //IMPORTANT: at this stage, fl->maps and fl->alms contain the purified map and SH coefficients
       //           However, although fl->a_temp contains the purified SH coefficients,
       //           fl->temp contains the ***non-purified*** maps. This is to speed up the calculation
       //           of the deprojection bias.
     }
+    if(is_lite) {
+      for(imap=0;imap<fl->nmaps;imap++)
+        dftw_free(a_mask[imap]);
+      free(a_mask);
+    }
+    else
+      fl->a_mask=a_mask;
   }
   else {
-    //If no purification, just multiply by mask and SHT
-    fl->a_mask=NULL; //No need to store extra-pure mask harmonic coefficients
-
+    //If no purification, just and SHT
     //Masked map and spherical harmonic coefficients
-    for(imap=0;imap<fl->nmaps;imap++)
-      fs_map_product(fl->fs,maps[imap],fl->mask,fl->maps[imap]);
-    fs_map2alm(fl->fs,1,fl->spin,fl->maps,fl->alms);
+    fs_map2alm(fl->fs,1,fl->spin,maps,fl->alms);
 
     //Compute template DFT too
-    if(fl->ntemp>0) {
+    if((!is_lite) && (fl->ntemp>0)) {
       for(itemp=0;itemp<fl->ntemp;itemp++)
-	fs_map2alm(fl->fs,1,fl->spin,fl->temp[itemp],fl->a_temp[itemp]);
+	fs_map2alm(fl->fs,1,fl->spin,temp[itemp],fl->a_temp[itemp]);
+    }
+  }
+
+  if(!is_lite) {
+    fl->maps=my_malloc(fl->nmaps*sizeof(flouble *));
+    for(imap=0;imap<fl->nmaps;imap++) {
+      fl->maps[imap]=dftw_malloc(fl->npix*sizeof(flouble));
+      fs_mapcpy(fl->fs,fl->maps[imap],maps[imap]);
+    }
+    if(fl->ntemp>0) {
+      fl->temp=my_malloc(fl->ntemp*sizeof(flouble **));
+      for(itemp=0;itemp<fl->ntemp;itemp++) {
+        fl->temp[itemp]=my_malloc(fl->nmaps*sizeof(flouble *));
+        for(imap=0;imap<fl->nmaps;imap++) {
+          fl->temp[itemp][imap]=dftw_malloc(fl->npix*sizeof(flouble));
+          fs_mapcpy(fl->fs,fl->temp[itemp][imap],temp[itemp][imap]);
+        }
+      }
     }
   }
 

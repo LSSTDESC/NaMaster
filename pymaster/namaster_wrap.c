@@ -3646,13 +3646,39 @@ nmt_field *field_alloc_new_notemp(int is_healpix,int nside,int lmax_sht,int nx,i
   return fl;
 }
 
+nmt_field_flat *field_alloc_empty_flat(int nx,int ny,double lx,double ly,int spin,
+                                       int npix_1,double *mask,
+                                       int ncl1,int nell1,double *cls1,
+                                       int pure_e,int pure_b)
+{
+  nmt_field_flat *fl;
+  asserting(npix_1==nx*ny);
+  asserting(ncl1==2);
+  asserting(lx>0);
+  asserting(ly>0);
+
+  double *larr,*beam;
+  if((nell1==1) && (cls1[0]<0) && (cls1[1]<0)) {
+    larr=NULL; beam=NULL;
+  }
+  else {
+    larr=&(cls1[0]);
+    beam=&(cls1[nell1]);
+  }
+
+  fl=nmt_field_flat_alloc(nx,ny,lx,ly,mask,spin,NULL,0,NULL,
+			  nell1,larr,beam,pure_e,pure_b,0,0,1,1);
+
+  return fl;
+}
+
 nmt_field_flat *field_alloc_new_flat(int nx,int ny,double lx,double ly,int spin,
 				     int npix_1,double *mask,
 				     int nmap_2,int npix_2,double *mps,
 				     int ntmp_3,int nmap_3,int npix_3,double *tmp,
 				     int ncl1,int nell1,double *cls1,
 				     int pure_e,int pure_b,double tol_pinv,
-                                     int masked_input)
+                                     int masked_input,int lite)
 {
   int ii,jj;
   int ntemp=0;
@@ -3693,7 +3719,7 @@ nmt_field_flat *field_alloc_new_flat(int nx,int ny,double lx,double ly,int spin,
 
   fl=nmt_field_flat_alloc(nx,ny,lx,ly,mask,spin,maps,ntemp,temp,
 			  nell1,larr,beam,pure_e,pure_b,tol_pinv,
-                          masked_input);
+                          masked_input,lite,0);
 
   if(tmp!=NULL) {
     for(ii=0;ii<ntmp_3;ii++)
@@ -3710,13 +3736,13 @@ nmt_field_flat *field_alloc_new_notemp_flat(int nx,int ny,double lx,double ly,in
 					    int nmap_2,int npix_2,double *mps,
 					    int ncl1,int nell1,double *cls1,
 					    int pure_e,int pure_b,
-                                            int masked_input)
+                                            int masked_input,int lite)
 {
   asserting(lx>0);
   asserting(ly>0);
   return field_alloc_new_flat(nx,ny,lx,ly,spin,npix_1,mask,nmap_2,npix_2,mps,
 			      -1,-1,-1,NULL,ncl1,nell1,cls1,pure_e,pure_b,0.,
-                              masked_input);
+                              masked_input,lite);
 }
 
 void get_map(nmt_field *fl,int imap,double *ldout,long nldout)
@@ -7883,6 +7909,110 @@ fail:
 }
 
 
+SWIGINTERN PyObject *_wrap_field_flat_lite_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_field_flat *arg1 = (nmt_field_flat *) 0 ;
+  int arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int val2 ;
+  int ecode2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:field_flat_lite_set",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_field_flat, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "field_flat_lite_set" "', argument " "1"" of type '" "nmt_field_flat *""'"); 
+  }
+  arg1 = (nmt_field_flat *)(argp1);
+  ecode2 = SWIG_AsVal_int(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "field_flat_lite_set" "', argument " "2"" of type '" "int""'");
+  } 
+  arg2 = (int)(val2);
+  if (arg1) (arg1)->lite = arg2;
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_field_flat_lite_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_field_flat *arg1 = (nmt_field_flat *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  int result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:field_flat_lite_get",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_field_flat, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "field_flat_lite_get" "', argument " "1"" of type '" "nmt_field_flat *""'"); 
+  }
+  arg1 = (nmt_field_flat *)(argp1);
+  result = (int) ((arg1)->lite);
+  resultobj = SWIG_From_int((int)(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_field_flat_mask_only_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_field_flat *arg1 = (nmt_field_flat *) 0 ;
+  int arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int val2 ;
+  int ecode2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:field_flat_mask_only_set",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_field_flat, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "field_flat_mask_only_set" "', argument " "1"" of type '" "nmt_field_flat *""'"); 
+  }
+  arg1 = (nmt_field_flat *)(argp1);
+  ecode2 = SWIG_AsVal_int(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "field_flat_mask_only_set" "', argument " "2"" of type '" "int""'");
+  } 
+  arg2 = (int)(val2);
+  if (arg1) (arg1)->mask_only = arg2;
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_field_flat_mask_only_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_field_flat *arg1 = (nmt_field_flat *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  int result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:field_flat_mask_only_get",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_field_flat, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "field_flat_mask_only_get" "', argument " "1"" of type '" "nmt_field_flat *""'"); 
+  }
+  arg1 = (nmt_field_flat *)(argp1);
+  result = (int) ((arg1)->mask_only);
+  resultobj = SWIG_From_int((int)(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
 SWIGINTERN PyObject *_wrap_new_field_flat(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   nmt_field_flat *result = 0 ;
@@ -7977,6 +8107,8 @@ SWIGINTERN PyObject *_wrap_field_flat_alloc(PyObject *SWIGUNUSEDPARM(self), PyOb
   int arg14 ;
   double arg15 ;
   int arg16 ;
+  int arg17 ;
+  int arg18 ;
   int val1 ;
   int ecode1 = 0 ;
   int val2 ;
@@ -8009,6 +8141,10 @@ SWIGINTERN PyObject *_wrap_field_flat_alloc(PyObject *SWIGUNUSEDPARM(self), PyOb
   int ecode15 = 0 ;
   int val16 ;
   int ecode16 = 0 ;
+  int val17 ;
+  int ecode17 = 0 ;
+  int val18 ;
+  int ecode18 = 0 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   PyObject * obj2 = 0 ;
@@ -8025,9 +8161,11 @@ SWIGINTERN PyObject *_wrap_field_flat_alloc(PyObject *SWIGUNUSEDPARM(self), PyOb
   PyObject * obj13 = 0 ;
   PyObject * obj14 = 0 ;
   PyObject * obj15 = 0 ;
+  PyObject * obj16 = 0 ;
+  PyObject * obj17 = 0 ;
   nmt_field_flat *result = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"OOOOOOOOOOOOOOOO:field_flat_alloc",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6,&obj7,&obj8,&obj9,&obj10,&obj11,&obj12,&obj13,&obj14,&obj15)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOOOOOOOOOOOOOOOOO:field_flat_alloc",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6,&obj7,&obj8,&obj9,&obj10,&obj11,&obj12,&obj13,&obj14,&obj15,&obj16,&obj17)) SWIG_fail;
   ecode1 = SWIG_AsVal_int(obj0, &val1);
   if (!SWIG_IsOK(ecode1)) {
     SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "field_flat_alloc" "', argument " "1"" of type '" "int""'");
@@ -8108,7 +8246,17 @@ SWIGINTERN PyObject *_wrap_field_flat_alloc(PyObject *SWIGUNUSEDPARM(self), PyOb
     SWIG_exception_fail(SWIG_ArgError(ecode16), "in method '" "field_flat_alloc" "', argument " "16"" of type '" "int""'");
   } 
   arg16 = (int)(val16);
-  result = (nmt_field_flat *)nmt_field_flat_alloc(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13,arg14,arg15,arg16);
+  ecode17 = SWIG_AsVal_int(obj16, &val17);
+  if (!SWIG_IsOK(ecode17)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode17), "in method '" "field_flat_alloc" "', argument " "17"" of type '" "int""'");
+  } 
+  arg17 = (int)(val17);
+  ecode18 = SWIG_AsVal_int(obj17, &val18);
+  if (!SWIG_IsOK(ecode18)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode18), "in method '" "field_flat_alloc" "', argument " "18"" of type '" "int""'");
+  } 
+  arg18 = (int)(val18);
+  result = (nmt_field_flat *)nmt_field_flat_alloc(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13,arg14,arg15,arg16,arg17,arg18);
   resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_nmt_field_flat, 0 |  0 );
   return resultobj;
 fail:
@@ -17242,6 +17390,149 @@ fail:
 }
 
 
+SWIGINTERN PyObject *_wrap_field_alloc_empty_flat(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  int arg1 ;
+  int arg2 ;
+  double arg3 ;
+  double arg4 ;
+  int arg5 ;
+  int arg6 ;
+  double *arg7 = (double *) 0 ;
+  int arg8 ;
+  int arg9 ;
+  double *arg10 = (double *) 0 ;
+  int arg11 ;
+  int arg12 ;
+  int val1 ;
+  int ecode1 = 0 ;
+  int val2 ;
+  int ecode2 = 0 ;
+  double val3 ;
+  int ecode3 = 0 ;
+  double val4 ;
+  int ecode4 = 0 ;
+  int val5 ;
+  int ecode5 = 0 ;
+  PyArrayObject *array6 = NULL ;
+  int is_new_object6 = 0 ;
+  PyArrayObject *array8 = NULL ;
+  int is_new_object8 = 0 ;
+  int val11 ;
+  int ecode11 = 0 ;
+  int val12 ;
+  int ecode12 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  PyObject * obj2 = 0 ;
+  PyObject * obj3 = 0 ;
+  PyObject * obj4 = 0 ;
+  PyObject * obj5 = 0 ;
+  PyObject * obj6 = 0 ;
+  PyObject * obj7 = 0 ;
+  PyObject * obj8 = 0 ;
+  nmt_field_flat *result = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OOOOOOOOO:field_alloc_empty_flat",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6,&obj7,&obj8)) SWIG_fail;
+  ecode1 = SWIG_AsVal_int(obj0, &val1);
+  if (!SWIG_IsOK(ecode1)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "field_alloc_empty_flat" "', argument " "1"" of type '" "int""'");
+  } 
+  arg1 = (int)(val1);
+  ecode2 = SWIG_AsVal_int(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "field_alloc_empty_flat" "', argument " "2"" of type '" "int""'");
+  } 
+  arg2 = (int)(val2);
+  ecode3 = SWIG_AsVal_double(obj2, &val3);
+  if (!SWIG_IsOK(ecode3)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "field_alloc_empty_flat" "', argument " "3"" of type '" "double""'");
+  } 
+  arg3 = (double)(val3);
+  ecode4 = SWIG_AsVal_double(obj3, &val4);
+  if (!SWIG_IsOK(ecode4)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "field_alloc_empty_flat" "', argument " "4"" of type '" "double""'");
+  } 
+  arg4 = (double)(val4);
+  ecode5 = SWIG_AsVal_int(obj4, &val5);
+  if (!SWIG_IsOK(ecode5)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode5), "in method '" "field_alloc_empty_flat" "', argument " "5"" of type '" "int""'");
+  } 
+  arg5 = (int)(val5);
+  {
+    npy_intp size[1] = {
+      -1
+    };
+    array6 = obj_to_array_contiguous_allow_conversion(obj5,
+      NPY_DOUBLE,
+      &is_new_object6);
+    if (!array6 || !require_dimensions(array6, 1) ||
+      !require_size(array6, size, 1)) SWIG_fail;
+    arg6 = (int) array_size(array6,0);
+    arg7 = (double*) array_data(array6);
+  }
+  {
+    npy_intp size[2] = {
+      -1, -1 
+    };
+    array8 = obj_to_array_contiguous_allow_conversion(obj6,
+      NPY_DOUBLE,
+      &is_new_object8);
+    if (!array8 || !require_dimensions(array8, 2) ||
+      !require_size(array8, size, 2)) SWIG_fail;
+    arg8 = (int) array_size(array8,0);
+    arg9 = (int) array_size(array8,1);
+    arg10 = (double*) array_data(array8);
+  }
+  ecode11 = SWIG_AsVal_int(obj7, &val11);
+  if (!SWIG_IsOK(ecode11)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode11), "in method '" "field_alloc_empty_flat" "', argument " "11"" of type '" "int""'");
+  } 
+  arg11 = (int)(val11);
+  ecode12 = SWIG_AsVal_int(obj8, &val12);
+  if (!SWIG_IsOK(ecode12)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode12), "in method '" "field_alloc_empty_flat" "', argument " "12"" of type '" "int""'");
+  } 
+  arg12 = (int)(val12);
+  {
+    try {
+      result = (nmt_field_flat *)field_alloc_empty_flat(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12);
+    }
+    finally {
+      SWIG_exception(SWIG_RuntimeError,nmt_error_message);
+    }
+  }
+  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_nmt_field_flat, 0 |  0 );
+  {
+    if (is_new_object6 && array6)
+    {
+      Py_DECREF(array6); 
+    }
+  }
+  {
+    if (is_new_object8 && array8)
+    {
+      Py_DECREF(array8); 
+    }
+  }
+  return resultobj;
+fail:
+  {
+    if (is_new_object6 && array6)
+    {
+      Py_DECREF(array6); 
+    }
+  }
+  {
+    if (is_new_object8 && array8)
+    {
+      Py_DECREF(array8); 
+    }
+  }
+  return NULL;
+}
+
+
 SWIGINTERN PyObject *_wrap_field_alloc_new_flat(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   int arg1 ;
@@ -17265,6 +17556,7 @@ SWIGINTERN PyObject *_wrap_field_alloc_new_flat(PyObject *SWIGUNUSEDPARM(self), 
   int arg19 ;
   double arg20 ;
   int arg21 ;
+  int arg22 ;
   int val1 ;
   int ecode1 = 0 ;
   int val2 ;
@@ -17291,6 +17583,8 @@ SWIGINTERN PyObject *_wrap_field_alloc_new_flat(PyObject *SWIGUNUSEDPARM(self), 
   int ecode20 = 0 ;
   int val21 ;
   int ecode21 = 0 ;
+  int val22 ;
+  int ecode22 = 0 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   PyObject * obj2 = 0 ;
@@ -17304,9 +17598,10 @@ SWIGINTERN PyObject *_wrap_field_alloc_new_flat(PyObject *SWIGUNUSEDPARM(self), 
   PyObject * obj10 = 0 ;
   PyObject * obj11 = 0 ;
   PyObject * obj12 = 0 ;
+  PyObject * obj13 = 0 ;
   nmt_field_flat *result = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"OOOOOOOOOOOOO:field_alloc_new_flat",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6,&obj7,&obj8,&obj9,&obj10,&obj11,&obj12)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOOOOOOOOOOOOO:field_alloc_new_flat",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6,&obj7,&obj8,&obj9,&obj10,&obj11,&obj12,&obj13)) SWIG_fail;
   ecode1 = SWIG_AsVal_int(obj0, &val1);
   if (!SWIG_IsOK(ecode1)) {
     SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "field_alloc_new_flat" "', argument " "1"" of type '" "int""'");
@@ -17403,9 +17698,14 @@ SWIGINTERN PyObject *_wrap_field_alloc_new_flat(PyObject *SWIGUNUSEDPARM(self), 
     SWIG_exception_fail(SWIG_ArgError(ecode21), "in method '" "field_alloc_new_flat" "', argument " "21"" of type '" "int""'");
   } 
   arg21 = (int)(val21);
+  ecode22 = SWIG_AsVal_int(obj13, &val22);
+  if (!SWIG_IsOK(ecode22)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode22), "in method '" "field_alloc_new_flat" "', argument " "22"" of type '" "int""'");
+  } 
+  arg22 = (int)(val22);
   {
     try {
-      result = (nmt_field_flat *)field_alloc_new_flat(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13,arg14,arg15,arg16,arg17,arg18,arg19,arg20,arg21);
+      result = (nmt_field_flat *)field_alloc_new_flat(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13,arg14,arg15,arg16,arg17,arg18,arg19,arg20,arg21,arg22);
     }
     finally {
       SWIG_exception(SWIG_RuntimeError,nmt_error_message);
@@ -17484,6 +17784,7 @@ SWIGINTERN PyObject *_wrap_field_alloc_new_notemp_flat(PyObject *SWIGUNUSEDPARM(
   int arg14 ;
   int arg15 ;
   int arg16 ;
+  int arg17 ;
   int val1 ;
   int ecode1 = 0 ;
   int val2 ;
@@ -17506,6 +17807,8 @@ SWIGINTERN PyObject *_wrap_field_alloc_new_notemp_flat(PyObject *SWIGUNUSEDPARM(
   int ecode15 = 0 ;
   int val16 ;
   int ecode16 = 0 ;
+  int val17 ;
+  int ecode17 = 0 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   PyObject * obj2 = 0 ;
@@ -17517,9 +17820,10 @@ SWIGINTERN PyObject *_wrap_field_alloc_new_notemp_flat(PyObject *SWIGUNUSEDPARM(
   PyObject * obj8 = 0 ;
   PyObject * obj9 = 0 ;
   PyObject * obj10 = 0 ;
+  PyObject * obj11 = 0 ;
   nmt_field_flat *result = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"OOOOOOOOOOO:field_alloc_new_notemp_flat",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6,&obj7,&obj8,&obj9,&obj10)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOOOOOOOOOOO:field_alloc_new_notemp_flat",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6,&obj7,&obj8,&obj9,&obj10,&obj11)) SWIG_fail;
   ecode1 = SWIG_AsVal_int(obj0, &val1);
   if (!SWIG_IsOK(ecode1)) {
     SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "field_alloc_new_notemp_flat" "', argument " "1"" of type '" "int""'");
@@ -17598,9 +17902,14 @@ SWIGINTERN PyObject *_wrap_field_alloc_new_notemp_flat(PyObject *SWIGUNUSEDPARM(
     SWIG_exception_fail(SWIG_ArgError(ecode16), "in method '" "field_alloc_new_notemp_flat" "', argument " "16"" of type '" "int""'");
   } 
   arg16 = (int)(val16);
+  ecode17 = SWIG_AsVal_int(obj11, &val17);
+  if (!SWIG_IsOK(ecode17)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode17), "in method '" "field_alloc_new_notemp_flat" "', argument " "17"" of type '" "int""'");
+  } 
+  arg17 = (int)(val17);
   {
     try {
-      result = (nmt_field_flat *)field_alloc_new_notemp_flat(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13,arg14,arg15,arg16);
+      result = (nmt_field_flat *)field_alloc_new_notemp_flat(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13,arg14,arg15,arg16,arg17);
     }
     finally {
       SWIG_exception(SWIG_RuntimeError,nmt_error_message);
@@ -21436,6 +21745,10 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"field_flat_matrix_M_get", _wrap_field_flat_matrix_M_get, METH_VARARGS, NULL},
 	 { (char *)"field_flat_beam_set", _wrap_field_flat_beam_set, METH_VARARGS, NULL},
 	 { (char *)"field_flat_beam_get", _wrap_field_flat_beam_get, METH_VARARGS, NULL},
+	 { (char *)"field_flat_lite_set", _wrap_field_flat_lite_set, METH_VARARGS, NULL},
+	 { (char *)"field_flat_lite_get", _wrap_field_flat_lite_get, METH_VARARGS, NULL},
+	 { (char *)"field_flat_mask_only_set", _wrap_field_flat_mask_only_set, METH_VARARGS, NULL},
+	 { (char *)"field_flat_mask_only_get", _wrap_field_flat_mask_only_get, METH_VARARGS, NULL},
 	 { (char *)"new_field_flat", _wrap_new_field_flat, METH_VARARGS, NULL},
 	 { (char *)"delete_field_flat", _wrap_delete_field_flat, METH_VARARGS, NULL},
 	 { (char *)"field_flat_swigregister", field_flat_swigregister, METH_VARARGS, NULL},
@@ -21677,6 +21990,7 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"field_alloc_empty", _wrap_field_alloc_empty, METH_VARARGS, NULL},
 	 { (char *)"field_alloc_new", _wrap_field_alloc_new, METH_VARARGS, NULL},
 	 { (char *)"field_alloc_new_notemp", _wrap_field_alloc_new_notemp, METH_VARARGS, NULL},
+	 { (char *)"field_alloc_empty_flat", _wrap_field_alloc_empty_flat, METH_VARARGS, NULL},
 	 { (char *)"field_alloc_new_flat", _wrap_field_alloc_new_flat, METH_VARARGS, NULL},
 	 { (char *)"field_alloc_new_notemp_flat", _wrap_field_alloc_new_notemp_flat, METH_VARARGS, NULL},
 	 { (char *)"get_map", _wrap_get_map, METH_VARARGS, NULL},
