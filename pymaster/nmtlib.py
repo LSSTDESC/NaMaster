@@ -1093,6 +1093,10 @@ def unbin_cl_flat(bins, ncl1, nell3, dout):
     return _nmtlib.unbin_cl_flat(bins, ncl1, nell3, dout)
 unbin_cl_flat = _nmtlib.unbin_cl_flat
 
+def field_alloc_empty(is_healpix, nside, lmax_sht, nx, ny, delta_phi, delta_theta, phi0, theta0, spin, npix_1, nell3, pure_e, pure_b, n_iter_mask_purify):
+    return _nmtlib.field_alloc_empty(is_healpix, nside, lmax_sht, nx, ny, delta_phi, delta_theta, phi0, theta0, spin, npix_1, nell3, pure_e, pure_b, n_iter_mask_purify)
+field_alloc_empty = _nmtlib.field_alloc_empty
+
 def field_alloc_new(is_healpix, nside, lmax_sht, nx, ny, delta_phi, delta_theta, phi0, theta0, spin, npix_1, nmap_2, ntmp_3, nell3, pure_e, pure_b, n_iter_mask_purify, tol_pinv, n_iter, masked_input, lite):
     return _nmtlib.field_alloc_new(is_healpix, nside, lmax_sht, nx, ny, delta_phi, delta_theta, phi0, theta0, spin, npix_1, nmap_2, ntmp_3, nell3, pure_e, pure_b, n_iter_mask_purify, tol_pinv, n_iter, masked_input, lite)
 field_alloc_new = _nmtlib.field_alloc_new

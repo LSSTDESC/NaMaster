@@ -361,6 +361,8 @@ typedef struct {
   fcomplex ***a_temp; //!< Fourier-transfomrs of template maps (mask-multiplied AND purified if requested).
   gsl_matrix *matrix_M; //!< Inverse contaminant covariance matrix (see scientific documentation or companion paper).
   nmt_k_function *beam; //!< Function defining a circularly-symmetric beam function. Power spectra will be beam-deconvolved.
+  int lite; //!< lightweight field (no maps, temp, a_temp or a_mask)
+  int mask_only; //!< this field only contains a mask, and beam. No alms, maps or anything else.
 } nmt_field_flat;
 
 /**

@@ -238,6 +238,32 @@ void unbin_cl_flat(nmt_binning_scheme_flat *bins,
   free(cls_out);
 }
 
+nmt_field *field_alloc_empty(int is_healpix,int nside,int lmax_sht,int nx,int ny,double delta_phi,
+                             double delta_theta,double phi0,double theta0, int spin,
+                             int npix_1,double *mask,
+                             int nell3,double *weights,
+                             int pure_e,int pure_b,
+                             int n_iter_mask_purify)
+{
+  nmt_field *fl;
+  long nside_l=(long)nside;
+
+  if(is_healpix)
+    asserting(npix_1==12*nside_l*nside_l);
+  else
+    asserting(npix_1==nx*ny);
+
+  nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(is_healpix,nside_l,lmax_sht,nx,ny,
+						  delta_theta,delta_phi,phi0,theta0);
+  asserting(nell3>he_get_lmax(cs));
+
+  fl=nmt_field_alloc_sph(cs,mask,spin,NULL,0,NULL,weights,pure_e,pure_b,
+			 n_iter_mask_purify,0,0,0,1,1);
+  free(cs);
+
+  return fl;
+}
+
 nmt_field *field_alloc_new(int is_healpix,int nside,int lmax_sht,int nx,int ny,double delta_phi,
 			   double delta_theta,double phi0,double theta0, int spin,
 			   int npix_1,double *mask,

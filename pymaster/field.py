@@ -25,7 +25,10 @@ class NmtField(object):
         (i.e. x grows with declination). In this case, the sign of the \
         e2/gamma2 map should be swapped before using it to create an \
         NmtField. See more \
-        `here <https://healpix.jpl.nasa.gov/html/intronode12.htm>`_ .
+        `here <https://healpix.jpl.nasa.gov/html/intronode12.htm>`_ . \
+        If `None`, this field will only contain a mask but no maps. The field \
+        can then be used to compute a mode-coupling matrix, for instance, \
+        but not actual power spectra.
     :param spin: field's spin. If `None` it will be set to 0 if there is
         a single map on input, and will default to 2 if there are 2 maps.
     :param templates: array containing a set of contaminant templates for \
@@ -88,24 +91,36 @@ class NmtField(object):
                 mask = mask[:, ::-1]
             mask = mask.reshape(wt.npix)
 
-        if (len(maps) != 1) and (len(maps) != 2):
-            raise ValueError("Must supply 1 or 2 maps per field")
-
-        if spin is None:
-            if len(maps) == 1:
-                spin = 0
-            else:
-                spin = 2
+        if maps is None:
+            mask_only = True
+            if spin is None:
+                raise ValueError("Please supply field spin")
+            lite = True
         else:
-            if (((spin != 0) and len(maps) == 1) or
-                    ((spin == 0) and len(maps) != 1)):
-                raise ValueError("Spin-zero fields are "
-                                 "associated with a single map")
+            mask_only = False
+            if (len(maps) != 1) and (len(maps) != 2):
+                raise ValueError("Must supply 1 or 2 maps per field")
+
+            if spin is None:
+                if len(maps) == 1:
+                    spin = 0
+                else:
+                    spin = 2
+            else:
+                if (((spin != 0) and len(maps) == 1) or
+                        ((spin == 0) and len(maps) != 1)):
+                    raise ValueError("Spin-zero fields are "
+                                     "associated with a single map")
+
+            if len(maps[0]) != len(mask):
+                raise ValueError("All maps must have the same resolution")
+
 
         if (pure_e or pure_b) and spin != 2:
             raise ValueError("Purification only implemented for spin-2 fields")
 
-        if wt.is_healpix == 0:  # Flatten if 2D maps
+        # Flatten if 2D maps
+        if (not mask_only) and (wt.is_healpix == 0):
             try:
                 maps = np.array(maps)
                 if wt.flip_th:
@@ -115,9 +130,6 @@ class NmtField(object):
                 maps = maps.reshape([len(maps), wt.npix])
             except:
                 raise ValueError("Input maps have the wrong shape")
-
-        if len(maps[0]) != len(mask):
-            raise ValueError("All maps must have the same resolution")
 
         if isinstance(templates, (list, tuple, np.ndarray)):
             ntemp = len(templates)
@@ -158,20 +170,28 @@ class NmtField(object):
             else:
                 raise ValueError("Input beam can only be an array or None\n")
 
-        if isinstance(templates, (list, tuple, np.ndarray)):
-            self.fl = lib.field_alloc_new(wt.is_healpix, wt.nside, lmax_sht,
-                                          wt.nx, wt.ny,
-                                          wt.d_phi, wt.d_theta,
-                                          wt.phi0, wt.theta_max, spin,
-                                          mask, maps, templates, beam_use,
-                                          pure_e, pure_b, n_iter_mask_purify,
-                                          tol_pinv, n_iter, masked_input, int(lite))
+        if mask_only:
+            self.fl = lib.field_alloc_empty(wt.is_healpix, wt.nside, lmax_sht,
+                                            wt.nx, wt.ny,
+                                            wt.d_phi, wt.d_theta,
+                                            wt.phi0, wt.theta_max, spin,
+                                            mask, beam_use, pure_e, pure_b,
+                                            n_iter_mask_purify)
         else:
-            self.fl = lib.field_alloc_new_notemp(
-                wt.is_healpix, wt.nside, lmax_sht, wt.nx, wt.ny, wt.d_phi,
-                wt.d_theta, wt.phi0, wt.theta_max, spin,
-                mask, maps, beam_use, pure_e, pure_b, n_iter_mask_purify,
-                n_iter, masked_input, int(lite))
+            if isinstance(templates, (list, tuple, np.ndarray)):
+                self.fl = lib.field_alloc_new(wt.is_healpix, wt.nside, lmax_sht,
+                                              wt.nx, wt.ny,
+                                              wt.d_phi, wt.d_theta,
+                                              wt.phi0, wt.theta_max, spin,
+                                              mask, maps, templates, beam_use,
+                                              pure_e, pure_b, n_iter_mask_purify,
+                                              tol_pinv, n_iter, masked_input, int(lite))
+            else:
+                self.fl = lib.field_alloc_new_notemp(
+                    wt.is_healpix, wt.nside, lmax_sht, wt.nx, wt.ny, wt.d_phi,
+                    wt.d_theta, wt.phi0, wt.theta_max, spin,
+                    mask, maps, beam_use, pure_e, pure_b, n_iter_mask_purify,
+                    n_iter, masked_input, int(lite))
         self.lite = lite
 
     def __del__(self):
