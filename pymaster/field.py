@@ -25,7 +25,10 @@ class NmtField(object):
         (i.e. x grows with declination). In this case, the sign of the \
         e2/gamma2 map should be swapped before using it to create an \
         NmtField. See more \
-        `here <https://healpix.jpl.nasa.gov/html/intronode12.htm>`_ .
+        `here <https://healpix.jpl.nasa.gov/html/intronode12.htm>`_ . \
+        If `None`, this field will only contain a mask but no maps. The field \
+        can then be used to compute a mode-coupling matrix, for instance, \
+        but not actual power spectra.
     :param spin: field's spin. If `None` it will be set to 0 if there is
         a single map on input, and will default to 2 if there are 2 maps.
     :param templates: array containing a set of contaminant templates for \
@@ -53,17 +56,21 @@ class NmtField(object):
     :param wcs: a WCS object if using rectangular pixels (see \
         http://docs.astropy.org/en/stable/wcs/index.html).
     :param n_iter: number of iterations when computing a_lms.
-    :param lmax_sht: maximum multipole up to which map power spectra will be
-        computed. If negative or zero, the maximum multipole given the map
+    :param lmax_sht: maximum multipole up to which map power spectra will be \
+        computed. If negative or zero, the maximum multipole given the map \
         resolution will be used (e.g. 3 * nside - 1 for HEALPix maps).
-    :param masked_on_input: set to `True` if input maps and templates are
-        already multiplied by the masks. Note that this is not advisable
+    :param masked_on_input: set to `True` if input maps and templates are \
+        already multiplied by the masks. Note that this is not advisable \
         if you're using purification.
+    :param lite: set to `True` if you want to only store the bare minimum \
+        necessary to run a standard pseudo-Cl with deprojection and \
+        purification, but you don't care about deprojection bias. This \
+        will reduce the memory taken up by the resulting object.
     """
     def __init__(self, mask, maps, spin=None, templates=None, beam=None,
                  purify_e=False, purify_b=False, n_iter_mask_purify=3,
                  tol_pinv=1E-10, wcs=None, n_iter=3, lmax_sht=-1,
-                 masked_on_input=False):
+                 masked_on_input=False, lite=False):
         self.fl = None
 
         pure_e = 0
@@ -84,24 +91,35 @@ class NmtField(object):
                 mask = mask[:, ::-1]
             mask = mask.reshape(wt.npix)
 
-        if (len(maps) != 1) and (len(maps) != 2):
-            raise ValueError("Must supply 1 or 2 maps per field")
-
-        if spin is None:
-            if len(maps) == 1:
-                spin = 0
-            else:
-                spin = 2
+        if maps is None:
+            mask_only = True
+            if spin is None:
+                raise ValueError("Please supply field spin")
+            lite = True
         else:
-            if (((spin != 0) and len(maps) == 1) or
-                    ((spin == 0) and len(maps) != 1)):
-                raise ValueError("Spin-zero fields are "
-                                 "associated with a single map")
+            mask_only = False
+            if (len(maps) != 1) and (len(maps) != 2):
+                raise ValueError("Must supply 1 or 2 maps per field")
+
+            if spin is None:
+                if len(maps) == 1:
+                    spin = 0
+                else:
+                    spin = 2
+            else:
+                if (((spin != 0) and len(maps) == 1) or
+                        ((spin == 0) and len(maps) != 1)):
+                    raise ValueError("Spin-zero fields are "
+                                     "associated with a single map")
+
+            if wt.is_healpix and (len(maps[0]) != len(mask)):
+                raise ValueError("All maps must have the same resolution")
 
         if (pure_e or pure_b) and spin != 2:
             raise ValueError("Purification only implemented for spin-2 fields")
 
-        if wt.is_healpix == 0:  # Flatten if 2D maps
+        # Flatten if 2D maps
+        if (not mask_only) and (wt.is_healpix == 0):
             try:
                 maps = np.array(maps)
                 if wt.flip_th:
@@ -111,9 +129,6 @@ class NmtField(object):
                 maps = maps.reshape([len(maps), wt.npix])
             except:
                 raise ValueError("Input maps have the wrong shape")
-
-        if len(maps[0]) != len(mask):
-            raise ValueError("All maps must have the same resolution")
 
         if isinstance(templates, (list, tuple, np.ndarray)):
             ntemp = len(templates)
@@ -154,20 +169,31 @@ class NmtField(object):
             else:
                 raise ValueError("Input beam can only be an array or None\n")
 
-        if isinstance(templates, (list, tuple, np.ndarray)):
-            self.fl = lib.field_alloc_new(wt.is_healpix, wt.nside, lmax_sht,
-                                          wt.nx, wt.ny,
-                                          wt.d_phi, wt.d_theta,
-                                          wt.phi0, wt.theta_max, spin,
-                                          mask, maps, templates, beam_use,
-                                          pure_e, pure_b, n_iter_mask_purify,
-                                          tol_pinv, n_iter, masked_input)
+        if mask_only:
+            self.fl = lib.field_alloc_empty(wt.is_healpix, wt.nside, lmax_sht,
+                                            wt.nx, wt.ny,
+                                            wt.d_phi, wt.d_theta,
+                                            wt.phi0, wt.theta_max, spin,
+                                            mask, beam_use, pure_e, pure_b,
+                                            n_iter_mask_purify)
         else:
-            self.fl = lib.field_alloc_new_notemp(
-                wt.is_healpix, wt.nside, lmax_sht, wt.nx, wt.ny, wt.d_phi,
-                wt.d_theta, wt.phi0, wt.theta_max, spin,
-                mask, maps, beam_use, pure_e, pure_b, n_iter_mask_purify,
-                n_iter, masked_input)
+            if isinstance(templates, (list, tuple, np.ndarray)):
+                self.fl = lib.field_alloc_new(wt.is_healpix, wt.nside,
+                                              lmax_sht, wt.nx, wt.ny,
+                                              wt.d_phi, wt.d_theta,
+                                              wt.phi0, wt.theta_max, spin,
+                                              mask, maps, templates, beam_use,
+                                              pure_e, pure_b,
+                                              n_iter_mask_purify,
+                                              tol_pinv, n_iter, masked_input,
+                                              int(lite))
+            else:
+                self.fl = lib.field_alloc_new_notemp(
+                    wt.is_healpix, wt.nside, lmax_sht, wt.nx, wt.ny, wt.d_phi,
+                    wt.d_theta, wt.phi0, wt.theta_max, spin,
+                    mask, maps, beam_use, pure_e, pure_b, n_iter_mask_purify,
+                    n_iter, masked_input, int(lite))
+        self.lite = lite
 
     def __del__(self):
         if self.fl is not None:
@@ -183,6 +209,8 @@ class NmtField(object):
 
         :return: 2D array of maps
         """
+        if self.lite:
+            raise ValueError("Input maps unavailable for lightweight fields")
         maps = np.zeros([self.fl.nmaps, self.fl.npix])
         for imap in range(self.fl.nmaps):
             maps[imap, :] = lib.get_map(self.fl, imap, int(self.fl.npix))
@@ -197,6 +225,8 @@ class NmtField(object):
 
         :return: 3D array of maps
         """
+        if self.lite:
+            raise ValueError("Input maps unavailable for lightweight fields")
         temp = np.zeros([self.fl.ntemp, self.fl.nmaps, self.fl.npix])
         for itemp in range(self.fl.ntemp):
             for imap in range(self.fl.nmaps):
@@ -220,7 +250,10 @@ class NmtFieldFlat(object):
         to the field's mask.
     :param maps: 2 2D arrays (nmaps,nx,ny) containing the observed maps \
         for this field. The first dimension corresponds to the number of \
-        maps, which should be 1 for a spin-0 field and 2 otherwise.
+        maps, which should be 1 for a spin-0 field and 2 otherwise. \
+        If `None`, this field will only contain a mask but no maps. The field \
+        can then be used to compute a mode-coupling matrix, for instance, \
+        but not actual power spectra.
     :param spin: field's spin. If `None` it will be set to 0 if there is
         a single map on input, and will default to 2 if there are 2 maps.
     :param templates: array of maps (ntemp,nmaps,nx,ny) containing a set \
@@ -245,11 +278,14 @@ class NmtFieldFlat(object):
     :param masked_on_input: set to `True` if input maps and templates are
         already multiplied by the masks. Note that this is not advisable
         if you're using purification.
+    :param lite: set to `True` if you want to only store the bare minimum \
+        necessary to run a standard pseudo-Cl with deprojection and \
+        purification, but you don't care about deprojection bias. This \
+        will reduce the memory taken up by the resulting object.
     """
-
     def __init__(self, lx, ly, mask, maps, spin=None, templates=None,
                  beam=None, purify_e=False, purify_b=False,
-                 tol_pinv=1E-10, masked_on_input=False):
+                 tol_pinv=1E-10, masked_on_input=False, lite=False):
         self.fl = None
 
         pure_e = 0
@@ -267,22 +303,31 @@ class NmtFieldFlat(object):
                              "flat-sky field")
         # Flatten arrays and check dimensions
         shape_2D = np.shape(mask)
-        nmaps = len(maps)
         self.ny = shape_2D[0]
         self.nx = shape_2D[1]
-        if (nmaps != 1) and (nmaps != 2):
-            raise ValueError("Must supply 1 or 2 maps per field")
 
-        if spin is None:
-            if nmaps == 1:
-                spin = 0
-            else:
-                spin = 2
+        if maps is None:
+            mask_only = True
+            if spin is None:
+                raise ValueError("Please supply field spin")
+            lite = True
         else:
-            if (((spin != 0) and nmaps == 1) or
-                    ((spin == 0) and nmaps != 1)):
-                raise ValueError("Spin-zero fields are "
-                                 "associated with a single map")
+            mask_only = False
+
+            nmaps = len(maps)
+            if (nmaps != 1) and (nmaps != 2):
+                raise ValueError("Must supply 1 or 2 maps per field")
+
+            if spin is None:
+                if nmaps == 1:
+                    spin = 0
+                else:
+                    spin = 2
+            else:
+                if (((spin != 0) and nmaps == 1) or
+                        ((spin == 0) and nmaps != 1)):
+                    raise ValueError("Spin-zero fields are "
+                                     "associated with a single map")
 
         if (pure_e or pure_b) and spin != 2:
             raise ValueError("Purification only implemented for spin-2 fields")
@@ -290,13 +335,14 @@ class NmtFieldFlat(object):
         # Flatten mask
         msk = (mask.astype(np.float64)).flatten()
 
-        # Flatten maps
-        mps = []
-        for m in maps:
-            if np.shape(m) != shape_2D:
-                raise ValueError("Mask and maps don't have the same shape")
-            mps.append((m.astype(np.float64)).flatten())
-        mps = np.array(mps)
+        if (not mask_only):
+            # Flatten maps
+            mps = []
+            for m in maps:
+                if np.shape(m) != shape_2D:
+                    raise ValueError("Mask and maps don't have the same shape")
+                mps.append((m.astype(np.float64)).flatten())
+            mps = np.array(mps)
 
         # Flatten templates
         if isinstance(templates, (list, tuple, np.ndarray)):
@@ -328,17 +374,27 @@ class NmtFieldFlat(object):
                 raise ValueError("Input beam can only be an array or "
                                  "None")
 
-        # Generate field
-        if isinstance(templates, (list, tuple, np.ndarray)):
-            self.fl = lib.field_alloc_new_flat(self.nx, self.ny, lx, ly, spin,
-                                               msk, mps, tmps, beam_use,
-                                               pure_e, pure_b, tol_pinv,
-                                               masked_input)
+        if mask_only:
+            self.fl = lib.field_alloc_empty_flat(self.nx, self.ny,
+                                                 lx, ly, spin,
+                                                 msk, beam_use,
+                                                 pure_e, pure_b)
         else:
-            self.fl = lib.field_alloc_new_notemp_flat(self.nx, self.ny,
-                                                      lx, ly, spin, msk, mps,
-                                                      beam_use, pure_e,
-                                                      pure_b, masked_input)
+            # Generate field
+            if isinstance(templates, (list, tuple, np.ndarray)):
+                self.fl = lib.field_alloc_new_flat(self.nx, self.ny, lx, ly,
+                                                   spin, msk, mps, tmps,
+                                                   beam_use, pure_e, pure_b,
+                                                   tol_pinv, masked_input,
+                                                   int(lite))
+            else:
+                self.fl = lib.field_alloc_new_notemp_flat(self.nx, self.ny,
+                                                          lx, ly, spin,
+                                                          msk, mps,
+                                                          beam_use, pure_e,
+                                                          pure_b, masked_input,
+                                                          int(lite))
+        self.lite = lite
 
     def __del__(self):
         if self.fl is not None:
@@ -354,6 +410,10 @@ class NmtFieldFlat(object):
 
         :return: 3D array of flat-sky maps
         """
+        if self.lite:
+            raise ValueError("Input maps unavailable for lightweight fields. "
+                             "To use this function, create an `NmtFieldFlat` "
+                             "object with `lite=False`.")
         maps = np.zeros([self.fl.nmaps, self.fl.npix])
         for imap in range(self.fl.nmaps):
             maps[imap, :] = lib.get_map_flat(self.fl, imap, int(self.fl.npix))
@@ -368,6 +428,10 @@ class NmtFieldFlat(object):
 
         :return: 4D array of flat-sky maps
         """
+        if self.lite:
+            raise ValueError("Input maps unavailable for lightweight fields. "
+                             "To use this function, create an `NmtFieldFlat` "
+                             "object with `lite=False`.")
         temp = np.zeros([self.fl.ntemp, self.fl.nmaps, self.fl.npix])
         for itemp in range(self.fl.ntemp):
             for imap in range(self.fl.nmaps):

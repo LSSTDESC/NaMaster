@@ -3,9 +3,124 @@
 #include "utils.h"
 #include "nmt_test_utils.h"
 
-CTEST(nmt,field_alloc) {
+CTEST(nmt,field_empty) {
+  nmt_field *f;
+  int ii,jj,nmaps;
+  double ntemp=5;
+  long nside=128;
+  nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(1,nside,-1,-1,-1,-1,-1,-1,-1);
+  long lmax=he_get_lmax(cs);
+  long npix=he_nside2npix(nside);
+  double *beam=my_malloc((lmax+1)*sizeof(double));
+  double *mask=my_malloc(npix*sizeof(double));
+  
+  for(ii=0;ii<npix;ii++)
+    mask[ii]=1.;
+  
+  for(ii=0;ii<=lmax;ii++)
+    beam[ii]=1.;
+
+  ////////
+  //Spin-2
+  //With purification
+  f=nmt_field_alloc_sph(cs,mask,2,NULL,0,NULL,beam,1,1,5,1E-5,HE_NITER_DEFAULT,0,1,1);
+  //Sanity checks
+  ASSERT_EQUAL(2,f->spin);
+  ASSERT_EQUAL(2,f->nmaps);
+  nmt_field_free(f);
+
+  free(beam);
+  free(mask);
+  free(cs);
+}
+
+CTEST(nmt,field_lite) {
   nmt_field *f;
   int ii,nmaps;
+  double ntemp=5;
+  long nside=128;
+  nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(1,nside,-1,-1,-1,-1,-1,-1,-1);
+  long lmax=he_get_lmax(cs);
+  long npix=he_nside2npix(nside);
+  double **maps;
+  double ***temp=my_malloc(ntemp*sizeof(double **));
+  double *beam=my_malloc((lmax+1)*sizeof(double));
+  double *mask=my_malloc(npix*sizeof(double));
+  
+  for(ii=0;ii<npix;ii++)
+    mask[ii]=1.;
+  
+  for(ii=0;ii<=lmax;ii++)
+    beam[ii]=1.;
+
+  ////////
+  //Spin-2
+  nmaps=2;
+  //Create inputs
+  maps=test_make_map_analytic(nside,2);
+
+  //With purification
+  f=nmt_field_alloc_sph(cs,mask,2,maps,0,NULL,beam,1,1,5,1E-5,HE_NITER_DEFAULT,0,1,0);
+  //Sanity checks
+  ASSERT_EQUAL(2,f->spin);
+  ASSERT_EQUAL(2,f->nmaps);
+  //Harmonic transform
+  ASSERT_DBL_NEAR_TOL(1.,creal(f->alms[0][he_indexlm(2,0,lmax)]),1E-4);
+  ASSERT_DBL_NEAR_TOL(0.,cimag(f->alms[0][he_indexlm(2,0,lmax)]),1E-4);
+  ASSERT_DBL_NEAR_TOL(0.,creal(f->alms[1][he_indexlm(2,0,lmax)]),1E-4);
+  ASSERT_DBL_NEAR_TOL(0.,cimag(f->alms[1][he_indexlm(2,0,lmax)]),1E-4);
+  ASSERT_DBL_NEAR_TOL(0.,creal(f->alms[0][he_indexlm(1,0,lmax)]),1E-4);
+  ASSERT_DBL_NEAR_TOL(0.,cimag(f->alms[0][he_indexlm(1,0,lmax)]),1E-4);
+  ASSERT_DBL_NEAR_TOL(0.,creal(f->alms[1][he_indexlm(1,0,lmax)]),1E-4);
+  ASSERT_DBL_NEAR_TOL(0.,cimag(f->alms[1][he_indexlm(1,0,lmax)]),1E-4);
+  ASSERT_DBL_NEAR_TOL(0.,creal(f->alms[0][he_indexlm(3,0,lmax)]),1E-4);
+  ASSERT_DBL_NEAR_TOL(0.,cimag(f->alms[0][he_indexlm(3,0,lmax)]),1E-4);
+  ASSERT_DBL_NEAR_TOL(2.,creal(f->alms[1][he_indexlm(3,0,lmax)]),1E-4);
+  ASSERT_DBL_NEAR_TOL(0.,cimag(f->alms[1][he_indexlm(3,0,lmax)]),1E-4);
+  nmt_field_free(f);
+  for(ii=0;ii<nmaps;ii++)
+    free(maps[ii]);
+  free(maps);
+
+  //With templates
+  maps=test_make_map_analytic(nside,2);
+  for(ii=0;ii<ntemp;ii++)
+    temp[ii]=test_make_map_analytic(nside,2);
+  f=nmt_field_alloc_sph(cs,mask,2,maps,ntemp,temp,beam,0,0,0,1E-5,HE_NITER_DEFAULT,0,1,0);
+  //Since maps and templates are the same, template-deprojected alms should be 0
+  ASSERT_DBL_NEAR_TOL(0,creal(f->alms[0][he_indexlm(2,0,lmax)]),1E-5);
+  ASSERT_DBL_NEAR_TOL(0.,cimag(f->alms[0][he_indexlm(2,0,lmax)]),1E-5);
+  ASSERT_DBL_NEAR_TOL(0.,creal(f->alms[1][he_indexlm(2,0,lmax)]),1E-5);
+  ASSERT_DBL_NEAR_TOL(0.,cimag(f->alms[1][he_indexlm(2,0,lmax)]),1E-5);
+  ASSERT_DBL_NEAR_TOL(0.,creal(f->alms[0][he_indexlm(1,0,lmax)]),1E-5);
+  ASSERT_DBL_NEAR_TOL(0.,cimag(f->alms[0][he_indexlm(1,0,lmax)]),1E-5);
+  ASSERT_DBL_NEAR_TOL(0.,creal(f->alms[1][he_indexlm(1,0,lmax)]),1E-5);
+  ASSERT_DBL_NEAR_TOL(0.,cimag(f->alms[1][he_indexlm(1,0,lmax)]),1E-5);
+  ASSERT_DBL_NEAR_TOL(0.,creal(f->alms[0][he_indexlm(3,0,lmax)]),1E-5);
+  ASSERT_DBL_NEAR_TOL(0.,cimag(f->alms[0][he_indexlm(3,0,lmax)]),1E-5);
+  ASSERT_DBL_NEAR_TOL(0.,creal(f->alms[1][he_indexlm(3,0,lmax)]),1E-5);
+  ASSERT_DBL_NEAR_TOL(0.,cimag(f->alms[1][he_indexlm(3,0,lmax)]),1E-5);
+  nmt_field_free(f);
+  for(ii=0;ii<ntemp;ii++) {
+    int jj;
+    for(jj=0;jj<nmaps;jj++)
+      free(temp[ii][jj]);
+    free(temp[ii]);
+  }
+  for(ii=0;ii<nmaps;ii++)
+    free(maps[ii]);
+  free(maps);
+  ////////
+  
+  free(temp);
+  free(beam);
+  free(mask);
+  free(cs);
+}
+
+CTEST(nmt,field_alloc) {
+  nmt_field *f;
+  int ii,jj,nmaps;
   double ntemp=5;
   long nside=128;
   nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(1,nside,-1,-1,-1,-1,-1,-1,-1);
@@ -31,7 +146,7 @@ CTEST(nmt,field_alloc) {
     temp[ii]=test_make_map_analytic(nside,0);
 
   //No templates
-  f=nmt_field_alloc_sph(cs,mask,0,maps,0,NULL,beam,0,0,0,1E-5,HE_NITER_DEFAULT,0);
+  f=nmt_field_alloc_sph(cs,mask,0,maps,0,NULL,beam,0,0,0,1E-5,HE_NITER_DEFAULT,0,0,0);
   //Sanity checks
   ASSERT_EQUAL(lmax,f->lmax);
   ASSERT_EQUAL(0,f->pure_e);
@@ -46,7 +161,7 @@ CTEST(nmt,field_alloc) {
   nmt_field_free(f);
   
   //With templates
-  f=nmt_field_alloc_sph(cs,mask,0,maps,ntemp,temp,NULL,0,0,0,1E-5,HE_NITER_DEFAULT,0);
+  f=nmt_field_alloc_sph(cs,mask,0,maps,ntemp,temp,NULL,0,0,0,1E-5,HE_NITER_DEFAULT,0,0,0);
   //Since maps and templates are the same, template-deprojected map should be 0
   for(ii=0;ii<npix;ii++)
     ASSERT_DBL_NEAR_TOL(0.0,f->maps[0][ii],1E-10);
@@ -58,7 +173,6 @@ CTEST(nmt,field_alloc) {
   
   //Free inputs
   for(ii=0;ii<ntemp;ii++) {
-    int jj;
     for(jj=0;jj<nmaps;jj++)
       free(temp[ii][jj]);
   }
@@ -74,7 +188,7 @@ CTEST(nmt,field_alloc) {
   maps=test_make_map_analytic(nside,1);
 
   //No templates
-  f=nmt_field_alloc_sph(cs,mask,1,maps,0,NULL,beam,0,0,0,1E-5,HE_NITER_DEFAULT,0);
+  f=nmt_field_alloc_sph(cs,mask,1,maps,0,NULL,beam,0,0,0,1E-5,HE_NITER_DEFAULT,0,0,0);
   //Sanity checks
   ASSERT_EQUAL(1,f->spin);
   ASSERT_EQUAL(2,f->nmaps);
@@ -102,7 +216,7 @@ CTEST(nmt,field_alloc) {
     temp[ii]=test_make_map_analytic(nside,2);
 
   //No templates
-  f=nmt_field_alloc_sph(cs,mask,2,maps,0,NULL,beam,0,0,0,1E-5,HE_NITER_DEFAULT,0);
+  f=nmt_field_alloc_sph(cs,mask,2,maps,0,NULL,beam,0,0,0,1E-5,HE_NITER_DEFAULT,0,0,0);
   //Sanity checks
   ASSERT_EQUAL(2,f->spin);
   ASSERT_EQUAL(2,f->nmaps);
@@ -122,7 +236,15 @@ CTEST(nmt,field_alloc) {
   nmt_field_free(f);
 
   //With purification (nothing should change)
-  f=nmt_field_alloc_sph(cs,mask,2,maps,0,NULL,beam,1,1,5,1E-5,HE_NITER_DEFAULT,0);
+  for(ii=0;ii<nmaps;ii++)
+    free(maps[ii]);
+  maps=test_make_map_analytic(nside,2);
+  for(ii=0;ii<ntemp;ii++) {
+    for(jj=0;jj<nmaps;jj++)
+      free(temp[ii][jj]);
+    temp[ii]=test_make_map_analytic(nside,2);
+  }
+  f=nmt_field_alloc_sph(cs,mask,2,maps,0,NULL,beam,1,1,5,1E-5,HE_NITER_DEFAULT,0,0,0);
   //Sanity checks
   ASSERT_EQUAL(2,f->spin);
   ASSERT_EQUAL(2,f->nmaps);
@@ -142,10 +264,17 @@ CTEST(nmt,field_alloc) {
   nmt_field_free(f);
   
   //With templates
-  f=nmt_field_alloc_sph(cs,mask,2,maps,ntemp,temp,beam,0,0,0,1E-5,HE_NITER_DEFAULT,0);
+  for(ii=0;ii<nmaps;ii++)
+    free(maps[ii]);
+  maps=test_make_map_analytic(nside,2);
+  for(ii=0;ii<ntemp;ii++) {
+    for(jj=0;jj<nmaps;jj++)
+      free(temp[ii][jj]);
+    temp[ii]=test_make_map_analytic(nside,2);
+  }
+  f=nmt_field_alloc_sph(cs,mask,2,maps,ntemp,temp,beam,0,0,0,1E-5,HE_NITER_DEFAULT,0,0,0);
   //Since maps and templates are the same, template-deprojected map should be 0
   for(ii=0;ii<nmaps;ii++) {
-    int jj;
     for(jj=0;jj<npix;jj++)
       ASSERT_DBL_NEAR_TOL(0.0,f->maps[ii][jj],1E-10);
   }
@@ -166,10 +295,17 @@ CTEST(nmt,field_alloc) {
   nmt_field_free(f);
   
   //With templates and purification (nothing should change)
-  f=nmt_field_alloc_sph(cs,mask,2,maps,ntemp,temp,beam,1,1,5,1E-5,HE_NITER_DEFAULT,0);
+  for(ii=0;ii<nmaps;ii++)
+    free(maps[ii]);
+  maps=test_make_map_analytic(nside,2);
+  for(ii=0;ii<ntemp;ii++) {
+    for(jj=0;jj<nmaps;jj++)
+      free(temp[ii][jj]);
+    temp[ii]=test_make_map_analytic(nside,2);
+  }
+  f=nmt_field_alloc_sph(cs,mask,2,maps,ntemp,temp,beam,1,1,5,1E-5,HE_NITER_DEFAULT,0,0,0);
   //Since maps and templates are the same, template-deprojected map should be 0
   for(ii=0;ii<nmaps;ii++) {
-    int jj;
     for(jj=0;jj<npix;jj++)
       ASSERT_DBL_NEAR_TOL(0.0,f->maps[ii][jj],1E-10);
   }
@@ -191,7 +327,6 @@ CTEST(nmt,field_alloc) {
   
   //Free inputs
   for(ii=0;ii<ntemp;ii++) {
-    int jj;
     for(jj=0;jj<nmaps;jj++)
       free(temp[ii][jj]);
   }

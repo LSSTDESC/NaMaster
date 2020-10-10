@@ -140,6 +140,12 @@ Data Fields</h2></td></tr>
 <tr class="memitem:a580d9b6dfb2d5a2f29f2ff1373a2a2b9"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structnmt__k__function.html">nmt_k_function</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structnmt__field__flat.html#a580d9b6dfb2d5a2f29f2ff1373a2a2b9">beam</a></td></tr>
 <tr class="memdesc:a580d9b6dfb2d5a2f29f2ff1373a2a2b9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Function defining a circularly-symmetric beam function. Power spectra will be beam-deconvolved.  <a href="#a580d9b6dfb2d5a2f29f2ff1373a2a2b9">More...</a><br /></td></tr>
 <tr class="separator:a580d9b6dfb2d5a2f29f2ff1373a2a2b9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af26656930f7370e26559c6d9f0c3e853"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structnmt__field__flat.html#af26656930f7370e26559c6d9f0c3e853">lite</a></td></tr>
+<tr class="memdesc:af26656930f7370e26559c6d9f0c3e853"><td class="mdescLeft">&#160;</td><td class="mdescRight">lightweight field (no maps, temp, a_temp or a_mask)  <a href="#af26656930f7370e26559c6d9f0c3e853">More...</a><br /></td></tr>
+<tr class="separator:af26656930f7370e26559c6d9f0c3e853"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a742e5681a04b173a1f0ea63a381ad6bd"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structnmt__field__flat.html#a742e5681a04b173a1f0ea63a381ad6bd">mask_only</a></td></tr>
+<tr class="memdesc:a742e5681a04b173a1f0ea63a381ad6bd"><td class="mdescLeft">&#160;</td><td class="mdescRight">this field only contains a mask, and beam. No alms, maps or anything else.  <a href="#a742e5681a04b173a1f0ea63a381ad6bd">More...</a><br /></td></tr>
+<tr class="separator:a742e5681a04b173a1f0ea63a381ad6bd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Flat-sky field. </p>
@@ -215,6 +221,20 @@ Data Fields</h2></td></tr>
 
 </div>
 </div>
+<a class="anchor" id="af26656930f7370e26559c6d9f0c3e853"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int nmt_field_flat::lite</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>lightweight field (no maps, temp, a_temp or a_mask) </p>
+
+</div>
+</div>
 <a class="anchor" id="a78428226b05975c7c2ec9445f0b17aa7"></a>
 <div class="memitem">
 <div class="memproto">
@@ -240,6 +260,20 @@ Data Fields</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Field's mask (an array of <code>npix</code> values). </p>
+
+</div>
+</div>
+<a class="anchor" id="a742e5681a04b173a1f0ea63a381ad6bd"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int nmt_field_flat::mask_only</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>this field only contains a mask, and beam. No alms, maps or anything else. </p>
 
 </div>
 </div>

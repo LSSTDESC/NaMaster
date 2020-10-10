@@ -117,36 +117,37 @@ void nmt_field_free(nmt_field *fl)
 
   free(fl->cs);
   free(fl->beam);
-
-  for(imap=0;imap<fl->nmaps;imap++) {
-    free(fl->maps[imap]);
-    free(fl->alms[imap]);
-  }
   free(fl->mask);
-  if(fl->ntemp>0) {
-    for(itemp=0;itemp<fl->ntemp;itemp++) {
-      for(imap=0;imap<fl->nmaps;imap++) {
-	free(fl->temp[itemp][imap]);
-	free(fl->a_temp[itemp][imap]);
-      }
-    }
+  if(!(fl->mask_only)) {
+    for(imap=0;imap<fl->nmaps;imap++)
+      free(fl->alms[imap]);
+    free(fl->alms);
+    if(fl->ntemp>0)
+      gsl_matrix_free(fl->matrix_M);
   }
 
-  free(fl->alms);
-  free(fl->maps);
-  if(fl->ntemp>0) {
-    for(itemp=0;itemp<fl->ntemp;itemp++) {
-      free(fl->temp[itemp]);
-      free(fl->a_temp[itemp]);
-    }
-    free(fl->temp);
-    free(fl->a_temp);
-    gsl_matrix_free(fl->matrix_M);
-  }
-  if(fl->a_mask!=NULL) {
+  if(!(fl->lite)) {
     for(imap=0;imap<fl->nmaps;imap++)
-      free(fl->a_mask[imap]);
-    free(fl->a_mask);
+      free(fl->maps[imap]);
+    free(fl->maps);
+    if(fl->ntemp>0) {
+      for(itemp=0;itemp<fl->ntemp;itemp++) {
+        for(imap=0;imap<fl->nmaps;imap++) {
+          free(fl->temp[itemp][imap]);
+          free(fl->a_temp[itemp][imap]);
+        }
+        free(fl->temp[itemp]);
+        free(fl->a_temp[itemp]);
+      }
+      free(fl->temp);
+      free(fl->a_temp);
+    }
+
+    if(fl->a_mask!=NULL) {
+      for(imap=0;imap<fl->nmaps;imap++)
+        free(fl->a_mask[imap]);
+      free(fl->a_mask);
+    }
   }
   free(fl);
 }
@@ -269,9 +270,9 @@ void nmt_purify(nmt_field *fl,flouble *mask,fcomplex **walm0,
 }
 
 nmt_field *nmt_field_alloc_sph(nmt_curvedsky_info *cs,flouble *mask,int spin,flouble **maps,
-			       int ntemp,flouble ***temp,flouble *beam,
-			       int pure_e,int pure_b,int n_iter_mask_purify,double tol_pinv,
-			       int niter,int masked_input)
+                               int ntemp,flouble ***temp,flouble *beam,
+                               int pure_e,int pure_b,int n_iter_mask_purify,double tol_pinv,
+                               int niter,int masked_input,int is_lite,int mask_only)
 {
   int ii,itemp,itemp2,imap;
   long npix_short;
@@ -283,6 +284,10 @@ nmt_field *nmt_field_alloc_sph(nmt_curvedsky_info *cs,flouble *mask,int spin,flo
   if(spin) fl->nmaps=2;
   else fl->nmaps=1;
   fl->ntemp=ntemp;
+  fl->mask_only=mask_only;
+  if(mask_only)
+    is_lite=1;
+  fl->lite=is_lite;
 
   if(fl->cs->is_healpix)
     npix_short=fl->cs->npix;
@@ -308,53 +313,103 @@ nmt_field *nmt_field_alloc_sph(nmt_curvedsky_info *cs,flouble *mask,int spin,flo
   else
     memcpy(fl->beam,beam,(fl->lmax+1)*sizeof(flouble));
 
+  // Store mask
   fl->mask=nmt_extend_CAR_map(fl->cs,mask);
 
-  fl->maps=my_malloc(fl->nmaps*sizeof(flouble *));
-  for(imap=0;imap<fl->nmaps;imap++) {//Need to multiply observed map by mask first
-    fl->maps[imap]=nmt_extend_CAR_map(fl->cs,maps[imap]);
-    if(masked_input) { //If input maps are already masked, we need to unmask them for purification.
-      if(fl->spin && (fl->pure_e || fl->pure_b)) {
-	long ip;
-	for(ip=0;ip<npix_short;ip++) {
-          if(mask[ip]>0)
-            maps[imap][ip]/=mask[ip];
+  // If this is a mask-only field, just return
+  fl->maps=NULL;
+  fl->temp=NULL;
+  if(mask_only) {
+    fl->a_mask=NULL;
+    fl->alms=NULL;
+    fl->a_temp=NULL;
+    return fl;
+  }
+
+  flouble **maps_full=NULL;
+  flouble ***temp_full=NULL;
+  if(cs->is_healpix) {
+    maps_full=maps;
+    temp_full=temp;
+  }
+  else {
+    maps_full=my_malloc(fl->nmaps*sizeof(flouble *));
+    for(imap=0;imap<fl->nmaps;imap++)
+      maps_full[imap]=nmt_extend_CAR_map(fl->cs, maps[imap]);
+    if(fl->ntemp>0) {
+      temp_full=my_malloc(fl->ntemp*sizeof(flouble **));
+      for(itemp=0;itemp<fl->ntemp;itemp++) {
+        temp_full[itemp]=my_malloc(fl->nmaps*sizeof(flouble *));
+        for(imap=0;imap<fl->nmaps;imap++)
+          temp_full[itemp][imap]=nmt_extend_CAR_map(fl->cs, temp[itemp][imap]);
+      }
+    }
+  }
+
+  //Store unmasked fields if purifying
+  // Instead of doing this we could just unmask the maps
+  // before purifying, but it turns out that the floating point
+  // errors incurred while doing that are pretty nasty around
+  // the mask edges, so this is safer.
+  flouble **maps_unmasked;
+  flouble ***temp_unmasked;
+  if(fl->spin && (fl->pure_e || fl->pure_b)) {
+    maps_unmasked=my_malloc(fl->nmaps*sizeof(flouble *));
+    for(imap=0;imap<fl->nmaps;imap++) {
+      maps_unmasked[imap]=nmt_extend_CAR_map(fl->cs, maps[imap]);
+      //Unmask if masked
+      if(masked_input) {
+        long ip;
+        for(ip=0;ip<fl->npix;ip++) {
+          if(fl->mask>0)
+            maps_unmasked[imap][ip]/=fl->mask[ip];
+          else
+            maps_unmasked[imap][ip]=0;
         }
       }
     }
-    else { //Otherwise, multiply by the mask and store
-      he_map_product(fl->cs,fl->maps[imap],fl->mask,fl->maps[imap]);
+    if(fl->ntemp>0) {
+      temp_unmasked=my_malloc(fl->ntemp*sizeof(flouble **));
+      for(itemp=0;itemp<fl->ntemp;itemp++) {
+        temp_unmasked[itemp]=my_malloc(fl->nmaps*sizeof(flouble *));
+        for(imap=0;imap<fl->nmaps;imap++) {
+          temp_unmasked[itemp][imap]=nmt_extend_CAR_map(fl->cs, temp[itemp][imap]);
+          //Unmask if masked
+          if(masked_input) {
+            long ip;
+            for(ip=0;ip<fl->npix;ip++) {
+              if(fl->mask>0)
+                temp_unmasked[itemp][imap][ip]/=fl->mask[ip];
+              else
+                temp_unmasked[itemp][imap][ip]=0;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  //Mask if unmasked
+  if(!masked_input) {
+    for(imap=0;imap<fl->nmaps;imap++)
+      he_map_product(fl->cs,maps_full[imap],fl->mask,maps_full[imap]);
+
+    if(fl->ntemp>0) {
+      for(itemp=0;itemp<fl->ntemp;itemp++) {
+        for(imap=0;imap<fl->nmaps;imap++)
+          he_map_product(fl->cs,temp_full[itemp][imap],fl->mask,temp_full[itemp][imap]);
+      }
     }
   }
 
   if(fl->ntemp>0) {
-    fl->temp=my_malloc(fl->ntemp*sizeof(flouble **));
-    for(itemp=0;itemp<fl->ntemp;itemp++) {
-      fl->temp[itemp]=my_malloc(fl->nmaps*sizeof(flouble *));
-      for(imap=0;imap<fl->nmaps;imap++) {
-	fl->temp[itemp][imap]=nmt_extend_CAR_map(fl->cs,temp[itemp][imap]);
-        if(masked_input) { //If input maps are already masked, we need to unmask them for purification.
-          if(fl->spin && (fl->pure_e || fl->pure_b)) {
-            long ip;
-            for(ip=0;ip<npix_short;ip++) {
-              if(mask[ip]>0)
-                temp[itemp][imap][ip]/=mask[ip];
-            }
-          }
-        }
-        else { //Otherwise, multiply by the mask and store
-          he_map_product(fl->cs,fl->temp[itemp][imap],fl->mask,fl->temp[itemp][imap]);
-        }
-      }
-    }
-
     //Compute normalization matrix
     fl->matrix_M=gsl_matrix_alloc(fl->ntemp,fl->ntemp);
     for(itemp=0;itemp<fl->ntemp;itemp++) {
       for(itemp2=itemp;itemp2<fl->ntemp;itemp2++) {
 	flouble matrix_element=0;
 	for(imap=0;imap<fl->nmaps;imap++)
-	  matrix_element+=he_map_dot(fl->cs,fl->temp[itemp][imap],fl->temp[itemp2][imap]);
+	  matrix_element+=he_map_dot(fl->cs,temp_full[itemp][imap],temp_full[itemp2][imap]);
 	gsl_matrix_set(fl->matrix_M,itemp,itemp2,matrix_element);
 	if(itemp2!=itemp)
 	  gsl_matrix_set(fl->matrix_M,itemp2,itemp,matrix_element);
@@ -366,7 +421,7 @@ nmt_field *nmt_field_alloc_sph(nmt_curvedsky_info *cs,flouble *mask,int spin,flo
     flouble *prods=my_calloc(fl->ntemp,sizeof(flouble));
     for(itemp=0;itemp<fl->ntemp;itemp++) {
       for(imap=0;imap<fl->nmaps;imap++)
-	prods[itemp]+=he_map_dot(fl->cs,fl->temp[itemp][imap],fl->maps[imap]);
+	prods[itemp]+=he_map_dot(fl->cs,temp_full[itemp][imap],maps_full[imap]);
     }
     for(itemp=0;itemp<fl->ntemp;itemp++) {
       flouble alpha=0;
@@ -379,12 +434,12 @@ nmt_field *nmt_field_alloc_sph(nmt_curvedsky_info *cs,flouble *mask,int spin,flo
 #endif //_DEBUG
       for(imap=0;imap<fl->nmaps;imap++) {
 	long ip;
-	for(ip=0;ip<fl->npix;ip++)
-	  fl->maps[imap][ip]-=alpha*fl->temp[itemp][imap][ip]; //Correct masked field
-	if(fl->spin && (fl->pure_e || fl->pure_b)) { //Correct unmasked field too if purifying
-	  for(ip=0;ip<npix_short;ip++)
-	    maps[imap][ip]-=alpha*temp[itemp][imap][ip]; 
-	}
+	for(ip=0;ip<fl->npix;ip++) {
+	  maps_full[imap][ip]-=alpha*temp_full[itemp][imap][ip];
+          //Unmasked fields too if purifying!
+          if(fl->spin && (fl->pure_e || fl->pure_b))
+            maps_unmasked[imap][ip]-=alpha*temp_unmasked[itemp][imap][ip];
+        }
       }
     }
     free(prods);
@@ -394,64 +449,115 @@ nmt_field *nmt_field_alloc_sph(nmt_curvedsky_info *cs,flouble *mask,int spin,flo
   fl->alms=my_malloc(fl->nmaps*sizeof(fcomplex *));
   for(ii=0;ii<fl->nmaps;ii++)
     fl->alms[ii]=my_malloc(he_nalms(fl->lmax)*sizeof(fcomplex));
-  if(fl->ntemp>0) {
-    fl->a_temp=my_malloc(fl->ntemp*sizeof(fcomplex **));
-    for(itemp=0;itemp<fl->ntemp;itemp++) {
-      fl->a_temp[itemp]=my_malloc(fl->nmaps*sizeof(fcomplex *));
-      for(imap=0;imap<fl->nmaps;imap++)
-	fl->a_temp[itemp][imap]=my_malloc(he_nalms(fl->lmax)*sizeof(fcomplex));
+  // Allocate template alms if needed
+  if(is_lite)
+    fl->a_temp=NULL;
+  else {
+    if(fl->ntemp>0) {
+      fl->a_temp=my_malloc(fl->ntemp*sizeof(fcomplex **));
+      for(itemp=0;itemp<fl->ntemp;itemp++) {
+        fl->a_temp[itemp]=my_malloc(fl->nmaps*sizeof(fcomplex *));
+        for(imap=0;imap<fl->nmaps;imap++)
+          fl->a_temp[itemp][imap]=my_malloc(he_nalms(fl->lmax)*sizeof(fcomplex));
+      }
     }
   }
+  fl->a_mask=NULL;
 
   if(fl->spin && (fl->pure_e || fl->pure_b)) {
     //If purification is needed:
     // 1- Compute mask alms
     // 2- Purify de-contaminated map
-    // 3- Compute purified contaminants
+    // 3- Compute purified contaminants (if needed)
 
-    //Compute mask SHT (store in fl->a_mask)
-    fl->a_mask=my_malloc(fl->nmaps*sizeof(fcomplex *));
+    //Compute mask SHT
+    fcomplex **a_mask=my_malloc(fl->nmaps*sizeof(fcomplex *));
     for(imap=0;imap<fl->nmaps;imap++)
-      fl->a_mask[imap]=my_calloc(he_nalms(fl->lmax),sizeof(fcomplex));
-    he_map2alm(fl->cs,fl->lmax,1,0,&(fl->mask),fl->a_mask,n_iter_mask_purify);
+      a_mask[imap]=my_calloc(he_nalms(fl->lmax),sizeof(fcomplex));
+    he_map2alm(fl->cs,fl->lmax,1,0,&(fl->mask),a_mask,n_iter_mask_purify);
 
     //Purify map
-    flouble **mdum=my_malloc(fl->nmaps*sizeof(flouble *));
-    for(imap=0;imap<fl->nmaps;imap++)
-      mdum[imap]=nmt_extend_CAR_map(fl->cs,maps[imap]);
-    nmt_purify(fl,fl->mask,fl->a_mask,mdum,fl->maps,fl->alms,niter);
-    for(imap=0;imap<fl->nmaps;imap++)
-      free(mdum[imap]);
-    
-    //Compute purified contaminant SHTs
-    if(fl->ntemp>0) {
+    nmt_purify(fl,fl->mask,a_mask,maps_unmasked,maps_full,fl->alms,niter);
+
+    if((!is_lite) && (fl->ntemp>0)) {
+      // Iterate through templates and purify
       for(itemp=0;itemp<fl->ntemp;itemp++) {
-	for(imap=0;imap<fl->nmaps;imap++)
-	  mdum[imap]=nmt_extend_CAR_map(fl->cs,temp[itemp][imap]);
-	nmt_purify(fl,fl->mask,fl->a_mask,mdum,fl->temp[itemp],fl->a_temp[itemp],niter);
-	for(imap=0;imap<fl->nmaps;imap++) {//Store non-pure map
-	  he_map_product(fl->cs,mdum[imap],fl->mask,fl->temp[itemp][imap]);
-	  free(mdum[imap]);
-	}
+        // Purify template
+        nmt_purify(fl,fl->mask,a_mask,temp_unmasked[itemp],temp_full[itemp],fl->a_temp[itemp],niter);
+        for(imap=0;imap<fl->nmaps;imap++) //Store non-pure map
+          he_map_product(fl->cs,temp_unmasked[itemp][imap],fl->mask,temp_full[itemp][imap]);
       }
       //IMPORTANT: at this stage, fl->maps and fl->alms contain the purified map and SH coefficients
       //           However, although fl->a_temp contains the purified SH coefficients,
       //           fl->temp contains the ***non-purified*** maps. This is to speed up the calculation
       //           of the deprojection bias.
     }
-    free(mdum);
+
+    for(imap=0;imap<fl->nmaps;imap++)
+      free(maps_unmasked[imap]);
+    free(maps_unmasked);
+    if(fl->ntemp>0) {
+      for(itemp=0;itemp<fl->ntemp;itemp++) {
+        for(imap=0;imap<fl->nmaps;imap++)
+          free(temp_unmasked[itemp][imap]);
+        free(temp_unmasked[itemp]);
+      }
+      free(temp_unmasked);
+    }
+
+    // Store mask alms if needed
+    if(is_lite) {
+      for(imap=0;imap<fl->nmaps;imap++)
+        free(a_mask[imap]);
+      free(a_mask);
+    }
+    else
+      fl->a_mask=a_mask;
   }
   else {
-    //If no purification, just multiply by mask and SHT
-    fl->a_mask=NULL; //No need to store extra-pure mask harmonic coefficients
-
+    //If no purification, just SHT
     //Masked map and harmonic coefficients
-    he_map2alm(fl->cs,fl->lmax,1,fl->spin,fl->maps,fl->alms,niter);
+    he_map2alm(fl->cs,fl->lmax,1,fl->spin,maps_full,fl->alms,niter);
 
-    //Compute template harmonic coefficients too
-    if(fl->ntemp>0) {
+    //Compute template harmonic coefficients too if needed
+    if((!is_lite) && (fl->ntemp>0)) {
       for(itemp=0;itemp<fl->ntemp;itemp++)
-	he_map2alm(fl->cs,fl->lmax,1,fl->spin,fl->temp[itemp],fl->a_temp[itemp],niter);
+	he_map2alm(fl->cs,fl->lmax,1,fl->spin,temp_full[itemp],fl->a_temp[itemp],niter);
+    }
+  }
+
+  if(is_lite) {
+    if(!(cs->is_healpix)) { //We allocated new memory, need to free up!
+      for(imap=0;imap<fl->nmaps;imap++)
+        free(maps_full[imap]);
+      free(maps_full);
+      if(fl->ntemp>0) {
+        for(itemp=0;itemp<fl->ntemp;itemp++) {
+          for(imap=0;imap<fl->nmaps;imap++)
+            free(temp_full[itemp][imap]);
+          free(temp_full[itemp]);
+        }
+        free(temp_full);
+      }
+    }
+  }
+  else {
+    if(cs->is_healpix) {  //Need to allocate and copy because we didn't do that at the start
+      fl->maps=my_malloc(fl->nmaps*sizeof(flouble *));
+      for(imap=0;imap<fl->nmaps;imap++)
+        fl->maps[imap]=nmt_extend_CAR_map(fl->cs, maps_full[imap]);
+      if(fl->ntemp>0) {
+        fl->temp=my_malloc(fl->ntemp*sizeof(flouble **));
+        for(itemp=0;itemp<fl->ntemp;itemp++) {
+          fl->temp[itemp]=my_malloc(fl->nmaps*sizeof(flouble *));
+          for(imap=0;imap<fl->nmaps;imap++)
+            fl->temp[itemp][imap]=nmt_extend_CAR_map(fl->cs, temp_full[itemp][imap]);
+        }
+      }
+    }
+    else {
+      fl->maps=maps_full;
+      fl->temp=temp_full;
     }
   }
 
@@ -578,7 +684,7 @@ nmt_field *nmt_field_read(int is_healpix,char *fname_mask,char *fname_maps,char 
   }
 
   fl=nmt_field_alloc_sph(cs,mask,spin,maps,ntemp,temp,beam,pure_e,pure_b,
-			 n_iter_mask_purify,tol_pinv,niter,0);
+			 n_iter_mask_purify,tol_pinv,niter,0,0,0);
 
   if(beam!=NULL)
     free(beam);

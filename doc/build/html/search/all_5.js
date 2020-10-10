@@ -12,6 +12,7 @@ var searchData=
   ['fs_5fmap2alm',['fs_map2alm',['../utils_8h.html#a55628f36fc5ed18803bc77c71ded2f2b',1,'utils.h']]],
   ['fs_5fmap_5fdot',['fs_map_dot',['../utils_8h.html#a4c0e60b6d9589e8ea6998a68ebdf8220',1,'utils.h']]],
   ['fs_5fmap_5fproduct',['fs_map_product',['../utils_8h.html#a566f3ea3981a35851b962ac3a07d621f',1,'utils.h']]],
+  ['fs_5fmapcpy',['fs_mapcpy',['../utils_8h.html#a74eb40afaa25f83297338cf105c566b1',1,'utils.h']]],
   ['fs_5fread_5fflat_5fmap',['fs_read_flat_map',['../utils_8h.html#a2d5988385bbeac1dadc5dc9f68a7c8c0',1,'utils.h']]],
   ['fs_5fsynalm',['fs_synalm',['../utils_8h.html#a617904e7383b74291abd68e62d0bc0d5',1,'utils.h']]],
   ['fs_5fzero_5falm',['fs_zero_alm',['../utils_8h.html#acd47aceb1bc284fe9ef938cc197a30f8',1,'utils.h']]]

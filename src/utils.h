@@ -33,6 +33,7 @@ extern char nmt_error_message[256];
 #define NMT_ERROR_INCONSISTENT 1013
 #define NMT_ERROR_VALUE 1014
 #define NMT_ERROR_NOT_IMPLEMENTED 1015
+#define NMT_ERROR_LITE 1016
 #endif //NO_DOXY
 
 /**
@@ -208,6 +209,15 @@ void *dftw_malloc(size_t n);
  * @param p Pointer to free.
  */
 void dftw_free(void *p);
+
+/**
+ * @brief Copies a map.
+ *
+ * @param fs nmt_flatsky_info structure describing the flat-sky patch.
+ * @param destmap Map to copy into.
+ * @param destmap Map to copy from.
+ */
+void fs_mapcpy(nmt_flatsky_info *fs,flouble *destmap,flouble *srcmap);
 
 /**
  * @brief Multiplies two flat-sky maps.

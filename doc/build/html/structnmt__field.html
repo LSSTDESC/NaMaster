@@ -143,6 +143,12 @@ Data Fields</h2></td></tr>
 <tr class="memitem:af2af1cda1727ec88ccef74705664bb43"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structnmt__field.html#af2af1cda1727ec88ccef74705664bb43">beam</a></td></tr>
 <tr class="memdesc:af2af1cda1727ec88ccef74705664bb43"><td class="mdescLeft">&#160;</td><td class="mdescRight">Field's beam (defined on all multipoles up to <code>lmax</code>).  <a href="#af2af1cda1727ec88ccef74705664bb43">More...</a><br /></td></tr>
 <tr class="separator:af2af1cda1727ec88ccef74705664bb43"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a73caf9e696441d5a2c039d1d1d8bbc8d"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structnmt__field.html#a73caf9e696441d5a2c039d1d1d8bbc8d">lite</a></td></tr>
+<tr class="memdesc:a73caf9e696441d5a2c039d1d1d8bbc8d"><td class="mdescLeft">&#160;</td><td class="mdescRight">lightweight field (no maps, temp, a_temp or a_mask)  <a href="#a73caf9e696441d5a2c039d1d1d8bbc8d">More...</a><br /></td></tr>
+<tr class="separator:a73caf9e696441d5a2c039d1d1d8bbc8d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae31c0f09c4732df7c5bfb4ea86c292f7"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structnmt__field.html#ae31c0f09c4732df7c5bfb4ea86c292f7">mask_only</a></td></tr>
+<tr class="memdesc:ae31c0f09c4732df7c5bfb4ea86c292f7"><td class="mdescLeft">&#160;</td><td class="mdescRight">this field only contains a mask, and beam. No alms, maps or anything else.  <a href="#ae31c0f09c4732df7c5bfb4ea86c292f7">More...</a><br /></td></tr>
+<tr class="separator:ae31c0f09c4732df7c5bfb4ea86c292f7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Full-sky field. </p>
@@ -218,6 +224,20 @@ Data Fields</h2></td></tr>
 
 </div>
 </div>
+<a class="anchor" id="a73caf9e696441d5a2c039d1d1d8bbc8d"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int nmt_field::lite</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>lightweight field (no maps, temp, a_temp or a_mask) </p>
+
+</div>
+</div>
 <a class="anchor" id="a8eb358139d9bddaa8b65dc36267ecad4"></a>
 <div class="memitem">
 <div class="memproto">
@@ -257,6 +277,20 @@ Data Fields</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Field's mask (an array of <code>npix</code> values). </p>
+
+</div>
+</div>
+<a class="anchor" id="ae31c0f09c4732df7c5bfb4ea86c292f7"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int nmt_field::mask_only</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>this field only contains a mask, and beam. No alms, maps or anything else. </p>
 
 </div>
 </div>

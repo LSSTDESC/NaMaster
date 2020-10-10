@@ -544,6 +544,9 @@ void nmt_compute_deprojection_bias_flat(nmt_field_flat *fl1,nmt_field_flat *fl2,
 					int nl_prop,flouble *l_prop,flouble **cl_proposal,
 					flouble **cl_bias)
 {
+  if(fl1->lite || fl2->lite)
+    report_error(NMT_ERROR_LITE,"No deprojection bias for lightweight fields!\n");
+
   //Placeholder
   int ii;
   long ip;
@@ -896,6 +899,9 @@ void nmt_compute_coupled_cell_flat(nmt_field_flat *fl1,nmt_field_flat *fl2,
 				   nmt_binning_scheme_flat *bin,flouble **cl_out,
 				   flouble lmn_x,flouble lmx_x,flouble lmn_y,flouble lmx_y)
 {
+  if(fl1->mask_only || fl2->mask_only)
+    report_error(NMT_ERROR_LITE,"Can't correlate mapless fields!\n");
+
   if(check_flatsky_infos(fl1->fs,fl2->fs))
     report_error(NMT_ERROR_CONSISTENT_RESO,"Can only correlate fields defined on the same pixels!\n");
   fs_alm2cl(fl1->fs,bin,fl1->alms,fl2->alms,fl1->spin,fl2->spin,cl_out,lmn_x,lmx_x,lmn_y,lmx_y);

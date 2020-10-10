@@ -150,6 +150,9 @@ Functions</h2></td></tr>
 <tr class="memitem:af781c19a27d9d7fea7f81b0139ae3ccc"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="utils_8h.html#af781c19a27d9d7fea7f81b0139ae3ccc">dftw_free</a> (void *p)</td></tr>
 <tr class="memdesc:af781c19a27d9d7fea7f81b0139ae3ccc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Wrapper around <a href="http://www.fftw.org/fftw3_doc/Memory-Allocation.html">fftw_free </a>  <a href="#af781c19a27d9d7fea7f81b0139ae3ccc">More...</a><br /></td></tr>
 <tr class="separator:af781c19a27d9d7fea7f81b0139ae3ccc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a74eb40afaa25f83297338cf105c566b1"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="utils_8h.html#a74eb40afaa25f83297338cf105c566b1">fs_mapcpy</a> (<a class="el" href="structnmt__flatsky__info.html">nmt_flatsky_info</a> *fs, <a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> *destmap, <a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> *srcmap)</td></tr>
+<tr class="memdesc:a74eb40afaa25f83297338cf105c566b1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Copies a map.  <a href="#a74eb40afaa25f83297338cf105c566b1">More...</a><br /></td></tr>
+<tr class="separator:a74eb40afaa25f83297338cf105c566b1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a566f3ea3981a35851b962ac3a07d621f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="utils_8h.html#a566f3ea3981a35851b962ac3a07d621f">fs_map_product</a> (<a class="el" href="structnmt__flatsky__info.html">nmt_flatsky_info</a> *fs, <a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> *mp1, <a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> *mp2, <a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> *mp_out)</td></tr>
 <tr class="memdesc:a566f3ea3981a35851b962ac3a07d621f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Multiplies two flat-sky maps.  <a href="#a566f3ea3981a35851b962ac3a07d621f">More...</a><br /></td></tr>
 <tr class="separator:a566f3ea3981a35851b962ac3a07d621f"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -980,6 +983,48 @@ Functions</h2></td></tr>
     <tr><td class="paramname">mp1</td><td>First map to multiply </td></tr>
     <tr><td class="paramname">mp2</td><td>Second map to multiply. </td></tr>
     <tr><td class="paramname">mp_out</td><td>Output map containing the product of <code>mp1</code> and <code>mp2</code>. It is safe to pass either of the input maps as <code>mp_out</code>, in which case that map will be overwritten with the product. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="a74eb40afaa25f83297338cf105c566b1"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void fs_mapcpy </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structnmt__flatsky__info.html">nmt_flatsky_info</a> *&#160;</td>
+          <td class="paramname"><em>fs</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> *&#160;</td>
+          <td class="paramname"><em>destmap</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> *&#160;</td>
+          <td class="paramname"><em>srcmap</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Copies a map. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">fs</td><td><a class="el" href="structnmt__flatsky__info.html" title="Flat-sky information. ">nmt_flatsky_info</a> structure describing the flat-sky patch. </td></tr>
+    <tr><td class="paramname">destmap</td><td>Map to copy into. </td></tr>
+    <tr><td class="paramname">destmap</td><td>Map to copy from. </td></tr>
   </table>
   </dd>
 </dl>

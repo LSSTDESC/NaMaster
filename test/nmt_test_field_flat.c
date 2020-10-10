@@ -3,6 +3,138 @@
 #include "utils.h"
 #include "nmt_test_utils.h"
 
+CTEST(nmt,field_flat_empty) {
+  nmt_field_flat *f;
+  int ii,nmaps;
+  double ntemp=5;
+  nmt_flatsky_info *fsk=nmt_flatsky_info_alloc(141,311,M_PI/180,M_PI/180);
+  long npix=fsk->npix;
+  int nbpw=30;
+  double *beam=my_malloc((nbpw+1)*sizeof(double));
+  double *larr=my_malloc((nbpw+1)*sizeof(double));
+  double *mask=my_malloc(npix*sizeof(double));
+  
+  for(ii=0;ii<npix;ii++)
+    mask[ii]=1.;
+  
+  for(ii=0;ii<=nbpw;ii++) {
+    larr[ii]=ii;
+    beam[ii]=1.;
+  }
+
+  ////////
+  //Spin-2
+  //With purification
+  f=nmt_field_flat_alloc(fsk->nx,fsk->ny,fsk->lx,fsk->ly,mask,2,NULL,0,NULL,
+			 nbpw+1,larr,beam,1,1,1E-5,0,1,1);
+  //Sanity checks
+  ASSERT_EQUAL(2,f->spin);
+  ASSERT_EQUAL(2,f->nmaps);
+  nmt_field_flat_free(f);
+  
+  nmt_flatsky_info_free(fsk);
+  free(beam);
+  free(larr);
+  free(mask);
+}
+
+CTEST(nmt,field_flat_lite) {
+  nmt_field_flat *f;
+  int ii,nmaps;
+  double ntemp=5;
+  nmt_flatsky_info *fsk=nmt_flatsky_info_alloc(141,311,M_PI/180,M_PI/180);
+  long npix=fsk->npix;
+  double **maps;
+  double ***temp=my_malloc(ntemp*sizeof(double **));
+  int nbpw=30;
+  double *beam=my_malloc((nbpw+1)*sizeof(double));
+  double *larr=my_malloc((nbpw+1)*sizeof(double));
+  double *mask=my_malloc(npix*sizeof(double));
+  int i0_x=2,i0_y=3;
+  
+  for(ii=0;ii<npix;ii++)
+    mask[ii]=1.;
+  
+  for(ii=0;ii<=nbpw;ii++) {
+    larr[ii]=ii;
+    beam[ii]=1.;
+  }
+
+  ////////
+  //Spin-2
+  nmaps=2;
+  //Create inputs
+  maps=test_make_map_analytic_flat(fsk,2,i0_x,i0_y);
+  for(ii=0;ii<ntemp;ii++)
+    temp[ii]=test_make_map_analytic_flat(fsk,2,i0_x,i0_y);
+
+  //With purification (nothing should change)
+  f=nmt_field_flat_alloc(fsk->nx,fsk->ny,fsk->lx,fsk->ly,mask,2,maps,0,NULL,
+			 nbpw+1,larr,beam,1,1,1E-5,0,1,0);
+  //Sanity checks
+  ASSERT_EQUAL(2,f->spin);
+  ASSERT_EQUAL(2,f->nmaps);
+  //Harmonic transform
+  for(ii=0;ii<fsk->ny;ii++) {
+    int jj;
+    for(jj=0;jj<=fsk->nx/2;jj++) {
+      double re0=creal(f->alms[0][jj+(fsk->nx/2+1)*ii]);
+      double im0=cimag(f->alms[0][jj+(fsk->nx/2+1)*ii]);
+      double re1=creal(f->alms[1][jj+(fsk->nx/2+1)*ii]);
+      double im1=cimag(f->alms[1][jj+(fsk->nx/2+1)*ii]);
+      if((jj==i0_x) && (ii==i0_y)) {
+	ASSERT_DBL_NEAR_TOL(0.5,re0,1E-5);
+	ASSERT_DBL_NEAR_TOL(0.0,im0,1E-5);
+	ASSERT_DBL_NEAR_TOL(0.0,re1,1E-5);
+	ASSERT_DBL_NEAR_TOL(0.0,im1,1E-5);
+      }
+      else {
+	ASSERT_DBL_NEAR_TOL(0.0,re0,1E-5);
+	ASSERT_DBL_NEAR_TOL(0.0,im0,1E-5);
+	ASSERT_DBL_NEAR_TOL(0.0,re1,1E-5);
+	ASSERT_DBL_NEAR_TOL(0.0,im1,1E-5);
+      }
+    }
+  }
+  nmt_field_flat_free(f);
+
+  //With templates
+  f=nmt_field_flat_alloc(fsk->nx,fsk->ny,fsk->lx,fsk->ly,mask,2,maps,ntemp,temp,
+			 0,NULL,NULL,0,0,1E-5,0,1,0);
+  //Since maps and templates are the same, template-deprojected alms should be 0
+  for(ii=0;ii<fsk->ny;ii++) {
+    int jj;
+    for(jj=0;jj<=fsk->nx/2;jj++) {
+      double re0=creal(f->alms[0][jj+(fsk->nx/2+1)*ii]);
+      double im0=cimag(f->alms[0][jj+(fsk->nx/2+1)*ii]);
+      double re1=creal(f->alms[1][jj+(fsk->nx/2+1)*ii]);
+      double im1=cimag(f->alms[1][jj+(fsk->nx/2+1)*ii]);
+      ASSERT_DBL_NEAR_TOL(0.0,re0,1E-5);
+      ASSERT_DBL_NEAR_TOL(0.0,im0,1E-5);
+      ASSERT_DBL_NEAR_TOL(0.0,re1,1E-5);
+      ASSERT_DBL_NEAR_TOL(0.0,im1,1E-5);
+    }
+  }
+  nmt_field_flat_free(f);
+
+  //Free inputs
+  for(ii=0;ii<ntemp;ii++) {
+    int jj;
+    for(jj=0;jj<nmaps;jj++)
+      dftw_free(temp[ii][jj]);
+    free(temp[ii]);
+  }
+  for(ii=0;ii<nmaps;ii++)
+    dftw_free(maps[ii]);
+  free(maps);
+  
+  nmt_flatsky_info_free(fsk);
+  free(temp);
+  free(beam);
+  free(larr);
+  free(mask);
+}
+
 CTEST(nmt,field_flat_alloc) {
   nmt_field_flat *f;
   int ii,nmaps;
@@ -35,7 +167,7 @@ CTEST(nmt,field_flat_alloc) {
 
   //No templates
   f=nmt_field_flat_alloc(fsk->nx,fsk->ny,fsk->lx,fsk->ly,mask,0,maps,0,NULL,
-			 nbpw+1,larr,beam,0,0,1E-5,0);
+			 nbpw+1,larr,beam,0,0,1E-5,0,0,0);
   //Sanity checks
   ASSERT_EQUAL(fsk->nx,f->fs->nx);
   ASSERT_EQUAL(fsk->npix,f->npix);
@@ -64,7 +196,7 @@ CTEST(nmt,field_flat_alloc) {
 
   //With templates
   f=nmt_field_flat_alloc(fsk->nx,fsk->ny,fsk->lx,fsk->ly,mask,0,maps,ntemp,temp,
-			 0,NULL,NULL,0,0,1E-5,0);
+			 0,NULL,NULL,0,0,1E-5,0,0,0);
   //Since maps and templates are the same, template-deprojected map should be 0
   for(ii=0;ii<npix;ii++)
     ASSERT_DBL_NEAR_TOL(0.0,f->maps[0][ii],1E-10);
@@ -108,7 +240,7 @@ CTEST(nmt,field_flat_alloc) {
 
   //No templates
   f=nmt_field_flat_alloc(fsk->nx,fsk->ny,fsk->lx,fsk->ly,mask,1,maps,0,NULL,
-			 nbpw+1,larr,beam,0,0,1E-5,0);
+			 nbpw+1,larr,beam,0,0,1E-5,0,0,0);
   //Sanity checks
   ASSERT_EQUAL(1,f->spin);
   ASSERT_EQUAL(2,f->nmaps);
@@ -150,7 +282,7 @@ CTEST(nmt,field_flat_alloc) {
 
   //No templates
   f=nmt_field_flat_alloc(fsk->nx,fsk->ny,fsk->lx,fsk->ly,mask,2,maps,0,NULL,
-			 nbpw+1,larr,beam,0,0,1E-5,0);
+			 nbpw+1,larr,beam,0,0,1E-5,0,0,0);
   //Sanity checks
   ASSERT_EQUAL(2,f->spin);
   ASSERT_EQUAL(2,f->nmaps);
@@ -180,7 +312,7 @@ CTEST(nmt,field_flat_alloc) {
 
   //With purification (nothing should change)
   f=nmt_field_flat_alloc(fsk->nx,fsk->ny,fsk->lx,fsk->ly,mask,2,maps,0,NULL,
-			 nbpw+1,larr,beam,1,1,1E-5,0);
+			 nbpw+1,larr,beam,1,1,1E-5,0,0,0);
   //Sanity checks
   ASSERT_EQUAL(2,f->spin);
   ASSERT_EQUAL(2,f->nmaps);
@@ -210,7 +342,7 @@ CTEST(nmt,field_flat_alloc) {
 
   //With templates
   f=nmt_field_flat_alloc(fsk->nx,fsk->ny,fsk->lx,fsk->ly,mask,2,maps,ntemp,temp,
-			 0,NULL,NULL,0,0,1E-5,0);
+			 0,NULL,NULL,0,0,1E-5,0,0,0);
   //Since maps and templates are the same, template-deprojected map should be 0
   for(ii=0;ii<nmaps;ii++) {
     int jj;
@@ -246,7 +378,7 @@ CTEST(nmt,field_flat_alloc) {
 
   //With templates and purification (nothing should change)
   f=nmt_field_flat_alloc(fsk->nx,fsk->ny,fsk->lx,fsk->ly,mask,2,maps,ntemp,temp,
-			 nbpw+1,larr,beam,1,1,1E-5,0);
+			 nbpw+1,larr,beam,1,1,1E-5,0,0,0);
   //Since maps and templates are the same, template-deprojected map should be 0
   for(ii=0;ii<nmaps;ii++) {
     int jj;

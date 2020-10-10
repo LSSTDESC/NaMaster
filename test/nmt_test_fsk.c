@@ -4,6 +4,26 @@
 #include "nmt_test_utils.h"
 #include <chealpix.h>
 
+CTEST(nmt,fsk_mapcpy) {
+  int ii;
+  nmt_flatsky_info *fsk=nmt_flatsky_info_alloc(100,100,M_PI/180,M_PI/180);
+  double *mp1=my_malloc(fsk->npix*sizeof(double));
+  double *mp2=my_malloc(fsk->npix*sizeof(double));
+
+  for(ii=0;ii<fsk->npix;ii++) {
+    mp1[ii]=2.;
+    mp2[ii]=0.5;
+  }
+
+  fs_mapcpy(fsk,mp1,mp2);
+  for(ii=0;ii<fsk->npix;ii++)
+    ASSERT_DBL_NEAR_TOL(mp1[ii],mp2[ii],1E-10);
+  
+  free(mp1);
+  free(mp2);
+  nmt_flatsky_info_free(fsk);
+}
+  
 CTEST(nmt,fsk_read_bad) {
   int nx,ny;
   flouble lx,ly;

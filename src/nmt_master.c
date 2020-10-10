@@ -442,6 +442,9 @@ void nmt_compute_uncorr_noise_deprojection_bias(nmt_field *fl1,flouble *map_var,
   int nspec=fl1->nmaps*fl1->nmaps;
   int lmax=fl1->lmax;
 
+  if(fl1->lite)
+    report_error(NMT_ERROR_LITE,"No deprojection bias for lightweight fields!\n");
+
   for(ii=0;ii<nspec;ii++) {
     for(ip=0;ip<=lmax;ip++)
       cl_bias[ii][ip]=0;
@@ -526,6 +529,9 @@ void nmt_compute_deprojection_bias(nmt_field *fl1,nmt_field *fl2,
   long ip;
   int nspec=fl1->nmaps*fl2->nmaps;
   int lmax=fl1->lmax;
+
+  if(fl1->lite || fl2->lite)
+    report_error(NMT_ERROR_LITE,"No deprojection bias for lightweight fields!\n");
 
   if(!(nmt_diff_curvedsky_info(fl1->cs,fl2->cs)))
     report_error(NMT_ERROR_CONSISTENT_RESO,"Can't correlate fields with different pixelizations\n");
@@ -799,6 +805,9 @@ void nmt_decouple_cl_l(nmt_workspace *w,flouble **cl_in,flouble **cl_noise_in,
 
 void nmt_compute_coupled_cell(nmt_field *fl1,nmt_field *fl2,flouble **cl_out)
 {
+  if(fl1->mask_only || fl2->mask_only)
+    report_error(NMT_ERROR_LITE,"Can't correlate mapless fields!\n");
+
   if(fl1->lmax!=fl2->lmax)
     report_error(NMT_ERROR_CONSISTENT_RESO,"Can't correlate fields with different resolutions\n");
 

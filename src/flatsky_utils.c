@@ -23,6 +23,19 @@ void dftw_free(void *p)
 #endif //_SPREC
 }
 
+void fs_mapcpy(nmt_flatsky_info *fs,flouble *destmap,flouble *srcmap)
+{
+#pragma omp parallel default(none) \
+  shared(fs,destmap,srcmap)
+  {
+    long ip;
+#pragma omp for
+    for(ip=0;ip<fs->npix;ip++) {
+      destmap[ip]=srcmap[ip];
+    } //end omp for
+  } //end omp parallel
+}
+      
 void fs_map_product(nmt_flatsky_info *fs,flouble *mp1,flouble *mp2,flouble *mp_out)
 {
 #pragma omp parallel default(none)		\

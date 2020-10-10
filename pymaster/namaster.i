@@ -238,6 +238,32 @@ void unbin_cl_flat(nmt_binning_scheme_flat *bins,
   free(cls_out);
 }
 
+nmt_field *field_alloc_empty(int is_healpix,int nside,int lmax_sht,int nx,int ny,double delta_phi,
+                             double delta_theta,double phi0,double theta0, int spin,
+                             int npix_1,double *mask,
+                             int nell3,double *weights,
+                             int pure_e,int pure_b,
+                             int n_iter_mask_purify)
+{
+  nmt_field *fl;
+  long nside_l=(long)nside;
+
+  if(is_healpix)
+    asserting(npix_1==12*nside_l*nside_l);
+  else
+    asserting(npix_1==nx*ny);
+
+  nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(is_healpix,nside_l,lmax_sht,nx,ny,
+						  delta_theta,delta_phi,phi0,theta0);
+  asserting(nell3>he_get_lmax(cs));
+
+  fl=nmt_field_alloc_sph(cs,mask,spin,NULL,0,NULL,weights,pure_e,pure_b,
+			 n_iter_mask_purify,0,0,0,1,1);
+  free(cs);
+
+  return fl;
+}
+
 nmt_field *field_alloc_new(int is_healpix,int nside,int lmax_sht,int nx,int ny,double delta_phi,
 			   double delta_theta,double phi0,double theta0, int spin,
 			   int npix_1,double *mask,
@@ -246,7 +272,7 @@ nmt_field *field_alloc_new(int is_healpix,int nside,int lmax_sht,int nx,int ny,d
 			   int nell3,double *weights,
 			   int pure_e,int pure_b,
 			   int n_iter_mask_purify,double tol_pinv,int n_iter,
-                           int masked_input)
+                           int masked_input,int lite)
 {
   int ii,jj;
   long nside_l=(long)nside;
@@ -283,7 +309,7 @@ nmt_field *field_alloc_new(int is_healpix,int nside,int lmax_sht,int nx,int ny,d
     maps[ii]=mps+npix_2*ii;
 
   fl=nmt_field_alloc_sph(cs,mask,spin,maps,ntemp,temp,weights,pure_e,pure_b,
-			 n_iter_mask_purify,tol_pinv,n_iter,masked_input);
+			 n_iter_mask_purify,tol_pinv,n_iter,masked_input,lite,0);
 
   if(tmp!=NULL) {
     for(ii=0;ii<ntmp_3;ii++)
@@ -302,7 +328,7 @@ nmt_field *field_alloc_new_notemp(int is_healpix,int nside,int lmax_sht,int nx,i
 				  int nmap_2,int npix_2,double *mps,
 				  int nell3,double *weights,
 				  int pure_e,int pure_b,int n_iter_mask_purify,int n_iter,
-                                  int masked_input)
+                                  int masked_input,int lite)
 {
   int ii;
   long nside_l=(long)nside;
@@ -326,10 +352,36 @@ nmt_field *field_alloc_new_notemp(int is_healpix,int nside,int lmax_sht,int nx,i
     maps[ii]=mps+npix_2*ii;
 
   fl=nmt_field_alloc_sph(cs,mask,spin,maps,ntemp,NULL,weights,pure_e,pure_b,n_iter_mask_purify,
-			 0.,n_iter,masked_input);
+			 0.,n_iter,masked_input,lite,0);
 
   free(maps);
   free(cs);
+
+  return fl;
+}
+
+nmt_field_flat *field_alloc_empty_flat(int nx,int ny,double lx,double ly,int spin,
+                                       int npix_1,double *mask,
+                                       int ncl1,int nell1,double *cls1,
+                                       int pure_e,int pure_b)
+{
+  nmt_field_flat *fl;
+  asserting(npix_1==nx*ny);
+  asserting(ncl1==2);
+  asserting(lx>0);
+  asserting(ly>0);
+
+  double *larr,*beam;
+  if((nell1==1) && (cls1[0]<0) && (cls1[1]<0)) {
+    larr=NULL; beam=NULL;
+  }
+  else {
+    larr=&(cls1[0]);
+    beam=&(cls1[nell1]);
+  }
+
+  fl=nmt_field_flat_alloc(nx,ny,lx,ly,mask,spin,NULL,0,NULL,
+			  nell1,larr,beam,pure_e,pure_b,0,0,1,1);
 
   return fl;
 }
@@ -340,7 +392,7 @@ nmt_field_flat *field_alloc_new_flat(int nx,int ny,double lx,double ly,int spin,
 				     int ntmp_3,int nmap_3,int npix_3,double *tmp,
 				     int ncl1,int nell1,double *cls1,
 				     int pure_e,int pure_b,double tol_pinv,
-                                     int masked_input)
+                                     int masked_input,int lite)
 {
   int ii,jj;
   int ntemp=0;
@@ -381,7 +433,7 @@ nmt_field_flat *field_alloc_new_flat(int nx,int ny,double lx,double ly,int spin,
 
   fl=nmt_field_flat_alloc(nx,ny,lx,ly,mask,spin,maps,ntemp,temp,
 			  nell1,larr,beam,pure_e,pure_b,tol_pinv,
-                          masked_input);
+                          masked_input,lite,0);
 
   if(tmp!=NULL) {
     for(ii=0;ii<ntmp_3;ii++)
@@ -398,13 +450,13 @@ nmt_field_flat *field_alloc_new_notemp_flat(int nx,int ny,double lx,double ly,in
 					    int nmap_2,int npix_2,double *mps,
 					    int ncl1,int nell1,double *cls1,
 					    int pure_e,int pure_b,
-                                            int masked_input)
+                                            int masked_input,int lite)
 {
   asserting(lx>0);
   asserting(ly>0);
   return field_alloc_new_flat(nx,ny,lx,ly,spin,npix_1,mask,nmap_2,npix_2,mps,
 			      -1,-1,-1,NULL,ncl1,nell1,cls1,pure_e,pure_b,0.,
-                              masked_input);
+                              masked_input,lite);
 }
 
 void get_map(nmt_field *fl,int imap,double *ldout,long nldout)
