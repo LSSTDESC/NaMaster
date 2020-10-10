@@ -36,7 +36,7 @@ CTEST(nmt,field_empty) {
 
 CTEST(nmt,field_lite) {
   nmt_field *f;
-  int ii,jj,nmaps;
+  int ii,nmaps;
   double ntemp=5;
   long nside=128;
   nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(1,nside,-1,-1,-1,-1,-1,-1,-1);
@@ -58,8 +58,6 @@ CTEST(nmt,field_lite) {
   nmaps=2;
   //Create inputs
   maps=test_make_map_analytic(nside,2);
-  for(ii=0;ii<ntemp;ii++)
-    temp[ii]=test_make_map_analytic(nside,2);
 
   //With purification
   f=nmt_field_alloc_sph(cs,mask,2,maps,0,NULL,beam,1,1,5,1E-5,HE_NITER_DEFAULT,0,1,0);
@@ -80,16 +78,14 @@ CTEST(nmt,field_lite) {
   ASSERT_DBL_NEAR_TOL(2.,creal(f->alms[1][he_indexlm(3,0,lmax)]),1E-4);
   ASSERT_DBL_NEAR_TOL(0.,cimag(f->alms[1][he_indexlm(3,0,lmax)]),1E-4);
   nmt_field_free(f);
-  
-  //With templates
   for(ii=0;ii<nmaps;ii++)
     free(maps[ii]);
+  free(maps);
+
+  //With templates
   maps=test_make_map_analytic(nside,2);
-  for(ii=0;ii<ntemp;ii++) {
-    for(jj=0;jj<nmaps;jj++)
-      free(temp[ii][jj]);
+  for(ii=0;ii<ntemp;ii++)
     temp[ii]=test_make_map_analytic(nside,2);
-  }
   f=nmt_field_alloc_sph(cs,mask,2,maps,ntemp,temp,beam,0,0,0,1E-5,HE_NITER_DEFAULT,0,1,0);
   //Since maps and templates are the same, template-deprojected alms should be 0
   ASSERT_DBL_NEAR_TOL(0,creal(f->alms[0][he_indexlm(2,0,lmax)]),1E-5);
@@ -105,19 +101,17 @@ CTEST(nmt,field_lite) {
   ASSERT_DBL_NEAR_TOL(0.,creal(f->alms[1][he_indexlm(3,0,lmax)]),1E-5);
   ASSERT_DBL_NEAR_TOL(0.,cimag(f->alms[1][he_indexlm(3,0,lmax)]),1E-5);
   nmt_field_free(f);
-
-  //Free inputs
   for(ii=0;ii<ntemp;ii++) {
+    int jj;
     for(jj=0;jj<nmaps;jj++)
       free(temp[ii][jj]);
+    free(temp[ii]);
   }
   for(ii=0;ii<nmaps;ii++)
     free(maps[ii]);
   free(maps);
   ////////
   
-  for(ii=0;ii<ntemp;ii++)
-    free(temp[ii]);
   free(temp);
   free(beam);
   free(mask);

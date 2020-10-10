@@ -326,8 +326,8 @@ nmt_field *nmt_field_alloc_sph(nmt_curvedsky_info *cs,flouble *mask,int spin,flo
     return fl;
   }
 
-  flouble **maps_full;
-  flouble ***temp_full;
+  flouble **maps_full=NULL;
+  flouble ***temp_full=NULL;
   if(cs->is_healpix) {
     maps_full=maps;
     temp_full=temp;
@@ -530,13 +530,15 @@ nmt_field *nmt_field_alloc_sph(nmt_curvedsky_info *cs,flouble *mask,int spin,flo
     if(!(cs->is_healpix)) { //We allocated new memory, need to free up!
       for(imap=0;imap<fl->nmaps;imap++)
         free(maps_full[imap]);
-      for(itemp=0;itemp<fl->ntemp;itemp++) {
-        for(imap=0;imap<fl->nmaps;imap++)
-          free(temp_full[itemp][imap]);
-        free(temp_full[itemp]);
-      }
-      free(temp_full);
       free(maps_full);
+      if(fl->ntemp>0) {
+        for(itemp=0;itemp<fl->ntemp;itemp++) {
+          for(imap=0;imap<fl->nmaps;imap++)
+            free(temp_full[itemp][imap]);
+          free(temp_full[itemp]);
+        }
+        free(temp_full);
+      }
     }
   }
   else {
