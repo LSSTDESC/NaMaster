@@ -368,7 +368,7 @@ nmt_field *nmt_field_alloc_sph(nmt_curvedsky_info *cs,flouble *mask,int spin,flo
         }
       }
     }
-    if((fl->ntemp>0) && (!is_lite)) {
+    if(fl->ntemp>0) {
       temp_unmasked=my_malloc(fl->ntemp*sizeof(flouble **));
       for(itemp=0;itemp<fl->ntemp;itemp++) {
         temp_unmasked[itemp]=my_malloc(fl->nmaps*sizeof(flouble *));
@@ -478,27 +478,33 @@ nmt_field *nmt_field_alloc_sph(nmt_curvedsky_info *cs,flouble *mask,int spin,flo
 
     //Purify map
     nmt_purify(fl,fl->mask,a_mask,maps_unmasked,maps_full,fl->alms,niter);
-    for(imap=0;imap<fl->nmaps;imap++)
-      free(maps_unmasked[imap]);
-    free(maps_unmasked);
 
     if((!is_lite) && (fl->ntemp>0)) {
       // Iterate through templates and purify
       for(itemp=0;itemp<fl->ntemp;itemp++) {
         // Purify template
         nmt_purify(fl,fl->mask,a_mask,temp_unmasked[itemp],temp_full[itemp],fl->a_temp[itemp],niter);
-        for(imap=0;imap<fl->nmaps;imap++) {//Store non-pure map
+        for(imap=0;imap<fl->nmaps;imap++) //Store non-pure map
           he_map_product(fl->cs,temp_unmasked[itemp][imap],fl->mask,temp_full[itemp][imap]);
-          free(temp_unmasked[itemp][imap]);
-        }
-        free(temp_unmasked[itemp]);
       }
-      free(temp_unmasked);
       //IMPORTANT: at this stage, fl->maps and fl->alms contain the purified map and SH coefficients
       //           However, although fl->a_temp contains the purified SH coefficients,
       //           fl->temp contains the ***non-purified*** maps. This is to speed up the calculation
       //           of the deprojection bias.
     }
+
+    for(imap=0;imap<fl->nmaps;imap++)
+      free(maps_unmasked[imap]);
+    free(maps_unmasked);
+    if(fl->ntemp>0) {
+      for(itemp=0;itemp<fl->ntemp;itemp++) {
+        for(imap=0;imap<fl->nmaps;imap++)
+          free(temp_unmasked[itemp][imap]);
+        free(temp_unmasked[itemp]);
+      }
+      free(temp_unmasked);
+    }
+
     // Store mask alms if needed
     if(is_lite) {
       for(imap=0;imap<fl->nmaps;imap++)

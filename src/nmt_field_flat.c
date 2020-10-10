@@ -341,7 +341,7 @@ nmt_field_flat *nmt_field_flat_alloc(int nx,int ny,flouble lx,flouble ly,
         }
       }
     }
-    if((fl->ntemp>0) && (!is_lite)) {
+    if(fl->ntemp>0) {
       temp_unmasked=my_malloc(fl->ntemp*sizeof(flouble **));
       for(itemp=0;itemp<fl->ntemp;itemp++) {
         temp_unmasked[itemp]=my_malloc(fl->nmaps*sizeof(flouble *));
@@ -450,26 +450,32 @@ nmt_field_flat *nmt_field_flat_alloc(int nx,int ny,flouble lx,flouble ly,
 
     //Purify map
     nmt_purify_flat(fl,fl->mask,a_mask,maps_unmasked,maps,fl->alms);
-    for(imap=0;imap<fl->nmaps;imap++)
-      dftw_free(maps_unmasked[imap]);
-    free(maps_unmasked);
 
     if((!is_lite) && (fl->ntemp>0)) {
       //Compute purified contaminant DFTs
       for(itemp=0;itemp<fl->ntemp;itemp++) {
 	nmt_purify_flat(fl,fl->mask,a_mask,temp_unmasked[itemp],temp[itemp],fl->a_temp[itemp]);
-	for(imap=0;imap<fl->nmaps;imap++) {//Store non-pure map
+	for(imap=0;imap<fl->nmaps;imap++)//Store non-pure map
 	  fs_map_product(fl->fs,temp_unmasked[itemp][imap],fl->mask,temp[itemp][imap]);
-          dftw_free(temp_unmasked[itemp][imap]);
-        }
-        free(temp_unmasked[itemp]);
       }
-      free(temp_unmasked);
       //IMPORTANT: at this stage, fl->maps and fl->alms contain the purified map and SH coefficients
       //           However, although fl->a_temp contains the purified SH coefficients,
       //           fl->temp contains the ***non-purified*** maps. This is to speed up the calculation
       //           of the deprojection bias.
     }
+
+    for(imap=0;imap<fl->nmaps;imap++)
+      dftw_free(maps_unmasked[imap]);
+    free(maps_unmasked);
+    if(fl->ntemp>0) {
+      for(itemp=0;itemp<fl->ntemp;itemp++) {
+	for(imap=0;imap<fl->nmaps;imap++)
+          dftw_free(temp_unmasked[itemp][imap]);
+        free(temp_unmasked[itemp]);
+      }
+      free(temp_unmasked);
+    }
+
     if(is_lite) {
       for(imap=0;imap<fl->nmaps;imap++)
         dftw_free(a_mask[imap]);
