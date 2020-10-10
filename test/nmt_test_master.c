@@ -438,11 +438,13 @@ CTEST(nmt,master_lite) {
   tmp2[1]=he_read_map("test/benchmarks/tmp.fits",cs,2);
   f0=nmt_field_alloc_sph(cs,msk,0,mps0,1,&tmp0,NULL,0,0,3,1E-10,HE_NITER_DEFAULT,0,0,0);
   f2=nmt_field_alloc_sph(cs,msk,2,mps2,1,&tmp2,NULL,0,1,3,1E-10,HE_NITER_DEFAULT,0,0,0);
+  // Lite field
+  free(mps2[0]); free(mps2[1]);
+  free(tmp2[0]); free(tmp2[1]);
   mps2[0]=he_read_map("test/benchmarks/mps.fits",cs,1);
   mps2[1]=he_read_map("test/benchmarks/mps.fits",cs,2);
   tmp2[0]=he_read_map("test/benchmarks/tmp.fits",cs,1);
   tmp2[1]=he_read_map("test/benchmarks/tmp.fits",cs,2);
-  // Lite field
   f2l=nmt_field_alloc_sph(cs,msk,2,mps2,1,&tmp2,NULL,0,1,3,1E-10,HE_NITER_DEFAULT,0,1,0);
   // Mask-only field
   f2e=nmt_field_alloc_sph(cs,msk,2,NULL,0,NULL,NULL,0,1,3,1E-10,HE_NITER_DEFAULT,0,1,1);
@@ -1049,6 +1051,7 @@ CTEST(nmt,master_lite_errors) {
   try { nmt_compute_uncorr_noise_deprojection_bias(f0l,NULL,NULL,0); }
   try { nmt_compute_uncorr_noise_deprojection_bias(f0e,NULL,NULL,0); }
   //Deprojection bias
+  try { nmt_compute_deprojection_bias(f0l,f0,NULL,NULL,0); }
   try { nmt_compute_deprojection_bias(f0l,f0l,NULL,NULL,0); }
   try { nmt_compute_deprojection_bias(f0l,f0e,NULL,NULL,0); }
   try { nmt_compute_deprojection_bias(f0e,f0e,NULL,NULL,0); }
