@@ -197,7 +197,6 @@ class TestWorkspaceHPX(unittest.TestCase):
                            purify_b=True, lite=True)
         f2e = nmt.NmtField(self.msk, None, purify_b=True,
                            lite=True, spin=2)
-        clth = np.array([self.clte, 0*self.clte])
         nlth = np.array([self.nlte, 0*self.nlte])
         w = nmt.NmtWorkspace()
         w.compute_coupling_matrix(f0, f2e, self.b)
@@ -625,7 +624,6 @@ class TestWorkspaceFsk(unittest.TestCase):
         f2e = nmt.NmtFieldFlat(self.lx, self.ly, self.msk,
                                None, purify_b=True,
                                lite=True, spin=2)
-        clth = np.array([self.clte, 0*self.clte])
         nlth = np.array([self.nlte, 0*self.nlte])
         w = nmt.NmtWorkspaceFlat()
         w.compute_coupling_matrix(f0, f2e, self.b)
@@ -647,7 +645,7 @@ class TestWorkspaceFsk(unittest.TestCase):
         tmps = [[self.tmp[1], self.tmp[2]]]
         f2 = nmt.NmtFieldFlat(self.lx, self.ly, self.msk,
                               [self.mps[1], self.mps[2]],
-                               templates=tmps)
+                              templates=tmps)
         f2l = nmt.NmtFieldFlat(self.lx, self.ly, self.msk,
                                [self.mps[1], self.mps[2]],
                                templates=tmps, lite=True)

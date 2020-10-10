@@ -115,7 +115,6 @@ class NmtField(object):
             if wt.is_healpix and (len(maps[0]) != len(mask)):
                 raise ValueError("All maps must have the same resolution")
 
-
         if (pure_e or pure_b) and spin != 2:
             raise ValueError("Purification only implemented for spin-2 fields")
 
@@ -179,13 +178,15 @@ class NmtField(object):
                                             n_iter_mask_purify)
         else:
             if isinstance(templates, (list, tuple, np.ndarray)):
-                self.fl = lib.field_alloc_new(wt.is_healpix, wt.nside, lmax_sht,
-                                              wt.nx, wt.ny,
+                self.fl = lib.field_alloc_new(wt.is_healpix, wt.nside,
+                                              lmax_sht, wt.nx, wt.ny,
                                               wt.d_phi, wt.d_theta,
                                               wt.phi0, wt.theta_max, spin,
                                               mask, maps, templates, beam_use,
-                                              pure_e, pure_b, n_iter_mask_purify,
-                                              tol_pinv, n_iter, masked_input, int(lite))
+                                              pure_e, pure_b,
+                                              n_iter_mask_purify,
+                                              tol_pinv, n_iter, masked_input,
+                                              int(lite))
             else:
                 self.fl = lib.field_alloc_new_notemp(
                     wt.is_healpix, wt.nside, lmax_sht, wt.nx, wt.ny, wt.d_phi,
@@ -374,20 +375,25 @@ class NmtFieldFlat(object):
                                  "None")
 
         if mask_only:
-            self.fl = lib.field_alloc_empty_flat(self.nx, self.ny, lx, ly, spin,
-                                                 msk, beam_use, pure_e, pure_b)
+            self.fl = lib.field_alloc_empty_flat(self.nx, self.ny,
+                                                 lx, ly, spin,
+                                                 msk, beam_use,
+                                                 pure_e, pure_b)
         else:
             # Generate field
             if isinstance(templates, (list, tuple, np.ndarray)):
-                self.fl = lib.field_alloc_new_flat(self.nx, self.ny, lx, ly, spin,
-                                                   msk, mps, tmps, beam_use,
-                                                   pure_e, pure_b, tol_pinv,
-                                                   masked_input, int(lite))
+                self.fl = lib.field_alloc_new_flat(self.nx, self.ny, lx, ly,
+                                                   spin, msk, mps, tmps,
+                                                   beam_use, pure_e, pure_b,
+                                                   tol_pinv, masked_input,
+                                                   int(lite))
             else:
                 self.fl = lib.field_alloc_new_notemp_flat(self.nx, self.ny,
-                                                          lx, ly, spin, msk, mps,
+                                                          lx, ly, spin,
+                                                          msk, mps,
                                                           beam_use, pure_e,
-                                                          pure_b, masked_input, int(lite))
+                                                          pure_b, masked_input,
+                                                          int(lite))
         self.lite = lite
 
     def __del__(self):

@@ -28,7 +28,7 @@ f0_cont = nmt.NmtField(mask, [mp_t+tm_t], templates=[[tm_t]])
 f2_cont = nmt.NmtField(mask, [mp_q+tm_q, mp_u+tm_u], templates=[[tm_q, tm_u]])
 # By default, fields with 2 maps are given a spin=2
 # If you want a different spin, just specify it!
-f1 = nmt.NmtField(mask, [mp_1, mp_u], spin=1)
+f1 = nmt.NmtField(mask, [mp_q, mp_u], spin=1)
 
 # Note: when passing "templates", the constructor cleans the maps by finding
 # the best-fit linear coefficient that fits the contaminant templates.

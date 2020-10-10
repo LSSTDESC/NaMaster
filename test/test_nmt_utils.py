@@ -224,7 +224,6 @@ class TestUtilsSynfastSph(unittest.TestCase):
                                   seed=1234)
         self.assertEqual(m.shape, (3, hp.nside2npix(self.nside)))
 
-
     def test_synfast_spin1(self):
         self.synfast_stats(1)
 
