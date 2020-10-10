@@ -64,7 +64,7 @@ class NmtField(object):
         if you're using purification.
     :param lite: set to `True` if you want to only store the bare minimum \
         necessary to run a standard pseudo-Cl with deprojection and \
-        purification, but you don't care about template deprojection. This \
+        purification, but you don't care about deprojection bias. This \
         will reduce the memory taken up by the resulting object.
     """
     def __init__(self, mask, maps, spin=None, templates=None, beam=None,
@@ -280,7 +280,7 @@ class NmtFieldFlat(object):
         if you're using purification.
     :param lite: set to `True` if you want to only store the bare minimum \
         necessary to run a standard pseudo-Cl with deprojection and \
-        purification, but you don't care about template deprojection. This \
+        purification, but you don't care about deprojection bias. This \
         will reduce the memory taken up by the resulting object.
     """
     def __init__(self, lx, ly, mask, maps, spin=None, templates=None,
@@ -411,7 +411,9 @@ class NmtFieldFlat(object):
         :return: 3D array of flat-sky maps
         """
         if self.lite:
-            raise ValueError("Input maps unavailable for lightweight fields")
+            raise ValueError("Input maps unavailable for lightweight fields. "
+                             "To use this function, create an `NmtFieldFlat` "
+                             "object with `lite=False`.")
         maps = np.zeros([self.fl.nmaps, self.fl.npix])
         for imap in range(self.fl.nmaps):
             maps[imap, :] = lib.get_map_flat(self.fl, imap, int(self.fl.npix))
@@ -427,7 +429,9 @@ class NmtFieldFlat(object):
         :return: 4D array of flat-sky maps
         """
         if self.lite:
-            raise ValueError("Input maps unavailable for lightweight fields")
+            raise ValueError("Input maps unavailable for lightweight fields. "
+                             "To use this function, create an `NmtFieldFlat` "
+                             "object with `lite=False`.")
         temp = np.zeros([self.fl.ntemp, self.fl.nmaps, self.fl.npix])
         for itemp in range(self.fl.ntemp):
             for imap in range(self.fl.nmaps):
