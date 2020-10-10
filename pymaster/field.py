@@ -112,7 +112,7 @@ class NmtField(object):
                     raise ValueError("Spin-zero fields are "
                                      "associated with a single map")
 
-            if len(maps[0]) != len(mask):
+            if wt.is_healpix and (len(maps[0]) != len(mask)):
                 raise ValueError("All maps must have the same resolution")
 
 

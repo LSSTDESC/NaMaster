@@ -9,7 +9,6 @@ from .testutils import normdiff, read_flat_map
 # Unit tests associated with the NmtField and NmtFieldFlat classes
 
 
-@unittest.skip('slow')
 class TestFieldCAR(unittest.TestCase):
     def setUp(self):
         # This is to avoid showing an ugly warning that
@@ -54,6 +53,24 @@ class TestFieldCAR(unittest.TestCase):
             # _2Y^E_20 + _2Y^B_30
             self.tmp[i][1, :, :] = -np.sqrt(15./2./np.pi)*sth**2/4.
             self.tmp[i][2, :, :] = -np.sqrt(105./2./np.pi)*cth*sth**2/2.
+
+    def test_field_lite(self):
+        # Lite field
+        fl = nmt.NmtField(self.msk, [self.mps[0]], wcs=self.wcs,
+                          beam=self.beam, lite=True)
+        # Empty field
+        with self.assertRaises(ValueError):  # No maps and no spin
+            fe = nmt.NmtField(self.msk, None, wcs=self.wcs,
+                              beam=self.beam)
+        fe = nmt.NmtField(self.msk, None, wcs=self.wcs,
+                          beam=self.beam, spin=1)
+
+        # Error checks
+        for f in [fl, fe]:
+            with self.assertRaises(ValueError):  # Query maps
+                f.get_maps()
+            with self.assertRaises(ValueError):  # Query templates
+                f.get_templates()
 
     def test_field_alloc(self):
         # No templates
@@ -276,6 +293,22 @@ class TestFieldHPX(unittest.TestCase):
         self.assertEqual(len(f0.get_templates()), 5)
         self.assertEqual(len(f2.get_templates()), 5)
 
+    def test_field_lite(self):
+        # Lite field
+        fl = nmt.NmtField(self.msk, [self.mps[0]],
+                          beam=self.beam, lite=True)
+        # Empty field
+        with self.assertRaises(ValueError):  # No maps and no spin
+            fe = nmt.NmtField(self.msk, None, beam=self.beam)
+        fe = nmt.NmtField(self.msk, None, beam=self.beam, spin=1)
+
+        # Error checks
+        for f in [fl, fe]:
+            with self.assertRaises(ValueError):  # Query maps
+                f.get_maps()
+            with self.assertRaises(ValueError):  # Query templates
+                f.get_templates()
+
     def test_field_error(self):
         with self.assertRaises(ValueError):  # Incorrect mask size
             nmt.NmtField(self.msk[:15], self.mps)
@@ -390,6 +423,25 @@ class TestFieldFsk(unittest.TestCase):
                                np.mean(c02) < 1E-10))
         self.assertTrue(np.all(np.fabs(c22-c22_msk) /
                                np.mean(c22) < 1E-10))
+
+    def test_field_lite(self):
+        # Lite field
+        fl = nmt.NmtFieldFlat(self.lx, self.ly, self.msk,
+                              [self.mps[0]], beam=self.beam,
+                              lite=True)
+        # Empty field
+        with self.assertRaises(ValueError):  # No maps and no spin
+            fe = nmt.NmtFieldFlat(self.lx, self.ly, self.msk,
+                                  None, beam=self.beam)
+        fe = nmt.NmtFieldFlat(self.lx, self.ly, self.msk,
+                              None, beam=self.beam, spin=1)
+
+        # Error checks
+        for f in [fl, fe]:
+            with self.assertRaises(ValueError):  # Query maps
+                f.get_maps()
+            with self.assertRaises(ValueError):  # Query templates
+                f.get_templates()
 
     def test_field_flat_alloc(self):
         # No templates
