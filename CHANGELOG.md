@@ -1,3 +1,10 @@
+# v1.1
+- Faster MCM via symmetry (thanks to Thibaut Louis) (#111)
+- Covariance calculable for coupled spectra (#113)
+- Arbitrary spins (#115)
+- Additional binning functionality (thanks to Joe Zuntz) (#116)
+- Lightweight and map-less fields (#117)
+
 # v1.0.2 changes
 - Pip-installable (#95).
 - Installation instructions on rtd (#95).
