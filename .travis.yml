@@ -21,12 +21,8 @@ matrix:
   include:
   - os: linux
     sudo: required
-    python: 3.6
-    env: TOXENV=py36
-  - os: linux
-    sudo: required
-    python: 3.8
-    env: TOXENV=py38
+    python: 3.9
+    env: TOXENV=py39
 
 before_install:
 - "chmod 777 ./.travis/install_deps.sh"
