@@ -164,7 +164,7 @@ CTEST(nmt,master_teb_full) {
       cell_signal[jj][ii]+=cell_noise[jj][ii];
   }
   fclose(fi);
-  
+
   //No contaminants
   f0=nmt_field_alloc_sph(cs,msk,0,mps0,0,NULL,NULL,0,0,3,1E-10,HE_NITER_DEFAULT,0,0,0);
   f2=nmt_field_alloc_sph(cs,msk,2,mps2,0,NULL,NULL,0,0,3,1E-10,HE_NITER_DEFAULT,0,0,0);
@@ -525,7 +525,7 @@ CTEST(nmt,master_02_full) {
       cell_signal[jj][ii]+=cell_noise[jj][ii];
   }
   fclose(fi);
-  
+
   //No contaminants
   mps0[0]=he_read_map("test/benchmarks/mps.fits",cs,0);
   mps2[0]=he_read_map("test/benchmarks/mps.fits",cs,1);

@@ -159,6 +159,284 @@ void nmt_workspace_update_binning(nmt_workspace *w,
   bin_coupling_matrix(w);
 }
 
+nmt_master_calculator *nmt_compute_master_coefficients(int lmax, int lmax_mask, flouble *pcl_masks,
+                                                       int s1, int s2,
+                                                       int pure_e1, int pure_b1,
+                                                       int pure_e2, int pure_b2,
+                                                       int do_teb)
+{
+  int ip, ii;
+  nmt_master_calculator *c=my_malloc(sizeof(nmt_master_calculator));
+  c->pure_any=pure_e1 || pure_b1 || pure_e2 || pure_b2;
+  c->lmax=lmax;
+  c->lmax_mask=lmax_mask;
+  c->pure_e1=pure_e1;
+  c->pure_b1=pure_b1;
+  c->pure_e2=pure_e2;
+  c->pure_b2=pure_b2;
+  c->has_00=0;
+  c->has_0s=0;
+  c->has_ss=0;
+  c->xi_00=NULL;
+  c->xi_0s=NULL;
+  c->xi_pp=NULL;
+  c->xi_mm=NULL;
+  if(c->pure_any) {
+    c->npure_0s=2;
+    c->npure_ss=3;
+  }
+  else {
+    c->npure_0s=1;
+    c->npure_ss=1;
+  }
+
+  if(s1==0) {
+    if(s2==0) {
+      c->s1=0; c->s2=0;
+    }
+    else {
+      c->s1=s2; c->s2=0;
+    }
+  }
+  else {
+    c->s1=s1;
+    c->s2=s2;
+  }
+
+  if(do_teb) {
+    c->has_00=1;
+    c->has_0s=1;
+    c->has_ss=1;
+  }
+  else {
+    c->has_00 = (c->s1==0) && (c->s2==0);
+    c->has_0s = ((c->s1==0) && (c->s2!=0)) || ((c->s1!=0) && (c->s2==0));
+    c->has_ss = (c->s1!=0) && (c->s2!=0);
+  }
+
+  if(c->has_00) {
+    c->xi_00=my_malloc((c->lmax+1)*sizeof(flouble *));
+    for(ii=0;ii<=c->lmax;ii++)
+      c->xi_00[ii]=my_calloc((c->lmax+1),sizeof(flouble *));
+  }
+  if(c->has_0s) {
+    c->xi_0s=my_malloc(c->npure_0s*sizeof(flouble **));
+    for(ip=0;ip<c->npure_0s;ip++) {
+      c->xi_0s[ip]=my_malloc((c->lmax+1)*sizeof(flouble *));
+      for(ii=0;ii<=c->lmax;ii++)
+        c->xi_0s[ip][ii]=my_calloc((c->lmax+1),sizeof(flouble *));
+    }
+  }
+  if(c->has_ss) {
+    c->xi_pp=my_malloc(c->npure_ss*sizeof(flouble *));
+    c->xi_mm=my_malloc(c->npure_ss*sizeof(flouble *));
+    for(ip=0;ip<c->npure_ss;ip++) {
+      c->xi_pp[ip]=my_malloc((c->lmax+1)*sizeof(flouble *));
+      c->xi_mm[ip]=my_malloc((c->lmax+1)*sizeof(flouble *));
+      for(ii=0;ii<=c->lmax;ii++) {
+        c->xi_pp[ip][ii]=my_calloc((c->lmax+1),sizeof(flouble *));
+        c->xi_mm[ip][ii]=my_calloc((c->lmax+1),sizeof(flouble *));
+      }
+    }
+  }
+
+  int lstart=0;
+  int max_spin=NMT_MAX(c->s1, c->s2);
+  int sign_overall=1;
+  if((c->s1+c->s2) & 1)
+    sign_overall=-1;
+  if(!(c->has_00))
+    lstart=max_spin;
+
+#pragma omp parallel default(none)              \
+  shared(c, lstart, do_teb, pcl_masks)
+  {
+    int ll2,ll3;
+    int has_ss2=(c->s1!=0) && (c->s2!=0) && (!do_teb) && (c->s1!=c->s2);
+    double *wigner_00=NULL,*wigner_ss1=NULL,*wigner_12=NULL,*wigner_02=NULL,*wigner_ss2=NULL;
+    int pe1=c->pure_e1,pe2=c->pure_e2,pb1=c->pure_b1,pb2=c->pure_b2;
+    if(c->has_00 || c->has_0s)
+      wigner_00=my_malloc(2*(c->lmax_mask+1)*sizeof(double));
+    if(c->has_0s || c->has_ss)
+      wigner_ss1=my_malloc(2*(c->lmax_mask+1)*sizeof(double));
+    if(has_ss2)
+      wigner_ss2=my_malloc(2*(c->lmax_mask+1)*sizeof(double));
+    else
+      wigner_ss2=wigner_ss1;
+    if(c->pure_any) {
+      wigner_12=my_malloc(2*(c->lmax_mask+1)*sizeof(double));
+      wigner_02=my_malloc(2*(c->lmax_mask+1)*sizeof(double));
+    }
+
+#pragma omp for schedule(dynamic)
+    for(ll2=lstart;ll2<=c->lmax;ll2++) {
+      int l3_start=lstart;
+      if(!(c->pure_any)) //We can use symmetry
+        l3_start=ll2;
+      for(ll3=l3_start;ll3<=c->lmax;ll3++) {
+        int jj,l1,lmin_here,lmax_here;
+	int lmin_here_00=0,lmax_here_00=2*(c->lmax_mask+1)+1;
+	int lmin_here_ss1=0,lmax_here_ss1=2*(c->lmax_mask+1)+1;
+	int lmin_here_ss2=0,lmax_here_ss2=2*(c->lmax_mask+1)+1;
+	int lmin_here_12=0,lmax_here_12=2*(c->lmax_mask+1)+1;
+	int lmin_here_02=0,lmax_here_02=2*(c->lmax_mask+1)+1;
+
+	if(c->has_00 || c->has_0s)
+	  drc3jj(ll2,ll3,0,0,&lmin_here_00,&lmax_here_00,wigner_00,2*(c->lmax_mask+1));
+	if(c->has_0s || c->has_ss)
+	  drc3jj(ll2,ll3,c->s1,-c->s1,&lmin_here_ss1,&lmax_here_ss1,wigner_ss1,2*(c->lmax_mask+1));
+        if(has_ss2)
+          drc3jj(ll2,ll3,c->s2,-c->s2,&lmin_here_ss2,&lmax_here_ss2,wigner_ss2,2*(c->lmax_mask+1));
+        else {
+          lmin_here_ss2=lmin_here_ss1;
+          lmax_here_ss2=lmax_here_ss1;
+        }
+	if(c->pure_any) {
+	  drc3jj(ll2,ll3,1,-2,&lmin_here_12,&lmax_here_12,wigner_12,2*(c->lmax_mask+1));
+	  drc3jj(ll2,ll3,0,-2,&lmin_here_02,&lmax_here_02,wigner_02,2*(c->lmax_mask+1));
+	}
+
+	if(!do_teb) {
+	  lmin_here=NMT_MAX(lmin_here_00,lmin_here_ss1);
+	  lmax_here=NMT_MIN(lmax_here_00,lmax_here_ss1);
+          lmin_here=NMT_MAX(lmin_here,lmin_here_ss2);
+          lmax_here=NMT_MIN(lmax_here,lmax_here_ss2);
+        }
+	else {
+	  lmin_here=NMT_MIN(lmin_here_00,lmin_here_ss1);
+	  lmax_here=NMT_MAX(lmax_here_00,lmax_here_ss1);
+	}
+	if(c->pure_any) {
+	  lmin_here=NMT_MIN(lmin_here,lmin_here_12);
+	  lmin_here=NMT_MIN(lmin_here,lmin_here_02);
+	  lmax_here=NMT_MAX(lmax_here,lmax_here_12);
+	  lmax_here=NMT_MAX(lmax_here,lmax_here_02);
+	}
+	//All lines regarding lmax are in principle unnecessary, since lmax is just l3+l2
+
+	for(l1=lmin_here;l1<=lmax_here;l1++) {
+          int ipp;
+	  if(l1<=c->lmax_mask) {
+	    flouble wfac,fac_12=0,fac_02=0;
+	    int j02,j12;
+	    int j00=l1-lmin_here_00;
+	    int jss1=l1-lmin_here_ss1;
+	    int jss2=l1-lmin_here_ss2;
+	    if(c->pure_any) {
+	      j12=l1-lmin_here_12;
+	      j02=l1-lmin_here_02;
+	      if(ll2>1.) {
+		fac_12=2*sqrt((l1+1.)*(l1+0.)/((ll2+2)*(ll2-1.)));
+		if(l1>1.)
+		  fac_02=sqrt((l1+2.)*(l1+1.)*(l1+0.)*(l1-1.)/((ll2+2.)*(ll2+1.)*(ll2+0.)*(ll2-1.)));
+		else
+		  fac_02=0;
+	      }
+	      else {
+		fac_12=0;
+		fac_02=0;
+	      }
+	      if(j12<0) { //If out of range, w12 is just 0
+		fac_12=0;
+		j12=0;
+	      }
+	      if(j02<0) { //if out of range, w02 is just 0
+		fac_02=0;
+		j02=0;
+	      }
+	    }
+
+	    if(c->has_00) {
+	      wfac=pcl_masks[l1]*wigner_00[j00]*wigner_00[j00];
+              c->xi_00[ll2][ll3]+=wfac;
+	    }
+	    if(c->has_0s) {
+	      double wfac_ispure[2];
+              wfac_ispure[0]=wigner_ss1[jss1];
+              wfac_ispure[0]*=pcl_masks[l1]*wigner_00[j00];
+              if(c->pure_any) {
+		wfac_ispure[1]=wigner_ss1[jss1]+fac_12*wigner_12[j12]+fac_02*wigner_02[j02];
+		wfac_ispure[1]*=pcl_masks[l1]*wigner_00[j00];
+	      }
+              for(ipp=0;ipp<c->npure_0s;ipp++)
+                c->xi_0s[ipp][ll2][ll3]+=wfac_ispure[ipp];
+	    }
+	    if(c->has_ss) {
+	      double wfac_ispure[3];
+	      int suml=l1+ll2+ll3;
+              wfac_ispure[0]=wigner_ss1[jss1];
+              wfac_ispure[0]*=wigner_ss2[jss2]*pcl_masks[l1];
+	      if(c->pure_any) {
+		wfac_ispure[1]=wigner_ss1[jss1]+fac_12*wigner_12[j12]+fac_02*wigner_02[j02];
+		wfac_ispure[2]=wfac_ispure[1]*wfac_ispure[1]*pcl_masks[l1];
+		wfac_ispure[1]*=wigner_ss2[jss2]*pcl_masks[l1];
+	      }
+
+	      if(suml & 1) { //Odd sum
+                for(ipp=0;ipp<c->npure_ss;ipp++)
+                  c->xi_mm[ipp][ll2][ll3]+=wfac_ispure[ipp];
+              }
+	      else {
+                for(ipp=0;ipp<c->npure_ss;ipp++)
+                  c->xi_pp[ipp][ll2][ll3]+=wfac_ispure[ipp];
+	      }
+	    }
+	  }
+	}
+        if((!(c->pure_any)) && (ll2 != ll3)) { //Can use symmetry
+          if(c->has_00)
+            c->xi_00[ll3][ll2]=c->xi_00[ll2][ll3];
+          if(c->has_0s)
+            c->xi_0s[0][ll3][ll2]=c->xi_0s[0][ll2][ll3];
+          if(c->has_ss) {
+            c->xi_pp[0][ll3][ll2]=c->xi_pp[0][ll2][ll3];
+            c->xi_mm[0][ll3][ll2]=c->xi_mm[0][ll2][ll3];
+          }
+        }
+      }
+    } //end omp for
+    free(wigner_00);
+    free(wigner_ss1);
+    if(has_ss2)
+      free(wigner_ss2);
+    free(wigner_12);
+    free(wigner_02);
+  } //end omp parallel
+  return c;
+}
+
+void nmt_master_calculator_free(nmt_master_calculator *c)
+{
+  int ii, ip;
+
+  if(c->has_00) {
+    for(ii=0;ii<=c->lmax;ii++)
+      free(c->xi_00[ii]);
+    free(c->xi_00);
+  }
+  if(c->has_0s) {
+    for(ip=0;ip<c->npure_0s;ip++) {
+      for(ii=0;ii<=c->lmax;ii++)
+        free(c->xi_0s[ip][ii]);
+      free(c->xi_0s[ip]);
+    }
+    free(c->xi_0s);
+  }
+  if(c->has_ss) {
+    for(ip=0;ip<c->npure_ss;ip++) {
+      for(ii=0;ii<=c->lmax;ii++) {
+        free(c->xi_pp[ip][ii]);
+        free(c->xi_mm[ip][ii]);
+      }
+      free(c->xi_pp[ip]);
+      free(c->xi_mm[ip]);
+    }
+    free(c->xi_pp);
+    free(c->xi_mm);
+  }
+  free(c);
+}
+
 //Computes binned coupling matrix
 // fl1,fl2 (in) : fields we're correlating
 // coupling_matrix_out (out) : unbinned coupling matrix
@@ -195,240 +473,63 @@ nmt_workspace *nmt_compute_coupling_matrix(nmt_field *fl1,nmt_field *fl2,
 
   he_anafast(&(fl1->mask),&(fl2->mask),0,0,&(w->pcl_masks),fl1->cs,w->lmax_mask,niter);
   for(l2=0;l2<=w->lmax_mask;l2++)
-    w->pcl_masks[l2]*=(2*l2+1.);
+    w->pcl_masks[l2]*=(2*l2+1.)/(4*M_PI);
 
-#pragma omp parallel default(none)		\
-  shared(w,fl1,fl2)
+  // Compute coupling coefficients
+  nmt_master_calculator *c=nmt_compute_master_coefficients(w->lmax, w->lmax_mask, w->pcl_masks,
+                                                           fl1->spin, fl2->spin,
+                                                           fl1->pure_e,fl1->pure_b,
+                                                           fl2->pure_e,fl2->pure_b,
+                                                           is_teb);
+
+  // Apply coupling coefficients
+#pragma omp parallel default(none)              \
+  shared(w,fl1,fl2,c)
   {
-    int ll2,ll3, s1, s2;
-    double *wigner_00=NULL,*wigner_ss1=NULL,*wigner_12=NULL,*wigner_02=NULL,*wigner_ss2=NULL;
-    int lstart=0;
+    int ll2,ll3;
     int pe1=fl1->pure_e,pe2=fl2->pure_e,pb1=fl1->pure_b,pb2=fl2->pure_b;
-    int pure_any=pe1 || pb1 || pe2 || pb2;
-    int max_spin=NMT_MAX(fl1->spin, fl2->spin);
     int sign_overall=1;
-    if(fl1->spin==0) {
-      if(fl2->spin==0) {
-        s1=0; s2=0;
-      }
-      else {
-        s1=fl2->spin; s2=0;
-      }
-    }
-    else {
-      s1=fl1->spin;
-      s2=fl2->spin;
-    }
-    if((s1+s2) & 1)
+    if((fl1->spin+fl2->spin) & 1)
       sign_overall=-1;
 
-    if((w->ncls==1) || (w->ncls==2) || (w->ncls==7))
-      wigner_00=my_malloc(2*(w->lmax_mask+1)*sizeof(double));
-    if((w->ncls==2) || (w->ncls==4) || (w->ncls==7))
-      wigner_ss1=my_malloc(2*(w->lmax_mask+1)*sizeof(double));
-    if(w->ncls==4) {
-      if(s1 != s2)
-        wigner_ss2=my_malloc(2*(w->lmax_mask+1)*sizeof(double));
-      else
-        wigner_ss2=wigner_ss1;
-    }
-    if(pure_any) {
-      wigner_12=my_malloc(2*(w->lmax_mask+1)*sizeof(double));
-      wigner_02=my_malloc(2*(w->lmax_mask+1)*sizeof(double));
-    }
-
-    if((w->ncls!=1) && (w->ncls!=7))
-      lstart=max_spin;
-
 #pragma omp for schedule(dynamic)
-    for(ll2=lstart;ll2<=w->lmax;ll2++) {
-      int l3_start=lstart;
-      if(!pure_any) //We can use symmetry
-        l3_start=ll2;
-      for(ll3=l3_start;ll3<=w->lmax;ll3++) {
-	int jj,l1,lmin_here,lmax_here;
-	int lmin_here_00=0,lmax_here_00=2*(w->lmax_mask+1)+1;
-	int lmin_here_ss1=0,lmax_here_ss1=2*(w->lmax_mask+1)+1;
-	int lmin_here_ss2=0,lmax_here_ss2=2*(w->lmax_mask+1)+1;
-	int lmin_here_12=0,lmax_here_12=2*(w->lmax_mask+1)+1;
-	int lmin_here_02=0,lmax_here_02=2*(w->lmax_mask+1)+1;
-
-	if((w->ncls==1) || (w->ncls==2) || (w->ncls==7))
-	  drc3jj(ll2,ll3,0,0,&lmin_here_00,&lmax_here_00,wigner_00,2*(w->lmax_mask+1));
-	if((w->ncls==2) || (w->ncls==4) || (w->ncls==7))
-	  drc3jj(ll2,ll3,s1,-s1,&lmin_here_ss1,&lmax_here_ss1,wigner_ss1,2*(w->lmax_mask+1));
+    for(ll2=0;ll2<=w->lmax;ll2++) {
+      for(ll3=0;ll3<=w->lmax;ll3++) {
+        double fac=(2*ll3+1.)*sign_overall;
+        if(w->ncls==1)
+          w->coupling_matrix_unbinned[1*ll2+0][1*ll3+0]=fac*c->xi_00[ll2][ll3]; //TT,TT
+        if(w->ncls==2) {
+          w->coupling_matrix_unbinned[2*ll2+0][2*ll3+0]=fac*c->xi_0s[pe1+pe2][ll2][ll3]; //TE,TE
+          w->coupling_matrix_unbinned[2*ll2+1][2*ll3+1]=fac*c->xi_0s[pb1+pb2][ll2][ll3]; //TB,TB
+        }
         if(w->ncls==4) {
-          if(s1 != s2)
-            drc3jj(ll2,ll3,s2,-s2,&lmin_here_ss2,&lmax_here_ss2,wigner_ss2,2*(w->lmax_mask+1));
-          else {
-            lmin_here_ss2=lmin_here_ss1;
-            lmax_here_ss2=lmax_here_ss1;
-          }
+          w->coupling_matrix_unbinned[4*ll2+0][4*ll3+3]=fac*c->xi_mm[pe1+pe2][ll2][ll3]; //EE,BB
+          w->coupling_matrix_unbinned[4*ll2+1][4*ll3+2]=-fac*c->xi_mm[pe1+pb2][ll2][ll3]; //EB,BE
+          w->coupling_matrix_unbinned[4*ll2+2][4*ll3+1]=-fac*c->xi_mm[pb1+pe2][ll2][ll3]; //BE,EB
+          w->coupling_matrix_unbinned[4*ll2+3][4*ll3+0]=fac*c->xi_mm[pb1+pb2][ll2][ll3]; //BB,EE
+          w->coupling_matrix_unbinned[4*ll2+0][4*ll3+0]=fac*c->xi_pp[pe1+pe2][ll2][ll3]; //EE,EE
+          w->coupling_matrix_unbinned[4*ll2+1][4*ll3+1]=fac*c->xi_pp[pe1+pb2][ll2][ll3]; //EB,EB
+          w->coupling_matrix_unbinned[4*ll2+2][4*ll3+2]=fac*c->xi_pp[pb1+pe2][ll2][ll3]; //BE,BE
+          w->coupling_matrix_unbinned[4*ll2+3][4*ll3+3]=fac*c->xi_pp[pb1+pb2][ll2][ll3]; //BB,BB
         }
-	if(pure_any) {
-	  drc3jj(ll2,ll3,1,-2,&lmin_here_12,&lmax_here_12,wigner_12,2*(w->lmax_mask+1));
-	  drc3jj(ll2,ll3,0,-2,&lmin_here_02,&lmax_here_02,wigner_02,2*(w->lmax_mask+1));
-	}
-
-	if(w->ncls!=7) {
-	  lmin_here=NMT_MAX(lmin_here_00,lmin_here_ss1);
-	  lmax_here=NMT_MIN(lmax_here_00,lmax_here_ss1);
-          lmin_here=NMT_MAX(lmin_here,lmin_here_ss2);
-          lmax_here=NMT_MIN(lmax_here,lmax_here_ss2);
-        }
-	else {
-	  lmin_here=NMT_MIN(lmin_here_00,lmin_here_ss1);
-	  lmax_here=NMT_MAX(lmax_here_00,lmax_here_ss1);
-	}
-	if(pure_any) {
-	  lmin_here=NMT_MIN(lmin_here,lmin_here_12);
-	  lmin_here=NMT_MIN(lmin_here,lmin_here_02);
-	  lmax_here=NMT_MAX(lmax_here,lmax_here_12);
-	  lmax_here=NMT_MAX(lmax_here,lmax_here_02);
-	}
-	//All lines regarding lmax are in principle unnecessary, since lmax is just l3+l2
-
-	for(l1=lmin_here;l1<=lmax_here;l1++) {
-	  if(l1<=w->lmax_mask) {
-	    flouble wfac,fac_12=0,fac_02=0;
-	    int j02,j12;
-	    int j00=l1-lmin_here_00;
-	    int jss1=l1-lmin_here_ss1;
-	    int jss2=l1-lmin_here_ss2;
-	    if(pure_any) {
-	      j12=l1-lmin_here_12;
-	      j02=l1-lmin_here_02;
-	      if(ll2>1.) {
-		fac_12=2*sqrt((l1+1.)*(l1+0.)/((ll2+2)*(ll2-1.)));
-		if(l1>1.)
-		  fac_02=sqrt((l1+2.)*(l1+1.)*(l1+0.)*(l1-1.)/((ll2+2.)*(ll2+1.)*(ll2+0.)*(ll2-1.)));
-		else
-		  fac_02=0;
-	      }
-	      else {
-		fac_12=0;
-		fac_02=0;
-	      }
-	      if(j12<0) { //If out of range, w12 is just 0
-		fac_12=0;
-		j12=0;
-	      }
-	      if(j02<0) { //if out of range, w02 is just 0
-		fac_02=0;
-		j02=0;
-	      }
-	    }
-
-	    if(w->ncls==1) {
-	      wfac=w->pcl_masks[l1]*wigner_00[j00]*wigner_00[j00];
-	      w->coupling_matrix_unbinned[1*ll2+0][1*ll3+0]+=wfac; //TT,TT
-	    }
-	    if(w->ncls==2) {
-	      double wfac_ispure[2];
-              wfac_ispure[0]=wigner_ss1[jss1];
-              wfac_ispure[0]*=w->pcl_masks[l1]*wigner_00[j00];
-              if(pure_any) {
-		wfac_ispure[1]=wigner_ss1[jss1]+fac_12*wigner_12[j12]+fac_02*wigner_02[j02];
-		wfac_ispure[1]*=w->pcl_masks[l1]*wigner_00[j00];
-	      }
-	      else
-		wfac_ispure[1]=wfac_ispure[0];
-	      w->coupling_matrix_unbinned[2*ll2+0][2*ll3+0]+=wfac_ispure[pe1+pe2]; //TE,TE
-	      w->coupling_matrix_unbinned[2*ll2+1][2*ll3+1]+=wfac_ispure[pb1+pb2]; //TB,TB
-	    }
-	    if(w->ncls==4) {
-	      double wfac_ispure[3];
-	      int suml=l1+ll2+ll3;
-              wfac_ispure[0]=wigner_ss1[jss1];
-              wfac_ispure[0]*=wigner_ss2[jss2]*w->pcl_masks[l1];
-	      if(pure_any) {
-		wfac_ispure[1]=wigner_ss1[jss1]+fac_12*wigner_12[j12]+fac_02*wigner_02[j02];
-		wfac_ispure[2]=wfac_ispure[1]*wfac_ispure[1]*w->pcl_masks[l1];
-		wfac_ispure[1]*=wigner_ss2[jss2]*w->pcl_masks[l1];
-	      }
-	      else {
-		wfac_ispure[1]=wfac_ispure[0];
-		wfac_ispure[2]=wfac_ispure[0];
-	      }
-
-	      if(suml & 1) { //Odd sum
-		w->coupling_matrix_unbinned[4*ll2+0][4*ll3+3]+=wfac_ispure[pe1+pe2]; //EE,BB
-		w->coupling_matrix_unbinned[4*ll2+1][4*ll3+2]-=wfac_ispure[pe1+pb2]; //EB,BE
-		w->coupling_matrix_unbinned[4*ll2+2][4*ll3+1]-=wfac_ispure[pb1+pe2]; //BE,EB
-		w->coupling_matrix_unbinned[4*ll2+3][4*ll3+0]+=wfac_ispure[pb1+pb2]; //BB,EE
-	      }
-	      else {
-		w->coupling_matrix_unbinned[4*ll2+0][4*ll3+0]+=wfac_ispure[pe1+pe2]; //EE,EE
-		w->coupling_matrix_unbinned[4*ll2+1][4*ll3+1]+=wfac_ispure[pe1+pb2]; //EB,EB
-		w->coupling_matrix_unbinned[4*ll2+2][4*ll3+2]+=wfac_ispure[pb1+pe2]; //BE,BE
-		w->coupling_matrix_unbinned[4*ll2+3][4*ll3+3]+=wfac_ispure[pb1+pb2]; //BB,BB
-	      }
-	    }
-	    if(w->ncls==7) {
-	      double wfac_ispure_0s[2];
-	      double wfac_ispure_ss[3];
-	      int suml=l1+ll2+ll3;
-	      wfac=w->pcl_masks[l1]*wigner_00[j00]*wigner_00[j00];
-              wfac_ispure_0s[0]=wigner_ss1[jss1];
-              wfac_ispure_0s[0]*=w->pcl_masks[l1]*wigner_00[j00];
-              wfac_ispure_ss[0]=wigner_ss1[jss1];
-              wfac_ispure_ss[0]*=wigner_ss1[jss1]*w->pcl_masks[l1];
-	      if(pure_any) {
-		wfac_ispure_0s[1]=wigner_ss1[jss1]+fac_12*wigner_12[j12]+fac_02*wigner_02[j02];
-		wfac_ispure_ss[1]=wfac_ispure_0s[1];
-		wfac_ispure_ss[2]=wfac_ispure_ss[1]*wfac_ispure_ss[1]*w->pcl_masks[l1];
-		wfac_ispure_ss[1]*=wigner_ss1[jss1]*w->pcl_masks[l1];
-		wfac_ispure_0s[1]*=wigner_00[j00]*w->pcl_masks[l1];
-	      }
-	      else {
-		wfac_ispure_0s[1]=wfac_ispure_0s[0];
-		wfac_ispure_ss[1]=wfac_ispure_ss[0];
-		wfac_ispure_ss[2]=wfac_ispure_ss[0];
-	      }
-	      w->coupling_matrix_unbinned[7*ll2+0][7*ll3+0]+=wfac; //TT,TT
-	      w->coupling_matrix_unbinned[7*ll2+1][7*ll3+1]+=wfac_ispure_0s[pe2]; //TE,TE
-	      w->coupling_matrix_unbinned[7*ll2+2][7*ll3+2]+=wfac_ispure_0s[pb2]; //TB,TB
-	      if(suml & 1) { //Odd sum
-		w->coupling_matrix_unbinned[7*ll2+3][7*ll3+6]+=wfac_ispure_ss[pe2+pe2]; //EE,BB
-		w->coupling_matrix_unbinned[7*ll2+4][7*ll3+5]-=wfac_ispure_ss[pe2+pb2]; //EB,BE
-		w->coupling_matrix_unbinned[7*ll2+5][7*ll3+4]-=wfac_ispure_ss[pb2+pe2]; //BE,EB
-		w->coupling_matrix_unbinned[7*ll2+6][7*ll3+3]+=wfac_ispure_ss[pb2+pb2]; //BB,EE
-	      }
-	      else {
-		w->coupling_matrix_unbinned[7*ll2+3][7*ll3+3]+=wfac_ispure_ss[pe2+pe2]; //EE,EE
-		w->coupling_matrix_unbinned[7*ll2+4][7*ll3+4]+=wfac_ispure_ss[pe2+pb2]; //EB,EB
-		w->coupling_matrix_unbinned[7*ll2+5][7*ll3+5]+=wfac_ispure_ss[pb2+pe2]; //BE,BE
-		w->coupling_matrix_unbinned[7*ll2+6][7*ll3+6]+=wfac_ispure_ss[pb2+pb2]; //BB,BB
-	      }
-	    }
-	  }
-	}
-	for(jj=0;jj<w->ncls;jj++) {
-	  int kk;
-	  for(kk=0;kk<w->ncls;kk++) {
-            if((!pure_any) && (ll2!=ll3)) { //Symmetry
-              w->coupling_matrix_unbinned[w->ncls*ll3+jj][w->ncls*ll2+kk]=w->coupling_matrix_unbinned[w->ncls*ll2+jj][w->ncls*ll3+kk];
-              w->coupling_matrix_unbinned[w->ncls*ll3+jj][w->ncls*ll2+kk]*=sign_overall*(2*ll2+1.)/(4*M_PI);
-            }
-	    w->coupling_matrix_unbinned[w->ncls*ll2+jj][w->ncls*ll3+kk]*=sign_overall*(2*ll3+1.)/(4*M_PI);
-          }
+        if(w->ncls==7) {
+          w->coupling_matrix_unbinned[7*ll2+0][7*ll3+0]=fac*c->xi_00[ll2][ll3]; //TT,TT
+          w->coupling_matrix_unbinned[7*ll2+1][7*ll3+1]=fac*c->xi_0s[pe2][ll2][ll3]; //TE,TE
+          w->coupling_matrix_unbinned[7*ll2+2][7*ll3+2]=fac*c->xi_0s[pb2][ll2][ll3]; //TB,TB
+          w->coupling_matrix_unbinned[7*ll2+3][7*ll3+6]=fac*c->xi_mm[pe2+pe2][ll2][ll3]; //EE,BB
+          w->coupling_matrix_unbinned[7*ll2+4][7*ll3+5]=-fac*c->xi_mm[pe2+pb2][ll2][ll3]; //EB,BE
+          w->coupling_matrix_unbinned[7*ll2+5][7*ll3+4]=-fac*c->xi_mm[pb2+pe2][ll2][ll3]; //BE,EB
+          w->coupling_matrix_unbinned[7*ll2+6][7*ll3+3]=fac*c->xi_mm[pb2+pb2][ll2][ll3]; //BB,EE
+          w->coupling_matrix_unbinned[7*ll2+3][7*ll3+3]=fac*c->xi_pp[pe2+pe2][ll2][ll3]; //EE,EE
+          w->coupling_matrix_unbinned[7*ll2+4][7*ll3+4]=fac*c->xi_pp[pe2+pb2][ll2][ll3]; //EB,EB
+          w->coupling_matrix_unbinned[7*ll2+5][7*ll3+5]=fac*c->xi_pp[pb2+pe2][ll2][ll3]; //BE,BE
+          w->coupling_matrix_unbinned[7*ll2+6][7*ll3+6]=fac*c->xi_pp[pb2+pb2][ll2][ll3]; //BB,BB
         }
       }
     } //end omp for
-    if((w->ncls==1) || (w->ncls==2) || (w->ncls==7))
-      free(wigner_00);
-    if((w->ncls==2) || (w->ncls==4) || (w->ncls==7))
-      free(wigner_ss1);
-    if(w->ncls==4) {
-      if(s1 != s2)
-        free(wigner_ss2);
-    }
-    if(pure_any) {
-      free(wigner_12);
-      free(wigner_02);
-    }
   } //end omp parallel
-
+ 
+  nmt_master_calculator_free(c);
   bin_coupling_matrix(w);
 
   return w;

@@ -945,6 +945,34 @@ typedef struct {
   gsl_permutation *coupling_matrix_perm; //!< Complements \p coupling_matrix_binned_gsl for inversion.
 } nmt_workspace;
 
+typedef struct {
+  int lmax;
+  int lmax_mask;
+  int s1;
+  int s2;
+  int has_00;
+  flouble **xi_00;
+  int has_0s;
+  flouble ***xi_0s;
+  int has_ss;
+  flouble ***xi_pp;
+  flouble ***xi_mm;
+  int pure_e1;
+  int pure_e2;
+  int pure_b1;
+  int pure_b2;
+  int pure_any;
+  int npure_0s;
+  int npure_ss;
+} nmt_master_calculator;
+
+nmt_master_calculator *nmt_compute_master_coefficients(int lmax, int lmax_mask, flouble *pcl_masks,
+                                                       int s1, int s2,
+                                                       int pure_e1, int pure_b1,
+                                                       int pure_e2, int pure_b2,
+                                                       int do_teb);
+void nmt_master_calculator_free(nmt_master_calculator *c);
+
 /**
  * @brief Computes mode-coupling matrix.
  *
