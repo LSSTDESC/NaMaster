@@ -159,12 +159,279 @@ void nmt_workspace_update_binning(nmt_workspace *w,
   bin_coupling_matrix(w);
 }
 
+static int toeplitz_wrap(int il, int lmaxp1)
+{
+  if(il<0)
+    return il+lmaxp1;
+  else if(il>=lmaxp1)
+    return il-lmaxp1;
+  else
+    return il;
+}
+
+static int lend_toeplitz(int l2, int l_toeplitz, int l_exact, int dl_band, int lmax)
+{
+  int l_end;
+
+  if(l_toeplitz > 0) {
+    if(l2<=l_exact)
+      l_end = lmax;
+    else if(l2<=l_toeplitz)
+      l_end = l2+dl_band;
+    else
+      l_end = l2;
+  }
+  else
+    l_end = lmax;
+
+  return fmin(l_end, lmax);
+}
+static void populate_toeplitz(nmt_master_calculator *c, flouble **pcl_masks, int lt)
+{
+  int ic,l2;
+  double ***tplz_00, ***tplz_0s, ***tplz_pp, ***tplz_mm;
+  if(c->has_00) {
+    tplz_00=my_malloc(c->npcl*sizeof(flouble **));
+    for(ic=0;ic<c->npcl;ic++) {
+      tplz_00[ic]=my_malloc(2*sizeof(flouble *));
+      tplz_00[ic][0]=my_calloc((c->lmax+1),sizeof(flouble));
+      tplz_00[ic][1]=my_calloc((c->lmax+1),sizeof(flouble));
+    }
+  }
+  if(c->has_0s) {
+    tplz_0s=my_malloc(c->npcl*sizeof(flouble **));
+    for(ic=0;ic<c->npcl;ic++) {
+      tplz_0s=my_malloc(2*sizeof(flouble *));
+      tplz_0s[0]=my_calloc((c->lmax+1),sizeof(flouble));
+      tplz_0s[1]=my_calloc((c->lmax+1),sizeof(flouble));
+    }
+  }
+  if(c->has_ss) {
+    tplz_pp=my_malloc(c->npcl*sizeof(flouble **));
+    tplz_mm=my_malloc(c->npcl*sizeof(flouble **));
+    for(ic=0;ic<c->npcl;ic++) {
+      tplz_pp=my_malloc(2*sizeof(flouble *));
+      tplz_pp[0]=my_calloc((c->lmax+1),sizeof(flouble));
+      tplz_pp[1]=my_calloc((c->lmax+1),sizeof(flouble));
+      tplz_mm=my_malloc(2*sizeof(flouble *));
+      tplz_mm[0]=my_calloc((c->lmax+1),sizeof(flouble));
+      tplz_mm[1]=my_calloc((c->lmax+1),sizeof(flouble));
+    }
+  }
+
+  int lstart=0;
+  int max_spin=NMT_MAX(c->s1, c->s2);
+  int has_ss2=(c->s1!=0) && (c->s2!=0) && (c->s1!=c->s2);
+  int sign_overall=1;
+  if((c->s1+c->s2) & 1)
+    sign_overall=-1;
+  if(!(c->has_00))
+    lstart=max_spin;
+
+#pragma omp parallel default(none)              \
+  shared(c, lstart, pcl_masks, lt, has_ss2)     \
+  shared(tplz_00,tplz_0s,tplz_pp,tplz_mm)
+  {
+    int il3,ll2,icc;
+    int l3_list[2];
+    double *wigner_00=NULL,*wigner_ss1=NULL,*wigner_ss2=NULL;
+    if(c->has_00 || c->has_0s)
+      wigner_00=my_malloc(2*(c->lmax_mask+1)*sizeof(double));
+    if(c->has_0s || c->has_ss)
+      wigner_ss1=my_malloc(2*(c->lmax_mask+1)*sizeof(double));
+    if(has_ss2)
+      wigner_ss2=my_malloc(2*(c->lmax_mask+1)*sizeof(double));
+    else
+      wigner_ss2=wigner_ss1;
+
+    l3_list[0]=0;
+    l3_list[1]=lt;
+
+#pragma omp for schedule(dynamic)
+    for(ll2=lstart;ll2<=c->lmax;ll2++) {
+      l3_list[0]=ll2;  //Diagonal first, then column
+      for(il3=0;il3<2;il3++) {
+        int ll3=l3_list[il3];
+        int jj,l1,lmin_here,lmax_here;
+	int lmin_here_00=0,lmax_here_00=2*(c->lmax_mask+1)+1;
+	int lmin_here_ss1=0,lmax_here_ss1=2*(c->lmax_mask+1)+1;
+	int lmin_here_ss2=0,lmax_here_ss2=2*(c->lmax_mask+1)+1;
+	int lmin_here_12=0,lmax_here_12=2*(c->lmax_mask+1)+1;
+	int lmin_here_02=0,lmax_here_02=2*(c->lmax_mask+1)+1;
+
+	if(c->has_00 || c->has_0s)
+	  drc3jj(ll2,ll3,0,0,&lmin_here_00,&lmax_here_00,wigner_00,2*(c->lmax_mask+1));
+	if(c->has_0s || c->has_ss)
+	  drc3jj(ll2,ll3,c->s1,-c->s1,&lmin_here_ss1,&lmax_here_ss1,wigner_ss1,2*(c->lmax_mask+1));
+        if(has_ss2)
+          drc3jj(ll2,ll3,c->s2,-c->s2,&lmin_here_ss2,&lmax_here_ss2,wigner_ss2,2*(c->lmax_mask+1));
+        else {
+          lmin_here_ss2=lmin_here_ss1;
+          lmax_here_ss2=lmax_here_ss1;
+        }
+
+        lmin_here=NMT_MIN(lmin_here_00,lmin_here_ss1);
+        lmax_here=NMT_MAX(lmax_here_00,lmax_here_ss1);
+        lmin_here=NMT_MIN(lmin_here,lmin_here_ss2);
+        lmax_here=NMT_MAX(lmax_here,lmax_here_ss2);
+	//All lines regarding lmax are in principle unnecessary, since lmax is just l3+l2
+
+	for(l1=lmin_here;l1<=lmax_here;l1++) {
+          int ipp;
+          if(l1<=c->lmax_mask) {
+            flouble wfac;
+            int j00=l1-lmin_here_00;
+            int jss1=l1-lmin_here_ss1;
+            int jss2=l1-lmin_here_ss2;
+            for(icc=0;icc<c->npcl;icc++) {
+              double *pcl=pcl_masks[icc];
+              if(c->has_00) {
+                wfac=pcl[l1]*wigner_00[j00]*wigner_00[j00];
+                tplz_00[icc][il3][ll2]+=wfac;
+              }
+              if(c->has_0s) {
+                wfac=pcl[l1]*wigner_00[j00]*wigner_ss1[jss1];
+                tplz_0s[icc][il3][ll2]+=wfac;
+              }
+              if(c->has_ss) {
+                int suml=l1+ll2+ll3;
+                wfac=pcl[l1]*wigner_ss1[jss1]*wigner_ss2[jss2];
+
+                if(suml & 1) //Odd sum
+                  tplz_mm[icc][il3][ll2]+=wfac;
+                else
+                  tplz_pp[icc][il3][ll2]+=wfac;
+              }
+            }
+          }
+        }
+      }
+    } //end omp for
+    free(wigner_00);
+    free(wigner_ss1);
+    if(has_ss2)
+      free(wigner_ss2);
+  } //end omp parallel
+
+  for(ic=0;ic<c->npcl;ic++) {
+    //Take absolute value to avoid sqrt(-1) later
+    for(l2=0;l2<=c->lmax;l2++) {
+      if(c->has_00)
+        tplz_00[ic][0][l2]=fabs(tplz_00[ic][0][l2]);
+      if(c->has_0s)
+        tplz_0s[ic][0][l2]=fabs(tplz_0s[ic][0][l2]);
+      if(c->has_ss) {
+        tplz_pp[ic][0][l2]=fabs(tplz_pp[ic][0][l2]);
+        tplz_mm[ic][0][l2]=fabs(tplz_mm[ic][0][l2]);
+      }
+    }
+
+    //Compute column correlation coefficient
+    for(l2=0;l2<=c->lmax;l2++) {
+      double d1,d2;
+      if(c->has_00) {
+        d1=tplz_00[ic][0][l2];
+        d2=tplz_00[ic][0][lt];
+        if((d1>0) && (d2>0))
+          tplz_00[ic][1][l2]=tplz_00[ic][1][l2]/sqrt(d1*d2);
+        else
+          tplz_00[ic][1][l2]=0;
+      }
+      if(c->has_0s) {
+        d1=tplz_0s[ic][0][l2];
+        d2=tplz_0s[ic][0][lt];
+        if((d1>0) && (d2>0))
+          tplz_0s[ic][1][l2]=tplz_0s[ic][1][l2]/sqrt(d1*d2);
+        else
+          tplz_pp[ic][1][l2]=0;
+      }
+      if(c->has_ss) {
+        d1=tplz_pp[ic][0][l2];
+        d2=tplz_pp[ic][0][lt];
+        if((d1>0) && (d2>0))
+          tplz_pp[ic][1][l2]=tplz_pp[ic][1][l2]/sqrt(d1*d2);
+        else
+          tplz_pp[ic][1][l2]=0;
+        d1=tplz_mm[ic][0][l2];
+        d2=tplz_mm[ic][0][lt];
+        if((d1>0) && (d2>0))
+          tplz_mm[ic][1][l2]=tplz_mm[ic][1][l2]/sqrt(d1*d2);
+        else
+          tplz_mm[ic][1][l2]=0;
+      }
+    }
+
+    //Populate matrices
+#pragma omp parallel default(none)                      \
+  shared(c, ic, lt, tplz_00, tplz_0s, tplz_pp, tplz_mm)
+    {
+      int ll2, ll3;
+
+#pragma omp for schedule(dynamic)
+      for(ll2=0;ll2<=c->lmax;ll2++) {
+        for(ll3=0;ll3<=ll2;ll3++) {
+          int il=toeplitz_wrap(ll2+lt-ll3,c->lmax+1);
+          if(c->has_00)
+            c->xi_00[ic][ll2][ll3]=tplz_00[ic][1][il]*sqrt(tplz_00[ic][0][ll2]*tplz_00[ic][0][ll3]);
+          if(c->has_0s)
+            c->xi_0s[ic][0][ll2][ll3]=tplz_0s[ic][1][il]*sqrt(tplz_0s[ic][0][ll2]*tplz_0s[ic][0][ll3]);
+          if(c->has_ss) {
+            c->xi_pp[ic][0][ll2][ll3]=tplz_pp[ic][1][il]*sqrt(tplz_pp[ic][0][ll2]*tplz_pp[ic][0][ll3]);
+            c->xi_mm[ic][0][ll2][ll3]=tplz_mm[ic][1][il]*sqrt(tplz_mm[ic][0][ll2]*tplz_mm[ic][0][ll3]);
+          }
+          if(ll3!=ll2) {
+            if(c->has_00)
+              c->xi_00[ic][ll3][ll2]=c->xi_00[ic][ll2][ll3];
+            if(c->has_0s)
+              c->xi_0s[ic][0][ll3][ll2]=c->xi_0s[ic][0][ll2][ll3];
+            if(c->has_ss) {
+              c->xi_pp[ic][0][ll3][ll2]=c->xi_pp[ic][0][ll2][ll3];
+              c->xi_mm[ic][0][ll3][ll2]=c->xi_mm[ic][0][ll2][ll3];
+            }
+          }
+        }
+      } //end omp for
+    } //end omp parallel
+  }
+  
+  if(c->has_ss) {
+    for(ic=0;ic<c->npcl;ic++) {
+      free(tplz_pp[ic][0]);
+      free(tplz_pp[ic][1]);
+      free(tplz_pp[ic]);
+      free(tplz_mm[ic][0]);
+      free(tplz_mm[ic][1]);
+      free(tplz_mm[ic]);
+    }
+    free(tplz_pp);
+    free(tplz_mm);
+  }
+  if(c->has_0s) {
+    for(ic=0;ic<c->npcl;ic++) {
+      free(tplz_0s[ic][0]);
+      free(tplz_0s[ic][1]);
+      free(tplz_0s[ic]);
+    }
+    free(tplz_0s);
+  }
+  if(c->has_00) {
+    for(ic=0;ic<c->npcl;ic++) {
+      free(tplz_00[ic][0]);
+      free(tplz_00[ic][1]);
+      free(tplz_00[ic]);
+    }
+    free(tplz_00);
+  }
+}
+
+
 nmt_master_calculator *nmt_compute_master_coefficients(int lmax, int lmax_mask,
                                                        int npcl, flouble **pcl_masks,
                                                        int s1, int s2,
                                                        int pure_e1, int pure_b1,
                                                        int pure_e2, int pure_b2,
-                                                       int do_teb)
+                                                       int do_teb, int l_toeplitz,
+                                                       int l_exact, int dl_band)
 {
   int ic, ip, ii;
   nmt_master_calculator *c=my_malloc(sizeof(nmt_master_calculator));
@@ -252,8 +519,12 @@ nmt_master_calculator *nmt_compute_master_coefficients(int lmax, int lmax_mask,
     }
   }
 
+  if(l_toeplitz>0)
+    populate_toeplitz(c, pcl_masks, l_toeplitz);
+
   int lstart=0;
   int max_spin=NMT_MAX(c->s1, c->s2);
+  int has_ss2=(c->s1!=0) && (c->s2!=0) && (!do_teb) && (c->s1!=c->s2);
   int sign_overall=1;
   if((c->s1+c->s2) & 1)
     sign_overall=-1;
@@ -261,10 +532,10 @@ nmt_master_calculator *nmt_compute_master_coefficients(int lmax, int lmax_mask,
     lstart=max_spin;
 
 #pragma omp parallel default(none)              \
-  shared(c, lstart, do_teb, pcl_masks)
+  shared(c, lstart, do_teb, pcl_masks, has_ss2) \
+  shared(l_toeplitz, l_exact, dl_band)
   {
     int ll2,ll3,icc;
-    int has_ss2=(c->s1!=0) && (c->s2!=0) && (!do_teb) && (c->s1!=c->s2);
     double *wigner_00=NULL,*wigner_ss1=NULL,*wigner_12=NULL,*wigner_02=NULL,*wigner_ss2=NULL;
     int pe1=c->pure_e1,pe2=c->pure_e2,pb1=c->pure_b1,pb2=c->pure_b2;
     if(c->has_00 || c->has_0s)
@@ -282,6 +553,7 @@ nmt_master_calculator *nmt_compute_master_coefficients(int lmax, int lmax_mask,
 
 #pragma omp for schedule(dynamic)
     for(ll2=lstart;ll2<=c->lmax;ll2++) {
+      int l3_end=lend_toeplitz(ll2, l_toeplitz, l_exact, dl_band, c->lmax);
       int l3_start=lstart;
       if(!(c->pure_any)) //We can use symmetry
         l3_start=ll2;
@@ -469,7 +741,8 @@ void nmt_master_calculator_free(nmt_master_calculator *c)
 // coupling_matrix_out (out) : unbinned coupling matrix
 nmt_workspace *nmt_compute_coupling_matrix(nmt_field *fl1,nmt_field *fl2,
 					   nmt_binning_scheme *bin,int is_teb,
-					   int niter,int lmax_mask)
+					   int niter,int lmax_mask,
+                                           int l_toeplitz,int l_exact,int dl_band)
 {
   int l2,lmax_large,lmax_fields;
   nmt_workspace *w;
@@ -508,7 +781,7 @@ nmt_workspace *nmt_compute_coupling_matrix(nmt_field *fl1,nmt_field *fl2,
                                                            fl1->spin, fl2->spin,
                                                            fl1->pure_e,fl1->pure_b,
                                                            fl2->pure_e,fl2->pure_b,
-                                                           is_teb);
+                                                           is_teb, l_toeplitz, l_exact, dl_band);
 
   // Apply coupling coefficients
 #pragma omp parallel default(none)              \
@@ -946,14 +1219,15 @@ void nmt_compute_coupled_cell(nmt_field *fl1,nmt_field *fl2,flouble **cl_out)
 nmt_workspace *nmt_compute_power_spectra(nmt_field *fl1,nmt_field *fl2,
 					 nmt_binning_scheme *bin,nmt_workspace *w0,
 					 flouble **cl_noise,flouble **cl_proposal,flouble **cl_out,
-					 int niter,int lmax_mask)
+					 int niter,int lmax_mask,int l_toeplitz,
+                                         int l_exact,int dl_band)
 {
   int ii;
   flouble **cl_bias,**cl_data;
   nmt_workspace *w;
 
   if(w0==NULL)
-    w=nmt_compute_coupling_matrix(fl1,fl2,bin,0,niter,lmax_mask);
+    w=nmt_compute_coupling_matrix(fl1,fl2,bin,0,niter,lmax_mask,l_toeplitz,l_exact,dl_band);
   else {
     w=w0;
     if(w->lmax>fl1->lmax)

@@ -33,7 +33,9 @@ class NmtCovarianceWorkspace(object):
 
     def compute_coupling_coefficients(self, fla1, fla2,
                                       flb1=None, flb2=None,
-                                      lmax=None, n_iter=3):
+                                      lmax=None, n_iter=3,
+                                      l_toeplitz=-1,
+                                      l_exact=-1, dl_band=-1):
         """
         Computes coupling coefficients of the Gaussian covariance \
         between the power spectra of two pairs of NmtField objects \
@@ -68,7 +70,8 @@ class NmtCovarianceWorkspace(object):
             lmax = lib.get_lmax_from_cs_py(fla1.fl.cs)
 
         self.wsp = lib.covar_workspace_init_py(fla1.fl, fla2.fl, flb1.fl,
-                                               flb2.fl, lmax, n_iter)
+                                               flb2.fl, lmax, n_iter,
+                                               l_toeplitz, l_exact, dl_band)
 
     def write_to(self, fname):
         """

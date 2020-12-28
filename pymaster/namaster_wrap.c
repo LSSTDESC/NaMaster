@@ -3002,15 +3002,17 @@ SWIG_Python_NonDynamicSetAttr(PyObject *obj, PyObject *name, PyObject *value) {
 #define SWIGTYPE_p_nmt_field_flat swig_types[14]
 #define SWIGTYPE_p_nmt_flatsky_info swig_types[15]
 #define SWIGTYPE_p_nmt_k_function swig_types[16]
-#define SWIGTYPE_p_nmt_workspace swig_types[17]
-#define SWIGTYPE_p_nmt_workspace_flat swig_types[18]
-#define SWIGTYPE_p_p_double swig_types[19]
-#define SWIGTYPE_p_p_double_complex swig_types[20]
-#define SWIGTYPE_p_p_int swig_types[21]
-#define SWIGTYPE_p_p_p_double swig_types[22]
-#define SWIGTYPE_p_p_p_double_complex swig_types[23]
-static swig_type_info *swig_types[25];
-static swig_module_info swig_module = {swig_types, 24, 0, 0, 0, 0};
+#define SWIGTYPE_p_nmt_master_calculator swig_types[17]
+#define SWIGTYPE_p_nmt_workspace swig_types[18]
+#define SWIGTYPE_p_nmt_workspace_flat swig_types[19]
+#define SWIGTYPE_p_p_double swig_types[20]
+#define SWIGTYPE_p_p_double_complex swig_types[21]
+#define SWIGTYPE_p_p_int swig_types[22]
+#define SWIGTYPE_p_p_p_double swig_types[23]
+#define SWIGTYPE_p_p_p_double_complex swig_types[24]
+#define SWIGTYPE_p_p_p_p_double swig_types[25]
+static swig_type_info *swig_types[27];
+static swig_module_info swig_module = {swig_types, 26, 0, 0, 0, 0};
 #define SWIG_TypeQuery(name) SWIG_TypeQueryModule(&swig_module, &swig_module, name)
 #define SWIG_MangledTypeQuery(name) SWIG_MangledTypeQueryModule(&swig_module, &swig_module, name)
 
@@ -3904,9 +3906,10 @@ void synfast_new_flat(int nx,int ny,double lx,double ly,
 }
 
  nmt_workspace *comp_coupling_matrix(nmt_field *fl1,nmt_field *fl2,nmt_binning_scheme *bin,
-				     int is_teb,int n_iter,int lmax_mask)
+				     int is_teb,int n_iter,int lmax_mask,int l_toeplitz,
+                                     int l_exact,int dl_band)
 {
-  return nmt_compute_coupling_matrix(fl1,fl2,bin,is_teb,n_iter,lmax_mask);
+  return nmt_compute_coupling_matrix(fl1,fl2,bin,is_teb,n_iter,lmax_mask,l_toeplitz,l_exact,dl_band);
 }
 
 nmt_workspace_flat *comp_coupling_matrix_flat(nmt_field_flat *fl1,nmt_field_flat *fl2,
@@ -4015,9 +4018,10 @@ nmt_covar_workspace *read_covar_workspace(char *fname)
 
 nmt_covar_workspace *covar_workspace_init_py(nmt_field *fa1,nmt_field *fa2,
 					     nmt_field *fb1,nmt_field *fb2,
-					     int lmax,int n_iter)
+					     int lmax,int n_iter,int l_toeplitz,
+                                             int l_exact,int dl_band)
 {
-  return nmt_covar_workspace_init(fa1,fa2,fb1,fb2,lmax,n_iter);
+  return nmt_covar_workspace_init(fa1,fa2,fb1,fb2,lmax,n_iter,l_toeplitz,l_exact,dl_band);
 }
 
 void write_covar_workspace_flat(nmt_covar_workspace_flat *cw,char *fname)
@@ -4280,7 +4284,8 @@ void comp_pspec(nmt_field *fl1,nmt_field *fl2,
 		int ncl1,int nell1,double *cls1,
 		int ncl2,int nell2,double *cls2,
 		double *dout,int ndout,int n_iter,
-		int lmax_mask)
+		int lmax_mask,int l_toeplitz,int l_exact,
+                int dl_band)
 {
   int i;
   double **cl_noise,**cl_guess,**cl_out;
@@ -4300,7 +4305,8 @@ void comp_pspec(nmt_field *fl1,nmt_field *fl2,
     cl_out[i]=&(dout[i*bin->n_bands]);
   }
 
-  w=nmt_compute_power_spectra(fl1,fl2,bin,w0,cl_noise,cl_guess,cl_out,n_iter,lmax_mask);
+  w=nmt_compute_power_spectra(fl1,fl2,bin,w0,cl_noise,cl_guess,cl_out,n_iter,
+                              lmax_mask,l_toeplitz,l_exact,dl_band);
 
   free(cl_out);
   free(cl_guess);
@@ -13029,6 +13035,1209 @@ SWIGINTERN PyObject *workspace_swigregister(PyObject *SWIGUNUSEDPARM(self), PyOb
   return SWIG_Py_Void();
 }
 
+SWIGINTERN PyObject *_wrap_master_calculator_lmax_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_master_calculator *arg1 = (nmt_master_calculator *) 0 ;
+  int arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int val2 ;
+  int ecode2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:master_calculator_lmax_set",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_master_calculator, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "master_calculator_lmax_set" "', argument " "1"" of type '" "nmt_master_calculator *""'"); 
+  }
+  arg1 = (nmt_master_calculator *)(argp1);
+  ecode2 = SWIG_AsVal_int(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "master_calculator_lmax_set" "', argument " "2"" of type '" "int""'");
+  } 
+  arg2 = (int)(val2);
+  if (arg1) (arg1)->lmax = arg2;
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_master_calculator_lmax_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_master_calculator *arg1 = (nmt_master_calculator *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  int result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:master_calculator_lmax_get",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_master_calculator, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "master_calculator_lmax_get" "', argument " "1"" of type '" "nmt_master_calculator *""'"); 
+  }
+  arg1 = (nmt_master_calculator *)(argp1);
+  result = (int) ((arg1)->lmax);
+  resultobj = SWIG_From_int((int)(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_master_calculator_lmax_mask_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_master_calculator *arg1 = (nmt_master_calculator *) 0 ;
+  int arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int val2 ;
+  int ecode2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:master_calculator_lmax_mask_set",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_master_calculator, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "master_calculator_lmax_mask_set" "', argument " "1"" of type '" "nmt_master_calculator *""'"); 
+  }
+  arg1 = (nmt_master_calculator *)(argp1);
+  ecode2 = SWIG_AsVal_int(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "master_calculator_lmax_mask_set" "', argument " "2"" of type '" "int""'");
+  } 
+  arg2 = (int)(val2);
+  if (arg1) (arg1)->lmax_mask = arg2;
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_master_calculator_lmax_mask_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_master_calculator *arg1 = (nmt_master_calculator *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  int result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:master_calculator_lmax_mask_get",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_master_calculator, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "master_calculator_lmax_mask_get" "', argument " "1"" of type '" "nmt_master_calculator *""'"); 
+  }
+  arg1 = (nmt_master_calculator *)(argp1);
+  result = (int) ((arg1)->lmax_mask);
+  resultobj = SWIG_From_int((int)(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_master_calculator_npcl_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_master_calculator *arg1 = (nmt_master_calculator *) 0 ;
+  int arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int val2 ;
+  int ecode2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:master_calculator_npcl_set",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_master_calculator, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "master_calculator_npcl_set" "', argument " "1"" of type '" "nmt_master_calculator *""'"); 
+  }
+  arg1 = (nmt_master_calculator *)(argp1);
+  ecode2 = SWIG_AsVal_int(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "master_calculator_npcl_set" "', argument " "2"" of type '" "int""'");
+  } 
+  arg2 = (int)(val2);
+  if (arg1) (arg1)->npcl = arg2;
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_master_calculator_npcl_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_master_calculator *arg1 = (nmt_master_calculator *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  int result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:master_calculator_npcl_get",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_master_calculator, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "master_calculator_npcl_get" "', argument " "1"" of type '" "nmt_master_calculator *""'"); 
+  }
+  arg1 = (nmt_master_calculator *)(argp1);
+  result = (int) ((arg1)->npcl);
+  resultobj = SWIG_From_int((int)(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_master_calculator_s1_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_master_calculator *arg1 = (nmt_master_calculator *) 0 ;
+  int arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int val2 ;
+  int ecode2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:master_calculator_s1_set",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_master_calculator, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "master_calculator_s1_set" "', argument " "1"" of type '" "nmt_master_calculator *""'"); 
+  }
+  arg1 = (nmt_master_calculator *)(argp1);
+  ecode2 = SWIG_AsVal_int(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "master_calculator_s1_set" "', argument " "2"" of type '" "int""'");
+  } 
+  arg2 = (int)(val2);
+  if (arg1) (arg1)->s1 = arg2;
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_master_calculator_s1_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_master_calculator *arg1 = (nmt_master_calculator *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  int result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:master_calculator_s1_get",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_master_calculator, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "master_calculator_s1_get" "', argument " "1"" of type '" "nmt_master_calculator *""'"); 
+  }
+  arg1 = (nmt_master_calculator *)(argp1);
+  result = (int) ((arg1)->s1);
+  resultobj = SWIG_From_int((int)(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_master_calculator_s2_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_master_calculator *arg1 = (nmt_master_calculator *) 0 ;
+  int arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int val2 ;
+  int ecode2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:master_calculator_s2_set",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_master_calculator, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "master_calculator_s2_set" "', argument " "1"" of type '" "nmt_master_calculator *""'"); 
+  }
+  arg1 = (nmt_master_calculator *)(argp1);
+  ecode2 = SWIG_AsVal_int(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "master_calculator_s2_set" "', argument " "2"" of type '" "int""'");
+  } 
+  arg2 = (int)(val2);
+  if (arg1) (arg1)->s2 = arg2;
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_master_calculator_s2_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_master_calculator *arg1 = (nmt_master_calculator *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  int result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:master_calculator_s2_get",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_master_calculator, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "master_calculator_s2_get" "', argument " "1"" of type '" "nmt_master_calculator *""'"); 
+  }
+  arg1 = (nmt_master_calculator *)(argp1);
+  result = (int) ((arg1)->s2);
+  resultobj = SWIG_From_int((int)(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_master_calculator_has_00_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_master_calculator *arg1 = (nmt_master_calculator *) 0 ;
+  int arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int val2 ;
+  int ecode2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:master_calculator_has_00_set",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_master_calculator, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "master_calculator_has_00_set" "', argument " "1"" of type '" "nmt_master_calculator *""'"); 
+  }
+  arg1 = (nmt_master_calculator *)(argp1);
+  ecode2 = SWIG_AsVal_int(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "master_calculator_has_00_set" "', argument " "2"" of type '" "int""'");
+  } 
+  arg2 = (int)(val2);
+  if (arg1) (arg1)->has_00 = arg2;
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_master_calculator_has_00_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_master_calculator *arg1 = (nmt_master_calculator *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  int result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:master_calculator_has_00_get",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_master_calculator, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "master_calculator_has_00_get" "', argument " "1"" of type '" "nmt_master_calculator *""'"); 
+  }
+  arg1 = (nmt_master_calculator *)(argp1);
+  result = (int) ((arg1)->has_00);
+  resultobj = SWIG_From_int((int)(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_master_calculator_xi_00_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_master_calculator *arg1 = (nmt_master_calculator *) 0 ;
+  flouble ***arg2 = (flouble ***) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  void *argp2 = 0 ;
+  int res2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:master_calculator_xi_00_set",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_master_calculator, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "master_calculator_xi_00_set" "', argument " "1"" of type '" "nmt_master_calculator *""'"); 
+  }
+  arg1 = (nmt_master_calculator *)(argp1);
+  res2 = SWIG_ConvertPtr(obj1, &argp2,SWIGTYPE_p_p_p_double, 0 |  0 );
+  if (!SWIG_IsOK(res2)) {
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "master_calculator_xi_00_set" "', argument " "2"" of type '" "flouble ***""'"); 
+  }
+  arg2 = (flouble ***)(argp2);
+  if (arg1) (arg1)->xi_00 = arg2;
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_master_calculator_xi_00_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_master_calculator *arg1 = (nmt_master_calculator *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  flouble ***result = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:master_calculator_xi_00_get",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_master_calculator, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "master_calculator_xi_00_get" "', argument " "1"" of type '" "nmt_master_calculator *""'"); 
+  }
+  arg1 = (nmt_master_calculator *)(argp1);
+  result = (flouble ***) ((arg1)->xi_00);
+  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_p_p_double, 0 |  0 );
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_master_calculator_has_0s_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_master_calculator *arg1 = (nmt_master_calculator *) 0 ;
+  int arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int val2 ;
+  int ecode2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:master_calculator_has_0s_set",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_master_calculator, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "master_calculator_has_0s_set" "', argument " "1"" of type '" "nmt_master_calculator *""'"); 
+  }
+  arg1 = (nmt_master_calculator *)(argp1);
+  ecode2 = SWIG_AsVal_int(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "master_calculator_has_0s_set" "', argument " "2"" of type '" "int""'");
+  } 
+  arg2 = (int)(val2);
+  if (arg1) (arg1)->has_0s = arg2;
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_master_calculator_has_0s_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_master_calculator *arg1 = (nmt_master_calculator *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  int result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:master_calculator_has_0s_get",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_master_calculator, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "master_calculator_has_0s_get" "', argument " "1"" of type '" "nmt_master_calculator *""'"); 
+  }
+  arg1 = (nmt_master_calculator *)(argp1);
+  result = (int) ((arg1)->has_0s);
+  resultobj = SWIG_From_int((int)(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_master_calculator_xi_0s_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_master_calculator *arg1 = (nmt_master_calculator *) 0 ;
+  flouble ****arg2 = (flouble ****) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  void *argp2 = 0 ;
+  int res2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:master_calculator_xi_0s_set",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_master_calculator, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "master_calculator_xi_0s_set" "', argument " "1"" of type '" "nmt_master_calculator *""'"); 
+  }
+  arg1 = (nmt_master_calculator *)(argp1);
+  res2 = SWIG_ConvertPtr(obj1, &argp2,SWIGTYPE_p_p_p_p_double, 0 |  0 );
+  if (!SWIG_IsOK(res2)) {
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "master_calculator_xi_0s_set" "', argument " "2"" of type '" "flouble ****""'"); 
+  }
+  arg2 = (flouble ****)(argp2);
+  if (arg1) (arg1)->xi_0s = arg2;
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_master_calculator_xi_0s_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_master_calculator *arg1 = (nmt_master_calculator *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  flouble ****result = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:master_calculator_xi_0s_get",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_master_calculator, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "master_calculator_xi_0s_get" "', argument " "1"" of type '" "nmt_master_calculator *""'"); 
+  }
+  arg1 = (nmt_master_calculator *)(argp1);
+  result = (flouble ****) ((arg1)->xi_0s);
+  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_p_p_p_double, 0 |  0 );
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_master_calculator_has_ss_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_master_calculator *arg1 = (nmt_master_calculator *) 0 ;
+  int arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int val2 ;
+  int ecode2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:master_calculator_has_ss_set",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_master_calculator, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "master_calculator_has_ss_set" "', argument " "1"" of type '" "nmt_master_calculator *""'"); 
+  }
+  arg1 = (nmt_master_calculator *)(argp1);
+  ecode2 = SWIG_AsVal_int(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "master_calculator_has_ss_set" "', argument " "2"" of type '" "int""'");
+  } 
+  arg2 = (int)(val2);
+  if (arg1) (arg1)->has_ss = arg2;
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_master_calculator_has_ss_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_master_calculator *arg1 = (nmt_master_calculator *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  int result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:master_calculator_has_ss_get",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_master_calculator, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "master_calculator_has_ss_get" "', argument " "1"" of type '" "nmt_master_calculator *""'"); 
+  }
+  arg1 = (nmt_master_calculator *)(argp1);
+  result = (int) ((arg1)->has_ss);
+  resultobj = SWIG_From_int((int)(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_master_calculator_xi_pp_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_master_calculator *arg1 = (nmt_master_calculator *) 0 ;
+  flouble ****arg2 = (flouble ****) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  void *argp2 = 0 ;
+  int res2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:master_calculator_xi_pp_set",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_master_calculator, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "master_calculator_xi_pp_set" "', argument " "1"" of type '" "nmt_master_calculator *""'"); 
+  }
+  arg1 = (nmt_master_calculator *)(argp1);
+  res2 = SWIG_ConvertPtr(obj1, &argp2,SWIGTYPE_p_p_p_p_double, 0 |  0 );
+  if (!SWIG_IsOK(res2)) {
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "master_calculator_xi_pp_set" "', argument " "2"" of type '" "flouble ****""'"); 
+  }
+  arg2 = (flouble ****)(argp2);
+  if (arg1) (arg1)->xi_pp = arg2;
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_master_calculator_xi_pp_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_master_calculator *arg1 = (nmt_master_calculator *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  flouble ****result = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:master_calculator_xi_pp_get",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_master_calculator, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "master_calculator_xi_pp_get" "', argument " "1"" of type '" "nmt_master_calculator *""'"); 
+  }
+  arg1 = (nmt_master_calculator *)(argp1);
+  result = (flouble ****) ((arg1)->xi_pp);
+  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_p_p_p_double, 0 |  0 );
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_master_calculator_xi_mm_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_master_calculator *arg1 = (nmt_master_calculator *) 0 ;
+  flouble ****arg2 = (flouble ****) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  void *argp2 = 0 ;
+  int res2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:master_calculator_xi_mm_set",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_master_calculator, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "master_calculator_xi_mm_set" "', argument " "1"" of type '" "nmt_master_calculator *""'"); 
+  }
+  arg1 = (nmt_master_calculator *)(argp1);
+  res2 = SWIG_ConvertPtr(obj1, &argp2,SWIGTYPE_p_p_p_p_double, 0 |  0 );
+  if (!SWIG_IsOK(res2)) {
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "master_calculator_xi_mm_set" "', argument " "2"" of type '" "flouble ****""'"); 
+  }
+  arg2 = (flouble ****)(argp2);
+  if (arg1) (arg1)->xi_mm = arg2;
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_master_calculator_xi_mm_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_master_calculator *arg1 = (nmt_master_calculator *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  flouble ****result = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:master_calculator_xi_mm_get",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_master_calculator, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "master_calculator_xi_mm_get" "', argument " "1"" of type '" "nmt_master_calculator *""'"); 
+  }
+  arg1 = (nmt_master_calculator *)(argp1);
+  result = (flouble ****) ((arg1)->xi_mm);
+  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_p_p_p_double, 0 |  0 );
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_master_calculator_pure_e1_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_master_calculator *arg1 = (nmt_master_calculator *) 0 ;
+  int arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int val2 ;
+  int ecode2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:master_calculator_pure_e1_set",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_master_calculator, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "master_calculator_pure_e1_set" "', argument " "1"" of type '" "nmt_master_calculator *""'"); 
+  }
+  arg1 = (nmt_master_calculator *)(argp1);
+  ecode2 = SWIG_AsVal_int(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "master_calculator_pure_e1_set" "', argument " "2"" of type '" "int""'");
+  } 
+  arg2 = (int)(val2);
+  if (arg1) (arg1)->pure_e1 = arg2;
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_master_calculator_pure_e1_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_master_calculator *arg1 = (nmt_master_calculator *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  int result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:master_calculator_pure_e1_get",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_master_calculator, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "master_calculator_pure_e1_get" "', argument " "1"" of type '" "nmt_master_calculator *""'"); 
+  }
+  arg1 = (nmt_master_calculator *)(argp1);
+  result = (int) ((arg1)->pure_e1);
+  resultobj = SWIG_From_int((int)(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_master_calculator_pure_e2_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_master_calculator *arg1 = (nmt_master_calculator *) 0 ;
+  int arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int val2 ;
+  int ecode2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:master_calculator_pure_e2_set",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_master_calculator, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "master_calculator_pure_e2_set" "', argument " "1"" of type '" "nmt_master_calculator *""'"); 
+  }
+  arg1 = (nmt_master_calculator *)(argp1);
+  ecode2 = SWIG_AsVal_int(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "master_calculator_pure_e2_set" "', argument " "2"" of type '" "int""'");
+  } 
+  arg2 = (int)(val2);
+  if (arg1) (arg1)->pure_e2 = arg2;
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_master_calculator_pure_e2_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_master_calculator *arg1 = (nmt_master_calculator *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  int result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:master_calculator_pure_e2_get",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_master_calculator, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "master_calculator_pure_e2_get" "', argument " "1"" of type '" "nmt_master_calculator *""'"); 
+  }
+  arg1 = (nmt_master_calculator *)(argp1);
+  result = (int) ((arg1)->pure_e2);
+  resultobj = SWIG_From_int((int)(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_master_calculator_pure_b1_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_master_calculator *arg1 = (nmt_master_calculator *) 0 ;
+  int arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int val2 ;
+  int ecode2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:master_calculator_pure_b1_set",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_master_calculator, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "master_calculator_pure_b1_set" "', argument " "1"" of type '" "nmt_master_calculator *""'"); 
+  }
+  arg1 = (nmt_master_calculator *)(argp1);
+  ecode2 = SWIG_AsVal_int(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "master_calculator_pure_b1_set" "', argument " "2"" of type '" "int""'");
+  } 
+  arg2 = (int)(val2);
+  if (arg1) (arg1)->pure_b1 = arg2;
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_master_calculator_pure_b1_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_master_calculator *arg1 = (nmt_master_calculator *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  int result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:master_calculator_pure_b1_get",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_master_calculator, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "master_calculator_pure_b1_get" "', argument " "1"" of type '" "nmt_master_calculator *""'"); 
+  }
+  arg1 = (nmt_master_calculator *)(argp1);
+  result = (int) ((arg1)->pure_b1);
+  resultobj = SWIG_From_int((int)(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_master_calculator_pure_b2_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_master_calculator *arg1 = (nmt_master_calculator *) 0 ;
+  int arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int val2 ;
+  int ecode2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:master_calculator_pure_b2_set",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_master_calculator, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "master_calculator_pure_b2_set" "', argument " "1"" of type '" "nmt_master_calculator *""'"); 
+  }
+  arg1 = (nmt_master_calculator *)(argp1);
+  ecode2 = SWIG_AsVal_int(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "master_calculator_pure_b2_set" "', argument " "2"" of type '" "int""'");
+  } 
+  arg2 = (int)(val2);
+  if (arg1) (arg1)->pure_b2 = arg2;
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_master_calculator_pure_b2_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_master_calculator *arg1 = (nmt_master_calculator *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  int result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:master_calculator_pure_b2_get",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_master_calculator, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "master_calculator_pure_b2_get" "', argument " "1"" of type '" "nmt_master_calculator *""'"); 
+  }
+  arg1 = (nmt_master_calculator *)(argp1);
+  result = (int) ((arg1)->pure_b2);
+  resultobj = SWIG_From_int((int)(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_master_calculator_pure_any_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_master_calculator *arg1 = (nmt_master_calculator *) 0 ;
+  int arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int val2 ;
+  int ecode2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:master_calculator_pure_any_set",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_master_calculator, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "master_calculator_pure_any_set" "', argument " "1"" of type '" "nmt_master_calculator *""'"); 
+  }
+  arg1 = (nmt_master_calculator *)(argp1);
+  ecode2 = SWIG_AsVal_int(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "master_calculator_pure_any_set" "', argument " "2"" of type '" "int""'");
+  } 
+  arg2 = (int)(val2);
+  if (arg1) (arg1)->pure_any = arg2;
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_master_calculator_pure_any_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_master_calculator *arg1 = (nmt_master_calculator *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  int result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:master_calculator_pure_any_get",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_master_calculator, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "master_calculator_pure_any_get" "', argument " "1"" of type '" "nmt_master_calculator *""'"); 
+  }
+  arg1 = (nmt_master_calculator *)(argp1);
+  result = (int) ((arg1)->pure_any);
+  resultobj = SWIG_From_int((int)(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_master_calculator_npure_0s_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_master_calculator *arg1 = (nmt_master_calculator *) 0 ;
+  int arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int val2 ;
+  int ecode2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:master_calculator_npure_0s_set",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_master_calculator, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "master_calculator_npure_0s_set" "', argument " "1"" of type '" "nmt_master_calculator *""'"); 
+  }
+  arg1 = (nmt_master_calculator *)(argp1);
+  ecode2 = SWIG_AsVal_int(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "master_calculator_npure_0s_set" "', argument " "2"" of type '" "int""'");
+  } 
+  arg2 = (int)(val2);
+  if (arg1) (arg1)->npure_0s = arg2;
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_master_calculator_npure_0s_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_master_calculator *arg1 = (nmt_master_calculator *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  int result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:master_calculator_npure_0s_get",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_master_calculator, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "master_calculator_npure_0s_get" "', argument " "1"" of type '" "nmt_master_calculator *""'"); 
+  }
+  arg1 = (nmt_master_calculator *)(argp1);
+  result = (int) ((arg1)->npure_0s);
+  resultobj = SWIG_From_int((int)(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_master_calculator_npure_ss_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_master_calculator *arg1 = (nmt_master_calculator *) 0 ;
+  int arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int val2 ;
+  int ecode2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:master_calculator_npure_ss_set",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_master_calculator, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "master_calculator_npure_ss_set" "', argument " "1"" of type '" "nmt_master_calculator *""'"); 
+  }
+  arg1 = (nmt_master_calculator *)(argp1);
+  ecode2 = SWIG_AsVal_int(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "master_calculator_npure_ss_set" "', argument " "2"" of type '" "int""'");
+  } 
+  arg2 = (int)(val2);
+  if (arg1) (arg1)->npure_ss = arg2;
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_master_calculator_npure_ss_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_master_calculator *arg1 = (nmt_master_calculator *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  int result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:master_calculator_npure_ss_get",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_master_calculator, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "master_calculator_npure_ss_get" "', argument " "1"" of type '" "nmt_master_calculator *""'"); 
+  }
+  arg1 = (nmt_master_calculator *)(argp1);
+  result = (int) ((arg1)->npure_ss);
+  resultobj = SWIG_From_int((int)(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_new_master_calculator(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_master_calculator *result = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)":new_master_calculator")) SWIG_fail;
+  {
+    try {
+      result = (nmt_master_calculator *)calloc(1, sizeof(nmt_master_calculator));
+    }
+    finally {
+      SWIG_exception(SWIG_RuntimeError,nmt_error_message);
+    }
+  }
+  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_nmt_master_calculator, SWIG_POINTER_NEW |  0 );
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_delete_master_calculator(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_master_calculator *arg1 = (nmt_master_calculator *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:delete_master_calculator",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_master_calculator, SWIG_POINTER_DISOWN |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "delete_master_calculator" "', argument " "1"" of type '" "nmt_master_calculator *""'"); 
+  }
+  arg1 = (nmt_master_calculator *)(argp1);
+  {
+    try {
+      free((char *) arg1);
+    }
+    finally {
+      SWIG_exception(SWIG_RuntimeError,nmt_error_message);
+    }
+  }
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *master_calculator_swigregister(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *obj;
+  if (!PyArg_ParseTuple(args,(char*)"O:swigregister", &obj)) return NULL;
+  SWIG_TypeNewClientData(SWIGTYPE_p_nmt_master_calculator, SWIG_NewClientData(obj));
+  return SWIG_Py_Void();
+}
+
+SWIGINTERN PyObject *_wrap_compute_master_coefficients(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  int arg1 ;
+  int arg2 ;
+  int arg3 ;
+  flouble **arg4 = (flouble **) 0 ;
+  int arg5 ;
+  int arg6 ;
+  int arg7 ;
+  int arg8 ;
+  int arg9 ;
+  int arg10 ;
+  int arg11 ;
+  int arg12 ;
+  int arg13 ;
+  int arg14 ;
+  int val1 ;
+  int ecode1 = 0 ;
+  int val2 ;
+  int ecode2 = 0 ;
+  int val3 ;
+  int ecode3 = 0 ;
+  void *argp4 = 0 ;
+  int res4 = 0 ;
+  int val5 ;
+  int ecode5 = 0 ;
+  int val6 ;
+  int ecode6 = 0 ;
+  int val7 ;
+  int ecode7 = 0 ;
+  int val8 ;
+  int ecode8 = 0 ;
+  int val9 ;
+  int ecode9 = 0 ;
+  int val10 ;
+  int ecode10 = 0 ;
+  int val11 ;
+  int ecode11 = 0 ;
+  int val12 ;
+  int ecode12 = 0 ;
+  int val13 ;
+  int ecode13 = 0 ;
+  int val14 ;
+  int ecode14 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  PyObject * obj2 = 0 ;
+  PyObject * obj3 = 0 ;
+  PyObject * obj4 = 0 ;
+  PyObject * obj5 = 0 ;
+  PyObject * obj6 = 0 ;
+  PyObject * obj7 = 0 ;
+  PyObject * obj8 = 0 ;
+  PyObject * obj9 = 0 ;
+  PyObject * obj10 = 0 ;
+  PyObject * obj11 = 0 ;
+  PyObject * obj12 = 0 ;
+  PyObject * obj13 = 0 ;
+  nmt_master_calculator *result = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OOOOOOOOOOOOOO:compute_master_coefficients",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6,&obj7,&obj8,&obj9,&obj10,&obj11,&obj12,&obj13)) SWIG_fail;
+  ecode1 = SWIG_AsVal_int(obj0, &val1);
+  if (!SWIG_IsOK(ecode1)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "compute_master_coefficients" "', argument " "1"" of type '" "int""'");
+  } 
+  arg1 = (int)(val1);
+  ecode2 = SWIG_AsVal_int(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "compute_master_coefficients" "', argument " "2"" of type '" "int""'");
+  } 
+  arg2 = (int)(val2);
+  ecode3 = SWIG_AsVal_int(obj2, &val3);
+  if (!SWIG_IsOK(ecode3)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "compute_master_coefficients" "', argument " "3"" of type '" "int""'");
+  } 
+  arg3 = (int)(val3);
+  res4 = SWIG_ConvertPtr(obj3, &argp4,SWIGTYPE_p_p_double, 0 |  0 );
+  if (!SWIG_IsOK(res4)) {
+    SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "compute_master_coefficients" "', argument " "4"" of type '" "flouble **""'"); 
+  }
+  arg4 = (flouble **)(argp4);
+  ecode5 = SWIG_AsVal_int(obj4, &val5);
+  if (!SWIG_IsOK(ecode5)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode5), "in method '" "compute_master_coefficients" "', argument " "5"" of type '" "int""'");
+  } 
+  arg5 = (int)(val5);
+  ecode6 = SWIG_AsVal_int(obj5, &val6);
+  if (!SWIG_IsOK(ecode6)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode6), "in method '" "compute_master_coefficients" "', argument " "6"" of type '" "int""'");
+  } 
+  arg6 = (int)(val6);
+  ecode7 = SWIG_AsVal_int(obj6, &val7);
+  if (!SWIG_IsOK(ecode7)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode7), "in method '" "compute_master_coefficients" "', argument " "7"" of type '" "int""'");
+  } 
+  arg7 = (int)(val7);
+  ecode8 = SWIG_AsVal_int(obj7, &val8);
+  if (!SWIG_IsOK(ecode8)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode8), "in method '" "compute_master_coefficients" "', argument " "8"" of type '" "int""'");
+  } 
+  arg8 = (int)(val8);
+  ecode9 = SWIG_AsVal_int(obj8, &val9);
+  if (!SWIG_IsOK(ecode9)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode9), "in method '" "compute_master_coefficients" "', argument " "9"" of type '" "int""'");
+  } 
+  arg9 = (int)(val9);
+  ecode10 = SWIG_AsVal_int(obj9, &val10);
+  if (!SWIG_IsOK(ecode10)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode10), "in method '" "compute_master_coefficients" "', argument " "10"" of type '" "int""'");
+  } 
+  arg10 = (int)(val10);
+  ecode11 = SWIG_AsVal_int(obj10, &val11);
+  if (!SWIG_IsOK(ecode11)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode11), "in method '" "compute_master_coefficients" "', argument " "11"" of type '" "int""'");
+  } 
+  arg11 = (int)(val11);
+  ecode12 = SWIG_AsVal_int(obj11, &val12);
+  if (!SWIG_IsOK(ecode12)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode12), "in method '" "compute_master_coefficients" "', argument " "12"" of type '" "int""'");
+  } 
+  arg12 = (int)(val12);
+  ecode13 = SWIG_AsVal_int(obj12, &val13);
+  if (!SWIG_IsOK(ecode13)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode13), "in method '" "compute_master_coefficients" "', argument " "13"" of type '" "int""'");
+  } 
+  arg13 = (int)(val13);
+  ecode14 = SWIG_AsVal_int(obj13, &val14);
+  if (!SWIG_IsOK(ecode14)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode14), "in method '" "compute_master_coefficients" "', argument " "14"" of type '" "int""'");
+  } 
+  arg14 = (int)(val14);
+  result = (nmt_master_calculator *)nmt_compute_master_coefficients(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13,arg14);
+  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_nmt_master_calculator, 0 |  0 );
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_master_calculator_free(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_master_calculator *arg1 = (nmt_master_calculator *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:master_calculator_free",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_master_calculator, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "master_calculator_free" "', argument " "1"" of type '" "nmt_master_calculator *""'"); 
+  }
+  arg1 = (nmt_master_calculator *)(argp1);
+  nmt_master_calculator_free(arg1);
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
 SWIGINTERN PyObject *_wrap_compute_coupling_matrix(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   nmt_field *arg1 = (nmt_field *) 0 ;
@@ -13037,6 +14246,9 @@ SWIGINTERN PyObject *_wrap_compute_coupling_matrix(PyObject *SWIGUNUSEDPARM(self
   int arg4 ;
   int arg5 ;
   int arg6 ;
+  int arg7 ;
+  int arg8 ;
+  int arg9 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   void *argp2 = 0 ;
@@ -13049,15 +14261,24 @@ SWIGINTERN PyObject *_wrap_compute_coupling_matrix(PyObject *SWIGUNUSEDPARM(self
   int ecode5 = 0 ;
   int val6 ;
   int ecode6 = 0 ;
+  int val7 ;
+  int ecode7 = 0 ;
+  int val8 ;
+  int ecode8 = 0 ;
+  int val9 ;
+  int ecode9 = 0 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   PyObject * obj2 = 0 ;
   PyObject * obj3 = 0 ;
   PyObject * obj4 = 0 ;
   PyObject * obj5 = 0 ;
+  PyObject * obj6 = 0 ;
+  PyObject * obj7 = 0 ;
+  PyObject * obj8 = 0 ;
   nmt_workspace *result = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"OOOOOO:compute_coupling_matrix",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOOOOOOOO:compute_coupling_matrix",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6,&obj7,&obj8)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_field, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "compute_coupling_matrix" "', argument " "1"" of type '" "nmt_field *""'"); 
@@ -13088,7 +14309,22 @@ SWIGINTERN PyObject *_wrap_compute_coupling_matrix(PyObject *SWIGUNUSEDPARM(self
     SWIG_exception_fail(SWIG_ArgError(ecode6), "in method '" "compute_coupling_matrix" "', argument " "6"" of type '" "int""'");
   } 
   arg6 = (int)(val6);
-  result = (nmt_workspace *)nmt_compute_coupling_matrix(arg1,arg2,arg3,arg4,arg5,arg6);
+  ecode7 = SWIG_AsVal_int(obj6, &val7);
+  if (!SWIG_IsOK(ecode7)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode7), "in method '" "compute_coupling_matrix" "', argument " "7"" of type '" "int""'");
+  } 
+  arg7 = (int)(val7);
+  ecode8 = SWIG_AsVal_int(obj7, &val8);
+  if (!SWIG_IsOK(ecode8)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode8), "in method '" "compute_coupling_matrix" "', argument " "8"" of type '" "int""'");
+  } 
+  arg8 = (int)(val8);
+  ecode9 = SWIG_AsVal_int(obj8, &val9);
+  if (!SWIG_IsOK(ecode9)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode9), "in method '" "compute_coupling_matrix" "', argument " "9"" of type '" "int""'");
+  } 
+  arg9 = (int)(val9);
+  result = (nmt_workspace *)nmt_compute_coupling_matrix(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9);
   resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_nmt_workspace, 0 |  0 );
   return resultobj;
 fail:
@@ -13524,6 +14760,9 @@ SWIGINTERN PyObject *_wrap_compute_power_spectra(PyObject *SWIGUNUSEDPARM(self),
   flouble **arg7 = (flouble **) 0 ;
   int arg8 ;
   int arg9 ;
+  int arg10 ;
+  int arg11 ;
+  int arg12 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   void *argp2 = 0 ;
@@ -13542,6 +14781,12 @@ SWIGINTERN PyObject *_wrap_compute_power_spectra(PyObject *SWIGUNUSEDPARM(self),
   int ecode8 = 0 ;
   int val9 ;
   int ecode9 = 0 ;
+  int val10 ;
+  int ecode10 = 0 ;
+  int val11 ;
+  int ecode11 = 0 ;
+  int val12 ;
+  int ecode12 = 0 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   PyObject * obj2 = 0 ;
@@ -13551,9 +14796,12 @@ SWIGINTERN PyObject *_wrap_compute_power_spectra(PyObject *SWIGUNUSEDPARM(self),
   PyObject * obj6 = 0 ;
   PyObject * obj7 = 0 ;
   PyObject * obj8 = 0 ;
+  PyObject * obj9 = 0 ;
+  PyObject * obj10 = 0 ;
+  PyObject * obj11 = 0 ;
   nmt_workspace *result = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"OOOOOOOOO:compute_power_spectra",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6,&obj7,&obj8)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOOOOOOOOOOO:compute_power_spectra",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6,&obj7,&obj8,&obj9,&obj10,&obj11)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_field, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "compute_power_spectra" "', argument " "1"" of type '" "nmt_field *""'"); 
@@ -13599,7 +14847,22 @@ SWIGINTERN PyObject *_wrap_compute_power_spectra(PyObject *SWIGUNUSEDPARM(self),
     SWIG_exception_fail(SWIG_ArgError(ecode9), "in method '" "compute_power_spectra" "', argument " "9"" of type '" "int""'");
   } 
   arg9 = (int)(val9);
-  result = (nmt_workspace *)nmt_compute_power_spectra(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9);
+  ecode10 = SWIG_AsVal_int(obj9, &val10);
+  if (!SWIG_IsOK(ecode10)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode10), "in method '" "compute_power_spectra" "', argument " "10"" of type '" "int""'");
+  } 
+  arg10 = (int)(val10);
+  ecode11 = SWIG_AsVal_int(obj10, &val11);
+  if (!SWIG_IsOK(ecode11)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode11), "in method '" "compute_power_spectra" "', argument " "11"" of type '" "int""'");
+  } 
+  arg11 = (int)(val11);
+  ecode12 = SWIG_AsVal_int(obj11, &val12);
+  if (!SWIG_IsOK(ecode12)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode12), "in method '" "compute_power_spectra" "', argument " "12"" of type '" "int""'");
+  } 
+  arg12 = (int)(val12);
+  result = (nmt_workspace *)nmt_compute_power_spectra(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12);
   resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_nmt_workspace, 0 |  0 );
   return resultobj;
 fail:
@@ -14908,6 +16171,9 @@ SWIGINTERN PyObject *_wrap_covar_workspace_init(PyObject *SWIGUNUSEDPARM(self), 
   nmt_field *arg4 = (nmt_field *) 0 ;
   int arg5 ;
   int arg6 ;
+  int arg7 ;
+  int arg8 ;
+  int arg9 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   void *argp2 = 0 ;
@@ -14920,15 +16186,24 @@ SWIGINTERN PyObject *_wrap_covar_workspace_init(PyObject *SWIGUNUSEDPARM(self), 
   int ecode5 = 0 ;
   int val6 ;
   int ecode6 = 0 ;
+  int val7 ;
+  int ecode7 = 0 ;
+  int val8 ;
+  int ecode8 = 0 ;
+  int val9 ;
+  int ecode9 = 0 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   PyObject * obj2 = 0 ;
   PyObject * obj3 = 0 ;
   PyObject * obj4 = 0 ;
   PyObject * obj5 = 0 ;
+  PyObject * obj6 = 0 ;
+  PyObject * obj7 = 0 ;
+  PyObject * obj8 = 0 ;
   nmt_covar_workspace *result = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"OOOOOO:covar_workspace_init",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOOOOOOOO:covar_workspace_init",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6,&obj7,&obj8)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_field, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "covar_workspace_init" "', argument " "1"" of type '" "nmt_field *""'"); 
@@ -14959,7 +16234,22 @@ SWIGINTERN PyObject *_wrap_covar_workspace_init(PyObject *SWIGUNUSEDPARM(self), 
     SWIG_exception_fail(SWIG_ArgError(ecode6), "in method '" "covar_workspace_init" "', argument " "6"" of type '" "int""'");
   } 
   arg6 = (int)(val6);
-  result = (nmt_covar_workspace *)nmt_covar_workspace_init(arg1,arg2,arg3,arg4,arg5,arg6);
+  ecode7 = SWIG_AsVal_int(obj6, &val7);
+  if (!SWIG_IsOK(ecode7)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode7), "in method '" "covar_workspace_init" "', argument " "7"" of type '" "int""'");
+  } 
+  arg7 = (int)(val7);
+  ecode8 = SWIG_AsVal_int(obj7, &val8);
+  if (!SWIG_IsOK(ecode8)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode8), "in method '" "covar_workspace_init" "', argument " "8"" of type '" "int""'");
+  } 
+  arg8 = (int)(val8);
+  ecode9 = SWIG_AsVal_int(obj8, &val9);
+  if (!SWIG_IsOK(ecode9)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode9), "in method '" "covar_workspace_init" "', argument " "9"" of type '" "int""'");
+  } 
+  arg9 = (int)(val9);
+  result = (nmt_covar_workspace *)nmt_covar_workspace_init(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9);
   resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_nmt_covar_workspace, 0 |  0 );
   return resultobj;
 fail:
@@ -18836,6 +20126,9 @@ SWIGINTERN PyObject *_wrap_comp_coupling_matrix(PyObject *SWIGUNUSEDPARM(self), 
   int arg4 ;
   int arg5 ;
   int arg6 ;
+  int arg7 ;
+  int arg8 ;
+  int arg9 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   void *argp2 = 0 ;
@@ -18848,15 +20141,24 @@ SWIGINTERN PyObject *_wrap_comp_coupling_matrix(PyObject *SWIGUNUSEDPARM(self), 
   int ecode5 = 0 ;
   int val6 ;
   int ecode6 = 0 ;
+  int val7 ;
+  int ecode7 = 0 ;
+  int val8 ;
+  int ecode8 = 0 ;
+  int val9 ;
+  int ecode9 = 0 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   PyObject * obj2 = 0 ;
   PyObject * obj3 = 0 ;
   PyObject * obj4 = 0 ;
   PyObject * obj5 = 0 ;
+  PyObject * obj6 = 0 ;
+  PyObject * obj7 = 0 ;
+  PyObject * obj8 = 0 ;
   nmt_workspace *result = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"OOOOOO:comp_coupling_matrix",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOOOOOOOO:comp_coupling_matrix",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6,&obj7,&obj8)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_field, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "comp_coupling_matrix" "', argument " "1"" of type '" "nmt_field *""'"); 
@@ -18887,9 +20189,24 @@ SWIGINTERN PyObject *_wrap_comp_coupling_matrix(PyObject *SWIGUNUSEDPARM(self), 
     SWIG_exception_fail(SWIG_ArgError(ecode6), "in method '" "comp_coupling_matrix" "', argument " "6"" of type '" "int""'");
   } 
   arg6 = (int)(val6);
+  ecode7 = SWIG_AsVal_int(obj6, &val7);
+  if (!SWIG_IsOK(ecode7)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode7), "in method '" "comp_coupling_matrix" "', argument " "7"" of type '" "int""'");
+  } 
+  arg7 = (int)(val7);
+  ecode8 = SWIG_AsVal_int(obj7, &val8);
+  if (!SWIG_IsOK(ecode8)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode8), "in method '" "comp_coupling_matrix" "', argument " "8"" of type '" "int""'");
+  } 
+  arg8 = (int)(val8);
+  ecode9 = SWIG_AsVal_int(obj8, &val9);
+  if (!SWIG_IsOK(ecode9)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode9), "in method '" "comp_coupling_matrix" "', argument " "9"" of type '" "int""'");
+  } 
+  arg9 = (int)(val9);
   {
     try {
-      result = (nmt_workspace *)comp_coupling_matrix(arg1,arg2,arg3,arg4,arg5,arg6);
+      result = (nmt_workspace *)comp_coupling_matrix(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9);
     }
     finally {
       SWIG_exception(SWIG_RuntimeError,nmt_error_message);
@@ -19572,6 +20889,9 @@ SWIGINTERN PyObject *_wrap_covar_workspace_init_py(PyObject *SWIGUNUSEDPARM(self
   nmt_field *arg4 = (nmt_field *) 0 ;
   int arg5 ;
   int arg6 ;
+  int arg7 ;
+  int arg8 ;
+  int arg9 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   void *argp2 = 0 ;
@@ -19584,15 +20904,24 @@ SWIGINTERN PyObject *_wrap_covar_workspace_init_py(PyObject *SWIGUNUSEDPARM(self
   int ecode5 = 0 ;
   int val6 ;
   int ecode6 = 0 ;
+  int val7 ;
+  int ecode7 = 0 ;
+  int val8 ;
+  int ecode8 = 0 ;
+  int val9 ;
+  int ecode9 = 0 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   PyObject * obj2 = 0 ;
   PyObject * obj3 = 0 ;
   PyObject * obj4 = 0 ;
   PyObject * obj5 = 0 ;
+  PyObject * obj6 = 0 ;
+  PyObject * obj7 = 0 ;
+  PyObject * obj8 = 0 ;
   nmt_covar_workspace *result = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"OOOOOO:covar_workspace_init_py",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOOOOOOOO:covar_workspace_init_py",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6,&obj7,&obj8)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_field, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "covar_workspace_init_py" "', argument " "1"" of type '" "nmt_field *""'"); 
@@ -19623,9 +20952,24 @@ SWIGINTERN PyObject *_wrap_covar_workspace_init_py(PyObject *SWIGUNUSEDPARM(self
     SWIG_exception_fail(SWIG_ArgError(ecode6), "in method '" "covar_workspace_init_py" "', argument " "6"" of type '" "int""'");
   } 
   arg6 = (int)(val6);
+  ecode7 = SWIG_AsVal_int(obj6, &val7);
+  if (!SWIG_IsOK(ecode7)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode7), "in method '" "covar_workspace_init_py" "', argument " "7"" of type '" "int""'");
+  } 
+  arg7 = (int)(val7);
+  ecode8 = SWIG_AsVal_int(obj7, &val8);
+  if (!SWIG_IsOK(ecode8)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode8), "in method '" "covar_workspace_init_py" "', argument " "8"" of type '" "int""'");
+  } 
+  arg8 = (int)(val8);
+  ecode9 = SWIG_AsVal_int(obj8, &val9);
+  if (!SWIG_IsOK(ecode9)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode9), "in method '" "covar_workspace_init_py" "', argument " "9"" of type '" "int""'");
+  } 
+  arg9 = (int)(val9);
   {
     try {
-      result = (nmt_covar_workspace *)covar_workspace_init_py(arg1,arg2,arg3,arg4,arg5,arg6);
+      result = (nmt_covar_workspace *)covar_workspace_init_py(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9);
     }
     finally {
       SWIG_exception(SWIG_RuntimeError,nmt_error_message);
@@ -21162,6 +22506,9 @@ SWIGINTERN PyObject *_wrap_comp_pspec(PyObject *SWIGUNUSEDPARM(self), PyObject *
   int arg12 ;
   int arg13 ;
   int arg14 ;
+  int arg15 ;
+  int arg16 ;
+  int arg17 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   void *argp2 = 0 ;
@@ -21179,6 +22526,12 @@ SWIGINTERN PyObject *_wrap_comp_pspec(PyObject *SWIGUNUSEDPARM(self), PyObject *
   int ecode13 = 0 ;
   int val14 ;
   int ecode14 = 0 ;
+  int val15 ;
+  int ecode15 = 0 ;
+  int val16 ;
+  int ecode16 = 0 ;
+  int val17 ;
+  int ecode17 = 0 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   PyObject * obj2 = 0 ;
@@ -21188,8 +22541,11 @@ SWIGINTERN PyObject *_wrap_comp_pspec(PyObject *SWIGUNUSEDPARM(self), PyObject *
   PyObject * obj6 = 0 ;
   PyObject * obj7 = 0 ;
   PyObject * obj8 = 0 ;
+  PyObject * obj9 = 0 ;
+  PyObject * obj10 = 0 ;
+  PyObject * obj11 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"OOOOOOOOO:comp_pspec",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6,&obj7,&obj8)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOOOOOOOOOOO:comp_pspec",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6,&obj7,&obj8,&obj9,&obj10,&obj11)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_field, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "comp_pspec" "', argument " "1"" of type '" "nmt_field *""'"); 
@@ -21262,9 +22618,24 @@ SWIGINTERN PyObject *_wrap_comp_pspec(PyObject *SWIGUNUSEDPARM(self), PyObject *
     SWIG_exception_fail(SWIG_ArgError(ecode14), "in method '" "comp_pspec" "', argument " "14"" of type '" "int""'");
   } 
   arg14 = (int)(val14);
+  ecode15 = SWIG_AsVal_int(obj9, &val15);
+  if (!SWIG_IsOK(ecode15)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode15), "in method '" "comp_pspec" "', argument " "15"" of type '" "int""'");
+  } 
+  arg15 = (int)(val15);
+  ecode16 = SWIG_AsVal_int(obj10, &val16);
+  if (!SWIG_IsOK(ecode16)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode16), "in method '" "comp_pspec" "', argument " "16"" of type '" "int""'");
+  } 
+  arg16 = (int)(val16);
+  ecode17 = SWIG_AsVal_int(obj11, &val17);
+  if (!SWIG_IsOK(ecode17)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode17), "in method '" "comp_pspec" "', argument " "17"" of type '" "int""'");
+  } 
+  arg17 = (int)(val17);
   {
     try {
-      comp_pspec(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13,arg14);
+      comp_pspec(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13,arg14,arg15,arg16,arg17);
     }
     finally {
       SWIG_exception(SWIG_RuntimeError,nmt_error_message);
@@ -21901,6 +23272,49 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"new_workspace", _wrap_new_workspace, METH_VARARGS, NULL},
 	 { (char *)"delete_workspace", _wrap_delete_workspace, METH_VARARGS, NULL},
 	 { (char *)"workspace_swigregister", workspace_swigregister, METH_VARARGS, NULL},
+	 { (char *)"master_calculator_lmax_set", _wrap_master_calculator_lmax_set, METH_VARARGS, NULL},
+	 { (char *)"master_calculator_lmax_get", _wrap_master_calculator_lmax_get, METH_VARARGS, NULL},
+	 { (char *)"master_calculator_lmax_mask_set", _wrap_master_calculator_lmax_mask_set, METH_VARARGS, NULL},
+	 { (char *)"master_calculator_lmax_mask_get", _wrap_master_calculator_lmax_mask_get, METH_VARARGS, NULL},
+	 { (char *)"master_calculator_npcl_set", _wrap_master_calculator_npcl_set, METH_VARARGS, NULL},
+	 { (char *)"master_calculator_npcl_get", _wrap_master_calculator_npcl_get, METH_VARARGS, NULL},
+	 { (char *)"master_calculator_s1_set", _wrap_master_calculator_s1_set, METH_VARARGS, NULL},
+	 { (char *)"master_calculator_s1_get", _wrap_master_calculator_s1_get, METH_VARARGS, NULL},
+	 { (char *)"master_calculator_s2_set", _wrap_master_calculator_s2_set, METH_VARARGS, NULL},
+	 { (char *)"master_calculator_s2_get", _wrap_master_calculator_s2_get, METH_VARARGS, NULL},
+	 { (char *)"master_calculator_has_00_set", _wrap_master_calculator_has_00_set, METH_VARARGS, NULL},
+	 { (char *)"master_calculator_has_00_get", _wrap_master_calculator_has_00_get, METH_VARARGS, NULL},
+	 { (char *)"master_calculator_xi_00_set", _wrap_master_calculator_xi_00_set, METH_VARARGS, NULL},
+	 { (char *)"master_calculator_xi_00_get", _wrap_master_calculator_xi_00_get, METH_VARARGS, NULL},
+	 { (char *)"master_calculator_has_0s_set", _wrap_master_calculator_has_0s_set, METH_VARARGS, NULL},
+	 { (char *)"master_calculator_has_0s_get", _wrap_master_calculator_has_0s_get, METH_VARARGS, NULL},
+	 { (char *)"master_calculator_xi_0s_set", _wrap_master_calculator_xi_0s_set, METH_VARARGS, NULL},
+	 { (char *)"master_calculator_xi_0s_get", _wrap_master_calculator_xi_0s_get, METH_VARARGS, NULL},
+	 { (char *)"master_calculator_has_ss_set", _wrap_master_calculator_has_ss_set, METH_VARARGS, NULL},
+	 { (char *)"master_calculator_has_ss_get", _wrap_master_calculator_has_ss_get, METH_VARARGS, NULL},
+	 { (char *)"master_calculator_xi_pp_set", _wrap_master_calculator_xi_pp_set, METH_VARARGS, NULL},
+	 { (char *)"master_calculator_xi_pp_get", _wrap_master_calculator_xi_pp_get, METH_VARARGS, NULL},
+	 { (char *)"master_calculator_xi_mm_set", _wrap_master_calculator_xi_mm_set, METH_VARARGS, NULL},
+	 { (char *)"master_calculator_xi_mm_get", _wrap_master_calculator_xi_mm_get, METH_VARARGS, NULL},
+	 { (char *)"master_calculator_pure_e1_set", _wrap_master_calculator_pure_e1_set, METH_VARARGS, NULL},
+	 { (char *)"master_calculator_pure_e1_get", _wrap_master_calculator_pure_e1_get, METH_VARARGS, NULL},
+	 { (char *)"master_calculator_pure_e2_set", _wrap_master_calculator_pure_e2_set, METH_VARARGS, NULL},
+	 { (char *)"master_calculator_pure_e2_get", _wrap_master_calculator_pure_e2_get, METH_VARARGS, NULL},
+	 { (char *)"master_calculator_pure_b1_set", _wrap_master_calculator_pure_b1_set, METH_VARARGS, NULL},
+	 { (char *)"master_calculator_pure_b1_get", _wrap_master_calculator_pure_b1_get, METH_VARARGS, NULL},
+	 { (char *)"master_calculator_pure_b2_set", _wrap_master_calculator_pure_b2_set, METH_VARARGS, NULL},
+	 { (char *)"master_calculator_pure_b2_get", _wrap_master_calculator_pure_b2_get, METH_VARARGS, NULL},
+	 { (char *)"master_calculator_pure_any_set", _wrap_master_calculator_pure_any_set, METH_VARARGS, NULL},
+	 { (char *)"master_calculator_pure_any_get", _wrap_master_calculator_pure_any_get, METH_VARARGS, NULL},
+	 { (char *)"master_calculator_npure_0s_set", _wrap_master_calculator_npure_0s_set, METH_VARARGS, NULL},
+	 { (char *)"master_calculator_npure_0s_get", _wrap_master_calculator_npure_0s_get, METH_VARARGS, NULL},
+	 { (char *)"master_calculator_npure_ss_set", _wrap_master_calculator_npure_ss_set, METH_VARARGS, NULL},
+	 { (char *)"master_calculator_npure_ss_get", _wrap_master_calculator_npure_ss_get, METH_VARARGS, NULL},
+	 { (char *)"new_master_calculator", _wrap_new_master_calculator, METH_VARARGS, NULL},
+	 { (char *)"delete_master_calculator", _wrap_delete_master_calculator, METH_VARARGS, NULL},
+	 { (char *)"master_calculator_swigregister", master_calculator_swigregister, METH_VARARGS, NULL},
+	 { (char *)"compute_master_coefficients", _wrap_compute_master_coefficients, METH_VARARGS, NULL},
+	 { (char *)"master_calculator_free", _wrap_master_calculator_free, METH_VARARGS, NULL},
 	 { (char *)"compute_coupling_matrix", _wrap_compute_coupling_matrix, METH_VARARGS, NULL},
 	 { (char *)"update_coupling_matrix", _wrap_update_coupling_matrix, METH_VARARGS, NULL},
 	 { (char *)"workspace_update_binning", _wrap_workspace_update_binning, METH_VARARGS, NULL},
@@ -22052,6 +23466,7 @@ static swig_type_info _swigt__p_nmt_field = {"_p_nmt_field", "nmt_field *", 0, 0
 static swig_type_info _swigt__p_nmt_field_flat = {"_p_nmt_field_flat", "nmt_field_flat *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_nmt_flatsky_info = {"_p_nmt_flatsky_info", "nmt_flatsky_info *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_nmt_k_function = {"_p_nmt_k_function", "nmt_k_function *", 0, 0, (void*)0, 0};
+static swig_type_info _swigt__p_nmt_master_calculator = {"_p_nmt_master_calculator", "nmt_master_calculator *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_nmt_workspace = {"_p_nmt_workspace", "nmt_workspace *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_nmt_workspace_flat = {"_p_nmt_workspace_flat", "nmt_workspace_flat *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_p_double = {"_p_p_double", "double **|flouble **", 0, 0, (void*)0, 0};
@@ -22059,6 +23474,7 @@ static swig_type_info _swigt__p_p_double_complex = {"_p_p_double_complex", "doub
 static swig_type_info _swigt__p_p_int = {"_p_p_int", "int **", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_p_p_double = {"_p_p_p_double", "double ***|flouble ***", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_p_p_double_complex = {"_p_p_p_double_complex", "double complex ***|fcomplex ***", 0, 0, (void*)0, 0};
+static swig_type_info _swigt__p_p_p_p_double = {"_p_p_p_p_double", "double ****|flouble ****", 0, 0, (void*)0, 0};
 
 static swig_type_info *swig_type_initial[] = {
   &_swigt__p_char,
@@ -22078,6 +23494,7 @@ static swig_type_info *swig_type_initial[] = {
   &_swigt__p_nmt_field_flat,
   &_swigt__p_nmt_flatsky_info,
   &_swigt__p_nmt_k_function,
+  &_swigt__p_nmt_master_calculator,
   &_swigt__p_nmt_workspace,
   &_swigt__p_nmt_workspace_flat,
   &_swigt__p_p_double,
@@ -22085,6 +23502,7 @@ static swig_type_info *swig_type_initial[] = {
   &_swigt__p_p_int,
   &_swigt__p_p_p_double,
   &_swigt__p_p_p_double_complex,
+  &_swigt__p_p_p_p_double,
 };
 
 static swig_cast_info _swigc__p_char[] = {  {&_swigt__p_char, 0, 0, 0},{0, 0, 0, 0}};
@@ -22104,6 +23522,7 @@ static swig_cast_info _swigc__p_nmt_field[] = {  {&_swigt__p_nmt_field, 0, 0, 0}
 static swig_cast_info _swigc__p_nmt_field_flat[] = {  {&_swigt__p_nmt_field_flat, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_nmt_flatsky_info[] = {  {&_swigt__p_nmt_flatsky_info, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_nmt_k_function[] = {  {&_swigt__p_nmt_k_function, 0, 0, 0},{0, 0, 0, 0}};
+static swig_cast_info _swigc__p_nmt_master_calculator[] = {  {&_swigt__p_nmt_master_calculator, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_nmt_workspace[] = {  {&_swigt__p_nmt_workspace, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_nmt_workspace_flat[] = {  {&_swigt__p_nmt_workspace_flat, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_p_double[] = {  {&_swigt__p_p_double, 0, 0, 0},{0, 0, 0, 0}};
@@ -22111,6 +23530,7 @@ static swig_cast_info _swigc__p_p_double_complex[] = {  {&_swigt__p_p_double_com
 static swig_cast_info _swigc__p_p_int[] = {  {&_swigt__p_p_int, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_p_p_double[] = {  {&_swigt__p_p_p_double, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_p_p_double_complex[] = {  {&_swigt__p_p_p_double_complex, 0, 0, 0},{0, 0, 0, 0}};
+static swig_cast_info _swigc__p_p_p_p_double[] = {  {&_swigt__p_p_p_p_double, 0, 0, 0},{0, 0, 0, 0}};
 
 static swig_cast_info *swig_cast_initial[] = {
   _swigc__p_char,
@@ -22130,6 +23550,7 @@ static swig_cast_info *swig_cast_initial[] = {
   _swigc__p_nmt_field_flat,
   _swigc__p_nmt_flatsky_info,
   _swigc__p_nmt_k_function,
+  _swigc__p_nmt_master_calculator,
   _swigc__p_nmt_workspace,
   _swigc__p_nmt_workspace_flat,
   _swigc__p_p_double,
@@ -22137,6 +23558,7 @@ static swig_cast_info *swig_cast_initial[] = {
   _swigc__p_p_int,
   _swigc__p_p_p_double,
   _swigc__p_p_p_double_complex,
+  _swigc__p_p_p_p_double,
 };
 
 

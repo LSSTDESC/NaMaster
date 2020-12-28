@@ -3,8 +3,8 @@
 
 nmt_covar_workspace *nmt_covar_workspace_init(nmt_field *fla1,nmt_field *fla2,
 					      nmt_field *flb1,nmt_field *flb2,
-					      int lmax,int niter)
-					      
+					      int lmax,int niter,
+                                              int l_toeplitz,int l_exact,int dl_band)
 {
   if(!(nmt_diff_curvedsky_info(fla1->cs,fla2->cs)) || !(nmt_diff_curvedsky_info(fla1->cs,flb1->cs)) ||
      !(nmt_diff_curvedsky_info(fla1->cs,flb2->cs)))
@@ -37,7 +37,8 @@ nmt_covar_workspace *nmt_covar_workspace_init(nmt_field *fla1,nmt_field *fla2,
 
   nmt_master_calculator *c=nmt_compute_master_coefficients(cw->lmax, cw->lmax,
                                                            2, cl_masks,
-                                                           0, 2, 0, 0, 0, 0, 1);
+                                                           0, 2, 0, 0, 0, 0, 1,
+                                                           l_toeplitz,l_exact,dl_band);
   cw->xi00_1122=c->xi_00[0];
   cw->xi00_1221=c->xi_00[1];
   cw->xi02_1122=c->xi_0s[0][0];

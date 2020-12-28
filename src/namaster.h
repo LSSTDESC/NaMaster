@@ -944,7 +944,7 @@ typedef struct {
   gsl_matrix *coupling_matrix_binned; //!< GSL version of MCM (prepared for inversion)
   gsl_permutation *coupling_matrix_perm; //!< Complements \p coupling_matrix_binned_gsl for inversion.
 } nmt_workspace;
-
+  
 typedef struct {
   int lmax;
   int lmax_mask;
@@ -972,7 +972,8 @@ nmt_master_calculator *nmt_compute_master_coefficients(int lmax, int lmax_mask,
                                                        int s1, int s2,
                                                        int pure_e1, int pure_b1,
                                                        int pure_e2, int pure_b2,
-                                                       int do_teb);
+                                                       int do_teb, int l_toeplitz,
+                                                       int l_exact, int dl_band);
 void nmt_master_calculator_free(nmt_master_calculator *c);
 
 /**
@@ -988,7 +989,8 @@ void nmt_master_calculator_free(nmt_master_calculator *c);
  * @return Newly allocated nmt_workspace structure containing the mode-coupling matrix.
  */
 nmt_workspace *nmt_compute_coupling_matrix(nmt_field *fl1,nmt_field *fl2,nmt_binning_scheme *bin,
-					   int is_teb,int niter,int lmax_mask);
+					   int is_teb,int niter,int lmax_mask,
+                                           int l_toeplitz,int l_exact,int dl_band);
 
 /**
  * @brief Updates the mode coupling matrix with a new one.Saves nmt_workspace structure to file
@@ -1152,7 +1154,8 @@ void nmt_compute_coupled_cell(nmt_field *fl1,nmt_field *fl2,flouble **cl_out);
 nmt_workspace *nmt_compute_power_spectra(nmt_field *fl1,nmt_field *fl2,
 					 nmt_binning_scheme *bin,nmt_workspace *w0,
 					 flouble **cl_noise,flouble **cl_proposal,flouble **cl_out,
-					 int niter,int lmax_mask);
+					 int niter,int lmax_mask,int l_toeplitz,
+                                         int l_exact,int dl_band);
 
 /**
  * @brief Flat-sky Gaussian covariance matrix
@@ -1261,7 +1264,8 @@ void nmt_covar_workspace_free(nmt_covar_workspace *cw);
  */
 nmt_covar_workspace *nmt_covar_workspace_init(nmt_field *fla1,nmt_field *fla2,
 					      nmt_field *flb1,nmt_field *flb2,
-					      int lmax,int niter);
+					      int lmax,int niter,
+                                              int l_toeplitz,int l_exact,int dl_band);
 
 /**
  * @brief Compute full-sky Gaussian covariance matrix

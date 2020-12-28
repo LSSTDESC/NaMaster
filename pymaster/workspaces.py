@@ -49,7 +49,8 @@ class NmtWorkspace(object):
         lib.wsp_update_bins(self.wsp, bins.bin)
 
     def compute_coupling_matrix(self, fl1, fl2, bins, is_teb=False, n_iter=3,
-                                lmax_mask=-1):
+                                lmax_mask=-1, l_toeplitz=-1,
+                                l_exact=-1, dl_band=-1):
         """
         Computes coupling matrix associated with the cross-power spectrum \
         of two NmtFields and an NmtBin binning scheme. Note that the mode \
@@ -70,7 +71,8 @@ class NmtWorkspace(object):
             self.wsp = None
         self.wsp = lib.comp_coupling_matrix(fl1.fl, fl2.fl, bins.bin,
                                             int(is_teb), int(n_iter),
-                                            lmax_mask)
+                                            lmax_mask, l_toeplitz,
+                                            l_exact, dl_band)
 
     def write_to(self, fname):
         """
@@ -495,7 +497,8 @@ def compute_coupled_cell_flat(f1, f2, b, ell_cut_x=[1., -1.],
 
 
 def compute_full_master(f1, f2, b, cl_noise=None, cl_guess=None,
-                        workspace=None, n_iter=3, lmax_mask=-1):
+                        workspace=None, n_iter=3, lmax_mask=-1,
+                        l_toeplitz=-1, l_exact=-1, dl_band=-1):
     """
     Computes the full MASTER estimate of the power spectrum of two \
     fields (f1 and f2). This is equivalent to successively calling:
@@ -539,11 +542,13 @@ def compute_full_master(f1, f2, b, cl_noise=None, cl_guess=None,
 
     if workspace is None:
         cl1d = lib.comp_pspec(f1.fl, f2.fl, b.bin, None, cln, clg,
-                              len(cln) * b.bin.n_bands, n_iter, lmax_mask)
+                              len(cln) * b.bin.n_bands, n_iter, lmax_mask,
+                              l_toeplitz, l_exact, dl_band)
     else:
         cl1d = lib.comp_pspec(f1.fl, f2.fl, b.bin, workspace.wsp,
                               cln, clg, len(cln) * b.bin.n_bands,
-                              n_iter, lmax_mask)
+                              n_iter, lmax_mask,
+                              l_toeplitz, l_exact, dl_band)
 
     clout = np.reshape(cl1d, [len(cln), b.bin.n_bands])
 

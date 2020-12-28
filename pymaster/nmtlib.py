@@ -816,9 +816,111 @@ class workspace(_object):
 workspace_swigregister = _nmtlib.workspace_swigregister
 workspace_swigregister(workspace)
 
+class master_calculator(_object):
+    __swig_setmethods__ = {}
+    __setattr__ = lambda self, name, value: _swig_setattr(self, master_calculator, name, value)
+    __swig_getmethods__ = {}
+    __getattr__ = lambda self, name: _swig_getattr(self, master_calculator, name)
+    __repr__ = _swig_repr
+    __swig_setmethods__["lmax"] = _nmtlib.master_calculator_lmax_set
+    __swig_getmethods__["lmax"] = _nmtlib.master_calculator_lmax_get
+    if _newclass:
+        lmax = _swig_property(_nmtlib.master_calculator_lmax_get, _nmtlib.master_calculator_lmax_set)
+    __swig_setmethods__["lmax_mask"] = _nmtlib.master_calculator_lmax_mask_set
+    __swig_getmethods__["lmax_mask"] = _nmtlib.master_calculator_lmax_mask_get
+    if _newclass:
+        lmax_mask = _swig_property(_nmtlib.master_calculator_lmax_mask_get, _nmtlib.master_calculator_lmax_mask_set)
+    __swig_setmethods__["npcl"] = _nmtlib.master_calculator_npcl_set
+    __swig_getmethods__["npcl"] = _nmtlib.master_calculator_npcl_get
+    if _newclass:
+        npcl = _swig_property(_nmtlib.master_calculator_npcl_get, _nmtlib.master_calculator_npcl_set)
+    __swig_setmethods__["s1"] = _nmtlib.master_calculator_s1_set
+    __swig_getmethods__["s1"] = _nmtlib.master_calculator_s1_get
+    if _newclass:
+        s1 = _swig_property(_nmtlib.master_calculator_s1_get, _nmtlib.master_calculator_s1_set)
+    __swig_setmethods__["s2"] = _nmtlib.master_calculator_s2_set
+    __swig_getmethods__["s2"] = _nmtlib.master_calculator_s2_get
+    if _newclass:
+        s2 = _swig_property(_nmtlib.master_calculator_s2_get, _nmtlib.master_calculator_s2_set)
+    __swig_setmethods__["has_00"] = _nmtlib.master_calculator_has_00_set
+    __swig_getmethods__["has_00"] = _nmtlib.master_calculator_has_00_get
+    if _newclass:
+        has_00 = _swig_property(_nmtlib.master_calculator_has_00_get, _nmtlib.master_calculator_has_00_set)
+    __swig_setmethods__["xi_00"] = _nmtlib.master_calculator_xi_00_set
+    __swig_getmethods__["xi_00"] = _nmtlib.master_calculator_xi_00_get
+    if _newclass:
+        xi_00 = _swig_property(_nmtlib.master_calculator_xi_00_get, _nmtlib.master_calculator_xi_00_set)
+    __swig_setmethods__["has_0s"] = _nmtlib.master_calculator_has_0s_set
+    __swig_getmethods__["has_0s"] = _nmtlib.master_calculator_has_0s_get
+    if _newclass:
+        has_0s = _swig_property(_nmtlib.master_calculator_has_0s_get, _nmtlib.master_calculator_has_0s_set)
+    __swig_setmethods__["xi_0s"] = _nmtlib.master_calculator_xi_0s_set
+    __swig_getmethods__["xi_0s"] = _nmtlib.master_calculator_xi_0s_get
+    if _newclass:
+        xi_0s = _swig_property(_nmtlib.master_calculator_xi_0s_get, _nmtlib.master_calculator_xi_0s_set)
+    __swig_setmethods__["has_ss"] = _nmtlib.master_calculator_has_ss_set
+    __swig_getmethods__["has_ss"] = _nmtlib.master_calculator_has_ss_get
+    if _newclass:
+        has_ss = _swig_property(_nmtlib.master_calculator_has_ss_get, _nmtlib.master_calculator_has_ss_set)
+    __swig_setmethods__["xi_pp"] = _nmtlib.master_calculator_xi_pp_set
+    __swig_getmethods__["xi_pp"] = _nmtlib.master_calculator_xi_pp_get
+    if _newclass:
+        xi_pp = _swig_property(_nmtlib.master_calculator_xi_pp_get, _nmtlib.master_calculator_xi_pp_set)
+    __swig_setmethods__["xi_mm"] = _nmtlib.master_calculator_xi_mm_set
+    __swig_getmethods__["xi_mm"] = _nmtlib.master_calculator_xi_mm_get
+    if _newclass:
+        xi_mm = _swig_property(_nmtlib.master_calculator_xi_mm_get, _nmtlib.master_calculator_xi_mm_set)
+    __swig_setmethods__["pure_e1"] = _nmtlib.master_calculator_pure_e1_set
+    __swig_getmethods__["pure_e1"] = _nmtlib.master_calculator_pure_e1_get
+    if _newclass:
+        pure_e1 = _swig_property(_nmtlib.master_calculator_pure_e1_get, _nmtlib.master_calculator_pure_e1_set)
+    __swig_setmethods__["pure_e2"] = _nmtlib.master_calculator_pure_e2_set
+    __swig_getmethods__["pure_e2"] = _nmtlib.master_calculator_pure_e2_get
+    if _newclass:
+        pure_e2 = _swig_property(_nmtlib.master_calculator_pure_e2_get, _nmtlib.master_calculator_pure_e2_set)
+    __swig_setmethods__["pure_b1"] = _nmtlib.master_calculator_pure_b1_set
+    __swig_getmethods__["pure_b1"] = _nmtlib.master_calculator_pure_b1_get
+    if _newclass:
+        pure_b1 = _swig_property(_nmtlib.master_calculator_pure_b1_get, _nmtlib.master_calculator_pure_b1_set)
+    __swig_setmethods__["pure_b2"] = _nmtlib.master_calculator_pure_b2_set
+    __swig_getmethods__["pure_b2"] = _nmtlib.master_calculator_pure_b2_get
+    if _newclass:
+        pure_b2 = _swig_property(_nmtlib.master_calculator_pure_b2_get, _nmtlib.master_calculator_pure_b2_set)
+    __swig_setmethods__["pure_any"] = _nmtlib.master_calculator_pure_any_set
+    __swig_getmethods__["pure_any"] = _nmtlib.master_calculator_pure_any_get
+    if _newclass:
+        pure_any = _swig_property(_nmtlib.master_calculator_pure_any_get, _nmtlib.master_calculator_pure_any_set)
+    __swig_setmethods__["npure_0s"] = _nmtlib.master_calculator_npure_0s_set
+    __swig_getmethods__["npure_0s"] = _nmtlib.master_calculator_npure_0s_get
+    if _newclass:
+        npure_0s = _swig_property(_nmtlib.master_calculator_npure_0s_get, _nmtlib.master_calculator_npure_0s_set)
+    __swig_setmethods__["npure_ss"] = _nmtlib.master_calculator_npure_ss_set
+    __swig_getmethods__["npure_ss"] = _nmtlib.master_calculator_npure_ss_get
+    if _newclass:
+        npure_ss = _swig_property(_nmtlib.master_calculator_npure_ss_get, _nmtlib.master_calculator_npure_ss_set)
 
-def compute_coupling_matrix(fl1, fl2, bin, is_teb, niter, lmax_mask):
-    return _nmtlib.compute_coupling_matrix(fl1, fl2, bin, is_teb, niter, lmax_mask)
+    def __init__(self):
+        this = _nmtlib.new_master_calculator()
+        try:
+            self.this.append(this)
+        except Exception:
+            self.this = this
+    __swig_destroy__ = _nmtlib.delete_master_calculator
+    __del__ = lambda self: None
+master_calculator_swigregister = _nmtlib.master_calculator_swigregister
+master_calculator_swigregister(master_calculator)
+
+
+def compute_master_coefficients(lmax, lmax_mask, npcl, pcl_masks, s1, s2, pure_e1, pure_b1, pure_e2, pure_b2, do_teb, l_toeplitz, l_exact, dl_band):
+    return _nmtlib.compute_master_coefficients(lmax, lmax_mask, npcl, pcl_masks, s1, s2, pure_e1, pure_b1, pure_e2, pure_b2, do_teb, l_toeplitz, l_exact, dl_band)
+compute_master_coefficients = _nmtlib.compute_master_coefficients
+
+def master_calculator_free(c):
+    return _nmtlib.master_calculator_free(c)
+master_calculator_free = _nmtlib.master_calculator_free
+
+def compute_coupling_matrix(fl1, fl2, bin, is_teb, niter, lmax_mask, l_toeplitz, l_exact, dl_band):
+    return _nmtlib.compute_coupling_matrix(fl1, fl2, bin, is_teb, niter, lmax_mask, l_toeplitz, l_exact, dl_band)
 compute_coupling_matrix = _nmtlib.compute_coupling_matrix
 
 def update_coupling_matrix(w, n_rows, new_matrix):
@@ -861,8 +963,8 @@ def compute_coupled_cell(fl1, fl2, cl_out):
     return _nmtlib.compute_coupled_cell(fl1, fl2, cl_out)
 compute_coupled_cell = _nmtlib.compute_coupled_cell
 
-def compute_power_spectra(fl1, fl2, bin, w0, cl_noise, cl_proposal, cl_out, niter, lmax_mask):
-    return _nmtlib.compute_power_spectra(fl1, fl2, bin, w0, cl_noise, cl_proposal, cl_out, niter, lmax_mask)
+def compute_power_spectra(fl1, fl2, bin, w0, cl_noise, cl_proposal, cl_out, niter, lmax_mask, l_toeplitz, l_exact, dl_band):
+    return _nmtlib.compute_power_spectra(fl1, fl2, bin, w0, cl_noise, cl_proposal, cl_out, niter, lmax_mask, l_toeplitz, l_exact, dl_band)
 compute_power_spectra = _nmtlib.compute_power_spectra
 class covar_workspace_flat(_object):
     __swig_setmethods__ = {}
@@ -989,8 +1091,8 @@ def covar_workspace_free(cw):
     return _nmtlib.covar_workspace_free(cw)
 covar_workspace_free = _nmtlib.covar_workspace_free
 
-def covar_workspace_init(fla1, fla2, flb1, flb2, lmax, niter):
-    return _nmtlib.covar_workspace_init(fla1, fla2, flb1, flb2, lmax, niter)
+def covar_workspace_init(fla1, fla2, flb1, flb2, lmax, niter, l_toeplitz, l_exact, dl_band):
+    return _nmtlib.covar_workspace_init(fla1, fla2, flb1, flb2, lmax, niter, l_toeplitz, l_exact, dl_band)
 covar_workspace_init = _nmtlib.covar_workspace_init
 
 def compute_gaussian_covariance(cw, spin_a, spin_b, spin_c, spin_d, wa, wb, clac, clad, clbc, clbd, covar_out):
@@ -1157,8 +1259,8 @@ def synfast_new_flat(nx, ny, lx, ly, nfields, seed, ncl1, ncl2, dout):
     return _nmtlib.synfast_new_flat(nx, ny, lx, ly, nfields, seed, ncl1, ncl2, dout)
 synfast_new_flat = _nmtlib.synfast_new_flat
 
-def comp_coupling_matrix(fl1, fl2, bin, is_teb, n_iter, lmax_mask):
-    return _nmtlib.comp_coupling_matrix(fl1, fl2, bin, is_teb, n_iter, lmax_mask)
+def comp_coupling_matrix(fl1, fl2, bin, is_teb, n_iter, lmax_mask, l_toeplitz, l_exact, dl_band):
+    return _nmtlib.comp_coupling_matrix(fl1, fl2, bin, is_teb, n_iter, lmax_mask, l_toeplitz, l_exact, dl_band)
 comp_coupling_matrix = _nmtlib.comp_coupling_matrix
 
 def comp_coupling_matrix_flat(fl1, fl2, bin, lmn_x, lmx_x, lmn_y, lmx_y, is_teb):
@@ -1201,8 +1303,8 @@ def read_covar_workspace(fname):
     return _nmtlib.read_covar_workspace(fname)
 read_covar_workspace = _nmtlib.read_covar_workspace
 
-def covar_workspace_init_py(fa1, fa2, fb1, fb2, lmax, n_iter):
-    return _nmtlib.covar_workspace_init_py(fa1, fa2, fb1, fb2, lmax, n_iter)
+def covar_workspace_init_py(fa1, fa2, fb1, fb2, lmax, n_iter, l_toeplitz, l_exact, dl_band):
+    return _nmtlib.covar_workspace_init_py(fa1, fa2, fb1, fb2, lmax, n_iter, l_toeplitz, l_exact, dl_band)
 covar_workspace_init_py = _nmtlib.covar_workspace_init_py
 
 def write_covar_workspace_flat(cw, fname):
@@ -1253,8 +1355,8 @@ def couple_cell_py_flat(w, nell3, ncl1, dout):
     return _nmtlib.couple_cell_py_flat(w, nell3, ncl1, dout)
 couple_cell_py_flat = _nmtlib.couple_cell_py_flat
 
-def comp_pspec(fl1, fl2, bin, w0, ncl1, ncl2, dout, n_iter, lmax_mask):
-    return _nmtlib.comp_pspec(fl1, fl2, bin, w0, ncl1, ncl2, dout, n_iter, lmax_mask)
+def comp_pspec(fl1, fl2, bin, w0, ncl1, ncl2, dout, n_iter, lmax_mask, l_toeplitz, l_exact, dl_band):
+    return _nmtlib.comp_pspec(fl1, fl2, bin, w0, ncl1, ncl2, dout, n_iter, lmax_mask, l_toeplitz, l_exact, dl_band)
 comp_pspec = _nmtlib.comp_pspec
 
 def wsp_update_beams(w, nell3, nell4):
