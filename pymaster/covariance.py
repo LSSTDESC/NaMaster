@@ -1,4 +1,5 @@
 from pymaster import nmtlib as lib
+from pymaster.utils import _toeplitz_sanity
 import numpy as np
 
 
@@ -51,6 +52,16 @@ class NmtCovarianceWorkspace(object):
             power spectrum whose covariance you want to compute. If \
             None, fla1,fla2 will be used.
         :param n_iter: number of iterations when computing a_lms.
+        :param l_toeplitz: if a positive number, the Toeplitz approximation \
+            described in Louis et al. 2020 (arXiv:2010.14344) will be used. \
+            In that case, this quantity corresponds to ell_toeplitz in Fig. \
+            3 of that paper.
+        :param l_exact: if `l_toeplitz>0`, this quantity corresponds to \
+            ell_exact in Fig. 3 of Louis et al. 2020.  Ignored if \
+            `l_toeplitz<=0`.
+        :param dl_band: if `l_toeplitz>0`, this quantity corresponds to \
+            Delta ell_band in Fig. 3 of Louis et al. 2020.  Ignored if \
+            `l_toeplitz<=0`.
         """
         if flb1 is None:
             flb1 = fla1
@@ -69,6 +80,7 @@ class NmtCovarianceWorkspace(object):
         if lmax is None:
             lmax = lib.get_lmax_from_cs_py(fla1.fl.cs)
 
+        _toeplitz_sanity(l_toeplitz, l_exact, dl_band)
         self.wsp = lib.covar_workspace_init_py(fla1.fl, fla2.fl, flb1.fl,
                                                flb2.fl, lmax, n_iter,
                                                l_toeplitz, l_exact, dl_band)

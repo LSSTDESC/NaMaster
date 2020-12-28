@@ -1,4 +1,5 @@
 from pymaster import nmtlib as lib
+from pymaster.utils import _toeplitz_sanity
 import numpy as np
 
 
@@ -65,10 +66,22 @@ class NmtWorkspace(object):
         :param n_iter: number of iterations when computing a_lms.
         :param lmax_mask: maximum multipole for masks. If smaller than the \
             maximum multipoles of the fields, it will be set to that.
+        :param l_toeplitz: if a positive number, the Toeplitz approximation \
+            described in Louis et al. 2020 (arXiv:2010.14344) will be used. \
+            In that case, this quantity corresponds to ell_toeplitz in Fig. \
+            3 of that paper.
+        :param l_exact: if `l_toeplitz>0`, this quantity corresponds to \
+            ell_exact in Fig. 3 of Louis et al. 2020.  Ignored if \
+            `l_toeplitz<=0`.
+        :param dl_band: if `l_toeplitz>0`, this quantity corresponds to \
+            Delta ell_band in Fig. 3 of Louis et al. 2020.  Ignored if \
+            `l_toeplitz<=0`.
         """
         if self.wsp is not None:
             lib.workspace_free(self.wsp)
             self.wsp = None
+
+        _toeplitz_sanity(l_toeplitz, l_exact, dl_band)
         self.wsp = lib.comp_coupling_matrix(fl1.fl, fl2.fl, bins.bin,
                                             int(is_teb), int(n_iter),
                                             lmax_mask, l_toeplitz,
@@ -523,6 +536,16 @@ def compute_full_master(f1, f2, b, cl_noise=None, cl_guess=None,
     :param n_iter: number of iterations when computing a_lms.
     :param lmax_mask: maximum multipole for masks. If smaller than the \
         maximum multipoles of the fields, it will be set to that.
+    :param l_toeplitz: if a positive number, the Toeplitz approximation \
+        described in Louis et al. 2020 (arXiv:2010.14344) will be used. \
+        In that case, this quantity corresponds to ell_toeplitz in Fig. \
+        3 of that paper.
+    :param l_exact: if `l_toeplitz>0`, this quantity corresponds to \
+        ell_exact in Fig. 3 of Louis et al. 2020.  Ignored if \
+        `l_toeplitz<=0`.
+    :param dl_band: if `l_toeplitz>0`, this quantity corresponds to \
+        Delta ell_band in Fig. 3 of Louis et al. 2020.  Ignored if \
+        `l_toeplitz<=0`.
     :return: set of decoupled bandpowers
     """
     if f1.fl.cs.n_eq != f2.fl.cs.n_eq:
@@ -539,6 +562,8 @@ def compute_full_master(f1, f2, b, cl_noise=None, cl_guess=None,
         clg = cl_guess.copy()
     else:
         clg = np.zeros([f1.fl.nmaps * f2.fl.nmaps, 3 * f1.fl.cs.n_eq])
+
+    _toeplitz_sanity(l_toeplitz, l_exact, dl_band)
 
     if workspace is None:
         cl1d = lib.comp_pspec(f1.fl, f2.fl, b.bin, None, cln, clg,
