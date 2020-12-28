@@ -19,105 +19,48 @@ nmt_covar_workspace *nmt_covar_workspace_init(nmt_field *fla1,nmt_field *fla2,
   flouble *mask_a2b2=my_malloc(npix*sizeof(flouble));
 
   cw->lmax=lmax;
-  flouble *cl_mask_1122=my_malloc((cw->lmax+1)*sizeof(flouble));
-  flouble *cl_mask_1221=my_malloc((cw->lmax+1)*sizeof(flouble));
-  cw->xi00_1122=my_malloc((cw->lmax+1)*sizeof(flouble *));
-  cw->xi00_1221=my_malloc((cw->lmax+1)*sizeof(flouble *));
-  cw->xi02_1122=my_malloc((cw->lmax+1)*sizeof(flouble *));
-  cw->xi02_1221=my_malloc((cw->lmax+1)*sizeof(flouble *));
-  cw->xi22p_1122=my_malloc((cw->lmax+1)*sizeof(flouble *));
-  cw->xi22p_1221=my_malloc((cw->lmax+1)*sizeof(flouble *));
-  cw->xi22m_1122=my_malloc((cw->lmax+1)*sizeof(flouble *));
-  cw->xi22m_1221=my_malloc((cw->lmax+1)*sizeof(flouble *));
-  for(ii=0;ii<(cw->lmax+1);ii++) {
-    cw->xi00_1122[ii]=my_malloc((cw->lmax+1)*sizeof(flouble));
-    cw->xi00_1221[ii]=my_malloc((cw->lmax+1)*sizeof(flouble));
-    cw->xi02_1122[ii]=my_malloc((cw->lmax+1)*sizeof(flouble));
-    cw->xi02_1221[ii]=my_malloc((cw->lmax+1)*sizeof(flouble));
-    cw->xi22p_1122[ii]=my_malloc((cw->lmax+1)*sizeof(flouble));
-    cw->xi22p_1221[ii]=my_malloc((cw->lmax+1)*sizeof(flouble));
-    cw->xi22m_1122[ii]=my_malloc((cw->lmax+1)*sizeof(flouble));
-    cw->xi22m_1221[ii]=my_malloc((cw->lmax+1)*sizeof(flouble));
-  }
+  flouble **cl_masks=my_malloc(2*sizeof(flouble));
+  cl_masks[0]=my_malloc((cw->lmax+1)*sizeof(flouble));
+  cl_masks[1]=my_malloc((cw->lmax+1)*sizeof(flouble));
   
   he_map_product(fla1->cs,fla1->mask,flb1->mask,mask_a1b1);
   he_map_product(fla1->cs,fla1->mask,flb2->mask,mask_a1b2);
   he_map_product(fla1->cs,fla2->mask,flb1->mask,mask_a2b1);
   he_map_product(fla1->cs,fla2->mask,flb2->mask,mask_a2b2);
-  he_anafast(&mask_a1b1,&mask_a2b2,0,0,&cl_mask_1122,fla1->cs,cw->lmax,niter);
-  he_anafast(&mask_a1b2,&mask_a2b1,0,0,&cl_mask_1221,fla1->cs,cw->lmax,niter);
+  he_anafast(&mask_a1b1,&mask_a2b2,0,0,&(cl_masks[0]),fla1->cs,cw->lmax,niter);
+  he_anafast(&mask_a1b2,&mask_a2b1,0,0,&(cl_masks[1]),fla1->cs,cw->lmax,niter);
   free(mask_a1b1); free(mask_a1b2); free(mask_a2b1); free(mask_a2b2);
   for(ii=0;ii<=cw->lmax;ii++) {
-    cl_mask_1122[ii]*=(ii+0.5)/(2*M_PI);
-    cl_mask_1221[ii]*=(ii+0.5)/(2*M_PI);
+    cl_masks[0][ii]*=(ii+0.5)/(2*M_PI);
+    cl_masks[1][ii]*=(ii+0.5)/(2*M_PI);
   }
 
-#pragma omp parallel default(none)		\
-  shared(cw,cl_mask_1122,cl_mask_1221)
-  {
-    int ll2,ll3;
-    double *wigner_00=NULL,*wigner_22=NULL;
-    
-    wigner_00=my_malloc(2*(cw->lmax+1)*sizeof(double));
-    wigner_22=my_malloc(2*(cw->lmax+1)*sizeof(double));
+  nmt_master_calculator *c=nmt_compute_master_coefficients(cw->lmax, cw->lmax,
+                                                           2, cl_masks,
+                                                           0, 2, 0, 0, 0, 0, 1);
+  cw->xi00_1122=c->xi_00[0];
+  cw->xi00_1221=c->xi_00[1];
+  cw->xi02_1122=c->xi_0s[0][0];
+  cw->xi02_1221=c->xi_0s[1][0];
+  cw->xi22p_1122=c->xi_pp[0][0];
+  cw->xi22p_1221=c->xi_pp[1][0];
+  cw->xi22m_1122=c->xi_mm[0][0];
+  cw->xi22m_1221=c->xi_mm[1][0];
 
-#pragma omp for schedule(dynamic)
-    for(ll2=0;ll2<=cw->lmax;ll2++) {
-      for(ll3=0;ll3<=cw->lmax;ll3++) {
-	int jj,l1,lmin_here,lmax_here;
-	int lmin_here_00=0,lmax_here_00=2*(cw->lmax+1)+1;
-	int lmin_here_22=0,lmax_here_22=2*(cw->lmax+1)+1;
-	flouble xi00_1122=0,xi00_1221=0;
-	flouble xi02_1122=0,xi02_1221=0;
-	flouble xi22p_1122=0,xi22p_1221=0;
-	flouble xi22m_1122=0,xi22m_1221=0;
-
-	drc3jj(ll2,ll3,0,0,&lmin_here_00,&lmax_here_00,wigner_00,2*(cw->lmax+1));
-	drc3jj(ll2,ll3,2,-2,&lmin_here_22,&lmax_here_22,wigner_22,2*(cw->lmax+1));
-
-	lmin_here=NMT_MIN(lmin_here_00,lmin_here_22);
-	lmax_here=NMT_MAX(lmax_here_00,lmax_here_22);
-	for(l1=lmin_here;l1<=lmax_here;l1++) {
-	  if(l1<=cw->lmax) {
-	    flouble wfacs[4];
-	    int suml=l1+ll2+ll3;
-	    int j00=l1-lmin_here_00;
-	    int j22=l1-lmin_here_22;
-	    int prefac_m=suml & 1;
-	    int prefac_p=!prefac_m;
-	    wfacs[0]=wigner_00[j00]*wigner_00[j00];
-	    wfacs[1]=wigner_00[j00]*wigner_22[j22];
-	    wfacs[2]=wigner_22[j22]*wigner_22[j22];
-	    wfacs[3]=prefac_m*wfacs[2];
-	    wfacs[2]*=prefac_p;
-
-	    xi00_1122+=cl_mask_1122[l1]*wfacs[0];
-	    xi00_1221+=cl_mask_1221[l1]*wfacs[0];
-	    xi02_1122+=cl_mask_1122[l1]*wfacs[1];
-	    xi02_1221+=cl_mask_1221[l1]*wfacs[1];
-	    xi22p_1122+=cl_mask_1122[l1]*wfacs[2];
-	    xi22p_1221+=cl_mask_1221[l1]*wfacs[2];
-	    xi22m_1122+=cl_mask_1122[l1]*wfacs[3];
-	    xi22m_1221+=cl_mask_1221[l1]*wfacs[3];
-	  }
-	}
-
-	cw->xi00_1122[ll2][ll3]=xi00_1122;
-	cw->xi00_1221[ll2][ll3]=xi00_1221;
-	cw->xi02_1122[ll2][ll3]=xi02_1122;
-	cw->xi02_1221[ll2][ll3]=xi02_1221;
-	cw->xi22p_1122[ll2][ll3]=xi22p_1122;
-	cw->xi22p_1221[ll2][ll3]=xi22p_1221;
-	cw->xi22m_1122[ll2][ll3]=xi22m_1122;
-	cw->xi22m_1221[ll2][ll3]=xi22m_1221;
-      }
-    } //end omp for
-    free(wigner_00);
-    free(wigner_22);
-  } //end omp parallel
-
-  free(cl_mask_1122);
-  free(cl_mask_1221);
+  free(c->xi_00);
+  free(c->xi_0s[0]);
+  free(c->xi_0s[1]);
+  free(c->xi_0s);
+  free(c->xi_pp[0]);
+  free(c->xi_pp);
+  free(c->xi_pp[1]);
+  free(c->xi_mm[0]);
+  free(c->xi_mm[1]);
+  free(c->xi_mm);
+  free(c);
+  free(cl_masks[0]);
+  free(cl_masks[1]);
+  free(cl_masks);
   return cw;
 }
 

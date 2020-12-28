@@ -948,15 +948,16 @@ typedef struct {
 typedef struct {
   int lmax;
   int lmax_mask;
+  int npcl;
   int s1;
   int s2;
   int has_00;
-  flouble **xi_00;
+  flouble ***xi_00;
   int has_0s;
-  flouble ***xi_0s;
+  flouble ****xi_0s;
   int has_ss;
-  flouble ***xi_pp;
-  flouble ***xi_mm;
+  flouble ****xi_pp;
+  flouble ****xi_mm;
   int pure_e1;
   int pure_e2;
   int pure_b1;
@@ -966,7 +967,8 @@ typedef struct {
   int npure_ss;
 } nmt_master_calculator;
 
-nmt_master_calculator *nmt_compute_master_coefficients(int lmax, int lmax_mask, flouble *pcl_masks,
+nmt_master_calculator *nmt_compute_master_coefficients(int lmax, int lmax_mask,
+                                                       int npcl, flouble **pcl_masks,
                                                        int s1, int s2,
                                                        int pure_e1, int pure_b1,
                                                        int pure_e2, int pure_b2,

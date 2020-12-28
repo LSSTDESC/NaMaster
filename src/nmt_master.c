@@ -159,15 +159,17 @@ void nmt_workspace_update_binning(nmt_workspace *w,
   bin_coupling_matrix(w);
 }
 
-nmt_master_calculator *nmt_compute_master_coefficients(int lmax, int lmax_mask, flouble *pcl_masks,
+nmt_master_calculator *nmt_compute_master_coefficients(int lmax, int lmax_mask,
+                                                       int npcl, flouble **pcl_masks,
                                                        int s1, int s2,
                                                        int pure_e1, int pure_b1,
                                                        int pure_e2, int pure_b2,
                                                        int do_teb)
 {
-  int ip, ii;
+  int ic, ip, ii;
   nmt_master_calculator *c=my_malloc(sizeof(nmt_master_calculator));
   c->pure_any=pure_e1 || pure_b1 || pure_e2 || pure_b2;
+  c->npcl=npcl;
   c->lmax=lmax;
   c->lmax_mask=lmax_mask;
   c->pure_e1=pure_e1;
@@ -215,27 +217,37 @@ nmt_master_calculator *nmt_compute_master_coefficients(int lmax, int lmax_mask, 
   }
 
   if(c->has_00) {
-    c->xi_00=my_malloc((c->lmax+1)*sizeof(flouble *));
-    for(ii=0;ii<=c->lmax;ii++)
-      c->xi_00[ii]=my_calloc((c->lmax+1),sizeof(flouble *));
+    c->xi_00=my_malloc(c->npcl*sizeof(flouble **));
+    for(ic=0;ic<c->npcl;ic++) {
+        c->xi_00[ic]=my_malloc((c->lmax+1)*sizeof(flouble *));
+        for(ii=0;ii<=c->lmax;ii++)
+          c->xi_00[ic][ii]=my_calloc((c->lmax+1),sizeof(flouble));
+    }
   }
   if(c->has_0s) {
-    c->xi_0s=my_malloc(c->npure_0s*sizeof(flouble **));
-    for(ip=0;ip<c->npure_0s;ip++) {
-      c->xi_0s[ip]=my_malloc((c->lmax+1)*sizeof(flouble *));
-      for(ii=0;ii<=c->lmax;ii++)
-        c->xi_0s[ip][ii]=my_calloc((c->lmax+1),sizeof(flouble *));
+    c->xi_0s=my_malloc(c->npcl*sizeof(flouble ***));
+    for(ic=0;ic<c->npcl;ic++) {
+      c->xi_0s[ic]=my_malloc(c->npure_0s*sizeof(flouble **));
+      for(ip=0;ip<c->npure_0s;ip++) {
+        c->xi_0s[ic][ip]=my_malloc((c->lmax+1)*sizeof(flouble *));
+        for(ii=0;ii<=c->lmax;ii++)
+          c->xi_0s[ic][ip][ii]=my_calloc((c->lmax+1),sizeof(flouble));
+      }
     }
   }
   if(c->has_ss) {
-    c->xi_pp=my_malloc(c->npure_ss*sizeof(flouble *));
-    c->xi_mm=my_malloc(c->npure_ss*sizeof(flouble *));
-    for(ip=0;ip<c->npure_ss;ip++) {
-      c->xi_pp[ip]=my_malloc((c->lmax+1)*sizeof(flouble *));
-      c->xi_mm[ip]=my_malloc((c->lmax+1)*sizeof(flouble *));
-      for(ii=0;ii<=c->lmax;ii++) {
-        c->xi_pp[ip][ii]=my_calloc((c->lmax+1),sizeof(flouble *));
-        c->xi_mm[ip][ii]=my_calloc((c->lmax+1),sizeof(flouble *));
+    c->xi_pp=my_malloc(c->npcl*sizeof(flouble ***));
+    c->xi_mm=my_malloc(c->npcl*sizeof(flouble ***));
+    for(ic=0;ic<c->npcl;ic++) {
+      c->xi_pp[ic]=my_malloc(c->npure_ss*sizeof(flouble **));
+      c->xi_mm[ic]=my_malloc(c->npure_ss*sizeof(flouble **));
+      for(ip=0;ip<c->npure_ss;ip++) {
+        c->xi_pp[ic][ip]=my_malloc((c->lmax+1)*sizeof(flouble *));
+        c->xi_mm[ic][ip]=my_malloc((c->lmax+1)*sizeof(flouble *));
+        for(ii=0;ii<=c->lmax;ii++) {
+          c->xi_pp[ic][ip][ii]=my_calloc((c->lmax+1),sizeof(flouble));
+          c->xi_mm[ic][ip][ii]=my_calloc((c->lmax+1),sizeof(flouble));
+        }
       }
     }
   }
@@ -251,7 +263,7 @@ nmt_master_calculator *nmt_compute_master_coefficients(int lmax, int lmax_mask, 
 #pragma omp parallel default(none)              \
   shared(c, lstart, do_teb, pcl_masks)
   {
-    int ll2,ll3;
+    int ll2,ll3,icc;
     int has_ss2=(c->s1!=0) && (c->s2!=0) && (!do_teb) && (c->s1!=c->s2);
     double *wigner_00=NULL,*wigner_ss1=NULL,*wigner_12=NULL,*wigner_02=NULL,*wigner_ss2=NULL;
     int pe1=c->pure_e1,pe2=c->pure_e2,pb1=c->pure_b1,pb2=c->pure_b2;
@@ -346,51 +358,56 @@ nmt_master_calculator *nmt_compute_master_coefficients(int lmax, int lmax_mask, 
 	      }
 	    }
 
-	    if(c->has_00) {
-	      wfac=pcl_masks[l1]*wigner_00[j00]*wigner_00[j00];
-              c->xi_00[ll2][ll3]+=wfac;
-	    }
-	    if(c->has_0s) {
-	      double wfac_ispure[2];
-              wfac_ispure[0]=wigner_ss1[jss1];
-              wfac_ispure[0]*=pcl_masks[l1]*wigner_00[j00];
-              if(c->pure_any) {
-		wfac_ispure[1]=wigner_ss1[jss1]+fac_12*wigner_12[j12]+fac_02*wigner_02[j02];
-		wfac_ispure[1]*=pcl_masks[l1]*wigner_00[j00];
-	      }
-              for(ipp=0;ipp<c->npure_0s;ipp++)
-                c->xi_0s[ipp][ll2][ll3]+=wfac_ispure[ipp];
-	    }
-	    if(c->has_ss) {
-	      double wfac_ispure[3];
-	      int suml=l1+ll2+ll3;
-              wfac_ispure[0]=wigner_ss1[jss1];
-              wfac_ispure[0]*=wigner_ss2[jss2]*pcl_masks[l1];
-	      if(c->pure_any) {
-		wfac_ispure[1]=wigner_ss1[jss1]+fac_12*wigner_12[j12]+fac_02*wigner_02[j02];
-		wfac_ispure[2]=wfac_ispure[1]*wfac_ispure[1]*pcl_masks[l1];
-		wfac_ispure[1]*=wigner_ss2[jss2]*pcl_masks[l1];
-	      }
-
-	      if(suml & 1) { //Odd sum
-                for(ipp=0;ipp<c->npure_ss;ipp++)
-                  c->xi_mm[ipp][ll2][ll3]+=wfac_ispure[ipp];
+            for(icc=0;icc<c->npcl;icc++) {
+              double *pcl=pcl_masks[icc];
+              if(c->has_00) {
+                wfac=pcl[l1]*wigner_00[j00]*wigner_00[j00];
+                c->xi_00[icc][ll2][ll3]+=wfac;
               }
-	      else {
-                for(ipp=0;ipp<c->npure_ss;ipp++)
-                  c->xi_pp[ipp][ll2][ll3]+=wfac_ispure[ipp];
-	      }
+              if(c->has_0s) {
+                double wfac_ispure[2];
+                wfac_ispure[0]=wigner_ss1[jss1];
+                wfac_ispure[0]*=pcl[l1]*wigner_00[j00];
+                if(c->pure_any) {
+                  wfac_ispure[1]=wigner_ss1[jss1]+fac_12*wigner_12[j12]+fac_02*wigner_02[j02];
+                  wfac_ispure[1]*=pcl[l1]*wigner_00[j00];
+                }
+                for(ipp=0;ipp<c->npure_0s;ipp++)
+                  c->xi_0s[icc][ipp][ll2][ll3]+=wfac_ispure[ipp];
+              }
+              if(c->has_ss) {
+                double wfac_ispure[3];
+                int suml=l1+ll2+ll3;
+                wfac_ispure[0]=wigner_ss1[jss1];
+                wfac_ispure[0]*=wigner_ss2[jss2]*pcl[l1];
+                if(c->pure_any) {
+                  wfac_ispure[1]=wigner_ss1[jss1]+fac_12*wigner_12[j12]+fac_02*wigner_02[j02];
+                  wfac_ispure[2]=wfac_ispure[1]*wfac_ispure[1]*pcl[l1];
+                  wfac_ispure[1]*=wigner_ss2[jss2]*pcl[l1];
+                }
+
+                if(suml & 1) { //Odd sum
+                  for(ipp=0;ipp<c->npure_ss;ipp++)
+                    c->xi_mm[icc][ipp][ll2][ll3]+=wfac_ispure[ipp];
+                }
+                else {
+                  for(ipp=0;ipp<c->npure_ss;ipp++)
+                    c->xi_pp[icc][ipp][ll2][ll3]+=wfac_ispure[ipp];
+                }
+              }
 	    }
 	  }
 	}
         if((!(c->pure_any)) && (ll2 != ll3)) { //Can use symmetry
-          if(c->has_00)
-            c->xi_00[ll3][ll2]=c->xi_00[ll2][ll3];
-          if(c->has_0s)
-            c->xi_0s[0][ll3][ll2]=c->xi_0s[0][ll2][ll3];
-          if(c->has_ss) {
-            c->xi_pp[0][ll3][ll2]=c->xi_pp[0][ll2][ll3];
-            c->xi_mm[0][ll3][ll2]=c->xi_mm[0][ll2][ll3];
+          for(icc=0;icc<c->npcl;icc++) {
+            if(c->has_00)
+              c->xi_00[icc][ll3][ll2]=c->xi_00[icc][ll2][ll3];
+            if(c->has_0s)
+              c->xi_0s[icc][0][ll3][ll2]=c->xi_0s[icc][0][ll2][ll3];
+            if(c->has_ss) {
+              c->xi_pp[icc][0][ll3][ll2]=c->xi_pp[icc][0][ll2][ll3];
+              c->xi_mm[icc][0][ll3][ll2]=c->xi_mm[icc][0][ll2][ll3];
+            }
           }
         }
       }
@@ -407,29 +424,39 @@ nmt_master_calculator *nmt_compute_master_coefficients(int lmax, int lmax_mask, 
 
 void nmt_master_calculator_free(nmt_master_calculator *c)
 {
-  int ii, ip;
+  int ii, ip, ic;
 
   if(c->has_00) {
-    for(ii=0;ii<=c->lmax;ii++)
-      free(c->xi_00[ii]);
+    for(ic=0;ic<c->npcl;ic++) {
+      for(ii=0;ii<=c->lmax;ii++)
+        free(c->xi_00[ic][ii]);
+      free(c->xi_00[ic]);
+    }
     free(c->xi_00);
   }
   if(c->has_0s) {
-    for(ip=0;ip<c->npure_0s;ip++) {
-      for(ii=0;ii<=c->lmax;ii++)
-        free(c->xi_0s[ip][ii]);
-      free(c->xi_0s[ip]);
+    for(ic=0;ic<c->npcl;ic++) {
+      for(ip=0;ip<c->npure_0s;ip++) {
+        for(ii=0;ii<=c->lmax;ii++)
+          free(c->xi_0s[ic][ip][ii]);
+        free(c->xi_0s[ic][ip]);
+      }
+      free(c->xi_0s[ic]);
     }
     free(c->xi_0s);
   }
   if(c->has_ss) {
-    for(ip=0;ip<c->npure_ss;ip++) {
-      for(ii=0;ii<=c->lmax;ii++) {
-        free(c->xi_pp[ip][ii]);
-        free(c->xi_mm[ip][ii]);
+    for(ic=0;ic<c->npcl;ic++) {
+      for(ip=0;ip<c->npure_ss;ip++) {
+        for(ii=0;ii<=c->lmax;ii++) {
+          free(c->xi_pp[ic][ip][ii]);
+          free(c->xi_mm[ic][ip][ii]);
+        }
+        free(c->xi_pp[ic][ip]);
+        free(c->xi_mm[ic][ip]);
       }
-      free(c->xi_pp[ip]);
-      free(c->xi_mm[ip]);
+      free(c->xi_pp[ic]);
+      free(c->xi_mm[ic]);
     }
     free(c->xi_pp);
     free(c->xi_mm);
@@ -476,7 +503,8 @@ nmt_workspace *nmt_compute_coupling_matrix(nmt_field *fl1,nmt_field *fl2,
     w->pcl_masks[l2]*=(2*l2+1.)/(4*M_PI);
 
   // Compute coupling coefficients
-  nmt_master_calculator *c=nmt_compute_master_coefficients(w->lmax, w->lmax_mask, w->pcl_masks,
+  nmt_master_calculator *c=nmt_compute_master_coefficients(w->lmax, w->lmax_mask,
+                                                           1, &(w->pcl_masks),
                                                            fl1->spin, fl2->spin,
                                                            fl1->pure_e,fl1->pure_b,
                                                            fl2->pure_e,fl2->pure_b,
@@ -497,33 +525,33 @@ nmt_workspace *nmt_compute_coupling_matrix(nmt_field *fl1,nmt_field *fl2,
       for(ll3=0;ll3<=w->lmax;ll3++) {
         double fac=(2*ll3+1.)*sign_overall;
         if(w->ncls==1)
-          w->coupling_matrix_unbinned[1*ll2+0][1*ll3+0]=fac*c->xi_00[ll2][ll3]; //TT,TT
+          w->coupling_matrix_unbinned[1*ll2+0][1*ll3+0]=fac*c->xi_00[0][ll2][ll3]; //TT,TT
         if(w->ncls==2) {
-          w->coupling_matrix_unbinned[2*ll2+0][2*ll3+0]=fac*c->xi_0s[pe1+pe2][ll2][ll3]; //TE,TE
-          w->coupling_matrix_unbinned[2*ll2+1][2*ll3+1]=fac*c->xi_0s[pb1+pb2][ll2][ll3]; //TB,TB
+          w->coupling_matrix_unbinned[2*ll2+0][2*ll3+0]=fac*c->xi_0s[0][pe1+pe2][ll2][ll3]; //TE,TE
+          w->coupling_matrix_unbinned[2*ll2+1][2*ll3+1]=fac*c->xi_0s[0][pb1+pb2][ll2][ll3]; //TB,TB
         }
         if(w->ncls==4) {
-          w->coupling_matrix_unbinned[4*ll2+0][4*ll3+3]=fac*c->xi_mm[pe1+pe2][ll2][ll3]; //EE,BB
-          w->coupling_matrix_unbinned[4*ll2+1][4*ll3+2]=-fac*c->xi_mm[pe1+pb2][ll2][ll3]; //EB,BE
-          w->coupling_matrix_unbinned[4*ll2+2][4*ll3+1]=-fac*c->xi_mm[pb1+pe2][ll2][ll3]; //BE,EB
-          w->coupling_matrix_unbinned[4*ll2+3][4*ll3+0]=fac*c->xi_mm[pb1+pb2][ll2][ll3]; //BB,EE
-          w->coupling_matrix_unbinned[4*ll2+0][4*ll3+0]=fac*c->xi_pp[pe1+pe2][ll2][ll3]; //EE,EE
-          w->coupling_matrix_unbinned[4*ll2+1][4*ll3+1]=fac*c->xi_pp[pe1+pb2][ll2][ll3]; //EB,EB
-          w->coupling_matrix_unbinned[4*ll2+2][4*ll3+2]=fac*c->xi_pp[pb1+pe2][ll2][ll3]; //BE,BE
-          w->coupling_matrix_unbinned[4*ll2+3][4*ll3+3]=fac*c->xi_pp[pb1+pb2][ll2][ll3]; //BB,BB
+          w->coupling_matrix_unbinned[4*ll2+0][4*ll3+3]=fac*c->xi_mm[0][pe1+pe2][ll2][ll3]; //EE,BB
+          w->coupling_matrix_unbinned[4*ll2+1][4*ll3+2]=-fac*c->xi_mm[0][pe1+pb2][ll2][ll3]; //EB,BE
+          w->coupling_matrix_unbinned[4*ll2+2][4*ll3+1]=-fac*c->xi_mm[0][pb1+pe2][ll2][ll3]; //BE,EB
+          w->coupling_matrix_unbinned[4*ll2+3][4*ll3+0]=fac*c->xi_mm[0][pb1+pb2][ll2][ll3]; //BB,EE
+          w->coupling_matrix_unbinned[4*ll2+0][4*ll3+0]=fac*c->xi_pp[0][pe1+pe2][ll2][ll3]; //EE,EE
+          w->coupling_matrix_unbinned[4*ll2+1][4*ll3+1]=fac*c->xi_pp[0][pe1+pb2][ll2][ll3]; //EB,EB
+          w->coupling_matrix_unbinned[4*ll2+2][4*ll3+2]=fac*c->xi_pp[0][pb1+pe2][ll2][ll3]; //BE,BE
+          w->coupling_matrix_unbinned[4*ll2+3][4*ll3+3]=fac*c->xi_pp[0][pb1+pb2][ll2][ll3]; //BB,BB
         }
         if(w->ncls==7) {
-          w->coupling_matrix_unbinned[7*ll2+0][7*ll3+0]=fac*c->xi_00[ll2][ll3]; //TT,TT
-          w->coupling_matrix_unbinned[7*ll2+1][7*ll3+1]=fac*c->xi_0s[pe2][ll2][ll3]; //TE,TE
-          w->coupling_matrix_unbinned[7*ll2+2][7*ll3+2]=fac*c->xi_0s[pb2][ll2][ll3]; //TB,TB
-          w->coupling_matrix_unbinned[7*ll2+3][7*ll3+6]=fac*c->xi_mm[pe2+pe2][ll2][ll3]; //EE,BB
-          w->coupling_matrix_unbinned[7*ll2+4][7*ll3+5]=-fac*c->xi_mm[pe2+pb2][ll2][ll3]; //EB,BE
-          w->coupling_matrix_unbinned[7*ll2+5][7*ll3+4]=-fac*c->xi_mm[pb2+pe2][ll2][ll3]; //BE,EB
-          w->coupling_matrix_unbinned[7*ll2+6][7*ll3+3]=fac*c->xi_mm[pb2+pb2][ll2][ll3]; //BB,EE
-          w->coupling_matrix_unbinned[7*ll2+3][7*ll3+3]=fac*c->xi_pp[pe2+pe2][ll2][ll3]; //EE,EE
-          w->coupling_matrix_unbinned[7*ll2+4][7*ll3+4]=fac*c->xi_pp[pe2+pb2][ll2][ll3]; //EB,EB
-          w->coupling_matrix_unbinned[7*ll2+5][7*ll3+5]=fac*c->xi_pp[pb2+pe2][ll2][ll3]; //BE,BE
-          w->coupling_matrix_unbinned[7*ll2+6][7*ll3+6]=fac*c->xi_pp[pb2+pb2][ll2][ll3]; //BB,BB
+          w->coupling_matrix_unbinned[7*ll2+0][7*ll3+0]=fac*c->xi_00[0][ll2][ll3]; //TT,TT
+          w->coupling_matrix_unbinned[7*ll2+1][7*ll3+1]=fac*c->xi_0s[0][pe2][ll2][ll3]; //TE,TE
+          w->coupling_matrix_unbinned[7*ll2+2][7*ll3+2]=fac*c->xi_0s[0][pb2][ll2][ll3]; //TB,TB
+          w->coupling_matrix_unbinned[7*ll2+3][7*ll3+6]=fac*c->xi_mm[0][pe2+pe2][ll2][ll3]; //EE,BB
+          w->coupling_matrix_unbinned[7*ll2+4][7*ll3+5]=-fac*c->xi_mm[0][pe2+pb2][ll2][ll3]; //EB,BE
+          w->coupling_matrix_unbinned[7*ll2+5][7*ll3+4]=-fac*c->xi_mm[0][pb2+pe2][ll2][ll3]; //BE,EB
+          w->coupling_matrix_unbinned[7*ll2+6][7*ll3+3]=fac*c->xi_mm[0][pb2+pb2][ll2][ll3]; //BB,EE
+          w->coupling_matrix_unbinned[7*ll2+3][7*ll3+3]=fac*c->xi_pp[0][pe2+pe2][ll2][ll3]; //EE,EE
+          w->coupling_matrix_unbinned[7*ll2+4][7*ll3+4]=fac*c->xi_pp[0][pe2+pb2][ll2][ll3]; //EB,EB
+          w->coupling_matrix_unbinned[7*ll2+5][7*ll3+5]=fac*c->xi_pp[0][pb2+pe2][ll2][ll3]; //BE,BE
+          w->coupling_matrix_unbinned[7*ll2+6][7*ll3+6]=fac*c->xi_pp[0][pb2+pb2][ll2][ll3]; //BB,BB
         }
       }
     } //end omp for
