@@ -201,21 +201,21 @@ static void populate_toeplitz(nmt_master_calculator *c, flouble **pcl_masks, int
   if(c->has_0s) {
     tplz_0s=my_malloc(c->npcl*sizeof(flouble **));
     for(ic=0;ic<c->npcl;ic++) {
-      tplz_0s=my_malloc(2*sizeof(flouble *));
-      tplz_0s[0]=my_calloc((c->lmax+1),sizeof(flouble));
-      tplz_0s[1]=my_calloc((c->lmax+1),sizeof(flouble));
+      tplz_0s[ic]=my_malloc(2*sizeof(flouble *));
+      tplz_0s[ic][0]=my_calloc((c->lmax+1),sizeof(flouble));
+      tplz_0s[ic][1]=my_calloc((c->lmax+1),sizeof(flouble));
     }
   }
   if(c->has_ss) {
     tplz_pp=my_malloc(c->npcl*sizeof(flouble **));
     tplz_mm=my_malloc(c->npcl*sizeof(flouble **));
     for(ic=0;ic<c->npcl;ic++) {
-      tplz_pp=my_malloc(2*sizeof(flouble *));
-      tplz_pp[0]=my_calloc((c->lmax+1),sizeof(flouble));
-      tplz_pp[1]=my_calloc((c->lmax+1),sizeof(flouble));
-      tplz_mm=my_malloc(2*sizeof(flouble *));
-      tplz_mm[0]=my_calloc((c->lmax+1),sizeof(flouble));
-      tplz_mm[1]=my_calloc((c->lmax+1),sizeof(flouble));
+      tplz_pp[ic]=my_malloc(2*sizeof(flouble *));
+      tplz_pp[ic][0]=my_calloc((c->lmax+1),sizeof(flouble));
+      tplz_pp[ic][1]=my_calloc((c->lmax+1),sizeof(flouble));
+      tplz_mm[ic]=my_malloc(2*sizeof(flouble *));
+      tplz_mm[ic][0]=my_calloc((c->lmax+1),sizeof(flouble));
+      tplz_mm[ic][1]=my_calloc((c->lmax+1),sizeof(flouble));
     }
   }
 
@@ -253,49 +253,53 @@ static void populate_toeplitz(nmt_master_calculator *c, flouble **pcl_masks, int
       for(il3=0;il3<2;il3++) {
         int ll3=l3_list[il3];
         int jj,l1,lmin_here,lmax_here;
-	int lmin_here_00=0,lmax_here_00=2*(c->lmax_mask+1)+1;
-	int lmin_here_ss1=0,lmax_here_ss1=2*(c->lmax_mask+1)+1;
-	int lmin_here_ss2=0,lmax_here_ss2=2*(c->lmax_mask+1)+1;
-	int lmin_here_12=0,lmax_here_12=2*(c->lmax_mask+1)+1;
-	int lmin_here_02=0,lmax_here_02=2*(c->lmax_mask+1)+1;
+	int lmin_00=0,lmax_00=2*(c->lmax_mask+1)+1;
+	int lmin_ss1=0,lmax_ss1=2*(c->lmax_mask+1)+1;
+	int lmin_ss2=0,lmax_ss2=2*(c->lmax_mask+1)+1;
+	int lmin_12=0,lmax_12=2*(c->lmax_mask+1)+1;
+	int lmin_02=0,lmax_02=2*(c->lmax_mask+1)+1;
+        lmin_here=abs(ll2-ll3);
+        lmax_here=ll2+ll3;
 
 	if(c->has_00 || c->has_0s)
-	  drc3jj(ll2,ll3,0,0,&lmin_here_00,&lmax_here_00,wigner_00,2*(c->lmax_mask+1));
+	  drc3jj(ll2,ll3,0,0,&lmin_00,&lmax_00,wigner_00,2*(c->lmax_mask+1));
 	if(c->has_0s || c->has_ss)
-	  drc3jj(ll2,ll3,c->s1,-c->s1,&lmin_here_ss1,&lmax_here_ss1,wigner_ss1,2*(c->lmax_mask+1));
+	  drc3jj(ll2,ll3,c->s1,-c->s1,&lmin_ss1,&lmax_ss1,wigner_ss1,2*(c->lmax_mask+1));
         if(has_ss2)
-          drc3jj(ll2,ll3,c->s2,-c->s2,&lmin_here_ss2,&lmax_here_ss2,wigner_ss2,2*(c->lmax_mask+1));
+          drc3jj(ll2,ll3,c->s2,-c->s2,&lmin_ss2,&lmax_ss2,wigner_ss2,2*(c->lmax_mask+1));
         else {
-          lmin_here_ss2=lmin_here_ss1;
-          lmax_here_ss2=lmax_here_ss1;
+          lmin_ss2=lmin_ss1;
+          lmax_ss2=lmax_ss1;
         }
-
-        lmin_here=NMT_MIN(lmin_here_00,lmin_here_ss1);
-        lmax_here=NMT_MAX(lmax_here_00,lmax_here_ss1);
-        lmin_here=NMT_MIN(lmin_here,lmin_here_ss2);
-        lmax_here=NMT_MAX(lmax_here,lmax_here_ss2);
-	//All lines regarding lmax are in principle unnecessary, since lmax is just l3+l2
 
 	for(l1=lmin_here;l1<=lmax_here;l1++) {
           int ipp;
           if(l1<=c->lmax_mask) {
             flouble wfac;
-            int j00=l1-lmin_here_00;
-            int jss1=l1-lmin_here_ss1;
-            int jss2=l1-lmin_here_ss2;
+            flouble w00=0,wss1=0,wss2=0,w12=0,w02=0;
+            int j00=l1-lmin_00;
+            int jss1=l1-lmin_ss1;
+            int jss2=l1-lmin_ss2;
+            if(c->has_00 || c->has_0s)
+              w00=j00 < 0 ? 0 : wigner_00[j00];
+            if(c->has_ss || c->has_0s) {
+              wss1=jss1 < 0 ? 0 : wigner_ss1[jss1];
+              wss2=jss2 < 0 ? 0 : wigner_ss2[jss2];
+            }
+
             for(icc=0;icc<c->npcl;icc++) {
               double *pcl=pcl_masks[icc];
               if(c->has_00) {
-                wfac=pcl[l1]*wigner_00[j00]*wigner_00[j00];
+                wfac=pcl[l1]*w00*w00;
                 tplz_00[icc][il3][ll2]+=wfac;
               }
               if(c->has_0s) {
-                wfac=pcl[l1]*wigner_00[j00]*wigner_ss1[jss1];
+                wfac=pcl[l1]*wss1*w00;
                 tplz_0s[icc][il3][ll2]+=wfac;
               }
               if(c->has_ss) {
                 int suml=l1+ll2+ll3;
-                wfac=pcl[l1]*wigner_ss1[jss1]*wigner_ss2[jss2];
+                wfac=pcl[l1]*wss1*wss2;
 
                 if(suml & 1) //Odd sum
                   tplz_mm[icc][il3][ll2]+=wfac;
@@ -314,7 +318,7 @@ static void populate_toeplitz(nmt_master_calculator *c, flouble **pcl_masks, int
   } //end omp parallel
 
   for(ic=0;ic<c->npcl;ic++) {
-    //Take absolute value to avoid sqrt(-1) later
+    //Take absolute value of the diagonal to avoid sqrt(-1) later
     for(l2=0;l2<=c->lmax;l2++) {
       if(c->has_00)
         tplz_00[ic][0][l2]=fabs(tplz_00[ic][0][l2]);
@@ -393,7 +397,7 @@ static void populate_toeplitz(nmt_master_calculator *c, flouble **pcl_masks, int
       } //end omp for
     } //end omp parallel
   }
-  
+
   if(c->has_ss) {
     for(ic=0;ic<c->npcl;ic++) {
       free(tplz_pp[ic][0]);
@@ -559,56 +563,48 @@ nmt_master_calculator *nmt_compute_master_coefficients(int lmax, int lmax_mask,
         l3_start=ll2;
       for(ll3=l3_start;ll3<=c->lmax;ll3++) {
         int jj,l1,lmin_here,lmax_here;
-	int lmin_here_00=0,lmax_here_00=2*(c->lmax_mask+1)+1;
-	int lmin_here_ss1=0,lmax_here_ss1=2*(c->lmax_mask+1)+1;
-	int lmin_here_ss2=0,lmax_here_ss2=2*(c->lmax_mask+1)+1;
-	int lmin_here_12=0,lmax_here_12=2*(c->lmax_mask+1)+1;
-	int lmin_here_02=0,lmax_here_02=2*(c->lmax_mask+1)+1;
+	int lmin_00=0,lmax_00=2*(c->lmax_mask+1)+1;
+	int lmin_ss1=0,lmax_ss1=2*(c->lmax_mask+1)+1;
+	int lmin_ss2=0,lmax_ss2=2*(c->lmax_mask+1)+1;
+        int lmin_12=0,lmax_12=2*(c->lmax_mask+1)+1;
+        int lmin_02=0,lmax_02=2*(c->lmax_mask+1)+1;
+        lmin_here=abs(ll2-ll3);
+        lmax_here=ll2+ll3;
 
 	if(c->has_00 || c->has_0s)
-	  drc3jj(ll2,ll3,0,0,&lmin_here_00,&lmax_here_00,wigner_00,2*(c->lmax_mask+1));
+	  drc3jj(ll2,ll3,0,0,&lmin_00,&lmax_00,wigner_00,2*(c->lmax_mask+1));
 	if(c->has_0s || c->has_ss)
-	  drc3jj(ll2,ll3,c->s1,-c->s1,&lmin_here_ss1,&lmax_here_ss1,wigner_ss1,2*(c->lmax_mask+1));
+	  drc3jj(ll2,ll3,c->s1,-c->s1,&lmin_ss1,&lmax_ss1,wigner_ss1,2*(c->lmax_mask+1));
         if(has_ss2)
-          drc3jj(ll2,ll3,c->s2,-c->s2,&lmin_here_ss2,&lmax_here_ss2,wigner_ss2,2*(c->lmax_mask+1));
+          drc3jj(ll2,ll3,c->s2,-c->s2,&lmin_ss2,&lmax_ss2,wigner_ss2,2*(c->lmax_mask+1));
         else {
-          lmin_here_ss2=lmin_here_ss1;
-          lmax_here_ss2=lmax_here_ss1;
+          lmin_ss2=lmin_ss1;
+          lmax_ss2=lmax_ss1;
         }
 	if(c->pure_any) {
-	  drc3jj(ll2,ll3,1,-2,&lmin_here_12,&lmax_here_12,wigner_12,2*(c->lmax_mask+1));
-	  drc3jj(ll2,ll3,0,-2,&lmin_here_02,&lmax_here_02,wigner_02,2*(c->lmax_mask+1));
+	  drc3jj(ll2,ll3,1,-2,&lmin_12,&lmax_12,wigner_12,2*(c->lmax_mask+1));
+	  drc3jj(ll2,ll3,0,-2,&lmin_02,&lmax_02,wigner_02,2*(c->lmax_mask+1));
 	}
-
-	if(!do_teb) {
-	  lmin_here=NMT_MAX(lmin_here_00,lmin_here_ss1);
-	  lmax_here=NMT_MIN(lmax_here_00,lmax_here_ss1);
-          lmin_here=NMT_MAX(lmin_here,lmin_here_ss2);
-          lmax_here=NMT_MIN(lmax_here,lmax_here_ss2);
-        }
-	else {
-	  lmin_here=NMT_MIN(lmin_here_00,lmin_here_ss1);
-	  lmax_here=NMT_MAX(lmax_here_00,lmax_here_ss1);
-	}
-	if(c->pure_any) {
-	  lmin_here=NMT_MIN(lmin_here,lmin_here_12);
-	  lmin_here=NMT_MIN(lmin_here,lmin_here_02);
-	  lmax_here=NMT_MAX(lmax_here,lmax_here_12);
-	  lmax_here=NMT_MAX(lmax_here,lmax_here_02);
-	}
-	//All lines regarding lmax are in principle unnecessary, since lmax is just l3+l2
 
 	for(l1=lmin_here;l1<=lmax_here;l1++) {
           int ipp;
 	  if(l1<=c->lmax_mask) {
 	    flouble wfac,fac_12=0,fac_02=0;
+            flouble w00=0,wss1=0,wss2=0,w12=0,w02=0;
 	    int j02,j12;
-	    int j00=l1-lmin_here_00;
-	    int jss1=l1-lmin_here_ss1;
-	    int jss2=l1-lmin_here_ss2;
-	    if(c->pure_any) {
-	      j12=l1-lmin_here_12;
-	      j02=l1-lmin_here_02;
+	    int j00=l1-lmin_00;
+	    int jss1=l1-lmin_ss1;
+	    int jss2=l1-lmin_ss2;
+            if(c->has_00 || c->has_0s)
+              w00=j00 < 0 ? 0 : wigner_00[j00];
+            if(c->has_ss || c->has_0s) {
+              wss1=jss1 < 0 ? 0 : wigner_ss1[jss1];
+              wss2=jss2 < 0 ? 0 : wigner_ss2[jss2];
+            }
+
+            if(c->pure_any) {
+	      j12=l1-lmin_12;
+	      j02=l1-lmin_02;
 	      if(ll2>1.) {
 		fac_12=2*sqrt((l1+1.)*(l1+0.)/((ll2+2)*(ll2-1.)));
 		if(l1>1.)
@@ -628,21 +624,23 @@ nmt_master_calculator *nmt_compute_master_coefficients(int lmax, int lmax_mask,
 		fac_02=0;
 		j02=0;
 	      }
+              w12=j12 < 0 ? 0 : wigner_12[j12];
+              w02=j02 < 0 ? 0 : wigner_02[j02];
 	    }
 
             for(icc=0;icc<c->npcl;icc++) {
               double *pcl=pcl_masks[icc];
               if(c->has_00) {
-                wfac=pcl[l1]*wigner_00[j00]*wigner_00[j00];
+                wfac=pcl[l1]*w00*w00;
                 c->xi_00[icc][ll2][ll3]+=wfac;
               }
               if(c->has_0s) {
                 double wfac_ispure[2];
-                wfac_ispure[0]=wigner_ss1[jss1];
-                wfac_ispure[0]*=pcl[l1]*wigner_00[j00];
+                wfac_ispure[0]=wss1;
+                wfac_ispure[0]*=pcl[l1]*w00;
                 if(c->pure_any) {
-                  wfac_ispure[1]=wigner_ss1[jss1]+fac_12*wigner_12[j12]+fac_02*wigner_02[j02];
-                  wfac_ispure[1]*=pcl[l1]*wigner_00[j00];
+                  wfac_ispure[1]=wss1+fac_12*w12+fac_02*w02;
+                  wfac_ispure[1]*=pcl[l1]*w00;
                 }
                 for(ipp=0;ipp<c->npure_0s;ipp++)
                   c->xi_0s[icc][ipp][ll2][ll3]+=wfac_ispure[ipp];
@@ -650,12 +648,12 @@ nmt_master_calculator *nmt_compute_master_coefficients(int lmax, int lmax_mask,
               if(c->has_ss) {
                 double wfac_ispure[3];
                 int suml=l1+ll2+ll3;
-                wfac_ispure[0]=wigner_ss1[jss1];
-                wfac_ispure[0]*=wigner_ss2[jss2]*pcl[l1];
+                wfac_ispure[0]=wss1;
+                wfac_ispure[0]*=wss2*pcl[l1];
                 if(c->pure_any) {
-                  wfac_ispure[1]=wigner_ss1[jss1]+fac_12*wigner_12[j12]+fac_02*wigner_02[j02];
+                  wfac_ispure[1]=wss1+fac_12*w12+fac_02*w02;
                   wfac_ispure[2]=wfac_ispure[1]*wfac_ispure[1]*pcl[l1];
-                  wfac_ispure[1]*=wigner_ss2[jss2]*pcl[l1];
+                  wfac_ispure[1]*=wss2*pcl[l1];
                 }
 
                 if(suml & 1) { //Odd sum
