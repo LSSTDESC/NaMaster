@@ -561,20 +561,20 @@ nmt_master_calculator *nmt_compute_master_coefficients(int lmax, int lmax_mask,
       int l3_start=lstart;
       if(!(c->pure_any)) //We can use symmetry
         l3_start=ll2;
-      for(ll3=l3_start;ll3<=c->lmax;ll3++) {
+      for(ll3=l3_start;ll3<=l3_end;ll3++) {
         int jj,l1,lmin_here,lmax_here;
-	int lmin_00=0,lmax_00=2*(c->lmax_mask+1)+1;
-	int lmin_ss1=0,lmax_ss1=2*(c->lmax_mask+1)+1;
-	int lmin_ss2=0,lmax_ss2=2*(c->lmax_mask+1)+1;
+        int lmin_00=0,lmax_00=2*(c->lmax_mask+1)+1;
+        int lmin_ss1=0,lmax_ss1=2*(c->lmax_mask+1)+1;
+        int lmin_ss2=0,lmax_ss2=2*(c->lmax_mask+1)+1;
         int lmin_12=0,lmax_12=2*(c->lmax_mask+1)+1;
         int lmin_02=0,lmax_02=2*(c->lmax_mask+1)+1;
         lmin_here=abs(ll2-ll3);
         lmax_here=ll2+ll3;
 
-	if(c->has_00 || c->has_0s)
-	  drc3jj(ll2,ll3,0,0,&lmin_00,&lmax_00,wigner_00,2*(c->lmax_mask+1));
-	if(c->has_0s || c->has_ss)
-	  drc3jj(ll2,ll3,c->s1,-c->s1,&lmin_ss1,&lmax_ss1,wigner_ss1,2*(c->lmax_mask+1));
+        if(c->has_00 || c->has_0s)
+          drc3jj(ll2,ll3,0,0,&lmin_00,&lmax_00,wigner_00,2*(c->lmax_mask+1));
+        if(c->has_0s || c->has_ss)
+          drc3jj(ll2,ll3,c->s1,-c->s1,&lmin_ss1,&lmax_ss1,wigner_ss1,2*(c->lmax_mask+1));
         if(has_ss2)
           drc3jj(ll2,ll3,c->s2,-c->s2,&lmin_ss2,&lmax_ss2,wigner_ss2,2*(c->lmax_mask+1));
         else {
@@ -586,15 +586,15 @@ nmt_master_calculator *nmt_compute_master_coefficients(int lmax, int lmax_mask,
 	  drc3jj(ll2,ll3,0,-2,&lmin_02,&lmax_02,wigner_02,2*(c->lmax_mask+1));
 	}
 
-	for(l1=lmin_here;l1<=lmax_here;l1++) {
+        for(l1=lmin_here;l1<=lmax_here;l1++) {
           int ipp;
-	  if(l1<=c->lmax_mask) {
-	    flouble wfac,fac_12=0,fac_02=0;
+          if(l1<=c->lmax_mask) {
+            flouble wfac,fac_12=0,fac_02=0;
             flouble w00=0,wss1=0,wss2=0,w12=0,w02=0;
-	    int j02,j12;
-	    int j00=l1-lmin_00;
-	    int jss1=l1-lmin_ss1;
-	    int jss2=l1-lmin_ss2;
+            int j02,j12;
+            int j00=l1-lmin_00;
+            int jss1=l1-lmin_ss1;
+            int jss2=l1-lmin_ss2;
             if(c->has_00 || c->has_0s)
               w00=j00 < 0 ? 0 : wigner_00[j00];
             if(c->has_ss || c->has_0s) {
