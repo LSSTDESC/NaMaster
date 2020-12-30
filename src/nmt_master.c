@@ -366,8 +366,8 @@ static void populate_toeplitz(nmt_master_calculator *c, flouble **pcl_masks, int
     }
 
     //Populate matrices
-#pragma omp parallel default(none)                      \
-  shared(c, ic, lt, tplz_00, tplz_0s, tplz_pp, tplz_mm)
+#pragma omp parallel default(none)                                      \
+  shared(c, ic, lt, tplz_00, tplz_0s, tplz_pp, tplz_mm, sign_overall)
     {
       int ll2, ll3;
 
@@ -376,12 +376,12 @@ static void populate_toeplitz(nmt_master_calculator *c, flouble **pcl_masks, int
         for(ll3=0;ll3<=ll2;ll3++) {
           int il=toeplitz_wrap(ll2+lt-ll3,c->lmax+1);
           if(c->has_00)
-            c->xi_00[ic][ll2][ll3]=tplz_00[ic][1][il]*sqrt(tplz_00[ic][0][ll2]*tplz_00[ic][0][ll3]);
+            c->xi_00[ic][ll2][ll3]=sign_overall*tplz_00[ic][1][il]*sqrt(tplz_00[ic][0][ll2]*tplz_00[ic][0][ll3]);
           if(c->has_0s)
-            c->xi_0s[ic][0][ll2][ll3]=tplz_0s[ic][1][il]*sqrt(tplz_0s[ic][0][ll2]*tplz_0s[ic][0][ll3]);
+            c->xi_0s[ic][0][ll2][ll3]=sign_overall*tplz_0s[ic][1][il]*sqrt(tplz_0s[ic][0][ll2]*tplz_0s[ic][0][ll3]);
           if(c->has_ss) {
-            c->xi_pp[ic][0][ll2][ll3]=tplz_pp[ic][1][il]*sqrt(tplz_pp[ic][0][ll2]*tplz_pp[ic][0][ll3]);
-            c->xi_mm[ic][0][ll2][ll3]=tplz_mm[ic][1][il]*sqrt(tplz_mm[ic][0][ll2]*tplz_mm[ic][0][ll3]);
+            c->xi_pp[ic][0][ll2][ll3]=sign_overall*tplz_pp[ic][1][il]*sqrt(tplz_pp[ic][0][ll2]*tplz_pp[ic][0][ll3]);
+            c->xi_mm[ic][0][ll2][ll3]=sign_overall*tplz_mm[ic][1][il]*sqrt(tplz_mm[ic][0][ll2]*tplz_mm[ic][0][ll3]);
           }
           if(ll3!=ll2) {
             if(c->has_00)
@@ -535,9 +535,9 @@ nmt_master_calculator *nmt_compute_master_coefficients(int lmax, int lmax_mask,
   if(!(c->has_00))
     lstart=max_spin;
 
-#pragma omp parallel default(none)              \
-  shared(c, lstart, do_teb, pcl_masks, has_ss2) \
-  shared(l_toeplitz, l_exact, dl_band)
+#pragma omp parallel default(none)                      \
+  shared(c, lstart, do_teb, pcl_masks, has_ss2)         \
+  shared(l_toeplitz, l_exact, dl_band, sign_overall)
   {
     int ll2,ll3,icc;
     double *wigner_00=NULL,*wigner_ss1=NULL,*wigner_12=NULL,*wigner_02=NULL,*wigner_ss2=NULL;
@@ -691,8 +691,20 @@ nmt_master_calculator *nmt_compute_master_coefficients(int lmax, int lmax_mask,
 	    }
 	  }
 	}
-        if((!(c->pure_any)) && (ll2 != ll3)) { //Can use symmetry
-          for(icc=0;icc<c->npcl;icc++) {
+
+        // Add sign and symmetrize
+        for(icc=0;icc<c->npcl;icc++) {
+          if(sign_overall!=1) {
+            if(c->has_00)
+              c->xi_00[icc][ll2][ll3]*=sign_overall;
+            if(c->has_0s)
+              c->xi_0s[icc][0][ll3][ll2]*=sign_overall;
+            if(c->has_ss) {
+              c->xi_pp[icc][0][ll3][ll2]*=sign_overall;
+              c->xi_mm[icc][0][ll3][ll2]*=sign_overall;
+            }
+          }
+          if((!(c->pure_any)) && (ll2 != ll3)) { //Can use symmetry
             if(c->has_00)
               c->xi_00[icc][ll3][ll2]=c->xi_00[icc][ll2][ll3];
             if(c->has_0s)
@@ -851,14 +863,11 @@ nmt_workspace *nmt_compute_coupling_matrix(nmt_field *fl1,nmt_field *fl2,
   {
     int ll2,ll3;
     int pe1=fl1->pure_e,pe2=fl2->pure_e,pb1=fl1->pure_b,pb2=fl2->pure_b;
-    int sign_overall=1;
-    if((fl1->spin+fl2->spin) & 1)
-      sign_overall=-1;
 
 #pragma omp for schedule(dynamic)
     for(ll2=0;ll2<=w->lmax;ll2++) {
       for(ll3=0;ll3<=w->lmax;ll3++) {
-        double fac=(2*ll3+1.)*sign_overall;
+        double fac=(2*ll3+1.);
         if(w->ncls==1)
           w->coupling_matrix_unbinned[1*ll2+0][1*ll3+0]=fac*c->xi_00[0][ll2][ll3]; //TT,TT
         if(w->ncls==2) {
