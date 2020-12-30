@@ -81,7 +81,8 @@ class NmtWorkspace(object):
             lib.workspace_free(self.wsp)
             self.wsp = None
 
-        _toeplitz_sanity(l_toeplitz, l_exact, dl_band, bins.bin.ell_max)
+        _toeplitz_sanity(l_toeplitz, l_exact, dl_band,
+                         bins.bin.ell_max, fl1, fl2)
         self.wsp = lib.comp_coupling_matrix(fl1.fl, fl2.fl, bins.bin,
                                             int(is_teb), int(n_iter),
                                             lmax_mask, l_toeplitz,
@@ -563,7 +564,8 @@ def compute_full_master(f1, f2, b, cl_noise=None, cl_guess=None,
     else:
         clg = np.zeros([f1.fl.nmaps * f2.fl.nmaps, 3 * f1.fl.cs.n_eq])
 
-    _toeplitz_sanity(l_toeplitz, l_exact, dl_band, b.bin.ell_max)
+    _toeplitz_sanity(l_toeplitz, l_exact, dl_band,
+                     b.bin.ell_max, f1, f2)
 
     if workspace is None:
         cl1d = lib.comp_pspec(f1.fl, f2.fl, b.bin, None, cln, clg,

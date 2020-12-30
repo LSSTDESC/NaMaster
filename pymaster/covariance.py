@@ -80,7 +80,7 @@ class NmtCovarianceWorkspace(object):
         if lmax is None:
             lmax = lib.get_lmax_from_cs_py(fla1.fl.cs)
 
-        _toeplitz_sanity(l_toeplitz, l_exact, dl_band, lmax)
+        _toeplitz_sanity(l_toeplitz, l_exact, dl_band, lmax, fla1, flb1)
         self.wsp = lib.covar_workspace_init_py(fla1.fl, fla2.fl, flb1.fl,
                                                flb2.fl, lmax, n_iter,
                                                l_toeplitz, l_exact, dl_band)

@@ -555,6 +555,29 @@ nmt_master_calculator *nmt_compute_master_coefficients(int lmax, int lmax_mask,
       wigner_02=my_malloc(2*(c->lmax_mask+1)*sizeof(double));
     }
 
+    if(l_toeplitz > 0) {
+      //Set all elements that will be recomputed to zero
+#pragma omp for schedule(dynamic)
+      for(ll2=lstart;ll2<=c->lmax;ll2++) {
+        int l3_end=lend_toeplitz(ll2, l_toeplitz, l_exact, dl_band, c->lmax);
+        int l3_start=lstart;
+        if(!(c->pure_any)) //We can use symmetry
+          l3_start=ll2;
+        for(ll3=l3_start;ll3<=l3_end;ll3++) {
+          for(icc=0;icc<c->npcl;icc++) {
+            if(c->has_00)
+              c->xi_00[icc][ll2][ll3]=0;
+            if(c->has_0s)
+              c->xi_0s[icc][0][ll2][ll3]=0;
+            if(c->has_ss) {
+              c->xi_pp[icc][0][ll2][ll3]=0;
+              c->xi_mm[icc][0][ll2][ll3]=0;
+            }
+          }
+        }
+      } //end omp for
+    }
+
 #pragma omp for schedule(dynamic)
     for(ll2=lstart;ll2<=c->lmax;ll2++) {
       int l3_end=lend_toeplitz(ll2, l_toeplitz, l_exact, dl_band, c->lmax);
