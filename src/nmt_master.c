@@ -222,9 +222,6 @@ static void populate_toeplitz(nmt_master_calculator *c, flouble **pcl_masks, int
   int lstart=0;
   int max_spin=NMT_MAX(c->s1, c->s2);
   int has_ss2=(c->s1!=0) && (c->s2!=0) && (c->s1!=c->s2);
-  int sign_overall=1;
-  if((c->s1+c->s2) & 1)
-    sign_overall=-1;
   if(!(c->has_00))
     lstart=max_spin;
 
@@ -366,8 +363,8 @@ static void populate_toeplitz(nmt_master_calculator *c, flouble **pcl_masks, int
     }
 
     //Populate matrices
-#pragma omp parallel default(none)                                      \
-  shared(c, ic, lt, tplz_00, tplz_0s, tplz_pp, tplz_mm, sign_overall)
+#pragma omp parallel default(none)                      \
+  shared(c, ic, lt, tplz_00, tplz_0s, tplz_pp, tplz_mm)
     {
       int ll2, ll3;
 
@@ -376,12 +373,12 @@ static void populate_toeplitz(nmt_master_calculator *c, flouble **pcl_masks, int
         for(ll3=0;ll3<=ll2;ll3++) {
           int il=toeplitz_wrap(ll2+lt-ll3,c->lmax+1);
           if(c->has_00)
-            c->xi_00[ic][ll2][ll3]=sign_overall*tplz_00[ic][1][il]*sqrt(tplz_00[ic][0][ll2]*tplz_00[ic][0][ll3]);
+            c->xi_00[ic][ll2][ll3]=tplz_00[ic][1][il]*sqrt(tplz_00[ic][0][ll2]*tplz_00[ic][0][ll3]);
           if(c->has_0s)
-            c->xi_0s[ic][0][ll2][ll3]=sign_overall*tplz_0s[ic][1][il]*sqrt(tplz_0s[ic][0][ll2]*tplz_0s[ic][0][ll3]);
+            c->xi_0s[ic][0][ll2][ll3]=tplz_0s[ic][1][il]*sqrt(tplz_0s[ic][0][ll2]*tplz_0s[ic][0][ll3]);
           if(c->has_ss) {
-            c->xi_pp[ic][0][ll2][ll3]=sign_overall*tplz_pp[ic][1][il]*sqrt(tplz_pp[ic][0][ll2]*tplz_pp[ic][0][ll3]);
-            c->xi_mm[ic][0][ll2][ll3]=sign_overall*tplz_mm[ic][1][il]*sqrt(tplz_mm[ic][0][ll2]*tplz_mm[ic][0][ll3]);
+            c->xi_pp[ic][0][ll2][ll3]=tplz_pp[ic][1][il]*sqrt(tplz_pp[ic][0][ll2]*tplz_pp[ic][0][ll3]);
+            c->xi_mm[ic][0][ll2][ll3]=tplz_mm[ic][1][il]*sqrt(tplz_mm[ic][0][ll2]*tplz_mm[ic][0][ll3]);
           }
           if(ll3!=ll2) {
             if(c->has_00)
@@ -529,15 +526,12 @@ nmt_master_calculator *nmt_compute_master_coefficients(int lmax, int lmax_mask,
   int lstart=0;
   int max_spin=NMT_MAX(c->s1, c->s2);
   int has_ss2=(c->s1!=0) && (c->s2!=0) && (!do_teb) && (c->s1!=c->s2);
-  int sign_overall=1;
-  if((c->s1+c->s2) & 1)
-    sign_overall=-1;
   if(!(c->has_00))
     lstart=max_spin;
 
-#pragma omp parallel default(none)                      \
-  shared(c, lstart, do_teb, pcl_masks, has_ss2)         \
-  shared(l_toeplitz, l_exact, dl_band, sign_overall)
+#pragma omp parallel default(none)              \
+  shared(c, lstart, do_teb, pcl_masks, has_ss2) \
+  shared(l_toeplitz, l_exact, dl_band)
   {
     int ll2,ll3,icc;
     double *wigner_00=NULL,*wigner_ss1=NULL,*wigner_12=NULL,*wigner_02=NULL,*wigner_ss2=NULL;
@@ -555,29 +549,6 @@ nmt_master_calculator *nmt_compute_master_coefficients(int lmax, int lmax_mask,
       wigner_02=my_malloc(2*(c->lmax_mask+1)*sizeof(double));
     }
 
-    if(l_toeplitz > 0) {
-      //Set all elements that will be recomputed to zero
-#pragma omp for schedule(dynamic)
-      for(ll2=lstart;ll2<=c->lmax;ll2++) {
-        int l3_end=lend_toeplitz(ll2, l_toeplitz, l_exact, dl_band, c->lmax);
-        int l3_start=lstart;
-        if(!(c->pure_any)) //We can use symmetry
-          l3_start=ll2;
-        for(ll3=l3_start;ll3<=l3_end;ll3++) {
-          for(icc=0;icc<c->npcl;icc++) {
-            if(c->has_00)
-              c->xi_00[icc][ll2][ll3]=0;
-            if(c->has_0s)
-              c->xi_0s[icc][0][ll2][ll3]=0;
-            if(c->has_ss) {
-              c->xi_pp[icc][0][ll2][ll3]=0;
-              c->xi_mm[icc][0][ll2][ll3]=0;
-            }
-          }
-        }
-      } //end omp for
-    }
-
 #pragma omp for schedule(dynamic)
     for(ll2=lstart;ll2<=c->lmax;ll2++) {
       int l3_end=lend_toeplitz(ll2, l_toeplitz, l_exact, dl_band, c->lmax);
@@ -593,6 +564,20 @@ nmt_master_calculator *nmt_compute_master_coefficients(int lmax, int lmax_mask,
         int lmin_02=0,lmax_02=2*(c->lmax_mask+1)+1;
         lmin_here=abs(ll2-ll3);
         lmax_here=ll2+ll3;
+
+        if(l_toeplitz > 0) {
+          //Set all elements that will be recomputed to zero
+          for(icc=0;icc<c->npcl;icc++) {
+            if(c->has_00)
+              c->xi_00[icc][ll2][ll3]=0;
+            if(c->has_0s)
+              c->xi_0s[icc][0][ll2][ll3]=0;
+            if(c->has_ss) {
+              c->xi_pp[icc][0][ll2][ll3]=0;
+              c->xi_mm[icc][0][ll2][ll3]=0;
+            }
+          }
+        }
 
         if(c->has_00 || c->has_0s)
           drc3jj(ll2,ll3,0,0,&lmin_00,&lmax_00,wigner_00,2*(c->lmax_mask+1));
@@ -692,19 +677,8 @@ nmt_master_calculator *nmt_compute_master_coefficients(int lmax, int lmax_mask,
 	  }
 	}
 
-        // Add sign and symmetrize
-        for(icc=0;icc<c->npcl;icc++) {
-          if(sign_overall!=1) {
-            if(c->has_00)
-              c->xi_00[icc][ll2][ll3]*=sign_overall;
-            if(c->has_0s)
-              c->xi_0s[icc][0][ll3][ll2]*=sign_overall;
-            if(c->has_ss) {
-              c->xi_pp[icc][0][ll3][ll2]*=sign_overall;
-              c->xi_mm[icc][0][ll3][ll2]*=sign_overall;
-            }
-          }
-          if((!(c->pure_any)) && (ll2 != ll3)) { //Can use symmetry
+        if((!(c->pure_any)) && (ll2 != ll3)) { //Can use symmetry
+          for(icc=0;icc<c->npcl;icc++) {
             if(c->has_00)
               c->xi_00[icc][ll3][ll2]=c->xi_00[icc][ll2][ll3];
             if(c->has_0s)
@@ -863,11 +837,14 @@ nmt_workspace *nmt_compute_coupling_matrix(nmt_field *fl1,nmt_field *fl2,
   {
     int ll2,ll3;
     int pe1=fl1->pure_e,pe2=fl2->pure_e,pb1=fl1->pure_b,pb2=fl2->pure_b;
+    int sign_overall=1;
+    if((fl1->spin+fl2->spin) & 1)
+      sign_overall=-1;
 
 #pragma omp for schedule(dynamic)
     for(ll2=0;ll2<=w->lmax;ll2++) {
       for(ll3=0;ll3<=w->lmax;ll3++) {
-        double fac=(2*ll3+1.);
+        double fac=(2*ll3+1.)*sign_overall;
         if(w->ncls==1)
           w->coupling_matrix_unbinned[1*ll2+0][1*ll3+0]=fac*c->xi_00[0][ll2][ll3]; //TT,TT
         if(w->ncls==2) {
