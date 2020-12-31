@@ -1,7 +1,6 @@
 var searchData=
 [
-  ['i_5fdell',['i_dell',['../structnmt__flatsky__info.html#ad2d95fe230652ca6c770682566c7924c',1,'nmt_flatsky_info']]],
-  ['is_5fconst',['is_const',['../structnmt__k__function.html#aaeb96fb264f039eb84a007172c197a14',1,'nmt_k_function']]],
-  ['is_5fhealpix',['is_healpix',['../structnmt__curvedsky__info.html#a3a02010133f654ff50d03ff126040920',1,'nmt_curvedsky_info']]],
-  ['is_5fteb',['is_teb',['../structnmt__workspace__flat.html#a68de50205cd1daf007785a59bacde943',1,'nmt_workspace_flat::is_teb()'],['../structnmt__workspace.html#af644386c942f4e6cce242c5264cc806f',1,'nmt_workspace::is_teb()']]]
+  ['has_5f00',['has_00',['../structnmt__master__calculator.html#af82b32ff1b96adf2b0eaffed223754fd',1,'nmt_master_calculator']]],
+  ['has_5f0s',['has_0s',['../structnmt__master__calculator.html#af47ef6c87baea5c4f482599dfb446212',1,'nmt_master_calculator']]],
+  ['has_5fss',['has_ss',['../structnmt__master__calculator.html#a1bbfe59216e6dcd263e57dda3b1e17ff',1,'nmt_master_calculator']]]
 ];

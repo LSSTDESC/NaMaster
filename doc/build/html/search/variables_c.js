@@ -1,5 +1,7 @@
 var searchData=
 [
-  ['temp',['temp',['../structnmt__field__flat.html#a93742bfe4351766478388dc1ad72a0f9',1,'nmt_field_flat::temp()'],['../structnmt__field.html#a404ce5d3267bf002a534dc10f22afe40',1,'nmt_field::temp()']]],
-  ['theta0',['theta0',['../structnmt__curvedsky__info.html#ab68fe6dea5e51b2d69af235e6a19c8e1',1,'nmt_curvedsky_info']]]
+  ['s1',['s1',['../structnmt__master__calculator.html#a30f2ba21b81101860fd0bf44eb2b0e8e',1,'nmt_master_calculator']]],
+  ['s2',['s2',['../structnmt__master__calculator.html#a5e98ed94e08d99295e648c17b09170c7',1,'nmt_master_calculator']]],
+  ['spin',['spin',['../structnmt__field__flat.html#a1b43ed81f32bd28a92288f50e81f929c',1,'nmt_field_flat::spin()'],['../structnmt__field.html#a7eddce0d8fbd3fa4344a2e5da1444cc7',1,'nmt_field::spin()']]],
+  ['spl',['spl',['../structnmt__k__function.html#ae7cbd329ae89e4e558c77a96ebe02af8',1,'nmt_k_function']]]
 ];

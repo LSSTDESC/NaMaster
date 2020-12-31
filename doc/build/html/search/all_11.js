@@ -9,5 +9,9 @@ var searchData=
   ['xi22m_5f1122',['xi22m_1122',['../structnmt__covar__workspace__flat.html#a104b1998ee692bf54e9ed811872167b9',1,'nmt_covar_workspace_flat::xi22m_1122()'],['../structnmt__covar__workspace.html#af3cd9033f320e9443e7513b87cfac3a4',1,'nmt_covar_workspace::xi22m_1122()']]],
   ['xi22m_5f1221',['xi22m_1221',['../structnmt__covar__workspace__flat.html#ae97d4ef1b94d00631c96f912e31e9c50',1,'nmt_covar_workspace_flat::xi22m_1221()'],['../structnmt__covar__workspace.html#a7813aff8e252aa59fde631bbdcf542d9',1,'nmt_covar_workspace::xi22m_1221()']]],
   ['xi22p_5f1122',['xi22p_1122',['../structnmt__covar__workspace__flat.html#aed2758e2843e0c8f06bee01abcbed4f9',1,'nmt_covar_workspace_flat::xi22p_1122()'],['../structnmt__covar__workspace.html#afd8f544cd7f2b6a6532eec4e3b4fb29e',1,'nmt_covar_workspace::xi22p_1122()']]],
-  ['xi22p_5f1221',['xi22p_1221',['../structnmt__covar__workspace__flat.html#a63585aee27b8c74eb06aac2874fb9eb8',1,'nmt_covar_workspace_flat::xi22p_1221()'],['../structnmt__covar__workspace.html#adc66911171713ad014cbf99038914f7c',1,'nmt_covar_workspace::xi22p_1221()']]]
+  ['xi22p_5f1221',['xi22p_1221',['../structnmt__covar__workspace__flat.html#a63585aee27b8c74eb06aac2874fb9eb8',1,'nmt_covar_workspace_flat::xi22p_1221()'],['../structnmt__covar__workspace.html#adc66911171713ad014cbf99038914f7c',1,'nmt_covar_workspace::xi22p_1221()']]],
+  ['xi_5f00',['xi_00',['../structnmt__master__calculator.html#a3ec8377a5f11ab53b98d6eb39d69315e',1,'nmt_master_calculator']]],
+  ['xi_5f0s',['xi_0s',['../structnmt__master__calculator.html#a35ee3c73f50b1218159d68427313cdab',1,'nmt_master_calculator']]],
+  ['xi_5fmm',['xi_mm',['../structnmt__master__calculator.html#a9381e6e9ffbf4caf372c79f36dcadba8',1,'nmt_master_calculator']]],
+  ['xi_5fpp',['xi_pp',['../structnmt__master__calculator.html#a7339c2891e55e02cd530e94a92d0f878',1,'nmt_master_calculator']]]
 ];

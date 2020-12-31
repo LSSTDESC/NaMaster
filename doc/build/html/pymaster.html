@@ -234,7 +234,7 @@ a single map on input, and will default to 2 if there are 2 maps.</li>
 <li><strong>n_iter</strong> – number of iterations when computing a_lms.</li>
 <li><strong>lmax_sht</strong> – maximum multipole up to which map power spectra will be         computed. If negative or zero, the maximum multipole given the map         resolution will be used (e.g. 3 * nside - 1 for HEALPix maps).</li>
 <li><strong>masked_on_input</strong> – set to <cite>True</cite> if input maps and templates are         already multiplied by the masks. Note that this is not advisable         if you’re using purification.</li>
-<li><strong>lite</strong> – set to <cite>True</cite> if you want to only store the bare minimum         necessary to run a standard pseudo-Cl with deprojection and         purification, but you don’t care about template deprojection. This         will reduce the memory taken up by the resulting object.</li>
+<li><strong>lite</strong> – set to <cite>True</cite> if you want to only store the bare minimum         necessary to run a standard pseudo-Cl with deprojection and         purification, but you don’t care about deprojection bias. This         will reduce the memory taken up by the resulting object.</li>
 </ul>
 </td>
 </tr>
@@ -292,7 +292,7 @@ a single map on input, and will default to 2 if there are 2 maps.</li>
 <li><strong>masked_on_input</strong> – set to <cite>True</cite> if input maps and templates are
 already multiplied by the masks. Note that this is not advisable
 if you’re using purification.</li>
-<li><strong>lite</strong> – set to <cite>True</cite> if you want to only store the bare minimum         necessary to run a standard pseudo-Cl with deprojection and         purification, but you don’t care about template deprojection. This         will reduce the memory taken up by the resulting object.</li>
+<li><strong>lite</strong> – set to <cite>True</cite> if you want to only store the bare minimum         necessary to run a standard pseudo-Cl with deprojection and         purification, but you don’t care about deprojection bias. This         will reduce the memory taken up by the resulting object.</li>
 </ul>
 </td>
 </tr>
@@ -644,7 +644,7 @@ bandpower.</li>
 <dd><p>NmtWorkspace objects are used to compute and store the coupling     matrix associated with an incomplete sky coverage, and used in the     MASTER algorithm. When initialized, this object is practically     empty. The information describing the coupling matrix must be     computed or read from a file afterwards.</p>
 <dl class="method">
 <dt id="pymaster.workspaces.NmtWorkspace.compute_coupling_matrix">
-<code class="descname">compute_coupling_matrix</code><span class="sig-paren">(</span><em>fl1</em>, <em>fl2</em>, <em>bins</em>, <em>is_teb=False</em>, <em>n_iter=3</em>, <em>lmax_mask=-1</em><span class="sig-paren">)</span><a class="headerlink" href="#pymaster.workspaces.NmtWorkspace.compute_coupling_matrix" title="Permalink to this definition">¶</a></dt>
+<code class="descname">compute_coupling_matrix</code><span class="sig-paren">(</span><em>fl1</em>, <em>fl2</em>, <em>bins</em>, <em>is_teb=False</em>, <em>n_iter=3</em>, <em>lmax_mask=-1</em>, <em>l_toeplitz=-1</em>, <em>l_exact=-1</em>, <em>dl_band=-1</em><span class="sig-paren">)</span><a class="headerlink" href="#pymaster.workspaces.NmtWorkspace.compute_coupling_matrix" title="Permalink to this definition">¶</a></dt>
 <dd><p>Computes coupling matrix associated with the cross-power spectrum         of two NmtFields and an NmtBin binning scheme. Note that the mode         coupling matrix will only contain ells up to the maximum multipole         included in the NmtBin bandpowers.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -656,6 +656,9 @@ bandpower.</li>
 <li><strong>is_teb</strong> (<em>boolean</em>) – if true, all mode-coupling matrices             (0-0,0-2,2-2) will be computed at the same time. In this case,             fl1 must be a spin-0 field and fl1 must be spin-2.</li>
 <li><strong>n_iter</strong> – number of iterations when computing a_lms.</li>
 <li><strong>lmax_mask</strong> – maximum multipole for masks. If smaller than the             maximum multipoles of the fields, it will be set to that.</li>
+<li><strong>l_toeplitz</strong> – if a positive number, the Toeplitz approximation             described in Louis et al. 2020 (arXiv:2010.14344) will be used.             In that case, this quantity corresponds to ell_toeplitz in Fig.             3 of that paper.</li>
+<li><strong>l_exact</strong> – if <cite>l_toeplitz&gt;0</cite>, this quantity corresponds to             ell_exact in Fig. 3 of Louis et al. 2020.  Ignored if             <cite>l_toeplitz&lt;=0</cite>.</li>
+<li><strong>dl_band</strong> – if <cite>l_toeplitz&gt;0</cite>, this quantity corresponds to             Delta ell_band in Fig. 3 of Louis et al. 2020.  Ignored if             <cite>l_toeplitz&lt;=0</cite>.</li>
 </ul>
 </td>
 </tr>
@@ -913,7 +916,7 @@ bandpower.</li>
 
 <dl class="function">
 <dt id="pymaster.workspaces.compute_full_master">
-<code class="descclassname">pymaster.workspaces.</code><code class="descname">compute_full_master</code><span class="sig-paren">(</span><em>f1</em>, <em>f2</em>, <em>b</em>, <em>cl_noise=None</em>, <em>cl_guess=None</em>, <em>workspace=None</em>, <em>n_iter=3</em>, <em>lmax_mask=-1</em><span class="sig-paren">)</span><a class="headerlink" href="#pymaster.workspaces.compute_full_master" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">pymaster.workspaces.</code><code class="descname">compute_full_master</code><span class="sig-paren">(</span><em>f1</em>, <em>f2</em>, <em>b</em>, <em>cl_noise=None</em>, <em>cl_guess=None</em>, <em>workspace=None</em>, <em>n_iter=3</em>, <em>lmax_mask=-1</em>, <em>l_toeplitz=-1</em>, <em>l_exact=-1</em>, <em>dl_band=-1</em><span class="sig-paren">)</span><a class="headerlink" href="#pymaster.workspaces.compute_full_master" title="Permalink to this definition">¶</a></dt>
 <dd><p>Computes the full MASTER estimate of the power spectrum of two     fields (f1 and f2). This is equivalent to successively calling:</p>
 <ul class="simple">
 <li><code class="xref py py-func docutils literal notranslate"><span class="pre">pymaster.NmtWorkspace.compute_coupling_matrix()</span></code></li>
@@ -933,6 +936,9 @@ bandpower.</li>
 <li><strong>workspace</strong> (<a class="reference internal" href="#pymaster.workspaces.NmtWorkspace" title="pymaster.workspaces.NmtWorkspace"><em>NmtWorkspace</em></a>) – object containing the mode-coupling         matrix associated with an incomplete sky coverage. If         provided, the function will skip the computation of the         mode-coupling matrix and use the information encoded in this         object.</li>
 <li><strong>n_iter</strong> – number of iterations when computing a_lms.</li>
 <li><strong>lmax_mask</strong> – maximum multipole for masks. If smaller than the         maximum multipoles of the fields, it will be set to that.</li>
+<li><strong>l_toeplitz</strong> – if a positive number, the Toeplitz approximation         described in Louis et al. 2020 (arXiv:2010.14344) will be used.         In that case, this quantity corresponds to ell_toeplitz in Fig.         3 of that paper.</li>
+<li><strong>l_exact</strong> – if <cite>l_toeplitz&gt;0</cite>, this quantity corresponds to         ell_exact in Fig. 3 of Louis et al. 2020.  Ignored if         <cite>l_toeplitz&lt;=0</cite>.</li>
+<li><strong>dl_band</strong> – if <cite>l_toeplitz&gt;0</cite>, this quantity corresponds to         Delta ell_band in Fig. 3 of Louis et al. 2020.  Ignored if         <cite>l_toeplitz&lt;=0</cite>.</li>
 </ul>
 </td>
 </tr>
@@ -1052,7 +1058,7 @@ bandpower.</li>
 <dd><p>NmtCovarianceWorkspace objects are used to compute and store     the coupling coefficients needed to calculate the Gaussian     covariance matrix under the approximations in astro-ph/0307515     and arXiv/1609.09730. When initialized, this object is     practically empty. The information describing the coupling     coefficients must be computed or read from a file afterwards.</p>
 <dl class="method">
 <dt id="pymaster.covariance.NmtCovarianceWorkspace.compute_coupling_coefficients">
-<code class="descname">compute_coupling_coefficients</code><span class="sig-paren">(</span><em>fla1</em>, <em>fla2</em>, <em>flb1=None</em>, <em>flb2=None</em>, <em>lmax=None</em>, <em>n_iter=3</em><span class="sig-paren">)</span><a class="headerlink" href="#pymaster.covariance.NmtCovarianceWorkspace.compute_coupling_coefficients" title="Permalink to this definition">¶</a></dt>
+<code class="descname">compute_coupling_coefficients</code><span class="sig-paren">(</span><em>fla1</em>, <em>fla2</em>, <em>flb1=None</em>, <em>flb2=None</em>, <em>lmax=None</em>, <em>n_iter=3</em>, <em>l_toeplitz=-1</em>, <em>l_exact=-1</em>, <em>dl_band=-1</em><span class="sig-paren">)</span><a class="headerlink" href="#pymaster.covariance.NmtCovarianceWorkspace.compute_coupling_coefficients" title="Permalink to this definition">¶</a></dt>
 <dd><p>Computes coupling coefficients of the Gaussian covariance         between the power spectra of two pairs of NmtField objects         (fla1, fla2, flb1 and flb2). Note that you can reuse this         workspace for the covariance of power spectra between any         pairs of fields as long as the fields have the same masks         as those passed to this function, and as long as the binning         scheme used are also the same.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -1062,6 +1068,9 @@ bandpower.</li>
 <li><strong>fla1</strong><strong>,</strong><strong>fla2</strong> (<a class="reference internal" href="#pymaster.field.NmtField" title="pymaster.field.NmtField"><em>NmtField</em></a>) – fields contributing to the first             power spectrum whose covariance you want to compute.</li>
 <li><strong>flb1</strong><strong>,</strong><strong>flb2</strong> (<a class="reference internal" href="#pymaster.field.NmtField" title="pymaster.field.NmtField"><em>NmtField</em></a>) – fields contributing to the second             power spectrum whose covariance you want to compute. If             None, fla1,fla2 will be used.</li>
 <li><strong>n_iter</strong> – number of iterations when computing a_lms.</li>
+<li><strong>l_toeplitz</strong> – if a positive number, the Toeplitz approximation             described in Louis et al. 2020 (arXiv:2010.14344) will be used.             In that case, this quantity corresponds to ell_toeplitz in Fig.             3 of that paper.</li>
+<li><strong>l_exact</strong> – if <cite>l_toeplitz&gt;0</cite>, this quantity corresponds to             ell_exact in Fig. 3 of Louis et al. 2020.  Ignored if             <cite>l_toeplitz&lt;=0</cite>.</li>
+<li><strong>dl_band</strong> – if <cite>l_toeplitz&gt;0</cite>, this quantity corresponds to             Delta ell_band in Fig. 3 of Louis et al. 2020.  Ignored if             <cite>l_toeplitz&lt;=0</cite>.</li>
 </ul>
 </td>
 </tr>

@@ -1,5 +1,8 @@
 var searchData=
 [
+  ['has_5f00',['has_00',['../structnmt__master__calculator.html#af82b32ff1b96adf2b0eaffed223754fd',1,'nmt_master_calculator']]],
+  ['has_5f0s',['has_0s',['../structnmt__master__calculator.html#af47ef6c87baea5c4f482599dfb446212',1,'nmt_master_calculator']]],
+  ['has_5fss',['has_ss',['../structnmt__master__calculator.html#a1bbfe59216e6dcd263e57dda3b1e17ff',1,'nmt_master_calculator']]],
   ['he_5falm2cl',['he_alm2cl',['../utils_8h.html#ac38d9ed0926dfbddcf7e5b1c22e9b933',1,'utils.h']]],
   ['he_5falm2map',['he_alm2map',['../utils_8h.html#a2d38fa409b7fe5e512ef3ae663389a0c',1,'utils.h']]],
   ['he_5falter_5falm',['he_alter_alm',['../utils_8h.html#a2e51d08cb80eb0d5f36d897fe6e597ee',1,'utils.h']]],
