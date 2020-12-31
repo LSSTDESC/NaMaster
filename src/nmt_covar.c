@@ -53,8 +53,8 @@ nmt_covar_workspace *nmt_covar_workspace_init(nmt_field *fla1,nmt_field *fla2,
   free(c->xi_0s[1]);
   free(c->xi_0s);
   free(c->xi_pp[0]);
-  free(c->xi_pp);
   free(c->xi_pp[1]);
+  free(c->xi_pp);
   free(c->xi_mm[0]);
   free(c->xi_mm[1]);
   free(c->xi_mm);

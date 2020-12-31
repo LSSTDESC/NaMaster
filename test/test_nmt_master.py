@@ -191,6 +191,52 @@ class TestWorkspaceHPX(unittest.TestCase):
         self.nlbb = nlbb[:3*self.nside]
         self.nlte = nlte[:3*self.nside]
 
+    def test_toeplitz_raises(self):
+        fp = nmt.NmtField(self.msk, [self.mps[1], self.mps[2]],
+                          purify_b=True)
+        # No Toeplitz with purification
+        with self.assertRaises(ValueError):
+            w = nmt.NmtWorkspace()
+            w.compute_coupling_matrix(fp, fp, self.b,
+                                      l_toeplitz=self.nside,
+                                      l_exact=self.nside//2,
+                                      dl_band=10)
+        # l_exact is zero
+        with self.assertRaises(ValueError):
+            w = nmt.NmtWorkspace()
+            w.compute_coupling_matrix(self.f2, self.f2, self.b,
+                                      l_toeplitz=self.nside,
+                                      l_exact=0,
+                                      dl_band=10)
+        # dl_band is negative
+        with self.assertRaises(ValueError):
+            w = nmt.NmtWorkspace()
+            w.compute_coupling_matrix(self.f2, self.f2, self.b,
+                                      l_toeplitz=self.nside,
+                                      l_exact=self.nside//2,
+                                      dl_band=-1)
+        # l_exact > l_toeplitz
+        with self.assertRaises(ValueError):
+            w = nmt.NmtWorkspace()
+            w.compute_coupling_matrix(self.f2, self.f2, self.b,
+                                      l_toeplitz=self.nside,
+                                      l_exact=self.nside+1,
+                                      dl_band=10)
+        # l_toeplitz > lmax
+        with self.assertRaises(ValueError):
+            w = nmt.NmtWorkspace()
+            w.compute_coupling_matrix(self.f2, self.f2, self.b,
+                                      l_toeplitz=3*self.nside,
+                                      l_exact=self.nside//2,
+                                      dl_band=10)
+        # dl_band > lmax
+        with self.assertRaises(ValueError):
+            w = nmt.NmtWorkspace()
+            w.compute_coupling_matrix(self.f2, self.f2, self.b,
+                                      l_toeplitz=self.nside,
+                                      l_exact=self.nside//2,
+                                      dl_band=3*self.nside)
+
     def compare_toeplitz(self, ce, ct, l_toeplitz, l_exact, dl_band):
         from scipy.linalg import toeplitz
 

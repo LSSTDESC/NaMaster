@@ -425,7 +425,6 @@ static void populate_toeplitz(nmt_master_calculator *c, flouble **pcl_masks, int
   }
 }
 
-
 nmt_master_calculator *nmt_compute_master_coefficients(int lmax, int lmax_mask,
                                                        int npcl, flouble **pcl_masks,
                                                        int s1, int s2,
