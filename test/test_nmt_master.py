@@ -191,6 +191,137 @@ class TestWorkspaceHPX(unittest.TestCase):
         self.nlbb = nlbb[:3*self.nside]
         self.nlte = nlte[:3*self.nside]
 
+    def compare_toeplitz(self, ce, ct, l_toeplitz, l_exact, dl_band):
+        from scipy.linalg import toeplitz
+
+        lmaxp1 = 3*self.nside
+        ls = np.arange(lmaxp1)
+        ce = ce / (2*ls[None, :]+1.)
+        ct = ct / (2*ls[None, :]+1.)
+        de = np.diag(ce)
+
+        # Construct Toeplitz form exact
+        # First, pure Toeplitz
+        xi = np.divide(ce,
+                       np.sqrt(de[:, None]*de[None, :]),
+                       out=np.zeros([lmaxp1, lmaxp1]),
+                       where=de[:, None]*de[None, :] > 0)
+        ind = (np.arange(lmaxp1)+l_toeplitz) % lmaxp1
+        rb = toeplitz(xi[ind, l_toeplitz])
+        c_toe = rb * np.sqrt(de[:, None]*de[None, :])
+        cb = c_toe.copy()
+        # Add exact band
+        cb[:, :l_exact+1] = ce[:, :l_exact+1]
+        # Add diagonals
+        for i in range(dl_band+1):
+            ind = np.diag_indices(lmaxp1-i)
+            cb[i:, :lmaxp1-i][ind] = np.diag(ce, i)
+        # Annoying triangle
+        xi_col = np.divide(ce[:, l_exact],
+                           np.sqrt(de*ce[l_exact, l_exact]),
+                           out=np.zeros(lmaxp1), where=de > 0)
+        for i in range(l_toeplitz-l_exact):
+            ii = i + l_exact
+            x = xi_col[lmaxp1-1-l_toeplitz+l_exact:lmaxp1-i]
+            d = de[lmaxp1-1-l_toeplitz+ii:]
+            di = de[ii]
+            cb[lmaxp1-1-l_toeplitz+ii:, ii] = x * np.sqrt(di*d)
+        # Correct high-ell box back to toeplitz
+        cb[l_toeplitz:, l_toeplitz:] = c_toe[l_toeplitz:, l_toeplitz:]
+        # Symmetrize
+        ind = np.triu_indices(lmaxp1, k=1)
+        cb[ind] = 0
+        cb = cb + cb.T - np.diag(np.diag(cb))
+
+        self.assertTrue(np.sum(np.fabs(cb-ct)) < 1E-10)
+
+    def test_toeplitz_00(self):
+        l_toeplitz = self.nside
+        l_exact = self.nside // 2
+        dl_band = self.nside // 4
+
+        we = nmt.NmtWorkspace()
+        we.compute_coupling_matrix(self.f0, self.f0, self.b)
+        ce = we.get_coupling_matrix()
+
+        wt = nmt.NmtWorkspace()
+        wt.compute_coupling_matrix(self.f0, self.f0, self.b,
+                                   l_toeplitz=l_toeplitz,
+                                   l_exact=l_exact,
+                                   dl_band=dl_band)
+        ct = wt.get_coupling_matrix()
+
+        # Check that the approximate matrix is constructed
+        # as expected.
+        self.compare_toeplitz(ce, ct,
+                              l_toeplitz, l_exact, dl_band)
+        # Check that it's not a bad approximation (0.5% for these ells)
+        cle = we.decouple_cell(nmt.compute_coupled_cell(self.f0, self.f0))
+        clt = wt.decouple_cell(nmt.compute_coupled_cell(self.f0, self.f0))
+        self.assertTrue(np.all(np.fabs(clt[0]/cle[0]-1) < 5E-3))
+
+    def test_toeplitz_02(self):
+        l_toeplitz = self.nside
+        l_exact = self.nside // 2
+        dl_band = self.nside // 4
+
+        we = nmt.NmtWorkspace()
+        we.compute_coupling_matrix(self.f0, self.f2, self.b)
+        ce = we.get_coupling_matrix().reshape([3*self.nside, 2,
+                                               3*self.nside, 2])
+        ce = ce[:, 0, :, 0]
+
+        wt = nmt.NmtWorkspace()
+        wt.compute_coupling_matrix(self.f0, self.f2, self.b,
+                                   l_toeplitz=l_toeplitz,
+                                   l_exact=l_exact,
+                                   dl_band=dl_band)
+        ct = wt.get_coupling_matrix().reshape([3*self.nside, 2,
+                                               3*self.nside, 2])
+        ct = ct[:, 0, :, 0]
+
+        # Check that the approximate matrix is constructed
+        # as expected.
+        self.compare_toeplitz(ce, ct,
+                              l_toeplitz, l_exact, dl_band)
+        # Check that it's not a bad approximation (0.5% for these ells)
+        cle = we.decouple_cell(nmt.compute_coupled_cell(self.f0, self.f2))
+        clt = wt.decouple_cell(nmt.compute_coupled_cell(self.f0, self.f2))
+        self.assertTrue(np.all(np.fabs(clt[0]/cle[0]-1) < 5E-3))
+
+    def test_toeplitz_22(self):
+        l_toeplitz = self.nside
+        l_exact = self.nside // 2
+        dl_band = self.nside // 4
+
+        we = nmt.NmtWorkspace()
+        we.compute_coupling_matrix(self.f2, self.f2, self.b)
+        ce = we.get_coupling_matrix().reshape([3*self.nside, 4,
+                                               3*self.nside, 4])
+        ce_pp = ce[:, 0, :, 0]
+        ce_mm = ce[:, 0, :, 3]
+
+        wt = nmt.NmtWorkspace()
+        wt.compute_coupling_matrix(self.f2, self.f2, self.b,
+                                   l_toeplitz=l_toeplitz,
+                                   l_exact=l_exact,
+                                   dl_band=dl_band)
+        ct = wt.get_coupling_matrix().reshape([3*self.nside, 4,
+                                               3*self.nside, 4])
+        ct_pp = ct[:, 0, :, 0]
+        ct_mm = ct[:, 0, :, 3]
+
+        # Check that the approximate matrix is constructed
+        # as expected.
+        self.compare_toeplitz(ce_pp, ct_pp,
+                              l_toeplitz, l_exact, dl_band)
+        self.compare_toeplitz(ce_mm, ct_mm,
+                              l_toeplitz, l_exact, dl_band)
+        # Check that it's not a bad approximation (0.5% for these ells)
+        cle = we.decouple_cell(nmt.compute_coupled_cell(self.f2, self.f2))
+        clt = wt.decouple_cell(nmt.compute_coupled_cell(self.f2, self.f2))
+        self.assertTrue(np.all(np.fabs(clt[0]/cle[0]-1) < 5E-3))
+
     def test_lite_pure(self):
         f0 = nmt.NmtField(self.msk, [self.mps[0]])
         f2l = nmt.NmtField(self.msk, [self.mps[1], self.mps[2]],

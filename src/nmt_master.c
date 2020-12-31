@@ -344,7 +344,7 @@ static void populate_toeplitz(nmt_master_calculator *c, flouble **pcl_masks, int
         if((d1>0) && (d2>0))
           tplz_0s[ic][1][l2]=tplz_0s[ic][1][l2]/sqrt(d1*d2);
         else
-          tplz_pp[ic][1][l2]=0;
+          tplz_0s[ic][1][l2]=0;
       }
       if(c->has_ss) {
         d1=tplz_pp[ic][0][l2];
