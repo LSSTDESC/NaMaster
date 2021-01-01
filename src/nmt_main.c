@@ -90,7 +90,7 @@ void run_master(nmt_field *fl1,nmt_field *fl2,
   }
   else {
     printf("Computing coupling matrix \n");
-    w=nmt_compute_coupling_matrix(fl1,fl2,bin,0,HE_NITER_DEFAULT,-1);
+    w=nmt_compute_coupling_matrix(fl1,fl2,bin,0,HE_NITER_DEFAULT,-1,-1,-1,-1);
     if(strcmp(fname_coupling,"none"))
       nmt_workspace_write_fits(w,fname_coupling);
   }

@@ -125,6 +125,8 @@ Data Structures</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structnmt__workspace.html">nmt_workspace</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Full-sky mode-coupling matrix.  <a href="structnmt__workspace.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structnmt__master__calculator.html">nmt_master_calculator</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structnmt__covar__workspace__flat.html">nmt_covar_workspace_flat</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Flat-sky Gaussian covariance matrix.  <a href="structnmt__covar__workspace__flat.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -274,9 +276,13 @@ Functions</h2></td></tr>
 <tr class="memitem:a44ce37ef13cd790542e302ebc896e013"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structnmt__workspace__flat.html">nmt_workspace_flat</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namaster_8h.html#a44ce37ef13cd790542e302ebc896e013">nmt_compute_power_spectra_flat</a> (<a class="el" href="structnmt__field__flat.html">nmt_field_flat</a> *fl1, <a class="el" href="structnmt__field__flat.html">nmt_field_flat</a> *fl2, <a class="el" href="structnmt__binning__scheme__flat.html">nmt_binning_scheme_flat</a> *bin, <a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> lmn_x, <a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> lmx_x, <a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> lmn_y, <a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> lmx_y, <a class="el" href="structnmt__workspace__flat.html">nmt_workspace_flat</a> *w0, <a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> **cl_noise, int nl_prop, <a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> *l_prop, <a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> **cl_prop, <a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> **cl_out)</td></tr>
 <tr class="memdesc:a44ce37ef13cd790542e302ebc896e013"><td class="mdescLeft">&#160;</td><td class="mdescRight">Computes pseudo-CL specrum.  <a href="#a44ce37ef13cd790542e302ebc896e013">More...</a><br /></td></tr>
 <tr class="separator:a44ce37ef13cd790542e302ebc896e013"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0fab8cfe77c83fb6c851d04ae7f63dda"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structnmt__workspace.html">nmt_workspace</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namaster_8h.html#a0fab8cfe77c83fb6c851d04ae7f63dda">nmt_compute_coupling_matrix</a> (<a class="el" href="structnmt__field.html">nmt_field</a> *fl1, <a class="el" href="structnmt__field.html">nmt_field</a> *fl2, <a class="el" href="structnmt__binning__scheme.html">nmt_binning_scheme</a> *bin, int is_teb, int niter, int lmax_mask)</td></tr>
-<tr class="memdesc:a0fab8cfe77c83fb6c851d04ae7f63dda"><td class="mdescLeft">&#160;</td><td class="mdescRight">Computes mode-coupling matrix.  <a href="#a0fab8cfe77c83fb6c851d04ae7f63dda">More...</a><br /></td></tr>
-<tr class="separator:a0fab8cfe77c83fb6c851d04ae7f63dda"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a07e3774638f010e44f8960aab67ac883"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structnmt__master__calculator.html">nmt_master_calculator</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namaster_8h.html#a07e3774638f010e44f8960aab67ac883">nmt_compute_master_coefficients</a> (int lmax, int lmax_mask, int npcl, <a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> **pcl_masks, int s1, int s2, int pure_e1, int pure_b1, int pure_e2, int pure_b2, int do_teb, int l_toeplitz, int l_exact, int dl_band)</td></tr>
+<tr class="separator:a07e3774638f010e44f8960aab67ac883"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad1f4adec03b05f72fc2ca829a5c47d18"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namaster_8h.html#ad1f4adec03b05f72fc2ca829a5c47d18">nmt_master_calculator_free</a> (<a class="el" href="structnmt__master__calculator.html">nmt_master_calculator</a> *c)</td></tr>
+<tr class="separator:ad1f4adec03b05f72fc2ca829a5c47d18"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3a4430305587db074a5aa513a0bd9c18"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structnmt__workspace.html">nmt_workspace</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namaster_8h.html#a3a4430305587db074a5aa513a0bd9c18">nmt_compute_coupling_matrix</a> (<a class="el" href="structnmt__field.html">nmt_field</a> *fl1, <a class="el" href="structnmt__field.html">nmt_field</a> *fl2, <a class="el" href="structnmt__binning__scheme.html">nmt_binning_scheme</a> *bin, int is_teb, int niter, int lmax_mask, int l_toeplitz, int l_exact, int dl_band)</td></tr>
+<tr class="memdesc:a3a4430305587db074a5aa513a0bd9c18"><td class="mdescLeft">&#160;</td><td class="mdescRight">Computes mode-coupling matrix.  <a href="#a3a4430305587db074a5aa513a0bd9c18">More...</a><br /></td></tr>
+<tr class="separator:a3a4430305587db074a5aa513a0bd9c18"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3954855f8a5f03c8d2a71cc99f1837cb"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namaster_8h.html#a3954855f8a5f03c8d2a71cc99f1837cb">nmt_update_coupling_matrix</a> (<a class="el" href="structnmt__workspace.html">nmt_workspace</a> *w, int n_rows, double *new_matrix)</td></tr>
 <tr class="memdesc:a3954855f8a5f03c8d2a71cc99f1837cb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Updates the mode coupling matrix with a new one.Saves <a class="el" href="structnmt__workspace.html" title="Full-sky mode-coupling matrix. ">nmt_workspace</a> structure to file.  <a href="#a3954855f8a5f03c8d2a71cc99f1837cb">More...</a><br /></td></tr>
 <tr class="separator:a3954855f8a5f03c8d2a71cc99f1837cb"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -307,9 +313,9 @@ Functions</h2></td></tr>
 <tr class="memitem:a77290fac5184833c9c140af37eff2f9f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namaster_8h.html#a77290fac5184833c9c140af37eff2f9f">nmt_compute_coupled_cell</a> (<a class="el" href="structnmt__field.html">nmt_field</a> *fl1, <a class="el" href="structnmt__field.html">nmt_field</a> *fl2, <a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> **cl_out)</td></tr>
 <tr class="memdesc:a77290fac5184833c9c140af37eff2f9f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Coupled pseudo-CL.  <a href="#a77290fac5184833c9c140af37eff2f9f">More...</a><br /></td></tr>
 <tr class="separator:a77290fac5184833c9c140af37eff2f9f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aadff84cbd8f5fc77cb0462fb5d8b2d7d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structnmt__workspace.html">nmt_workspace</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namaster_8h.html#aadff84cbd8f5fc77cb0462fb5d8b2d7d">nmt_compute_power_spectra</a> (<a class="el" href="structnmt__field.html">nmt_field</a> *fl1, <a class="el" href="structnmt__field.html">nmt_field</a> *fl2, <a class="el" href="structnmt__binning__scheme.html">nmt_binning_scheme</a> *bin, <a class="el" href="structnmt__workspace.html">nmt_workspace</a> *w0, <a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> **cl_noise, <a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> **cl_proposal, <a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> **cl_out, int niter, int lmax_mask)</td></tr>
-<tr class="memdesc:aadff84cbd8f5fc77cb0462fb5d8b2d7d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Computes pseudo-CL specrum.  <a href="#aadff84cbd8f5fc77cb0462fb5d8b2d7d">More...</a><br /></td></tr>
-<tr class="separator:aadff84cbd8f5fc77cb0462fb5d8b2d7d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8982f0c546be647495a1eb771e8012f0"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structnmt__workspace.html">nmt_workspace</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namaster_8h.html#a8982f0c546be647495a1eb771e8012f0">nmt_compute_power_spectra</a> (<a class="el" href="structnmt__field.html">nmt_field</a> *fl1, <a class="el" href="structnmt__field.html">nmt_field</a> *fl2, <a class="el" href="structnmt__binning__scheme.html">nmt_binning_scheme</a> *bin, <a class="el" href="structnmt__workspace.html">nmt_workspace</a> *w0, <a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> **cl_noise, <a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> **cl_proposal, <a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> **cl_out, int niter, int lmax_mask, int l_toeplitz, int l_exact, int dl_band)</td></tr>
+<tr class="memdesc:a8982f0c546be647495a1eb771e8012f0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Computes pseudo-CL specrum.  <a href="#a8982f0c546be647495a1eb771e8012f0">More...</a><br /></td></tr>
+<tr class="separator:a8982f0c546be647495a1eb771e8012f0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a41fe3d135cf2d47140575575a673b2bd"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namaster_8h.html#a41fe3d135cf2d47140575575a673b2bd">nmt_covar_workspace_flat_free</a> (<a class="el" href="structnmt__covar__workspace__flat.html">nmt_covar_workspace_flat</a> *cw)</td></tr>
 <tr class="memdesc:a41fe3d135cf2d47140575575a673b2bd"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="structnmt__covar__workspace__flat.html" title="Flat-sky Gaussian covariance matrix. ">nmt_covar_workspace_flat</a> destructor.  <a href="#a41fe3d135cf2d47140575575a673b2bd">More...</a><br /></td></tr>
 <tr class="separator:a41fe3d135cf2d47140575575a673b2bd"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -322,9 +328,9 @@ Functions</h2></td></tr>
 <tr class="memitem:aebf7230a53eaeed7bd251162e0fc6c94"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namaster_8h.html#aebf7230a53eaeed7bd251162e0fc6c94">nmt_covar_workspace_free</a> (<a class="el" href="structnmt__covar__workspace.html">nmt_covar_workspace</a> *cw)</td></tr>
 <tr class="memdesc:aebf7230a53eaeed7bd251162e0fc6c94"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="structnmt__covar__workspace.html" title="Full-sky Gaussian covariance matrix. ">nmt_covar_workspace</a> destructor.  <a href="#aebf7230a53eaeed7bd251162e0fc6c94">More...</a><br /></td></tr>
 <tr class="separator:aebf7230a53eaeed7bd251162e0fc6c94"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6a2ae8c6fff2b5bfc1bfa8049e84233b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structnmt__covar__workspace.html">nmt_covar_workspace</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namaster_8h.html#a6a2ae8c6fff2b5bfc1bfa8049e84233b">nmt_covar_workspace_init</a> (<a class="el" href="structnmt__field.html">nmt_field</a> *fla1, <a class="el" href="structnmt__field.html">nmt_field</a> *fla2, <a class="el" href="structnmt__field.html">nmt_field</a> *flb1, <a class="el" href="structnmt__field.html">nmt_field</a> *flb2, int lmax, int niter)</td></tr>
-<tr class="memdesc:a6a2ae8c6fff2b5bfc1bfa8049e84233b"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="structnmt__covar__workspace.html" title="Full-sky Gaussian covariance matrix. ">nmt_covar_workspace</a> constructor  <a href="#a6a2ae8c6fff2b5bfc1bfa8049e84233b">More...</a><br /></td></tr>
-<tr class="separator:a6a2ae8c6fff2b5bfc1bfa8049e84233b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aefceb03f06fcd239dea1b863449efd35"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structnmt__covar__workspace.html">nmt_covar_workspace</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namaster_8h.html#aefceb03f06fcd239dea1b863449efd35">nmt_covar_workspace_init</a> (<a class="el" href="structnmt__field.html">nmt_field</a> *fla1, <a class="el" href="structnmt__field.html">nmt_field</a> *fla2, <a class="el" href="structnmt__field.html">nmt_field</a> *flb1, <a class="el" href="structnmt__field.html">nmt_field</a> *flb2, int lmax, int niter, int l_toeplitz, int l_exact, int dl_band)</td></tr>
+<tr class="memdesc:aefceb03f06fcd239dea1b863449efd35"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="structnmt__covar__workspace.html" title="Full-sky Gaussian covariance matrix. ">nmt_covar_workspace</a> constructor  <a href="#aefceb03f06fcd239dea1b863449efd35">More...</a><br /></td></tr>
+<tr class="separator:aefceb03f06fcd239dea1b863449efd35"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:adec7c6d87ffdf56a8f3182ded3338154"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namaster_8h.html#adec7c6d87ffdf56a8f3182ded3338154">nmt_compute_gaussian_covariance</a> (<a class="el" href="structnmt__covar__workspace.html">nmt_covar_workspace</a> *cw, int spin_a, int spin_b, int spin_c, int spin_d, <a class="el" href="structnmt__workspace.html">nmt_workspace</a> *wa, <a class="el" href="structnmt__workspace.html">nmt_workspace</a> *wb, <a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> **clac, <a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> **clad, <a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> **clbc, <a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> **clbd, <a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> *covar_out)</td></tr>
 <tr class="memdesc:adec7c6d87ffdf56a8f3182ded3338154"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute full-sky Gaussian covariance matrix.  <a href="#adec7c6d87ffdf56a8f3182ded3338154">More...</a><br /></td></tr>
 <tr class="separator:adec7c6d87ffdf56a8f3182ded3338154"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -1151,7 +1157,7 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a class="anchor" id="a0fab8cfe77c83fb6c851d04ae7f63dda"></a>
+<a class="anchor" id="a3a4430305587db074a5aa513a0bd9c18"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
@@ -1189,7 +1195,25 @@ Functions</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">int&#160;</td>
-          <td class="paramname"><em>lmax_mask</em>&#160;</td>
+          <td class="paramname"><em>lmax_mask</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>l_toeplitz</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>l_exact</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>dl_band</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -1775,7 +1799,105 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a class="anchor" id="aadff84cbd8f5fc77cb0462fb5d8b2d7d"></a>
+<a class="anchor" id="a07e3774638f010e44f8960aab67ac883"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="structnmt__master__calculator.html">nmt_master_calculator</a>* nmt_compute_master_coefficients </td>
+          <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>lmax</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>lmax_mask</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>npcl</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namaster_8h.html#a420a9f7802706d142bec6741123f57a9">flouble</a> **&#160;</td>
+          <td class="paramname"><em>pcl_masks</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>s1</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>s2</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>pure_e1</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>pure_b1</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>pure_e2</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>pure_b2</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>do_teb</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>l_toeplitz</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>l_exact</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>dl_band</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a class="anchor" id="a8982f0c546be647495a1eb771e8012f0"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
@@ -1831,7 +1953,25 @@ Functions</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">int&#160;</td>
-          <td class="paramname"><em>lmax_mask</em>&#160;</td>
+          <td class="paramname"><em>lmax_mask</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>l_toeplitz</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>l_exact</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>dl_band</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -2334,7 +2474,7 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a class="anchor" id="a6a2ae8c6fff2b5bfc1bfa8049e84233b"></a>
+<a class="anchor" id="aefceb03f06fcd239dea1b863449efd35"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
@@ -2372,7 +2512,25 @@ Functions</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">int&#160;</td>
-          <td class="paramname"><em>niter</em>&#160;</td>
+          <td class="paramname"><em>niter</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>l_toeplitz</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>l_exact</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>dl_band</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -3408,6 +3566,22 @@ Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p><a class="el" href="structnmt__k__function.html" title="Flat-sky Fourier-space function. ">nmt_k_function</a> destructor </p>
+
+</div>
+</div>
+<a class="anchor" id="ad1f4adec03b05f72fc2ca829a5c47d18"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void nmt_master_calculator_free </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structnmt__master__calculator.html">nmt_master_calculator</a> *&#160;</td>
+          <td class="paramname"><em>c</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
 
 </div>
 </div>

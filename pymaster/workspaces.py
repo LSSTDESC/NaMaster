@@ -1,4 +1,5 @@
 from pymaster import nmtlib as lib
+from pymaster.utils import _toeplitz_sanity
 import numpy as np
 
 
@@ -49,7 +50,8 @@ class NmtWorkspace(object):
         lib.wsp_update_bins(self.wsp, bins.bin)
 
     def compute_coupling_matrix(self, fl1, fl2, bins, is_teb=False, n_iter=3,
-                                lmax_mask=-1):
+                                lmax_mask=-1, l_toeplitz=-1,
+                                l_exact=-1, dl_band=-1):
         """
         Computes coupling matrix associated with the cross-power spectrum \
         of two NmtFields and an NmtBin binning scheme. Note that the mode \
@@ -64,13 +66,27 @@ class NmtWorkspace(object):
         :param n_iter: number of iterations when computing a_lms.
         :param lmax_mask: maximum multipole for masks. If smaller than the \
             maximum multipoles of the fields, it will be set to that.
+        :param l_toeplitz: if a positive number, the Toeplitz approximation \
+            described in Louis et al. 2020 (arXiv:2010.14344) will be used. \
+            In that case, this quantity corresponds to ell_toeplitz in Fig. \
+            3 of that paper.
+        :param l_exact: if `l_toeplitz>0`, this quantity corresponds to \
+            ell_exact in Fig. 3 of Louis et al. 2020.  Ignored if \
+            `l_toeplitz<=0`.
+        :param dl_band: if `l_toeplitz>0`, this quantity corresponds to \
+            Delta ell_band in Fig. 3 of Louis et al. 2020.  Ignored if \
+            `l_toeplitz<=0`.
         """
         if self.wsp is not None:
             lib.workspace_free(self.wsp)
             self.wsp = None
+
+        _toeplitz_sanity(l_toeplitz, l_exact, dl_band,
+                         bins.bin.ell_max, fl1, fl2)
         self.wsp = lib.comp_coupling_matrix(fl1.fl, fl2.fl, bins.bin,
                                             int(is_teb), int(n_iter),
-                                            lmax_mask)
+                                            lmax_mask, l_toeplitz,
+                                            l_exact, dl_band)
 
     def write_to(self, fname):
         """
@@ -495,7 +511,8 @@ def compute_coupled_cell_flat(f1, f2, b, ell_cut_x=[1., -1.],
 
 
 def compute_full_master(f1, f2, b, cl_noise=None, cl_guess=None,
-                        workspace=None, n_iter=3, lmax_mask=-1):
+                        workspace=None, n_iter=3, lmax_mask=-1,
+                        l_toeplitz=-1, l_exact=-1, dl_band=-1):
     """
     Computes the full MASTER estimate of the power spectrum of two \
     fields (f1 and f2). This is equivalent to successively calling:
@@ -520,6 +537,16 @@ def compute_full_master(f1, f2, b, cl_noise=None, cl_guess=None,
     :param n_iter: number of iterations when computing a_lms.
     :param lmax_mask: maximum multipole for masks. If smaller than the \
         maximum multipoles of the fields, it will be set to that.
+    :param l_toeplitz: if a positive number, the Toeplitz approximation \
+        described in Louis et al. 2020 (arXiv:2010.14344) will be used. \
+        In that case, this quantity corresponds to ell_toeplitz in Fig. \
+        3 of that paper.
+    :param l_exact: if `l_toeplitz>0`, this quantity corresponds to \
+        ell_exact in Fig. 3 of Louis et al. 2020.  Ignored if \
+        `l_toeplitz<=0`.
+    :param dl_band: if `l_toeplitz>0`, this quantity corresponds to \
+        Delta ell_band in Fig. 3 of Louis et al. 2020.  Ignored if \
+        `l_toeplitz<=0`.
     :return: set of decoupled bandpowers
     """
     if f1.fl.cs.n_eq != f2.fl.cs.n_eq:
@@ -537,13 +564,18 @@ def compute_full_master(f1, f2, b, cl_noise=None, cl_guess=None,
     else:
         clg = np.zeros([f1.fl.nmaps * f2.fl.nmaps, 3 * f1.fl.cs.n_eq])
 
+    _toeplitz_sanity(l_toeplitz, l_exact, dl_band,
+                     b.bin.ell_max, f1, f2)
+
     if workspace is None:
         cl1d = lib.comp_pspec(f1.fl, f2.fl, b.bin, None, cln, clg,
-                              len(cln) * b.bin.n_bands, n_iter, lmax_mask)
+                              len(cln) * b.bin.n_bands, n_iter, lmax_mask,
+                              l_toeplitz, l_exact, dl_band)
     else:
         cl1d = lib.comp_pspec(f1.fl, f2.fl, b.bin, workspace.wsp,
                               cln, clg, len(cln) * b.bin.n_bands,
-                              n_iter, lmax_mask)
+                              n_iter, lmax_mask,
+                              l_toeplitz, l_exact, dl_band)
 
     clout = np.reshape(cl1d, [len(cln), b.bin.n_bands])
 

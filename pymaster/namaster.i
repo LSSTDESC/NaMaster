@@ -618,9 +618,10 @@ void synfast_new_flat(int nx,int ny,double lx,double ly,
 }
 
  nmt_workspace *comp_coupling_matrix(nmt_field *fl1,nmt_field *fl2,nmt_binning_scheme *bin,
-				     int is_teb,int n_iter,int lmax_mask)
+				     int is_teb,int n_iter,int lmax_mask,int l_toeplitz,
+                                     int l_exact,int dl_band)
 {
-  return nmt_compute_coupling_matrix(fl1,fl2,bin,is_teb,n_iter,lmax_mask);
+  return nmt_compute_coupling_matrix(fl1,fl2,bin,is_teb,n_iter,lmax_mask,l_toeplitz,l_exact,dl_band);
 }
 
 nmt_workspace_flat *comp_coupling_matrix_flat(nmt_field_flat *fl1,nmt_field_flat *fl2,
@@ -729,9 +730,10 @@ nmt_covar_workspace *read_covar_workspace(char *fname)
 
 nmt_covar_workspace *covar_workspace_init_py(nmt_field *fa1,nmt_field *fa2,
 					     nmt_field *fb1,nmt_field *fb2,
-					     int lmax,int n_iter)
+					     int lmax,int n_iter,int l_toeplitz,
+                                             int l_exact,int dl_band)
 {
-  return nmt_covar_workspace_init(fa1,fa2,fb1,fb2,lmax,n_iter);
+  return nmt_covar_workspace_init(fa1,fa2,fb1,fb2,lmax,n_iter,l_toeplitz,l_exact,dl_band);
 }
 
 void write_covar_workspace_flat(nmt_covar_workspace_flat *cw,char *fname)
@@ -994,7 +996,8 @@ void comp_pspec(nmt_field *fl1,nmt_field *fl2,
 		int ncl1,int nell1,double *cls1,
 		int ncl2,int nell2,double *cls2,
 		double *dout,int ndout,int n_iter,
-		int lmax_mask)
+		int lmax_mask,int l_toeplitz,int l_exact,
+                int dl_band)
 {
   int i;
   double **cl_noise,**cl_guess,**cl_out;
@@ -1014,7 +1017,8 @@ void comp_pspec(nmt_field *fl1,nmt_field *fl2,
     cl_out[i]=&(dout[i*bin->n_bands]);
   }
 
-  w=nmt_compute_power_spectra(fl1,fl2,bin,w0,cl_noise,cl_guess,cl_out,n_iter,lmax_mask);
+  w=nmt_compute_power_spectra(fl1,fl2,bin,w0,cl_noise,cl_guess,cl_out,n_iter,
+                              lmax_mask,l_toeplitz,l_exact,dl_band);
 
   free(cl_out);
   free(cl_guess);

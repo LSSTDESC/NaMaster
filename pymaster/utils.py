@@ -243,6 +243,23 @@ def synfast_spherical(nside, cls, spin_arr, beam=None, seed=-1, wcs=None):
     return maps
 
 
+def _toeplitz_sanity(l_toeplitz, l_exact, dl_band, lmax, fl1, fl2):
+    if l_toeplitz > 0:
+        if (fl1.fl.pure_e or fl1.fl.pure_b or
+                fl2.fl.pure_e or fl2.fl.pure_b):
+            raise ValueError("Can't use Toeplitz approximation "
+                             "with purification.")
+        if (l_exact <= 0) or (dl_band < 0):
+            raise ValueError("`l_exact` and `dl_band` must be "
+                             "positive numbers")
+        if l_exact > l_toeplitz:
+            raise ValueError("`l_exact` must be `<= l_toeplitz")
+        if ((l_toeplitz >= lmax) or (l_exact >= lmax) or
+                (dl_band >= lmax)):
+            raise ValueError("`l_toeplitz`, `l_exact` and `dl_band` "
+                             "must be smaller than `l_max`")
+
+
 def synfast_flat(nx, ny, lx, ly, cls, spin_arr, beam=None, seed=-1):
     """
     Generates a flat-sky Gaussian random field according to a given power \
