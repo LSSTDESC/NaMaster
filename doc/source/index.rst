@@ -27,6 +27,7 @@ We recommend that users read NaMaster's :download:`scientific documentation <../
    sample_flat
    sample_covariance
    sample_rectpix
+   sample_toeplitz
    C API documentation <index_doxy.html#http://>
 
 
