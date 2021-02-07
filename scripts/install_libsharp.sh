@@ -28,4 +28,6 @@ fi
 CFLAGS=$CFLAGS ./configure --prefix=${PWD}/../ --enable-shared=no --with-pic=yes
 make
 make install
+# Needed to create the CAR geomhelper
+cp libsharp2/pocketfft.h ../include/libsharp2/
 rm -rf python/

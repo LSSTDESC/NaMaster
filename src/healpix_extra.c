@@ -6,6 +6,7 @@
 #include "libsharp2/sharp.h"
 #include "libsharp2/sharp_almhelpers.h"
 #include "libsharp2/sharp_geomhelpers.h"
+#include "libsharp2/pocketfft.h"
 
 // This is copied from libsharp's c_utils.h to
 // avoid having that as a dependency.
@@ -721,9 +722,9 @@ static void sharp_make_cc_geom_info_stripe (int nrings, int ppring, double phi0,
   for (int k=1; k<=(n/2-1); ++k)
     weight[2*k-1]=2./(1.-4.*k*k) + dw;
   weight[2*(n/2)-1]=(n-3.)/(2*(n/2)-1) -1. -dw*((2-(n&1))*n-1);
-  real_plan plan = make_real_plan(n);
-  real_plan_backward_fftpack(plan,weight);
-  kill_real_plan(plan);
+  pocketfft_plan_r plan = pocketfft_make_plan_r(n);
+  pocketfft_backward_r(plan,weight,1.);
+  pocketfft_delete_plan_r(plan);
   weight[n]=weight[0];
 
   for (int m=0; m<(nrings+1)/2; ++m) {

@@ -30,9 +30,7 @@ if '--disable-openmp' in sys.argv:
 else:
     USE_OPENMP = True
 
-libs = [
-    'sharp', 'fftpack', 'c_utils', 'cfitsio',
-    'gsl', 'gslcblas', 'm'] + FFTW_LIBS
+libs = ['sharp2', 'cfitsio', 'gsl', 'gslcblas', 'm'] + FFTW_LIBS
 
 use_icc = False  # Set to True if you compiled libsharp with icc
 if use_icc:
