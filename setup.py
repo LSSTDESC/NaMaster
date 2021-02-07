@@ -82,7 +82,7 @@ class develop(_develop): # RM
         _compile_libsharp() # RM
         _compile_libchealpix() # RM
         _compile_libnmt() # RM
-        _build.run(self) # RM
+        _develop.run(self) # RM
 
 _nmtlib = Extension("_nmtlib",
                     ["pymaster/namaster_wrap.c"],
