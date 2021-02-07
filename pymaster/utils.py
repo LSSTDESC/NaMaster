@@ -115,7 +115,8 @@ class NmtWCSTranslator(object):
 
 def mask_apodization(mask_in, aposize, apotype="C1"):
     """
-    Apodizes a mask with an given apodization scale using different methods.
+    Apodizes a mask with an given apodization scale using different methods. \
+    A given pixel is determined to be "masked" if its value is 0.
 
     :param mask_in: input mask, provided as an array of floats \
         corresponding to a HEALPix map in RING order.
@@ -133,7 +134,8 @@ def mask_apodization(mask_in, aposize, apotype="C1"):
 def mask_apodization_flat(mask_in, lx, ly, aposize, apotype="C1"):
     """
     Apodizes a flat-sky mask with an given apodization scale using \
-    different methods.
+    different methods. A given pixel is determined to be "masked" if \
+    its value is 0.
 
     :param mask_in: input mask, provided as a 2D array (ny,nx) of floats.
     :param float lx: patch size in the x-axis (in radians)

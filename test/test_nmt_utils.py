@@ -293,6 +293,10 @@ class TestUtilsMaskSph(unittest.TestCase):
             nmt.mask_apodization(self.msk, -self.aposize, apotype="C1")
         with self.assertRaises(RuntimeError):  # Wrong apodization type
             nmt.mask_apodization(self.msk, self.aposize, apotype="C3")
+        with self.assertRaises(RuntimeError):  # Aposize too small
+            nmt.mask_apodization(self.msk[:12*2**2], 1., apotype='C1')
+        with self.assertRaises(RuntimeError):
+            nmt.mask_apodization(self.msk[:12*2**2], 1., apotype='Smooth')
 
     def test_mask_c1(self):
         msk_apo = nmt.mask_apodization(self.msk, self.aposize,
