@@ -7,7 +7,6 @@ DEPDIR=_deps
 [ -e $DEPDIR/include ] || mkdir $DEPDIR/include
 ADEPDIR=$PWD/$DEPDIR
 CFLAGS="$CFLAGS -fopenmp" CPPFLAGS="$CPPFLAGS -I${ADEPDIR}/include -fopenmp" LDFLAGS="$LDFLAGS -L${ADEPDIR}/lib" ./configure --prefix=${ADEPDIR} --with-pic $@
-cat config.log
 if [ $? -eq 0 ]; then
     echo "Successful configure."
 else
