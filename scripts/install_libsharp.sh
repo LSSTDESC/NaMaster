@@ -20,7 +20,7 @@ fi
 autoreconf -i
 if [[ $TRAVIS ]] ; then
     echo "I'm on Travis"
-    CFLAGS="-DMULTIARCH -std=c99 -O3 -ffast-math"
+    CFLAGS="-std=c99 -O3 -ffast-math"
 else
     echo "Using -march=native. Binary will not be portable."
     CFLAGS="-march=native -std=c99 -O3 -ffast-math"
