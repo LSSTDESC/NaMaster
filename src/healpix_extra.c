@@ -2,7 +2,6 @@
 #include "utils.h"
 #include <fitsio.h>
 #include <chealpix.h>
-#include <ls_fft.h>
 #include "libsharp2/sharp.h"
 #include "libsharp2/sharp_almhelpers.h"
 #include "libsharp2/sharp_geomhelpers.h"
