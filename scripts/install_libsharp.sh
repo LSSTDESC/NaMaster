@@ -18,8 +18,8 @@ else
     exit 127
 fi
 autoreconf -i
-# Only the last dockerenv check actually works for cibuildwheel
-if [[ $CIBUILDWHEEL ]] ; then
+if [[ $TRAVIS ]] ; then
+    echo "I'm on Travis"
     CFLAGS="-DMULTIARCH -std=c99 -O3 -ffast-math"
 else
     echo "Using -march=native. Binary will not be portable."
