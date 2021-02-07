@@ -37,12 +37,15 @@ static void apodize_mask_CX(long nside,flouble *mask_in,flouble *mask_out,floubl
     } //end omp for
   }//end omp parallel
 
+  int lenlist0=(int)(4*npix*(1-cos(1.2*aporad)));
+  if(lenlist0 < 2)
+    report_error(NMT_ERROR_APO,"Your apodization scale is too small for this pixel size\n");
+  
 #pragma omp parallel default(none)			\
   shared(vec,npix,x2_thr,inv_x2_thr,mask_in,mask_out)	\
-  shared(nside,cthv,phiv,aporad,apotyp)
+  shared(nside,cthv,phiv,aporad,apotyp,lenlist0)
   {
     long ip;
-    int lenlist0=(int)(4*npix*(1-cos(1.2*aporad)));
     int *listpix=my_malloc(lenlist0*sizeof(int));
 
 #pragma omp for schedule(dynamic)
@@ -93,11 +96,14 @@ static void apodize_mask_smooth(long nside,flouble *mask_in,flouble *mask_out,fl
   fcomplex *alms_dum=my_malloc(he_nalms(3*nside-1)*sizeof(fcomplex));
   memcpy(mask_dum,mask_in,npix*sizeof(flouble));
 
-#pragma omp parallel default(none)		\
-  shared(npix,mask_in,mask_dum,nside,aporad)
+  int lenlist0=(int)(4*npix*(1-cos(2.5*aporad)));
+  if(lenlist0 < 2)
+    report_error(NMT_ERROR_APO,"Your apodization scale is too small for this pixel size\n");
+  
+#pragma omp parallel default(none)                      \
+  shared(npix,mask_in,mask_dum,nside,aporad,lenlist0)
   {
     long ip;
-    int lenlist0=(int)(4*npix*(1-cos(2.5*aporad)));
     int *listpix=my_malloc(lenlist0*sizeof(int));
 
 #pragma omp for schedule(dynamic)

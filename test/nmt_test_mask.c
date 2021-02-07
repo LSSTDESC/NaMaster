@@ -128,3 +128,40 @@ CTEST(nmt,mask) {
   free(mask_sm);
   free(mask);
 }
+
+CTEST(nmt,mask_error) {
+  int ii;
+  long nside=2;
+  long npix=he_nside2npix(nside);
+  double aposize=2.;
+  double th0=M_PI/4; //45-degree cap
+  double *mask=my_calloc(npix,sizeof(double));
+  double *mask_apo=my_calloc(npix,sizeof(double));
+
+  //Add north pole
+  for(ii=0;ii<npix;ii++) {
+    double th,ph;
+    pix2ang_ring(nside,ii,&th,&ph);
+    if(th<th0)
+      mask[ii]=1.;
+  }
+  
+  set_error_policy(THROW_ON_ERROR);
+
+  try { nmt_apodize_mask(nside,mask,mask_apo,aposize,"C1"); }
+  catch(1) {}
+  ASSERT_NOT_EQUAL(0,nmt_exception_status);
+
+  try { nmt_apodize_mask(nside,mask,mask_apo,aposize,"C2"); }
+  catch(1) {}
+  ASSERT_NOT_EQUAL(0,nmt_exception_status);
+
+  try { nmt_apodize_mask(nside,mask,mask_apo,aposize,"Smooth"); }
+  catch(1) {}
+  ASSERT_NOT_EQUAL(0,nmt_exception_status);
+
+  set_error_policy(EXIT_ON_ERROR);
+
+  free(mask_apo);
+  free(mask);
+}
