@@ -2,11 +2,10 @@
 #include "utils.h"
 #include <fitsio.h>
 #include <chealpix.h>
-#include <ls_fft.h>
-#include <sharp_almhelpers.h>
-#include <sharp_geomhelpers.h>
-#include <sharp.h>
-#define MAX_SHT 32
+#include "libsharp2/sharp.h"
+#include "libsharp2/sharp_almhelpers.h"
+#include "libsharp2/sharp_geomhelpers.h"
+#include "libsharp2/pocketfft.h"
 
 // This is copied from libsharp's c_utils.h to
 // avoid having that as a dependency.
@@ -687,7 +686,6 @@ void he_query_disc(int nside,double cth0,double phi,flouble radius,
   *nlist=ilist;
 }
 
-#define MAX_SHT 32
 long he_nalms(int lmax)
 {
   return ((lmax+1)*(lmax+2))/2;
@@ -723,9 +721,9 @@ static void sharp_make_cc_geom_info_stripe (int nrings, int ppring, double phi0,
   for (int k=1; k<=(n/2-1); ++k)
     weight[2*k-1]=2./(1.-4.*k*k) + dw;
   weight[2*(n/2)-1]=(n-3.)/(2*(n/2)-1) -1. -dw*((2-(n&1))*n-1);
-  real_plan plan = make_real_plan(n);
-  real_plan_backward_fftpack(plan,weight);
-  kill_real_plan(plan);
+  pocketfft_plan_r plan = pocketfft_make_plan_r(n);
+  pocketfft_backward_r(plan,weight,1.);
+  pocketfft_delete_plan_r(plan);
   weight[n]=weight[0];
 
   for (int m=0; m<(nrings+1)/2; ++m) {
@@ -774,7 +772,7 @@ static void sharp_make_cc_geom_info_stripe (int nrings, int ppring, double phi0,
 }
 
 static void sht_wrapper(int spin,int lmax,nmt_curvedsky_info *cs,
-			int ntrans,flouble **maps,fcomplex **alms,int alm2map)
+			flouble **maps,fcomplex **alms,int alm2map)
 {
   double time=0;
   sharp_alm_info *alm_info;
@@ -813,49 +811,33 @@ static void sht_wrapper(int spin,int lmax,nmt_curvedsky_info *cs,
 				   cs->ny,first_ring); //nsubrings, start_index of ring
   }
 
-#ifdef _NEW_SHARP
-  sharp_execute(alm2map,spin,0,alm,map,geom_info,alm_info,ntrans,flags,0,&time,NULL);
-#else //_NEW_SHARP
-  sharp_execute(alm2map,spin,alms,maps,geom_info,alm_info,ntrans,flags,&time,NULL);
-#endif //_NEW_SHARP
+  sharp_execute(alm2map,spin,alms,maps,geom_info,alm_info,flags,&time,NULL);
   sharp_destroy_geom_info(geom_info);
   sharp_destroy_alm_info(alm_info);
 }
 
 void he_alm2map(nmt_curvedsky_info *cs,int lmax,int ntrans,int spin,flouble **maps,fcomplex **alms)
 {
-  int nbatches,nodd,itrans,nmaps=1;
+  int itrans,nmaps=1;
   if(spin)
     nmaps=2;
-  nbatches=ntrans/MAX_SHT;
-  nodd=ntrans%MAX_SHT;
 
-  for(itrans=0;itrans<nbatches;itrans++) {
-    sht_wrapper(spin,lmax,cs,MAX_SHT,&(maps[itrans*nmaps*MAX_SHT]),
-		&(alms[itrans*nmaps*MAX_SHT]),SHARP_ALM2MAP);
-  }
-  if(nodd>0) {
-    sht_wrapper(spin,lmax,cs,nodd,&(maps[nbatches*nmaps*MAX_SHT]),
-		&(alms[nbatches*nmaps*MAX_SHT]),SHARP_ALM2MAP);
+  for(itrans=0;itrans<ntrans;itrans++) {
+    sht_wrapper(spin,lmax,cs,&(maps[itrans*nmaps]),
+		&(alms[itrans*nmaps]),SHARP_ALM2MAP);
   }
 }
 
 void he_map2alm(nmt_curvedsky_info *cs,int lmax,int ntrans,int spin,flouble **maps,
 		fcomplex **alms,int niter)
 {
-  int nbatches,nodd,itrans,nmaps=1;
+  int itrans,nmaps=1;
   if(spin)
     nmaps=2;
-  nbatches=ntrans/MAX_SHT;
-  nodd=ntrans%MAX_SHT;
 
-  for(itrans=0;itrans<nbatches;itrans++) {
-    sht_wrapper(spin,lmax,cs,MAX_SHT,&(maps[itrans*nmaps*MAX_SHT]),
-		&(alms[itrans*nmaps*MAX_SHT]),SHARP_MAP2ALM);
-  }
-  if(nodd>0) {
-    sht_wrapper(spin,lmax,cs,nodd,&(maps[nbatches*nmaps*MAX_SHT]),
-		&(alms[nbatches*nmaps*MAX_SHT]),SHARP_MAP2ALM);
+  for(itrans=0;itrans<ntrans;itrans++) {
+    sht_wrapper(spin,lmax,cs,&(maps[itrans*nmaps]),
+		&(alms[itrans*nmaps]),SHARP_MAP2ALM);
   }
 
   if(niter) {
@@ -872,13 +854,9 @@ void he_map2alm(nmt_curvedsky_info *cs,int lmax,int ntrans,int spin,flouble **ma
 
     for(iter=0;iter<niter;iter++) {
       //Get new map
-      for(itrans=0;itrans<nbatches;itrans++) {
-	sht_wrapper(spin,lmax,cs,MAX_SHT,&(maps_2[itrans*nmaps*MAX_SHT]),
-		    &(alms[itrans*nmaps*MAX_SHT]),SHARP_ALM2MAP);
-      }
-      if(nodd>0) {
-	sht_wrapper(spin,lmax,cs,nodd,&(maps_2[nbatches*nmaps*MAX_SHT]),
-		    &(alms[nbatches*nmaps*MAX_SHT]),SHARP_ALM2MAP);
+      for(itrans=0;itrans<ntrans;itrans++) {
+	sht_wrapper(spin,lmax,cs,&(maps_2[itrans*nmaps]),
+		    &(alms[itrans*nmaps]),SHARP_ALM2MAP);
       }
 
       //Subtract from original map
@@ -889,13 +867,9 @@ void he_map2alm(nmt_curvedsky_info *cs,int lmax,int ntrans,int spin,flouble **ma
       }
 
       //Get alms of difference
-      for(itrans=0;itrans<nbatches;itrans++) {
-	sht_wrapper(spin,lmax,cs,MAX_SHT,&(maps_2[itrans*nmaps*MAX_SHT]),
-		    &(alms_2[itrans*nmaps*MAX_SHT]),SHARP_MAP2ALM);
-      }
-      if(nodd>0) {
-	sht_wrapper(spin,lmax,cs,nodd,&(maps_2[nbatches*nmaps*MAX_SHT]),
-		    &(alms_2[nbatches*nmaps*MAX_SHT]),SHARP_MAP2ALM);
+      for(itrans=0;itrans<ntrans;itrans++) {
+	sht_wrapper(spin,lmax,cs,&(maps_2[itrans*nmaps]),
+		    &(alms_2[itrans*nmaps]),SHARP_MAP2ALM);
       }
 
       //Add to original alm

@@ -30,9 +30,7 @@ if '--disable-openmp' in sys.argv:
 else:
     USE_OPENMP = True
 
-libs = [
-    'sharp', 'fftpack', 'c_utils', 'cfitsio',
-    'gsl', 'gslcblas', 'm'] + FFTW_LIBS
+libs = ['sharp2', 'cfitsio', 'gsl', 'gslcblas', 'm'] + FFTW_LIBS
 
 use_icc = False  # Set to True if you compiled libsharp with icc
 if use_icc:
@@ -47,7 +45,7 @@ else:
     extra += ['-fopenmp']
 
 def _compile_libsharp(): # RM
-    if not os.path.exists('_deps/lib/libsharp.a'): # RM
+    if not os.path.exists('_deps/include/libsharp2/sharp.h'): # RM
         try: # RM
             sp.check_call('./scripts/install_libsharp.sh', # RM
                           shell=True) # RM
