@@ -47,7 +47,7 @@ else:
     extra += ['-fopenmp']
 
 def _compile_libsharp(): # RM
-    if not os.path.exists('_deps/lib/libsharp.a'): # RM
+    if not os.path.exists('_deps/include/libsharp2/sharp.h'): # RM
         try: # RM
             sp.check_call('./scripts/install_libsharp.sh', # RM
                           shell=True) # RM
