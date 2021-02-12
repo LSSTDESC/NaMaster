@@ -556,13 +556,13 @@ def compute_full_master(f1, f2, b, cl_noise=None, cl_guess=None,
             raise ValueError("Wrong length for noise power spectrum")
         cln = cl_noise.copy()
     else:
-        cln = np.zeros([f1.fl.nmaps * f2.fl.nmaps, 3 * f1.fl.cs.n_eq])
+        cln = np.zeros([f1.fl.nmaps * f2.fl.nmaps, (f1.fl.lmax + 1)])
     if cl_guess is not None:
         if len(cl_guess) != f1.fl.nmaps * f2.fl.nmaps:
             raise ValueError("Wrong length for guess power spectrum")
         clg = cl_guess.copy()
     else:
-        clg = np.zeros([f1.fl.nmaps * f2.fl.nmaps, 3 * f1.fl.cs.n_eq])
+        clg = np.zeros([f1.fl.nmaps * f2.fl.nmaps, (f1.fl.lmax + 1)])
 
     _toeplitz_sanity(l_toeplitz, l_exact, dl_band,
                      b.bin.ell_max, f1, f2)
