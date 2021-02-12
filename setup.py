@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 import sys
-from setuptools import setup, Extension # RM
+from setuptools import setup, Extension
 from distutils.errors import DistutilsError
-from setuptools.command.build_py import build_py as _build # RM
-from setuptools.command.develop import develop as _develop # RM
-import subprocess as sp # RM
+from setuptools.command.build_py import build_py as _build
+from setuptools.command.develop import develop as _develop
+import subprocess as sp
 import os, sys
 
 
@@ -44,45 +44,45 @@ else:
         libs += ['gomp']
     extra += ['-fopenmp']
 
-def _compile_libsharp(): # RM
-    if not os.path.exists('_deps/include/libsharp2/sharp.h'): # RM
-        try: # RM
-            sp.check_call('./scripts/install_libsharp.sh', # RM
-                          shell=True) # RM
-        except: # RM
-            raise DistutilsError('Failed to install libsharp.') # RM
+def _compile_libsharp():
+    if not os.path.exists('_deps/include/libsharp2/sharp.h'):
+        try:
+            sp.check_call('./scripts/install_libsharp.sh',
+                          shell=True)
+        except:
+            raise DistutilsError('Failed to install libsharp.')
 
-def _compile_libchealpix(): # RM
-    if not os.path.exists('_deps/lib/libchealpix.a'): # RM
-        try: # RM
-            sp.check_call('./scripts/install_libchealpix.sh', # RM
-                          shell=True) # RM
-        except: # RM
-            raise DistutilsError('Failed to install libchealpix.') # RM
+def _compile_libchealpix():
+    if not os.path.exists('_deps/lib/libchealpix.a'):
+        try:
+            sp.check_call('./scripts/install_libchealpix.sh',
+                          shell=True)
+        except:
+            raise DistutilsError('Failed to install libchealpix.')
 
-def _compile_libnmt(): # RM
-    if not os.path.exists('_deps/lib/libnmt.a'): # RM
-        try: # RM
-            sp.check_call('./scripts/install_libnmt.sh ' + # RM
-                          c_compile_args, shell=True) # RM
-        except: # RM
-            raise DistutilsError('Failed to compile C library.') # RM
+def _compile_libnmt():
+    if not os.path.exists('_deps/lib/libnmt.a'):
+        try:
+            sp.check_call('./scripts/install_libnmt.sh ' +
+                          c_compile_args, shell=True)
+        except:
+            raise DistutilsError('Failed to compile C library.')
 
-class build(_build): # RM
-    """Specialized Python source builder.""" # RM
-    def run(self): # RM
-        _compile_libsharp() # RM
-        _compile_libchealpix() # RM
-        _compile_libnmt() # RM
-        _build.run(self) # RM
+class build(_build):
+    """Specialized Python source builder."""
+    def run(self):
+        _compile_libsharp()
+        _compile_libchealpix()
+        _compile_libnmt()
+        _build.run(self)
 
-class develop(_develop): # RM
-    """Specialized Python develop mode.""" # RM
-    def run(self): # RM
-        _compile_libsharp() # RM
-        _compile_libchealpix() # RM
-        _compile_libnmt() # RM
-        _build.run(self) # RM
+class develop(_develop):
+    """Specialized Python develop mode."""
+    def run(self):
+        _compile_libsharp()
+        _compile_libchealpix()
+        _compile_libnmt()
+        _develop.run(self)
 
 _nmtlib = Extension("_nmtlib",
                     ["pymaster/namaster_wrap.c"],
@@ -105,7 +105,7 @@ setup(name="pymaster",
       long_description=long_description,
       long_description_content_type="text/markdown",
       url="https://github.com/LSSTDESC/NaMaster",
-      cmdclass={'build_py': build, 'develop': develop}, # RM
+      cmdclass={'build_py': build, 'develop': develop},
       classifiers=[
           'License :: OSI Approved :: BSD License',
           'Programming Language :: Python :: 2',
