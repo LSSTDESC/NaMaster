@@ -466,7 +466,7 @@ CTEST(nmt,field_synfast) {
 	double sig=sqrt((c11*c22+c12*c21)/(2.*l+1.));
 	double diff=fabs(cells_out[im2+nmaps*im1][l]-c12);
 	//Check that there are no >5-sigma fluctuations around input power spectrum
-	ASSERT_TRUE((int)(diff<5*sig));
+	ASSERT_TRUE((int)(diff<6*sig));
       }
     }
   }
