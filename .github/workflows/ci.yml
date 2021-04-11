@@ -39,6 +39,7 @@ jobs:
           pip install -U scipy
           pip install -U healpy
           pip install -U flake8
+          pip install -U pytest
 
       - name: Flake
         run: |
@@ -56,6 +57,10 @@ jobs:
       - name: Python tests
         run: |
           python -m unittest discover -v
+
+      - name: Python tests new
+        run: |
+          pytest -vv pymaster
 
       - name: Clean install with threads
         run: |
