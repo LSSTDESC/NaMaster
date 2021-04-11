@@ -127,7 +127,7 @@ class NmtField(object):
                 if wt.flip_ph:
                     maps = maps[:, :, ::-1]
                 maps = maps.reshape([len(maps), wt.npix])
-            except:
+            except (IndexError, ValueError):
                 raise ValueError("Input maps have the wrong shape")
 
         if isinstance(templates, (list, tuple, np.ndarray)):
@@ -143,7 +143,7 @@ class NmtField(object):
                     if wt.flip_ph:
                         templates = templates[:, :, :, ::-1]
                     templates = templates.reshape([ntemp, len(maps), wt.npix])
-                except:
+                except (IndexError, ValueError):
                     raise ValueError("Input templates have the wrong shape")
 
             if len(templates[0][0]) != len(mask):

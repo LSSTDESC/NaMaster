@@ -754,7 +754,8 @@ class TestWorkspaceFsk(unittest.TestCase):
         self.ly = np.radians(np.fabs(self.ny*self.wcs.wcs.cdelt[1]))
         self.mps = np.array([read_flat_map("test/benchmarks/mps_flat.fits",
                                            i_map=i)[1] for i in range(3)])
-        self.mps_s1 = np.array([read_flat_map("test/benchmarks/mps_sp1_flat.fits",
+        self.mps_s1 = np.array([read_flat_map("test/benchmarks/"
+                                              "mps_sp1_flat.fits",
                                               i_map=i)[1] for i in range(3)])
         self.tmp = np.array([read_flat_map("test/benchmarks/tmp_flat.fits",
                                            i_map=i)[1] for i in range(3)])
