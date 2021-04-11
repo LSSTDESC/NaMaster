@@ -30,7 +30,7 @@ jobs:
 
       - name: Install GSL, FFTW (linux)
         run: |
-          sudo -H apt-get install libgsl-dev libfftw3-dev
+          sudo -H apt-get install libgsl-dev libfftw3-dev libcfitsio3-dev
 
       - name: Install python dependencies
         run: |
@@ -51,7 +51,7 @@ jobs:
       #    flake8 pymaster
       #    flake8 test
 
-      - name: Build CCL
+      - name: Build NaMaster
         run: |
           python setup.py install
 
