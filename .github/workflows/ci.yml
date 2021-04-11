@@ -48,7 +48,7 @@ jobs:
 
       - name: Flake
         run: |
-          flake8 pymaster
+          flake8 pymaster --exclude=nmtlib.py
           flake8 test --exclude=benchmarks
 
       - name: Build NaMaster
