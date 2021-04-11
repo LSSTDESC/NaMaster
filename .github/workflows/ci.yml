@@ -1,0 +1,78 @@
+name: continuous-integration
+on:
+  push:
+    branches:
+      - main
+      - master
+      - releases/*
+  pull_request: null
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: 
+          - ubuntu-latest
+        py:
+          - 3.8
+        CC:
+          - gcc
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Python ${{ matrix.py }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.py }}
+
+      - name: Install GSL, FFTW (linux)
+        run: |
+          sudo -H apt-get install libgsl-dev libfftw3-dev
+
+      - name: Install python dependencies
+        run: |
+          python -m pip install -U pip
+          pip install -U numpy
+          pip install -U scipy
+          pip install -U healpy
+          #pip install -U pytest
+          #pip install -U pytest-cov
+          #pip install -U fast-pt
+          #pip install -U camb
+          #pip install -U isitgr
+          #pip install -U cython
+          pip install -U flake8
+
+      #- name: Flake
+      #  run: |
+      #    flake8 pymaster
+      #    flake8 test
+
+      - name: Build CCL
+        run: |
+          python setup.py install
+
+      - name: C tests
+        run: |
+          make check
+
+      - name: Python tests
+        run: |
+          python -m unittest discover -v
+
+#      - name: Clean install with threads
+#        run: |
+#          pip uninstall pymaster -y
+#          rm _deps/lib/libnmt.a
+#          python setup.py install --enable-fftw-pthreads --disable-openmp
+
+#      - name: C tests with threads
+#        run: |
+#          make check
+
+#      - name: Python tests with threads
+#        run: |
+#          python -m unittest discover -v
