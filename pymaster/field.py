@@ -218,6 +218,22 @@ class NmtField(object):
             mps = maps
         return mps
 
+    def get_alms(self):
+        """
+        Returns a 2D array ([nmap][nlm]) corresponding to the observed \
+        harmonic coefficients of this field.
+
+        :return: 2D array of alms
+        """
+        if self.lite:
+            raise ValueError("Alms unavailable for lightweight fields")
+        alms = []
+        for imap in range(self.fl.nmaps):
+            alms.append(lib.get_alms(self.fl, imap, int(2*self.fl.nalms)))
+        alms = np.array(alms).reshape([self.fl.nmaps, self.fl.nalms, 2])
+        alms = alms[:, :, 0] + 1j * alms[:, :, 1]
+        return alms
+
     def get_templates(self):
         """
         Returns a 3D array ([ntemp][nmap][npix]) corresponding to the \

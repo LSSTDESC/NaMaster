@@ -532,6 +532,10 @@ class field(_object):
     __swig_getmethods__["npix"] = _nmtlib.field_npix_get
     if _newclass:
         npix = _swig_property(_nmtlib.field_npix_get, _nmtlib.field_npix_set)
+    __swig_setmethods__["nalms"] = _nmtlib.field_nalms_set
+    __swig_getmethods__["nalms"] = _nmtlib.field_nalms_get
+    if _newclass:
+        nalms = _swig_property(_nmtlib.field_nalms_get, _nmtlib.field_nalms_set)
     __swig_setmethods__["lmax"] = _nmtlib.field_lmax_set
     __swig_getmethods__["lmax"] = _nmtlib.field_lmax_get
     if _newclass:
@@ -1230,6 +1234,10 @@ field_alloc_new_notemp_flat = _nmtlib.field_alloc_new_notemp_flat
 def get_map(fl, imap, ldout):
     return _nmtlib.get_map(fl, imap, ldout)
 get_map = _nmtlib.get_map
+
+def get_alms(fl, imap, ldout):
+    return _nmtlib.get_alms(fl, imap, ldout)
+get_alms = _nmtlib.get_alms
 
 def get_map_flat(fl, imap, dout):
     return _nmtlib.get_map_flat(fl, imap, dout)
