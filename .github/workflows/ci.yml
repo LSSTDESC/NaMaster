@@ -30,7 +30,7 @@ jobs:
 
       - name: Install GSL, FFTW (linux)
         run: |
-          sudo -H apt-get install libgsl-dev libfftw3-dev libcfitsio3-dev
+          sudo -H apt-get install libgsl-dev libfftw3-dev libcfitsio-dev
 
       - name: Install python dependencies
         run: |
