@@ -4,7 +4,7 @@ import pymaster as nmt
 import healpy as hp
 import warnings
 import sys
-from .testutils import normdiff, read_flat_map
+from testutils import normdiff, read_flat_map
 
 # Unit tests associated with the NmtField and NmtFieldFlat classes
 
