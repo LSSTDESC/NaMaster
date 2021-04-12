@@ -58,22 +58,22 @@ jobs:
 
       - name: Python tests
         run: |
-          pytest -vv pymaster --cov=pyccl
+          pytest -vv pymaster --cov=pymaster
 
-      - name: Clean install with threads
-        run: |
-          pip uninstall pymaster -y
-          rm _deps/lib/libnmt.a
-          python setup.py install --enable-fftw-pthreads --disable-openmp
-
-      - name: C tests with threads
-        run: |
-          make check
-
-      - name: Python tests with threads
-        run: |
-          pytest -vv pymaster
-
+#      - name: Clean install with threads
+#        run: |
+#          pip uninstall pymaster -y
+#          rm _deps/lib/libnmt.a
+#          python setup.py install --enable-fftw-pthreads --disable-openmp
+#
+#      - name: C tests with threads
+#        run: |
+#          make check
+#
+#      - name: Python tests with threads
+#        run: |
+#          pytest -vv pymaster
+#
       - name: coveralls
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
