@@ -42,6 +42,7 @@ class WorkspaceTesterCAR(object):
 WT = WorkspaceTesterCAR()
 
 
+@pytest.mark.skipif(True, reason='slow')
 def test_workspace_car_master():
     f0 = nmt.NmtField(WT.msk, [WT.mps[0]],
                       wcs=WT.wcs, n_iter=0)
@@ -79,6 +80,7 @@ def test_workspace_car_master():
     assert np.amax(np.fabs(cl-cl_bm)) <= 1E-10
 
 
+@pytest.mark.skipif(True, reason='slow')
 def test_workspace_car_methods():
     w = nmt.NmtWorkspace()
     w.compute_coupling_matrix(WT.f0, WT.f0,
