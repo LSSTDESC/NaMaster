@@ -127,7 +127,7 @@ class NmtField(object):
                 if wt.flip_ph:
                     maps = maps[:, :, ::-1]
                 maps = maps.reshape([len(maps), wt.npix])
-            except:
+            except (IndexError, ValueError):
                 raise ValueError("Input maps have the wrong shape")
 
         if isinstance(templates, (list, tuple, np.ndarray)):
@@ -143,7 +143,7 @@ class NmtField(object):
                     if wt.flip_ph:
                         templates = templates[:, :, :, ::-1]
                     templates = templates.reshape([ntemp, len(maps), wt.npix])
-                except:
+                except (IndexError, ValueError):
                     raise ValueError("Input templates have the wrong shape")
 
             if len(templates[0][0]) != len(mask):
@@ -217,6 +217,22 @@ class NmtField(object):
         else:
             mps = maps
         return mps
+
+    def get_alms(self):
+        """
+        Returns a 2D array ([nmap][nlm]) corresponding to the observed \
+        harmonic coefficients of this field.
+
+        :return: 2D array of alms
+        """
+        if self.lite:
+            raise ValueError("Alms unavailable for lightweight fields")
+        alms = []
+        for imap in range(self.fl.nmaps):
+            alms.append(lib.get_alms(self.fl, imap, int(2*self.fl.nalms)))
+        alms = np.array(alms).reshape([self.fl.nmaps, self.fl.nalms, 2])
+        alms = alms[:, :, 0] + 1j * alms[:, :, 1]
+        return alms
 
     def get_templates(self):
         """

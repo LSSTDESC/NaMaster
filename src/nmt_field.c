@@ -169,12 +169,12 @@ void nmt_purify(nmt_field *fl,flouble *mask,fcomplex **walm0,
   fcomplex **palm=my_malloc(fl->nmaps*sizeof(fcomplex *));
   fcomplex **alm_out=my_malloc(fl->nmaps*sizeof(fcomplex *));
   for(imap=0;imap<fl->nmaps;imap++) {
-    walm[imap]=my_calloc(he_nalms(fl->lmax),sizeof(fcomplex));
-    palm[imap]=my_calloc(he_nalms(fl->lmax),sizeof(fcomplex));
+    walm[imap]=my_calloc(fl->nalms,sizeof(fcomplex));
+    palm[imap]=my_calloc(fl->nalms,sizeof(fcomplex));
     pmap[imap]=my_calloc(fl->npix,sizeof(flouble));
     wmap[imap]=my_calloc(fl->npix,sizeof(flouble));
-    memcpy(walm[imap],walm0[imap],he_nalms(fl->lmax)*sizeof(fcomplex));
-    alm_out[imap]=my_calloc(he_nalms(fl->lmax),sizeof(fcomplex));
+    memcpy(walm[imap],walm0[imap],fl->nalms*sizeof(fcomplex));
+    alm_out[imap]=my_calloc(fl->nalms,sizeof(fcomplex));
   }
 
   if(fl->pure_e)
@@ -251,7 +251,7 @@ void nmt_purify(nmt_field *fl,flouble *mask,fcomplex **walm0,
   }
 
   for(imap=0;imap<fl->nmaps;imap++)
-    memcpy(alms[imap],alm_out[imap],he_nalms(fl->lmax)*sizeof(fcomplex));
+    memcpy(alms[imap],alm_out[imap],fl->nalms*sizeof(fcomplex));
   he_alm2map(fl->cs,fl->lmax,1,2,maps_out,alms);
 
   for(imap=0;imap<fl->nmaps;imap++) {
@@ -280,6 +280,7 @@ nmt_field *nmt_field_alloc_sph(nmt_curvedsky_info *cs,flouble *mask,int spin,flo
   fl->cs=nmt_curvedsky_info_copy(cs);
   fl->lmax=he_get_lmax(fl->cs);
   fl->npix=cs->npix;
+  fl->nalms=he_nalms(fl->lmax);
   fl->spin=spin;
   if(spin) fl->nmaps=2;
   else fl->nmaps=1;
@@ -448,7 +449,7 @@ nmt_field *nmt_field_alloc_sph(nmt_curvedsky_info *cs,flouble *mask,int spin,flo
   //Allocate harmonic coefficients
   fl->alms=my_malloc(fl->nmaps*sizeof(fcomplex *));
   for(ii=0;ii<fl->nmaps;ii++)
-    fl->alms[ii]=my_malloc(he_nalms(fl->lmax)*sizeof(fcomplex));
+    fl->alms[ii]=my_malloc(fl->nalms*sizeof(fcomplex));
   // Allocate template alms if needed
   if(is_lite)
     fl->a_temp=NULL;
@@ -458,7 +459,7 @@ nmt_field *nmt_field_alloc_sph(nmt_curvedsky_info *cs,flouble *mask,int spin,flo
       for(itemp=0;itemp<fl->ntemp;itemp++) {
         fl->a_temp[itemp]=my_malloc(fl->nmaps*sizeof(fcomplex *));
         for(imap=0;imap<fl->nmaps;imap++)
-          fl->a_temp[itemp][imap]=my_malloc(he_nalms(fl->lmax)*sizeof(fcomplex));
+          fl->a_temp[itemp][imap]=my_malloc(fl->nalms*sizeof(fcomplex));
       }
     }
   }
@@ -473,7 +474,7 @@ nmt_field *nmt_field_alloc_sph(nmt_curvedsky_info *cs,flouble *mask,int spin,flo
     //Compute mask SHT
     fcomplex **a_mask=my_malloc(fl->nmaps*sizeof(fcomplex *));
     for(imap=0;imap<fl->nmaps;imap++)
-      a_mask[imap]=my_calloc(he_nalms(fl->lmax),sizeof(fcomplex));
+      a_mask[imap]=my_calloc(fl->nalms,sizeof(fcomplex));
     he_map2alm(fl->cs,fl->lmax,1,0,&(fl->mask),a_mask,n_iter_mask_purify);
 
     //Purify map

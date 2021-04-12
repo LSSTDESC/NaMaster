@@ -216,6 +216,29 @@ class TestFieldHPX(unittest.TestCase):
             self.tmp[i][1] = -np.sqrt(15./2./np.pi)*sth**2/4.
             self.tmp[i][2] = -np.sqrt(105./2./np.pi)*cth*sth**2/2.
 
+    def test_field_get_alms(self):
+        nside = 32
+        npix = hp.nside2npix(nside)
+        mp = np.random.randn(3, npix)
+        msk = np.ones(npix)
+
+        # Spin 0
+        f = nmt.NmtField(msk, [mp[0]], n_iter=0)
+        alm = f.get_alms()[0]
+        cl_tt_nmt = hp.alm2cl(alm)
+
+        # Spin 2
+        f = nmt.NmtField(msk, mp[1:], n_iter=0)
+        alm = f.get_alms()
+        cl_ee_nmt = hp.alm2cl(alm[0])
+        cl_bb_nmt = hp.alm2cl(alm[1])
+
+        cl_tt, cl_ee, cl_bb, cl_te, cl_eb, cl_tb = hp.anafast(mp, iter=0,
+                                                              pol=True)
+        self.assertTrue(np.all(np.fabs(cl_tt_nmt/cl_tt-1) < 1E-10))
+        self.assertTrue(np.all(np.fabs(cl_ee_nmt[2:]/cl_ee[2:]-1) < 1E-10))
+        self.assertTrue(np.all(np.fabs(cl_bb_nmt[2:]/cl_bb[2:]-1) < 1E-10))
+
     def test_field_masked(self):
         nside = 64
         b = nmt.NmtBin.from_nside_linear(nside, 16)

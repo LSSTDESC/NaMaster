@@ -543,6 +543,7 @@ flouble *nmt_extend_CAR_map(nmt_curvedsky_info *cs,flouble *map_in);
 typedef struct {
   nmt_curvedsky_info *cs; //!< pixelization parameters
   long npix; //!< Number of pixels in all maps
+  long nalms; //!< Number of complex harmonic coefficients
   int lmax; //!< Maximum multipole used
   int pure_e; //!< >0 if E-modes have been purified
   int pure_b; //!< >0 if B-modes have been purified

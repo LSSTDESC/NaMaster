@@ -3754,6 +3754,13 @@ void get_map(nmt_field *fl,int imap,double *ldout,long nldout)
   memcpy(ldout,fl->maps[imap],fl->npix*sizeof(double));
 }
 
+void get_alms(nmt_field *fl, int imap,double *ldout,long nldout)
+{
+  asserting(imap<fl->nmaps);
+  asserting(nldout==2*fl->nalms);
+  memcpy(ldout, fl->alms[imap], 2*fl->nalms*sizeof(double));
+}
+
 void get_map_flat(nmt_field_flat *fl,int imap,double *dout,int ndout)
 {
   asserting(imap<fl->nmaps);
@@ -9368,6 +9375,58 @@ SWIGINTERN PyObject *_wrap_field_npix_get(PyObject *SWIGUNUSEDPARM(self), PyObje
   }
   arg1 = (nmt_field *)(argp1);
   result = (long) ((arg1)->npix);
+  resultobj = SWIG_From_long((long)(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_field_nalms_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_field *arg1 = (nmt_field *) 0 ;
+  long arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  long val2 ;
+  int ecode2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:field_nalms_set",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_field, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "field_nalms_set" "', argument " "1"" of type '" "nmt_field *""'"); 
+  }
+  arg1 = (nmt_field *)(argp1);
+  ecode2 = SWIG_AsVal_long(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "field_nalms_set" "', argument " "2"" of type '" "long""'");
+  } 
+  arg2 = (long)(val2);
+  if (arg1) (arg1)->nalms = arg2;
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_field_nalms_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_field *arg1 = (nmt_field *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  long result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:field_nalms_get",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_field, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "field_nalms_get" "', argument " "1"" of type '" "nmt_field *""'"); 
+  }
+  arg1 = (nmt_field *)(argp1);
+  result = (long) ((arg1)->nalms);
   resultobj = SWIG_From_long((long)(result));
   return resultobj;
 fail:
@@ -19308,6 +19367,66 @@ fail:
 }
 
 
+SWIGINTERN PyObject *_wrap_get_alms(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_field *arg1 = (nmt_field *) 0 ;
+  int arg2 ;
+  double *arg3 = (double *) 0 ;
+  long arg4 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int val2 ;
+  int ecode2 = 0 ;
+  PyObject *array3 = NULL ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  PyObject * obj2 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OOO:get_alms",&obj0,&obj1,&obj2)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_nmt_field, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "get_alms" "', argument " "1"" of type '" "nmt_field *""'"); 
+  }
+  arg1 = (nmt_field *)(argp1);
+  ecode2 = SWIG_AsVal_int(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "get_alms" "', argument " "2"" of type '" "int""'");
+  } 
+  arg2 = (int)(val2);
+  {
+    npy_intp dims[1];
+    if (!PyInt_Check(obj2))
+    {
+      const char* typestring = pytype_string(obj2);
+      PyErr_Format(PyExc_TypeError,
+        "Int dimension expected.  '%s' given.",
+        typestring);
+      SWIG_fail;
+    }
+    arg4 = (long) PyInt_AsLong(obj2);
+    dims[0] = (npy_intp) arg4;
+    array3 = PyArray_SimpleNew(1, dims, NPY_DOUBLE);
+    if (!array3) SWIG_fail;
+    arg3 = (double*) array_data(array3);
+  }
+  {
+    try {
+      get_alms(arg1,arg2,arg3,arg4);
+    }
+    finally {
+      SWIG_exception(SWIG_RuntimeError,nmt_error_message);
+    }
+  }
+  resultobj = SWIG_Py_Void();
+  {
+    resultobj = SWIG_Python_AppendOutput(resultobj,(PyObject*)array3);
+  }
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
 SWIGINTERN PyObject *_wrap_get_map_flat(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   nmt_field_flat *arg1 = (nmt_field_flat *) 0 ;
@@ -23160,6 +23279,8 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"field_cs_get", _wrap_field_cs_get, METH_VARARGS, NULL},
 	 { (char *)"field_npix_set", _wrap_field_npix_set, METH_VARARGS, NULL},
 	 { (char *)"field_npix_get", _wrap_field_npix_get, METH_VARARGS, NULL},
+	 { (char *)"field_nalms_set", _wrap_field_nalms_set, METH_VARARGS, NULL},
+	 { (char *)"field_nalms_get", _wrap_field_nalms_get, METH_VARARGS, NULL},
 	 { (char *)"field_lmax_set", _wrap_field_lmax_set, METH_VARARGS, NULL},
 	 { (char *)"field_lmax_get", _wrap_field_lmax_get, METH_VARARGS, NULL},
 	 { (char *)"field_pure_e_set", _wrap_field_pure_e_set, METH_VARARGS, NULL},
@@ -23408,6 +23529,7 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"field_alloc_new_flat", _wrap_field_alloc_new_flat, METH_VARARGS, NULL},
 	 { (char *)"field_alloc_new_notemp_flat", _wrap_field_alloc_new_notemp_flat, METH_VARARGS, NULL},
 	 { (char *)"get_map", _wrap_get_map, METH_VARARGS, NULL},
+	 { (char *)"get_alms", _wrap_get_alms, METH_VARARGS, NULL},
 	 { (char *)"get_map_flat", _wrap_get_map_flat, METH_VARARGS, NULL},
 	 { (char *)"get_temp", _wrap_get_temp, METH_VARARGS, NULL},
 	 { (char *)"get_temp_flat", _wrap_get_temp_flat, METH_VARARGS, NULL},
