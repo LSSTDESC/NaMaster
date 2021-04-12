@@ -40,7 +40,6 @@ jobs:
           pip install -U healpy
           pip install -U flake8
           pip install -U pytest
-          pip install -U pytest-cov
 
       - name: Flake
         run: |
@@ -57,14 +56,7 @@ jobs:
 
       - name: Python tests
         run: |
-          pytest -vv pymaster --cov=pymaster
-
-      - name: Coveralls
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          pip install -U coveralls
-          coveralls
+          pytest -vv pymaster
 
       - name: Clean install with threads
         run: |
