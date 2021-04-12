@@ -54,6 +54,18 @@ def test_bins_errors():
         BT.bv.bin_cell(np.random.randn(3, 3, 3))
     with pytest.raises(ValueError):
         BT.bv.unbin_cell(np.random.randn(3, 3, 3))
+    with pytest.raises(KeyError):
+        nmt.NmtBin()
+    with pytest.raises(ValueError):
+        nmt.NmtBin(nlb=10)
+    with pytest.raises(KeyError):
+        nmt.NmtBin(nside=16, weights=1)
+
+
+def test_bins_nell_list():
+    nlst = BT.be.get_nell_list()
+    assert len(nlst) == BT.be.get_n_bands()
+    assert (nlst == 4).all()
 
 
 def test_bins_edges():

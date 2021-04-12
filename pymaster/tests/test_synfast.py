@@ -99,8 +99,7 @@ def test_synfast_errors():
                                              ST.beam[:15]]),
                               seed=1234)
     m = nmt.synfast_spherical(ST.nside, ST.cl12, [0, 2],
-                              beam=np.array([ST.beam, ST.beam]),
-                              seed=1234)
+                              beam=None, seed=-1)
     assert m.shape == (3, hp.nside2npix(ST.nside))
 
 
