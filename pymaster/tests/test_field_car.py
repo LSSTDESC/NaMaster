@@ -6,7 +6,7 @@ import pytest
 from .utils import normdiff
 
 
-class FieldTestCAR(object):
+class FieldTesterCAR(object):
     def __init__(self):
         # This is to avoid showing an ugly warning that
         # has nothing to do with pymaster
@@ -52,7 +52,7 @@ class FieldTestCAR(object):
             self.tmp[i][2, :, :] = -np.sqrt(105./2./np.pi)*cth*sth**2/2.
 
 
-FT = FieldTestCAR()
+FT = FieldTesterCAR()
 
 
 def test_field_lite():
