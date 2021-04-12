@@ -17,7 +17,8 @@ class NmtCovarianceWorkspace(object):
 
     def __del__(self):
         if self.wsp is not None:
-            lib.covar_workspace_free(self.wsp)
+            if lib.covar_workspace_free is not None:
+                lib.covar_workspace_free(self.wsp)
             self.wsp = None
 
     def read_from(self, fname):
@@ -110,7 +111,8 @@ class NmtCovarianceWorkspaceFlat(object):
 
     def __del__(self):
         if self.wsp is not None:
-            lib.covar_workspace_flat_free(self.wsp)
+            if lib.covar_workspace_flat_free is not None:
+                lib.covar_workspace_flat_free(self.wsp)
             self.wsp = None
 
     def read_from(self, fname):

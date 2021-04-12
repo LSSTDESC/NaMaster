@@ -1,0 +1,4 @@
+[report]
+omit =
+    *nmtlib.py
+    pymaster/tests/*

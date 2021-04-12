@@ -162,8 +162,7 @@ def test_synfast_flat_errors():
                          beam=np.array([ST.beam]), seed=1234)
     m = nmt.synfast_flat(ST.nx, ST.ny, ST.lx, ST.ly,
                          ST.cl12, [0, 2],
-                         beam=np.array([ST.beam, ST.beam]),
-                         seed=1234)
+                         beam=None, seed=-1)
     assert m.shape == (3, ST.ny, ST.nx)
 
 

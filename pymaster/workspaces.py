@@ -16,7 +16,8 @@ class NmtWorkspace(object):
 
     def __del__(self):
         if self.wsp is not None:
-            lib.workspace_free(self.wsp)
+            if lib.workspace_free is not None:
+                lib.workspace_free(self.wsp)
             self.wsp = None
 
     def read_from(self, fname):
@@ -236,7 +237,8 @@ class NmtWorkspaceFlat(object):
 
     def __del__(self):
         if self.wsp is not None:
-            lib.workspace_flat_free(self.wsp)
+            if lib.workspace_flat_free is not None:
+                lib.workspace_flat_free(self.wsp)
             self.wsp = None
 
     def read_from(self, fname):
