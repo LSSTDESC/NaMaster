@@ -4,7 +4,7 @@ import pymaster as nmt
 import healpy as hp
 import warnings
 import sys
-from utils import normdiff
+from .utils import normdiff
 
 
 class FieldTester(object):

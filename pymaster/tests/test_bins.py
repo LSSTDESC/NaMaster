@@ -1,7 +1,7 @@
 import pytest
 import numpy as np
 import pymaster as nmt
-from utils import normdiff
+from .utils import normdiff
 
 
 class BinTester(object):
