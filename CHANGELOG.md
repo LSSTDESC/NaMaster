@@ -1,3 +1,9 @@
+# v1.2
+- Uses most recent version of libsharp (libsharp2) (#121)
+- Various bug fixes (#123, #124, #126)
+- Added functionality to return the field's alms (#131)
+- Migrated tests to pytest and github actions (#132)
+
 # v1.1
 - Faster MCM via symmetry (thanks to Thibaut Louis) (#111)
 - Covariance calculable for coupled spectra (#113)
