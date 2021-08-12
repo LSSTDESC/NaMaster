@@ -157,9 +157,11 @@ class TestCovarSph(unittest.TestCase):
         self.nside = 64
         self.nlb = 16
         self.npix = hp.nside2npix(self.nside)
-        msk = hp.read_map("test/benchmarks/msk.fits", verbose=False)
+        msk = hp.read_map("test/benchmarks/msk.fits", verbose=False,
+                          dtype=float)
         mps = np.array(hp.read_map("test/benchmarks/mps.fits",
-                                   verbose=False, field=[0, 1, 2]))
+                                   verbose=False, field=[0, 1, 2],
+                                   dtype=float))
         self.b = nmt.NmtBin.from_nside_linear(self.nside, self.nlb)
         self.f0 = nmt.NmtField(msk, [mps[0]])
         self.f2 = nmt.NmtField(msk, [mps[1], mps[2]])

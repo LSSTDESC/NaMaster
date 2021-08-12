@@ -219,9 +219,10 @@ class TestFieldHPX(unittest.TestCase):
     def test_field_masked(self):
         nside = 64
         b = nmt.NmtBin.from_nside_linear(nside, 16)
-        msk = hp.read_map("test/benchmarks/msk.fits", verbose=False)
+        msk = hp.read_map("test/benchmarks/msk.fits", verbose=False,
+                          dtype=float)
         mps = np.array(hp.read_map("test/benchmarks/mps.fits",
-                                   verbose=False,
+                                   verbose=False, dtype=float,
                                    field=[0, 1, 2]))
         mps_msk = np.array([m * msk for m in mps])
         f0 = nmt.NmtField(msk, [mps[0]])
