@@ -18,16 +18,16 @@ class WorkspaceTester(object):
         self.lmax = 3*self.nside-1
         self.npix = int(hp.nside2npix(self.nside))
         self.msk = hp.read_map("test/benchmarks/msk.fits",
-                               verbose=False)
+                               verbose=False, dtype=float)
         self.mps = np.array(hp.read_map("test/benchmarks/mps.fits",
                                         verbose=False,
-                                        field=[0, 1, 2]))
+                                        field=[0, 1, 2], dtype=float))
         self.mps_s1 = np.array(hp.read_map("test/benchmarks/mps_sp1.fits",
                                            verbose=False,
-                                           field=[0, 1, 2]))
+                                           field=[0, 1, 2], dtype=float))
         self.tmp = np.array(hp.read_map("test/benchmarks/tmp.fits",
                                         verbose=False,
-                                        field=[0, 1, 2]))
+                                        field=[0, 1, 2], dtype=float))
         self.b = nmt.NmtBin.from_nside_linear(self.nside, self.nlb)
         self.f0 = nmt.NmtField(self.msk,
                                [self.mps[0]])  # Original nside
