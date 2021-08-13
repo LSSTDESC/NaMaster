@@ -433,10 +433,6 @@ class NmtFieldFlat(object):
 
         :return: 2D mask.
         """
-        if self.lite:
-            raise ValueError("Input maps unavailable for lightweight fields. "
-                             "To use this function, create an `NmtFieldFlat` "
-                             "object with `lite=False`.")
         msk = lib.get_mask_flat(self.fl,
                                 int(self.fl.npix)).reshape([self.ny,
                                                             self.nx])
