@@ -3425,6 +3425,12 @@ void get_alms(nmt_field *fl, int imap,double *ldout,long nldout)
   memcpy(ldout, fl->alms[imap], 2*fl->nalms*sizeof(double));
 }
 
+void get_mask_flat(nmt_field_flat *fl,double *dout,int ndout)
+{
+  asserting(ndout==fl->npix);
+  memcpy(dout,fl->mask,fl->npix*sizeof(double));
+}
+
 void get_map_flat(nmt_field_flat *fl,int imap,double *dout,int ndout)
 {
   asserting(imap<fl->nmaps);
@@ -18809,6 +18815,56 @@ fail:
 }
 
 
+SWIGINTERN PyObject *_wrap_get_mask_flat(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_field_flat *arg1 = (nmt_field_flat *) 0 ;
+  double *arg2 = (double *) 0 ;
+  int arg3 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject *array2 = NULL ;
+  PyObject *swig_obj[2] ;
+  
+  if (!SWIG_Python_UnpackTuple(args, "get_mask_flat", 2, 2, swig_obj)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_nmt_field_flat, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "get_mask_flat" "', argument " "1"" of type '" "nmt_field_flat *""'"); 
+  }
+  arg1 = (nmt_field_flat *)(argp1);
+  {
+    npy_intp dims[1];
+    if (!PyInt_Check(swig_obj[1]))
+    {
+      const char* typestring = pytype_string(swig_obj[1]);
+      PyErr_Format(PyExc_TypeError,
+        "Int dimension expected.  '%s' given.",
+        typestring);
+      SWIG_fail;
+    }
+    arg3 = (int) PyInt_AsLong(swig_obj[1]);
+    dims[0] = (npy_intp) arg3;
+    array2 = PyArray_SimpleNew(1, dims, NPY_DOUBLE);
+    if (!array2) SWIG_fail;
+    arg2 = (double*) array_data(array2);
+  }
+  {
+    try {
+      get_mask_flat(arg1,arg2,arg3);
+    }
+    finally {
+      SWIG_exception(SWIG_RuntimeError,nmt_error_message);
+    }
+  }
+  resultobj = SWIG_Py_Void();
+  {
+    resultobj = SWIG_Python_AppendOutput(resultobj,(PyObject*)array2);
+  }
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
 SWIGINTERN PyObject *_wrap_get_map_flat(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   nmt_field_flat *arg1 = (nmt_field_flat *) 0 ;
@@ -22762,6 +22818,7 @@ static PyMethodDef SwigMethods[] = {
 	 { "get_mask", _wrap_get_mask, METH_VARARGS, NULL},
 	 { "get_map", _wrap_get_map, METH_VARARGS, NULL},
 	 { "get_alms", _wrap_get_alms, METH_VARARGS, NULL},
+	 { "get_mask_flat", _wrap_get_mask_flat, METH_VARARGS, NULL},
 	 { "get_map_flat", _wrap_get_map_flat, METH_VARARGS, NULL},
 	 { "get_temp", _wrap_get_temp, METH_VARARGS, NULL},
 	 { "get_temp_flat", _wrap_get_temp_flat, METH_VARARGS, NULL},

@@ -427,6 +427,22 @@ class NmtFieldFlat(object):
                 lib.field_flat_free(self.fl)
             self.fl = None
 
+    def get_mask(self):
+        """
+        Returns this field's mask as a 2D array ([ny][nx]).
+
+        :return: 2D mask.
+        """
+        if self.lite:
+            raise ValueError("Input maps unavailable for lightweight fields. "
+                             "To use this function, create an `NmtFieldFlat` "
+                             "object with `lite=False`.")
+        msk = lib.get_mask_flat(self.fl,
+                                int(self.fl.npix)).reshape([self.ny,
+                                                            self.nx])
+
+        return msk
+
     def get_maps(self):
         """
         Returns a 3D array ([nmap][ny][nx]) corresponding to the observed \

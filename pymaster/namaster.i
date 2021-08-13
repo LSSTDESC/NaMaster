@@ -479,6 +479,12 @@ void get_alms(nmt_field *fl, int imap,double *ldout,long nldout)
   memcpy(ldout, fl->alms[imap], 2*fl->nalms*sizeof(double));
 }
 
+void get_mask_flat(nmt_field_flat *fl,double *dout,int ndout)
+{
+  asserting(ndout==fl->npix);
+  memcpy(dout,fl->mask,fl->npix*sizeof(double));
+}
+
 void get_map_flat(nmt_field_flat *fl,int imap,double *dout,int ndout)
 {
   asserting(imap<fl->nmaps);

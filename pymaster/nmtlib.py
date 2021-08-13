@@ -622,6 +622,9 @@ def get_map(fl, imap, ldout):
 def get_alms(fl, imap, ldout):
     return _nmtlib.get_alms(fl, imap, ldout)
 
+def get_mask_flat(fl, dout):
+    return _nmtlib.get_mask_flat(fl, dout)
+
 def get_map_flat(fl, imap, dout):
     return _nmtlib.get_map_flat(fl, imap, dout)
 
