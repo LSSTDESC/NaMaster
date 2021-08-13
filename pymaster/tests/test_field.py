@@ -42,6 +42,16 @@ class FieldTester(object):
 FT = FieldTester()
 
 
+def test_field_get_mask():
+    nside = 32
+    npix = hp.nside2npix(nside)
+    mp = np.random.randn(1, npix)
+    msk = np.random.rand(npix)
+    f = nmt.NmtField(msk, mp, n_iter=0)
+    mskb = f.get_mask()
+    assert np.amax(np.fabs(mskb-msk)/np.std(msk)) < 1E-5
+
+
 def test_field_get_alms():
     nside = 32
     npix = hp.nside2npix(nside)

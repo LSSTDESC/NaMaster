@@ -201,6 +201,14 @@ class NmtField(object):
                 lib.field_free(self.fl)
             self.fl = None
 
+    def get_mask(self):
+        """
+        Returns this field's mask as a 1D array.
+
+        :return: mask
+        """
+        return lib.get_mask(self.fl, int(self.fl.npix))
+
     def get_maps(self):
         """
         Returns a 2D array ([nmap][npix]) corresponding to the observed maps \
