@@ -109,6 +109,13 @@ def test_field_lite():
             f.get_templates()
 
 
+def test_field_flat_get_mask():
+    msk = np.random.rand(FT.ny, FT.nx)
+    f0 = nmt.NmtFieldFlat(FT.lx, FT.ly, msk, [FT.mps[0]], beam=FT.beam)
+    mskb = f0.get_mask()
+    assert np.amax(np.fabs(msk-mskb)/np.std(msk)) < 1E-5
+
+
 def test_field_flat_alloc():
     # No templates
     f0 = nmt.NmtFieldFlat(FT.lx, FT.ly, FT.msk,
