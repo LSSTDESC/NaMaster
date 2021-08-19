@@ -138,7 +138,7 @@ class NmtBin(object):
             will be multiplied by `ell * (ell + 1) / 2 * PI`, where `ell` \
             is the multipole order (no prefactor otherwise).
         """
-        nls = np.amax(ell_end)
+        nls = int(np.amax(ell_end))
         ells, bpws, weights = [], [], []
         for ib, (li, le) in enumerate(zip(ell_ini, ell_end)):
             nlb = int(le - li)
