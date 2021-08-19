@@ -260,7 +260,8 @@ class NmtBin(object):
             cls_in = np.array([cls_in])
         if (cls_in.ndim > 2) or (len(cls_in[0]) != self.bin.n_bands):
             raise ValueError("Input Cl has wrong size")
-        cl1d = lib.unbin_cl(self.bin, cls_in, len(cls_in) * (self.lmax + 1))
+        cl1d = lib.unbin_cl(self.bin, cls_in,
+                            int(len(cls_in) * (self.lmax + 1)))
         clout = np.reshape(cl1d, [len(cls_in), self.lmax + 1])
         if oned:
             clout = clout[0]
