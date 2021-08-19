@@ -459,6 +459,12 @@ nmt_field_flat *field_alloc_new_notemp_flat(int nx,int ny,double lx,double ly,in
                               masked_input,lite);
 }
 
+void get_mask(nmt_field *fl,double *ldout,long nldout)
+{
+  asserting(nldout==fl->npix);
+  memcpy(ldout,fl->mask,fl->npix*sizeof(double));
+}
+
 void get_map(nmt_field *fl,int imap,double *ldout,long nldout)
 {
   asserting(imap<fl->nmaps);
@@ -471,6 +477,12 @@ void get_alms(nmt_field *fl, int imap,double *ldout,long nldout)
   asserting(imap<fl->nmaps);
   asserting(nldout==2*fl->nalms);
   memcpy(ldout, fl->alms[imap], 2*fl->nalms*sizeof(double));
+}
+
+void get_mask_flat(nmt_field_flat *fl,double *dout,int ndout)
+{
+  asserting(ndout==fl->npix);
+  memcpy(dout,fl->mask,fl->npix*sizeof(double));
 }
 
 void get_map_flat(nmt_field_flat *fl,int imap,double *dout,int ndout)
