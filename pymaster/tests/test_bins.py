@@ -109,6 +109,17 @@ def test_bins_variable():
                       0.5 * (BT.nlb - 1))) < 1E-5)
 
 
+def test_unbin_from_edges():
+    bpw_edges = [0, 6, 12, 18, 24, 30, 36, 42, 48,
+                 54, 60, 66, 72, 78, 84, 90, 96]
+    b = nmt.NmtBin.from_edges(bpw_edges[:-1], bpw_edges[1:])
+    cl_b = np.arange(len(bpw_edges)-1)
+    cl_u = b.unbin_cell(cl_b)
+    for i, (b1, b2) in enumerate(zip(bpw_edges[:-1],
+                                     bpw_edges[1:])):
+        assert np.all(cl_u[b1:b2] == i)
+
+
 def test_bins_binning():
     # Tests C_l binning and unbinning
     cls = np.arange(BT.lmax+1, dtype=float)

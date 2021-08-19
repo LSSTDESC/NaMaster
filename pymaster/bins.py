@@ -138,7 +138,7 @@ class NmtBin(object):
             will be multiplied by `ell * (ell + 1) / 2 * PI`, where `ell` \
             is the multipole order (no prefactor otherwise).
         """
-        nls = np.amax(ell_end)
+        nls = int(np.amax(ell_end))
         ells, bpws, weights = [], [], []
         for ib, (li, le) in enumerate(zip(ell_ini, ell_end)):
             nlb = int(le - li)
@@ -260,8 +260,7 @@ class NmtBin(object):
             cls_in = np.array([cls_in])
         if (cls_in.ndim > 2) or (len(cls_in[0]) != self.bin.n_bands):
             raise ValueError("Input Cl has wrong size")
-        cl1d = lib.unbin_cl(self.bin, cls_in,
-                            int(len(cls_in) * (self.lmax + 1)))
+        cl1d = lib.unbin_cl(self.bin, cls_in, len(cls_in) * (self.lmax + 1))
         clout = np.reshape(cl1d, [len(cls_in), self.lmax + 1])
         if oned:
             clout = clout[0]
