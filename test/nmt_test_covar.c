@@ -10,7 +10,7 @@ CTEST(nmt,covar_f_ell) {
   double *map=he_read_map("test/benchmarks/mps.fits",cs,0);
   nmt_workspace *w=nmt_workspace_read_fits("test/benchmarks/bm_nc_np_w00.fits");
   nmt_field *f0=nmt_field_alloc_sph(cs,msk,0,&map,0,NULL,NULL,0,0,3,1E-10,HE_NITER_DEFAULT,0,0,0);
-  nmt_covar_workspace *cw=nmt_covar_workspace_init(f0,f0,f0,f0,w->bin->ell_max,HE_NITER_DEFAULT,-1,-1,-1);
+  nmt_covar_workspace *cw=nmt_covar_workspace_init(f0,f0,f0,f0,w->bin->ell_max,HE_NITER_DEFAULT,-1,-1,-1,0);
   nmt_field_free(f0);
   free(msk); free(map);
   nmt_bins_free(w->bin);
@@ -57,8 +57,8 @@ CTEST(nmt,covar) {
   double *map=he_read_map("test/benchmarks/mps.fits",cs,0);
   nmt_workspace *w=nmt_workspace_read_fits("test/benchmarks/bm_nc_np_w00.fits");
   nmt_field *f0=nmt_field_alloc_sph(cs,msk,0,&map,0,NULL,NULL,0,0,3,1E-10,HE_NITER_DEFAULT,0,0,0);
-  nmt_covar_workspace *cw=nmt_covar_workspace_init(f0,f0,f0,f0,w->bin->ell_max,HE_NITER_DEFAULT,-1,-1,-1);
-  nmt_covar_workspace *cwr=nmt_covar_workspace_read_fits("test/benchmarks/bm_nc_np_cw00.fits");
+  nmt_covar_workspace *cw=nmt_covar_workspace_init(f0,f0,f0,f0,w->bin->ell_max,HE_NITER_DEFAULT,-1,-1,-1,0);
+  nmt_covar_workspace *cwr=nmt_covar_workspace_read_fits("test/benchmarks/bm_nc_np_cw00.fits", 0);
   nmt_field_free(f0);
   free(msk); free(map);
 
@@ -121,22 +121,22 @@ CTEST(nmt,covar_errors) {
   set_error_policy(THROW_ON_ERROR);
 
   //All good
-  try { cw=nmt_covar_workspace_init(f0,f0,f0b,f0b,binb->ell_max,HE_NITER_DEFAULT,-1,-1,-1); }
+  try { cw=nmt_covar_workspace_init(f0,f0,f0b,f0b,binb->ell_max,HE_NITER_DEFAULT,-1,-1,-1,0); }
   ASSERT_EQUAL(0,nmt_exception_status);
   nmt_covar_workspace_free(cw); cw=NULL;
   //Wrong reading
-  try { cw=nmt_covar_workspace_read_fits("none"); }
+  try { cw=nmt_covar_workspace_read_fits("none", 0); }
   ASSERT_NOT_EQUAL(0,nmt_exception_status);
   ASSERT_NULL(cw);
 
   //Correct reading
-  try { cw=nmt_covar_workspace_read_fits("test/benchmarks/bm_nc_np_cw00.fits"); }
+  try { cw=nmt_covar_workspace_read_fits("test/benchmarks/bm_nc_np_cw00.fits", 0); }
   ASSERT_EQUAL(0,nmt_exception_status);
   nmt_covar_workspace_free(cw); cw=NULL;
 
   //Incompatible resolutions
   f0b->cs->n_eq=128;
-  try { cw=nmt_covar_workspace_init(f0,f0,f0b,f0b,binb->ell_max,HE_NITER_DEFAULT,-1,-1,-1); }
+  try { cw=nmt_covar_workspace_init(f0,f0,f0b,f0b,binb->ell_max,HE_NITER_DEFAULT,-1,-1,-1,0); }
   f0b->cs->n_eq=nside;
   ASSERT_NOT_EQUAL(0,nmt_exception_status);
   ASSERT_NULL(cw);

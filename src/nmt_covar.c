@@ -4,7 +4,8 @@
 nmt_covar_workspace *nmt_covar_workspace_init(nmt_field *fla1,nmt_field *fla2,
 					      nmt_field *flb1,nmt_field *flb2,
 					      int lmax,int niter,
-                                              int l_toeplitz,int l_exact,int dl_band)
+                                              int l_toeplitz,int l_exact,int dl_band,
+					      int spin0_only)
 {
   if(!(nmt_diff_curvedsky_info(fla1->cs,fla2->cs)) || !(nmt_diff_curvedsky_info(fla1->cs,flb1->cs)) ||
      !(nmt_diff_curvedsky_info(fla1->cs,flb2->cs)))
@@ -19,6 +20,7 @@ nmt_covar_workspace *nmt_covar_workspace_init(nmt_field *fla1,nmt_field *fla2,
   flouble *mask_a2b2=my_malloc(npix*sizeof(flouble));
 
   cw->lmax=lmax;
+  cw->spin0_only=spin0_only;
   flouble **cl_masks=my_malloc(2*sizeof(flouble));
   cl_masks[0]=my_malloc((cw->lmax+1)*sizeof(flouble));
   cl_masks[1]=my_malloc((cw->lmax+1)*sizeof(flouble));
@@ -35,29 +37,47 @@ nmt_covar_workspace *nmt_covar_workspace_init(nmt_field *fla1,nmt_field *fla2,
     cl_masks[1][ii]*=(ii+0.5)/(2*M_PI);
   }
 
-  nmt_master_calculator *c=nmt_compute_master_coefficients(cw->lmax, cw->lmax,
-                                                           2, cl_masks,
-                                                           0, 2, 0, 0, 0, 0, 1,
-                                                           l_toeplitz,l_exact,dl_band);
+  nmt_master_calculator *c;
+  if(cw->spin0_only) {
+    c=nmt_compute_master_coefficients(cw->lmax, cw->lmax,
+				      2, cl_masks,
+				      0, 0, 0, 0, 0, 0, 0,
+				      l_toeplitz,l_exact,dl_band);
+  }
+  else {
+    c=nmt_compute_master_coefficients(cw->lmax, cw->lmax,
+				      2, cl_masks,
+				      0, 2, 0, 0, 0, 0, 1,
+				      l_toeplitz,l_exact,dl_band);
+  }
   cw->xi00_1122=c->xi_00[0];
   cw->xi00_1221=c->xi_00[1];
-  cw->xi02_1122=c->xi_0s[0][0];
-  cw->xi02_1221=c->xi_0s[1][0];
-  cw->xi22p_1122=c->xi_pp[0][0];
-  cw->xi22p_1221=c->xi_pp[1][0];
-  cw->xi22m_1122=c->xi_mm[0][0];
-  cw->xi22m_1221=c->xi_mm[1][0];
-
+  if(cw->spin0_only) {
+    cw->xi02_1122=NULL;
+    cw->xi02_1221=NULL;
+    cw->xi22p_1122=NULL;
+    cw->xi22p_1221=NULL;
+    cw->xi22m_1122=NULL;
+    cw->xi22m_1221=NULL;
+  }
+  else {
+    cw->xi02_1122=c->xi_0s[0][0];
+    cw->xi02_1221=c->xi_0s[1][0];
+    cw->xi22p_1122=c->xi_pp[0][0];
+    cw->xi22p_1221=c->xi_pp[1][0];
+    cw->xi22m_1122=c->xi_mm[0][0];
+    cw->xi22m_1221=c->xi_mm[1][0];
+    free(c->xi_0s[0]);
+    free(c->xi_0s[1]);
+    free(c->xi_0s);
+    free(c->xi_pp[0]);
+    free(c->xi_pp[1]);
+    free(c->xi_pp);
+    free(c->xi_mm[0]);
+    free(c->xi_mm[1]);
+    free(c->xi_mm);
+  }
   free(c->xi_00);
-  free(c->xi_0s[0]);
-  free(c->xi_0s[1]);
-  free(c->xi_0s);
-  free(c->xi_pp[0]);
-  free(c->xi_pp[1]);
-  free(c->xi_pp);
-  free(c->xi_mm[0]);
-  free(c->xi_mm[1]);
-  free(c->xi_mm);
   free(c);
   free(cl_masks[0]);
   free(cl_masks[1]);
@@ -71,12 +91,14 @@ void nmt_covar_workspace_free(nmt_covar_workspace *cw)
   for(ii=0;ii<=cw->lmax;ii++) {
     free(cw->xi00_1122[ii]);
     free(cw->xi00_1221[ii]);
-    free(cw->xi02_1122[ii]);
-    free(cw->xi02_1221[ii]);
-    free(cw->xi22p_1122[ii]);
-    free(cw->xi22p_1221[ii]);
-    free(cw->xi22m_1122[ii]);
-    free(cw->xi22m_1221[ii]);
+    if(cw->spin0_only==0) {
+      free(cw->xi02_1122[ii]);
+      free(cw->xi02_1221[ii]);
+      free(cw->xi22p_1122[ii]);
+      free(cw->xi22p_1221[ii]);
+      free(cw->xi22m_1122[ii]);
+      free(cw->xi22m_1221[ii]);
+    }
   }
   free(cw);
 }
@@ -91,6 +113,8 @@ void  nmt_compute_gaussian_covariance_coupled(nmt_covar_workspace *cw,
   if((cw->lmax<wa->bin->ell_max) || (cw->lmax<wb->bin->ell_max))
     report_error(NMT_ERROR_COVAR,"Coupling coefficients only computed up to l=%d, but you require"
 		 "lmax=%d. Recompute this workspace with a larger lmax\n",cw->lmax,wa->bin->ell_max);
+  if((cw->spin0_only) && (spin_a+spin_b+spin_c+spin_d != 0))
+    report_error(NMT_ERROR_COVAR,"Coupling coefficients only computed for spin=0\n");
 
   int nmaps_a=spin_a ? 2 : 1;
   int nmaps_b=spin_b ? 2 : 1;
@@ -185,6 +209,8 @@ void  nmt_compute_gaussian_covariance(nmt_covar_workspace *cw,
   if((cw->lmax<wa->bin->ell_max) || (cw->lmax<wb->bin->ell_max))
     report_error(NMT_ERROR_COVAR,"Coupling coefficients only computed up to l=%d, but you require"
 		 "lmax=%d. Recompute this workspace with a larger lmax\n",cw->lmax,wa->bin->ell_max);
+  if((cw->spin0_only) && (spin_a+spin_b+spin_c+spin_d != 0))
+    report_error(NMT_ERROR_COVAR,"Coupling coefficients only computed for spin=0\n");
 
   int nmaps_a=spin_a ? 2 : 1;
   int nmaps_b=spin_b ? 2 : 1;
