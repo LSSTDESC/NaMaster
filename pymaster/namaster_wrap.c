@@ -3084,7 +3084,7 @@ void get_bandpower_windows(nmt_workspace *w,double *dout,int ndout)
   nmt_compute_bandpower_windows(w,dout);
 }
 
-void get_mcm(nmt_workspace *w,double *dout,int ndout)
+void get_mcm(nmt_workspace *w,double *ldout,long nldout)
 {
   int ii,nrows=(w->lmax+1)*w->ncls;
 
@@ -3092,7 +3092,7 @@ void get_mcm(nmt_workspace *w,double *dout,int ndout)
     int jj;
     for(jj=0;jj<nrows;jj++) {
       long index=(long)(ii*nrows)+jj;
-      dout[index]=w->coupling_matrix_unbinned[ii][jj];
+      ldout[index]=w->coupling_matrix_unbinned[ii][jj];
     }
   }
 }
@@ -16991,7 +16991,7 @@ SWIGINTERN PyObject *_wrap_get_mcm(PyObject *SWIGUNUSEDPARM(self), PyObject *arg
   PyObject *resultobj = 0;
   nmt_workspace *arg1 = (nmt_workspace *) 0 ;
   double *arg2 = (double *) 0 ;
-  int arg3 ;
+  long arg3 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   PyObject *array2 = NULL ;
@@ -17013,7 +17013,7 @@ SWIGINTERN PyObject *_wrap_get_mcm(PyObject *SWIGUNUSEDPARM(self), PyObject *arg
         typestring);
       SWIG_fail;
     }
-    arg3 = (int) PyInt_AsLong(swig_obj[1]);
+    arg3 = (long) PyInt_AsLong(swig_obj[1]);
     dims[0] = (npy_intp) arg3;
     array2 = PyArray_SimpleNew(1, dims, NPY_DOUBLE);
     if (!array2) SWIG_fail;
