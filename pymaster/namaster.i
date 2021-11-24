@@ -138,7 +138,7 @@ void get_bandpower_windows(nmt_workspace *w,double *dout,int ndout)
   nmt_compute_bandpower_windows(w,dout);
 }
 
-void get_mcm(nmt_workspace *w,double *dout,int ndout)
+void get_mcm(nmt_workspace *w,double *ldout,long nldout)
 {
   int ii,nrows=(w->lmax+1)*w->ncls;
 
@@ -146,7 +146,7 @@ void get_mcm(nmt_workspace *w,double *dout,int ndout)
     int jj;
     for(jj=0;jj<nrows;jj++) {
       long index=(long)(ii*nrows)+jj;
-      dout[index]=w->coupling_matrix_unbinned[ii][jj];
+      ldout[index]=w->coupling_matrix_unbinned[ii][jj];
     }
   }
 }

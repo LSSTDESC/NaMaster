@@ -577,8 +577,8 @@ def update_mcm(w, n_rows, nell3):
 def get_bandpower_windows(w, dout):
     return _nmtlib.get_bandpower_windows(w, dout)
 
-def get_mcm(w, dout):
-    return _nmtlib.get_mcm(w, dout)
+def get_mcm(w, ldout):
+    return _nmtlib.get_mcm(w, ldout)
 
 def bins_flat_create_py(npix_1, nell3):
     return _nmtlib.bins_flat_create_py(npix_1, nell3)
