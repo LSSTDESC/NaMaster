@@ -742,17 +742,17 @@ void write_covar_workspace(nmt_covar_workspace *cw,char *fname)
   nmt_covar_workspace_write_fits(cw,fname);
 }
 
-nmt_covar_workspace *read_covar_workspace(char *fname)
+nmt_covar_workspace *read_covar_workspace(char *fname,int force_spin0)
 {
-  return nmt_covar_workspace_read_fits(fname);
+  return nmt_covar_workspace_read_fits(fname,force_spin0);
 }
 
 nmt_covar_workspace *covar_workspace_init_py(nmt_field *fa1,nmt_field *fa2,
 					     nmt_field *fb1,nmt_field *fb2,
 					     int lmax,int n_iter,int l_toeplitz,
-                                             int l_exact,int dl_band)
+                                             int l_exact,int dl_band,int spin0_only)
 {
-  return nmt_covar_workspace_init(fa1,fa2,fb1,fb2,lmax,n_iter,l_toeplitz,l_exact,dl_band);
+  return nmt_covar_workspace_init(fa1,fa2,fb1,fb2,lmax,n_iter,l_toeplitz,l_exact,dl_band,spin0_only);
 }
 
 void write_covar_workspace_flat(nmt_covar_workspace_flat *cw,char *fname)

@@ -3688,17 +3688,17 @@ void write_covar_workspace(nmt_covar_workspace *cw,char *fname)
   nmt_covar_workspace_write_fits(cw,fname);
 }
 
-nmt_covar_workspace *read_covar_workspace(char *fname)
+nmt_covar_workspace *read_covar_workspace(char *fname,int force_spin0)
 {
-  return nmt_covar_workspace_read_fits(fname);
+  return nmt_covar_workspace_read_fits(fname,force_spin0);
 }
 
 nmt_covar_workspace *covar_workspace_init_py(nmt_field *fa1,nmt_field *fa2,
 					     nmt_field *fb1,nmt_field *fb2,
 					     int lmax,int n_iter,int l_toeplitz,
-                                             int l_exact,int dl_band)
+                                             int l_exact,int dl_band,int spin0_only)
 {
-  return nmt_covar_workspace_init(fa1,fa2,fb1,fb2,lmax,n_iter,l_toeplitz,l_exact,dl_band);
+  return nmt_covar_workspace_init(fa1,fa2,fb1,fb2,lmax,n_iter,l_toeplitz,l_exact,dl_band,spin0_only);
 }
 
 void write_covar_workspace_flat(nmt_covar_workspace_flat *cw,char *fname)
@@ -15213,6 +15213,58 @@ fail:
 }
 
 
+SWIGINTERN PyObject *_wrap_covar_workspace_spin0_only_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_covar_workspace *arg1 = (nmt_covar_workspace *) 0 ;
+  int arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int val2 ;
+  int ecode2 = 0 ;
+  PyObject *swig_obj[2] ;
+  
+  if (!SWIG_Python_UnpackTuple(args, "covar_workspace_spin0_only_set", 2, 2, swig_obj)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_nmt_covar_workspace, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "covar_workspace_spin0_only_set" "', argument " "1"" of type '" "nmt_covar_workspace *""'"); 
+  }
+  arg1 = (nmt_covar_workspace *)(argp1);
+  ecode2 = SWIG_AsVal_int(swig_obj[1], &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "covar_workspace_spin0_only_set" "', argument " "2"" of type '" "int""'");
+  } 
+  arg2 = (int)(val2);
+  if (arg1) (arg1)->spin0_only = arg2;
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_covar_workspace_spin0_only_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_covar_workspace *arg1 = (nmt_covar_workspace *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject *swig_obj[1] ;
+  int result;
+  
+  if (!args) SWIG_fail;
+  swig_obj[0] = args;
+  res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_nmt_covar_workspace, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "covar_workspace_spin0_only_get" "', argument " "1"" of type '" "nmt_covar_workspace *""'"); 
+  }
+  arg1 = (nmt_covar_workspace *)(argp1);
+  result = (int) ((arg1)->spin0_only);
+  resultobj = SWIG_From_int((int)(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
 SWIGINTERN PyObject *_wrap_covar_workspace_xi00_1122_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   nmt_covar_workspace *arg1 = (nmt_covar_workspace *) 0 ;
@@ -15722,6 +15774,7 @@ SWIGINTERN PyObject *_wrap_covar_workspace_init(PyObject *SWIGUNUSEDPARM(self), 
   int arg7 ;
   int arg8 ;
   int arg9 ;
+  int arg10 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   void *argp2 = 0 ;
@@ -15740,10 +15793,12 @@ SWIGINTERN PyObject *_wrap_covar_workspace_init(PyObject *SWIGUNUSEDPARM(self), 
   int ecode8 = 0 ;
   int val9 ;
   int ecode9 = 0 ;
-  PyObject *swig_obj[9] ;
+  int val10 ;
+  int ecode10 = 0 ;
+  PyObject *swig_obj[10] ;
   nmt_covar_workspace *result = 0 ;
   
-  if (!SWIG_Python_UnpackTuple(args, "covar_workspace_init", 9, 9, swig_obj)) SWIG_fail;
+  if (!SWIG_Python_UnpackTuple(args, "covar_workspace_init", 10, 10, swig_obj)) SWIG_fail;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_nmt_field, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "covar_workspace_init" "', argument " "1"" of type '" "nmt_field *""'"); 
@@ -15789,7 +15844,12 @@ SWIGINTERN PyObject *_wrap_covar_workspace_init(PyObject *SWIGUNUSEDPARM(self), 
     SWIG_exception_fail(SWIG_ArgError(ecode9), "in method '" "covar_workspace_init" "', argument " "9"" of type '" "int""'");
   } 
   arg9 = (int)(val9);
-  result = (nmt_covar_workspace *)nmt_covar_workspace_init(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9);
+  ecode10 = SWIG_AsVal_int(swig_obj[9], &val10);
+  if (!SWIG_IsOK(ecode10)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode10), "in method '" "covar_workspace_init" "', argument " "10"" of type '" "int""'");
+  } 
+  arg10 = (int)(val10);
+  result = (nmt_covar_workspace *)nmt_covar_workspace_init(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10);
   resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_nmt_covar_workspace, 0 |  0 );
   return resultobj;
 fail:
@@ -16166,20 +16226,27 @@ fail:
 SWIGINTERN PyObject *_wrap_covar_workspace_read_fits(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   char *arg1 = (char *) 0 ;
+  int arg2 ;
   int res1 ;
   char *buf1 = 0 ;
   int alloc1 = 0 ;
-  PyObject *swig_obj[1] ;
+  int val2 ;
+  int ecode2 = 0 ;
+  PyObject *swig_obj[2] ;
   nmt_covar_workspace *result = 0 ;
   
-  if (!args) SWIG_fail;
-  swig_obj[0] = args;
+  if (!SWIG_Python_UnpackTuple(args, "covar_workspace_read_fits", 2, 2, swig_obj)) SWIG_fail;
   res1 = SWIG_AsCharPtrAndSize(swig_obj[0], &buf1, NULL, &alloc1);
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "covar_workspace_read_fits" "', argument " "1"" of type '" "char *""'");
   }
   arg1 = (char *)(buf1);
-  result = (nmt_covar_workspace *)nmt_covar_workspace_read_fits(arg1);
+  ecode2 = SWIG_AsVal_int(swig_obj[1], &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "covar_workspace_read_fits" "', argument " "2"" of type '" "int""'");
+  } 
+  arg2 = (int)(val2);
+  result = (nmt_covar_workspace *)nmt_covar_workspace_read_fits(arg1,arg2);
   resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_nmt_covar_workspace, 0 |  0 );
   if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
   return resultobj;
@@ -20339,22 +20406,29 @@ fail:
 SWIGINTERN PyObject *_wrap_read_covar_workspace(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   char *arg1 = (char *) 0 ;
+  int arg2 ;
   int res1 ;
   char *buf1 = 0 ;
   int alloc1 = 0 ;
-  PyObject *swig_obj[1] ;
+  int val2 ;
+  int ecode2 = 0 ;
+  PyObject *swig_obj[2] ;
   nmt_covar_workspace *result = 0 ;
   
-  if (!args) SWIG_fail;
-  swig_obj[0] = args;
+  if (!SWIG_Python_UnpackTuple(args, "read_covar_workspace", 2, 2, swig_obj)) SWIG_fail;
   res1 = SWIG_AsCharPtrAndSize(swig_obj[0], &buf1, NULL, &alloc1);
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "read_covar_workspace" "', argument " "1"" of type '" "char *""'");
   }
   arg1 = (char *)(buf1);
+  ecode2 = SWIG_AsVal_int(swig_obj[1], &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "read_covar_workspace" "', argument " "2"" of type '" "int""'");
+  } 
+  arg2 = (int)(val2);
   {
     try {
-      result = (nmt_covar_workspace *)read_covar_workspace(arg1);
+      result = (nmt_covar_workspace *)read_covar_workspace(arg1,arg2);
     }
     finally {
       SWIG_exception(SWIG_RuntimeError,nmt_error_message);
@@ -20380,6 +20454,7 @@ SWIGINTERN PyObject *_wrap_covar_workspace_init_py(PyObject *SWIGUNUSEDPARM(self
   int arg7 ;
   int arg8 ;
   int arg9 ;
+  int arg10 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   void *argp2 = 0 ;
@@ -20398,10 +20473,12 @@ SWIGINTERN PyObject *_wrap_covar_workspace_init_py(PyObject *SWIGUNUSEDPARM(self
   int ecode8 = 0 ;
   int val9 ;
   int ecode9 = 0 ;
-  PyObject *swig_obj[9] ;
+  int val10 ;
+  int ecode10 = 0 ;
+  PyObject *swig_obj[10] ;
   nmt_covar_workspace *result = 0 ;
   
-  if (!SWIG_Python_UnpackTuple(args, "covar_workspace_init_py", 9, 9, swig_obj)) SWIG_fail;
+  if (!SWIG_Python_UnpackTuple(args, "covar_workspace_init_py", 10, 10, swig_obj)) SWIG_fail;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_nmt_field, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "covar_workspace_init_py" "', argument " "1"" of type '" "nmt_field *""'"); 
@@ -20447,9 +20524,14 @@ SWIGINTERN PyObject *_wrap_covar_workspace_init_py(PyObject *SWIGUNUSEDPARM(self
     SWIG_exception_fail(SWIG_ArgError(ecode9), "in method '" "covar_workspace_init_py" "', argument " "9"" of type '" "int""'");
   } 
   arg9 = (int)(val9);
+  ecode10 = SWIG_AsVal_int(swig_obj[9], &val10);
+  if (!SWIG_IsOK(ecode10)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode10), "in method '" "covar_workspace_init_py" "', argument " "10"" of type '" "int""'");
+  } 
+  arg10 = (int)(val10);
   {
     try {
-      result = (nmt_covar_workspace *)covar_workspace_init_py(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9);
+      result = (nmt_covar_workspace *)covar_workspace_init_py(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10);
     }
     finally {
       SWIG_exception(SWIG_RuntimeError,nmt_error_message);
@@ -22760,6 +22842,8 @@ static PyMethodDef SwigMethods[] = {
 	 { "compute_gaussian_covariance_flat", _wrap_compute_gaussian_covariance_flat, METH_VARARGS, NULL},
 	 { "covar_workspace_lmax_set", _wrap_covar_workspace_lmax_set, METH_VARARGS, NULL},
 	 { "covar_workspace_lmax_get", _wrap_covar_workspace_lmax_get, METH_O, NULL},
+	 { "covar_workspace_spin0_only_set", _wrap_covar_workspace_spin0_only_set, METH_VARARGS, NULL},
+	 { "covar_workspace_spin0_only_get", _wrap_covar_workspace_spin0_only_get, METH_O, NULL},
 	 { "covar_workspace_xi00_1122_set", _wrap_covar_workspace_xi00_1122_set, METH_VARARGS, NULL},
 	 { "covar_workspace_xi00_1122_get", _wrap_covar_workspace_xi00_1122_get, METH_O, NULL},
 	 { "covar_workspace_xi00_1221_set", _wrap_covar_workspace_xi00_1221_set, METH_VARARGS, NULL},
@@ -22789,7 +22873,7 @@ static PyMethodDef SwigMethods[] = {
 	 { "workspace_flat_read_fits", _wrap_workspace_flat_read_fits, METH_O, NULL},
 	 { "workspace_flat_write_fits", _wrap_workspace_flat_write_fits, METH_VARARGS, NULL},
 	 { "covar_workspace_write_fits", _wrap_covar_workspace_write_fits, METH_VARARGS, NULL},
-	 { "covar_workspace_read_fits", _wrap_covar_workspace_read_fits, METH_O, NULL},
+	 { "covar_workspace_read_fits", _wrap_covar_workspace_read_fits, METH_VARARGS, NULL},
 	 { "covar_workspace_flat_write_fits", _wrap_covar_workspace_flat_write_fits, METH_VARARGS, NULL},
 	 { "covar_workspace_flat_read_fits", _wrap_covar_workspace_flat_read_fits, METH_O, NULL},
 	 { "get_nell_list", _wrap_get_nell_list, METH_VARARGS, NULL},
@@ -22836,7 +22920,7 @@ static PyMethodDef SwigMethods[] = {
 	 { "comp_deproj_bias", _wrap_comp_deproj_bias, METH_VARARGS, NULL},
 	 { "comp_deproj_bias_flat", _wrap_comp_deproj_bias_flat, METH_VARARGS, NULL},
 	 { "write_covar_workspace", _wrap_write_covar_workspace, METH_VARARGS, NULL},
-	 { "read_covar_workspace", _wrap_read_covar_workspace, METH_O, NULL},
+	 { "read_covar_workspace", _wrap_read_covar_workspace, METH_VARARGS, NULL},
 	 { "covar_workspace_init_py", _wrap_covar_workspace_init_py, METH_VARARGS, NULL},
 	 { "write_covar_workspace_flat", _wrap_write_covar_workspace_flat, METH_VARARGS, NULL},
 	 { "read_covar_workspace_flat", _wrap_read_covar_workspace_flat, METH_O, NULL},

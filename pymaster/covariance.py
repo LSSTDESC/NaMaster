@@ -21,23 +21,27 @@ class NmtCovarianceWorkspace(object):
                 lib.covar_workspace_free(self.wsp)
             self.wsp = None
 
-    def read_from(self, fname):
+    def read_from(self, fname, force_spin0_only=False):
         """
         Reads the contents of an NmtCovarianceWorkspace object \
         from a FITS file.
 
         :param str fname: input file name
+        :param bool force_spin0_only: if `True`, only spin-0 \
+            combinations will be read and stored.
         """
         if self.wsp is not None:
             lib.covar_workspace_free(self.wsp)
             self.wsp = None
-        self.wsp = lib.read_covar_workspace(fname)
+        self.wsp = lib.read_covar_workspace(fname,
+                                            int(force_spin0_only))
 
     def compute_coupling_coefficients(self, fla1, fla2,
                                       flb1=None, flb2=None,
                                       lmax=None, n_iter=3,
                                       l_toeplitz=-1,
-                                      l_exact=-1, dl_band=-1):
+                                      l_exact=-1, dl_band=-1,
+                                      spin0_only=False):
         """
         Computes coupling coefficients of the Gaussian covariance \
         between the power spectra of two pairs of NmtField objects \
@@ -63,6 +67,8 @@ class NmtCovarianceWorkspace(object):
         :param dl_band: if `l_toeplitz>0`, this quantity corresponds to \
             Delta ell_band in Fig. 3 of Louis et al. 2020.  Ignored if \
             `l_toeplitz<=0`.
+        :spin0_only: if `True`, only spin-0 combinations of the MCMs will \
+            be computed and stored.
         """
         if flb1 is None:
             flb1 = fla1
@@ -84,7 +90,8 @@ class NmtCovarianceWorkspace(object):
         _toeplitz_sanity(l_toeplitz, l_exact, dl_band, lmax, fla1, flb1)
         self.wsp = lib.covar_workspace_init_py(fla1.fl, fla2.fl, flb1.fl,
                                                flb2.fl, lmax, n_iter,
-                                               l_toeplitz, l_exact, dl_band)
+                                               l_toeplitz, l_exact, dl_band,
+                                               int(spin0_only))
 
     def write_to(self, fname):
         """
