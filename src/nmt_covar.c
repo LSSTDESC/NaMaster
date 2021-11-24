@@ -53,12 +53,12 @@ nmt_covar_workspace *nmt_covar_workspace_init(nmt_field *fla1,nmt_field *fla2,
   cw->xi00_1122=c->xi_00[0];
   cw->xi00_1221=c->xi_00[1];
   if(cw->spin0_only) {
-    cw->xi02_1122=NULL;
-    cw->xi02_1221=NULL;
-    cw->xi22p_1122=NULL;
-    cw->xi22p_1221=NULL;
-    cw->xi22m_1122=NULL;
-    cw->xi22m_1221=NULL;
+    cw->xi02_1122=c->xi_00[0];
+    cw->xi02_1221=c->xi_00[1];
+    cw->xi22p_1122=c->xi_00[0];
+    cw->xi22p_1221=c->xi_00[1];
+    cw->xi22m_1122=c->xi_00[0];
+    cw->xi22m_1221=c->xi_00[1];
   }
   else {
     cw->xi02_1122=c->xi_0s[0][0];

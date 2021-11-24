@@ -830,12 +830,12 @@ nmt_covar_workspace *nmt_covar_workspace_read_fits(char *fname, int force_spin0)
   cw->xi00_1221=nmt_covar_coeffs_fromhdus(fptr,cw->lmax+1,"XI00_1221",&status);
   check_fits(status,fname,1);
   if(cw->spin0_only) {
-    cw->xi02_1122=NULL;
-    cw->xi02_1221=NULL;
-    cw->xi22p_1122=NULL;
-    cw->xi22p_1221=NULL;
-    cw->xi22m_1122=NULL;
-    cw->xi22m_1221=NULL;
+    cw->xi02_1122=cw->xi00_1122;
+    cw->xi02_1221=cw->xi00_1221;
+    cw->xi22p_1122=cw->xi00_1122;
+    cw->xi22p_1221=cw->xi00_1221;
+    cw->xi22m_1122=cw->xi00_1122;
+    cw->xi22m_1221=cw->xi00_1221;
   }
   else {
     cw->xi02_1122=nmt_covar_coeffs_fromhdus(fptr,cw->lmax+1,"XI02_1122",&status);
