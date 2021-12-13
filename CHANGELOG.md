@@ -1,3 +1,8 @@
+# v1.3
+- Spin-0-only covariance workspaces (#147)
+- Added functionality to return field mask (#142)
+- Fixed a couple of bugs (#147, #144, #140)
+
 # v1.2
 - Uses most recent version of libsharp (libsharp2) (#121)
 - Various bug fixes (#123, #124, #126)
