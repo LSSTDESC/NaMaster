@@ -84,7 +84,7 @@ void run_master(nmt_field *fl1,nmt_field *fl2,
   nmt_workspace *w;
   if(access(fname_coupling,F_OK)!=-1) { //If file exists just read matrix
     printf("Reading coupling matrix\n");
-    w=nmt_workspace_read_fits(fname_coupling);
+    w=nmt_workspace_read_fits(fname_coupling,1);
     if(w->bin->n_bands!=bin->n_bands)
       report_error(NMT_ERROR_CONSISTENT_RESO,"Read coupling matrix doesn't fit input binning scheme\n");
   }

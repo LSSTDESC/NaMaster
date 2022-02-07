@@ -524,8 +524,8 @@ def compute_gaussian_covariance_coupled(cw, spin_a, spin_b, spin_c, spin_d, wa, 
 def workspace_write_fits(w, fname):
     return _nmtlib.workspace_write_fits(w, fname)
 
-def workspace_read_fits(fname):
-    return _nmtlib.workspace_read_fits(fname)
+def workspace_read_fits(fname, w_unbinned):
+    return _nmtlib.workspace_read_fits(fname, w_unbinned)
 
 def workspace_flat_read_fits(fname):
     return _nmtlib.workspace_flat_read_fits(fname)
@@ -653,8 +653,8 @@ def comp_coupling_matrix(fl1, fl2, bin, is_teb, n_iter, lmax_mask, l_toeplitz, l
 def comp_coupling_matrix_flat(fl1, fl2, bin, lmn_x, lmx_x, lmn_y, lmx_y, is_teb):
     return _nmtlib.comp_coupling_matrix_flat(fl1, fl2, bin, lmn_x, lmx_x, lmn_y, lmx_y, is_teb)
 
-def read_workspace(fname):
-    return _nmtlib.read_workspace(fname)
+def read_workspace(fname, w_unbinned):
+    return _nmtlib.read_workspace(fname, w_unbinned)
 
 def write_workspace(w, fname):
     return _nmtlib.write_workspace(w, fname)
