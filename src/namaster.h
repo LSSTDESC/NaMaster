@@ -1346,8 +1346,9 @@ void nmt_workspace_write_fits(nmt_workspace *w,char *fname);
  * future power spectrum computations. The same workspace can be used on any pair of fields
  * with the same masks.
  * @param fname Path to input file.
+ * @param w_unbinned If zero, unbinned MCM will not be read.
  */
-nmt_workspace *nmt_workspace_read_fits(char *fname);
+nmt_workspace *nmt_workspace_read_fits(char *fname,int w_unbinned);
 
 /**
  * @brief Builds nmt_workspace_flat structure from file

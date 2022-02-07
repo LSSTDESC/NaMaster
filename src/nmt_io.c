@@ -71,6 +71,7 @@ static void nmt_workspace_info_tohdus(fitsfile *fptr,
 
 static void nmt_workspace_info_fromhdus(fitsfile *fptr,
 					nmt_workspace *w,
+					int w_unbinned,
 					int *status)
 {
   fits_movnam_hdu(fptr,IMAGE_HDU,"WSP_PRIMARY",0,status);
@@ -82,13 +83,17 @@ static void nmt_workspace_info_fromhdus(fitsfile *fptr,
   long ii;
   long n_el=w->ncls*(w->lmax+1);
   long fpixel[2]={1,1};
-  w->coupling_matrix_unbinned=my_malloc(n_el*sizeof(flouble *));
-  for(ii=0;ii<n_el;ii++) {
-    fpixel[1]=ii+1;
-    w->coupling_matrix_unbinned[ii]=my_malloc(n_el*sizeof(flouble));
-    fits_read_pix(fptr,TDOUBLE,fpixel,n_el,NULL,
-		  w->coupling_matrix_unbinned[ii],NULL,status);
+  if(w_unbinned) {
+    w->coupling_matrix_unbinned=my_malloc(n_el*sizeof(flouble *));
+    for(ii=0;ii<n_el;ii++) {
+      fpixel[1]=ii+1;
+      w->coupling_matrix_unbinned[ii]=my_malloc(n_el*sizeof(flouble));
+      fits_read_pix(fptr,TDOUBLE,fpixel,n_el,NULL,
+		    w->coupling_matrix_unbinned[ii],NULL,status);
+    }
   }
+  else
+    w->coupling_matrix_unbinned=NULL;
 }
 
 static void nmt_l_arr_tohdus(fitsfile *fptr,
@@ -349,7 +354,7 @@ void nmt_workspace_write_fits(nmt_workspace *w,char *fname)
   fits_close_file(fptr,&status);
 }
 
-nmt_workspace *nmt_workspace_read_fits(char *fname)
+nmt_workspace *nmt_workspace_read_fits(char *fname, int w_unbinned)
 {
   fitsfile *fptr;
   int status=0;
@@ -358,7 +363,7 @@ nmt_workspace *nmt_workspace_read_fits(char *fname)
   fits_open_file(&fptr,fname,READONLY,&status);
   check_fits(status,fname,1);
   // Workspace info HDU
-  nmt_workspace_info_fromhdus(fptr,w,&status);
+  nmt_workspace_info_fromhdus(fptr,w,w_unbinned,&status);
   check_fits(status,fname,1);
   // CS info HDU
   w->cs=nmt_curvedsky_info_fromhdus(fptr,&status);

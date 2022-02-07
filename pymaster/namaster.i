@@ -651,9 +651,9 @@ nmt_workspace_flat *comp_coupling_matrix_flat(nmt_field_flat *fl1,nmt_field_flat
   return nmt_compute_coupling_matrix_flat(fl1,fl2,bin,lmn_x,lmx_x,lmn_y,lmx_y,is_teb);
 }
 
-nmt_workspace *read_workspace(char *fname)
+nmt_workspace *read_workspace(char *fname,int w_unbinned)
 {
-  return nmt_workspace_read_fits(fname);
+  return nmt_workspace_read_fits(fname,w_unbinned);
 }
 
 void write_workspace(nmt_workspace *w,char *fname)
