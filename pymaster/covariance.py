@@ -245,6 +245,8 @@ def gaussian_covariance(cw, spin_a1, spin_a2, spin_b1, spin_b2,
     if coupled:
         len_a = wa.wsp.ncls * (cw.wsp.lmax+1)
         len_b = wb.wsp.ncls * (cw.wsp.lmax+1)
+        wa.check_unbinned()
+        wb.check_unbinned()
 
         covar = lib.comp_gaussian_covariance_coupled(
             cw.wsp, spin_a1, spin_a2, spin_b1, spin_b2,

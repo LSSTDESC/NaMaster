@@ -4,6 +4,7 @@ import healpy as hp
 import warnings
 import pytest
 import sys
+import os
 
 
 class WorkspaceTester(object):
@@ -619,3 +620,39 @@ def test_workspace_compute_coupled_cell():
     assert c.shape == (1, WT.f0.fl.lmax+1)
     with pytest.raises(ValueError):  # Different resolutions
         nmt.compute_coupled_cell(WT.f0, WT.f0_half)
+
+
+def test_unbinned_mcm_io():
+    f0 = nmt.NmtField(WT.msk, [WT.mps[0]])
+    w = nmt.NmtWorkspace()
+    w.compute_coupling_matrix(f0, f0, WT.b)
+    w.write_to("test/wspc.fits")
+    assert w.has_unbinned
+
+    w1 = nmt.NmtWorkspace()
+    w1.read_from("test/wspc.fits")
+    assert w1.has_unbinned
+
+    w2 = nmt.NmtWorkspace()
+    w2.read_from("test/wspc.fits", read_unbinned_MCM=False)
+    assert w2.has_unbinned is False
+
+    with pytest.raises(ValueError):
+        w2.check_unbinned()
+
+    with pytest.raises(ValueError):
+        w2.write_to("dum")
+
+    with pytest.raises(ValueError):
+        w2.get_coupling_matrix()
+
+    with pytest.raises(ValueError):
+        w2.update_coupling_matrix(None)
+
+    with pytest.raises(ValueError):
+        w2.couple_cell(np.ones([1, 3*WT.nside]))
+
+    with pytest.raises(ValueError):
+        w2.get_bandpower_windows()
+
+    os.system("rm test/wspc.fits")
