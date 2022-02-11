@@ -173,7 +173,7 @@ static nmt_binning_scheme *nmt_binning_scheme_fromhdus(fitsfile *fptr,
 		ells,&anynul,status);
   fits_read_col(fptr,TDOUBLE,3,1,1,nrows,&nulval,
 		weights,&anynul,status);
-  fits_read_col(fptr,TDOUBLE,3,1,1,nrows,&nulval,
+  fits_read_col(fptr,TDOUBLE,4,1,1,nrows,&nulval,
 		f_ell,&anynul,status);
   b=nmt_bins_create((int)nrows,bpws,ells,weights,f_ell,ell_max);
   if(n_bands!=b->n_bands) {
