@@ -153,6 +153,44 @@ static double *nmt_l_arr_fromhdus(fitsfile *fptr, int lmax_expect, char *arrname
 static nmt_binning_scheme *nmt_binning_scheme_fromhdus(fitsfile *fptr,
 						       int *status)
 {
+  nmt_binning_scheme *b;
+  int *bpws,*ells;
+  flouble *weights,*f_ell;
+  int ii,anynul,n_bands,ell_max;
+  long nrows;
+  double nulval;
+  fits_movnam_hdu(fptr,BINARY_TBL,"BANDPOWERS",0,status);
+  fits_read_key(fptr,TINT,"N_BANDS",&n_bands,NULL,status);
+  fits_read_key(fptr,TINT,"ELL_MAX",&ell_max,NULL,status);
+  fits_get_num_rows(fptr,&nrows,status);
+  bpws=my_malloc(nrows*sizeof(int));
+  ells=my_malloc(nrows*sizeof(int));
+  weights=my_malloc(nrows*sizeof(flouble));
+  f_ell=my_malloc(nrows*sizeof(flouble));
+  fits_read_col(fptr,TINT,1,1,1,nrows,&nulval,
+		bpws,&anynul,status);
+  fits_read_col(fptr,TINT,2,1,1,nrows,&nulval,
+		ells,&anynul,status);
+  fits_read_col(fptr,TDOUBLE,3,1,1,nrows,&nulval,
+		weights,&anynul,status);
+  fits_read_col(fptr,TDOUBLE,3,1,1,nrows,&nulval,
+		f_ell,&anynul,status);
+  b=nmt_bins_create((int)nrows,bpws,ells,weights,f_ell,ell_max);
+  if(n_bands!=b->n_bands) {
+    report_error(NMT_ERROR_INCONSISTENT,
+		 "Number of bands doesn't match table contents %d %d\n",
+		 n_bands, b->n_bands);
+  }
+  free(bpws);
+  free(ells);
+  free(weights);
+  free(f_ell);
+  return b;
+}
+
+static nmt_binning_scheme *nmt_binning_scheme_fromhdus_old(fitsfile *fptr,
+							   int *status)
+{
   int ii,anynul;
   long nrows;
   double nulval;
@@ -198,6 +236,72 @@ static nmt_binning_scheme *nmt_binning_scheme_fromhdus(fitsfile *fptr,
 static void nmt_binning_scheme_tohdus(fitsfile *fptr,
 				      nmt_binning_scheme *b,
 				      int *status)
+{
+  int ii;
+  int nrows=b->ell_max+1;
+  int *bpws=my_malloc(nrows*sizeof(int));
+  int *ells=my_malloc(nrows*sizeof(int));
+  flouble *weights=my_calloc(nrows,sizeof(flouble));
+  flouble *f_ell=my_calloc(nrows,sizeof(flouble));
+  for(ii=0;ii<nrows;ii++) {
+    bpws[ii]=-1;
+    ells[ii]=-1;
+  }
+
+  for(ii=0;ii<b->n_bands;ii++) {
+    int jj;
+    for(jj=0;jj<b->nell_list[ii];jj++) {
+      int l=b->ell_list[ii][jj];
+      ells[l]=l;
+      bpws[l]=ii;
+      weights[l]=b->w_list[ii][jj];
+      f_ell[l]=b->f_ell[ii][jj];
+    }
+  }
+
+  char **ttype,**tform,**tunit;
+  ttype=my_malloc(4*sizeof(char *));
+  tform=my_malloc(4*sizeof(char *));
+  tunit=my_malloc(4*sizeof(char *));
+  for(ii=0;ii<4;ii++) {
+    ttype[ii]=my_malloc(256);
+    tform[ii]=my_malloc(256);
+    tunit[ii]=my_malloc(256);
+    sprintf(tunit[ii]," ");
+  }
+  sprintf(ttype[0],"BAND");
+  sprintf(ttype[1],"ELLS");
+  sprintf(ttype[2],"WEIGHTS");
+  sprintf(ttype[3],"F_ELL");
+  sprintf(tform[0],"1J");
+  sprintf(tform[1],"1J");
+  sprintf(tform[2],"1D");
+  sprintf(tform[3],"1D");
+  fits_create_tbl(fptr,BINARY_TBL,0,4,ttype,tform,tunit,"BANDPOWERS",status);
+  fits_write_key(fptr,TINT,"N_BANDS",&(b->n_bands),NULL,status);
+  fits_write_key(fptr,TINT,"ELL_MAX",&(b->ell_max),NULL,status);
+  fits_write_col(fptr,TINT,1,1,1,nrows,bpws,status);
+  fits_write_col(fptr,TINT,2,1,1,nrows,ells,status);
+  fits_write_col(fptr,TDOUBLE,3,1,1,nrows,weights,status);
+  fits_write_col(fptr,TDOUBLE,4,1,1,nrows,f_ell,status);
+
+  for(ii=0;ii<4;ii++) {
+    free(ttype[ii]);
+    free(tform[ii]);
+    free(tunit[ii]);
+  }
+  free(ttype);
+  free(tform);
+  free(tunit);
+  free(bpws);
+  free(ells);
+  free(weights);
+  free(f_ell);
+}
+
+static void nmt_binning_scheme_tohdus_old(fitsfile *fptr,
+					  nmt_binning_scheme *b,
+					  int *status)
 {
   int ii;
   char title[256];
