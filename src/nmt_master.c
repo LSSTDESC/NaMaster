@@ -74,9 +74,11 @@ void nmt_workspace_free(nmt_workspace *w)
   gsl_permutation_free(w->coupling_matrix_perm);
   gsl_matrix_free(w->coupling_matrix_binned);
   nmt_bins_free(w->bin);
-  for(ii=0;ii<w->ncls*(w->lmax+1);ii++)
-    free(w->coupling_matrix_unbinned[ii]);
-  free(w->coupling_matrix_unbinned);
+  if(w->coupling_matrix_unbinned!=NULL) {
+    for(ii=0;ii<w->ncls*(w->lmax+1);ii++)
+      free(w->coupling_matrix_unbinned[ii]);
+    free(w->coupling_matrix_unbinned);
+  }
   free(w->beam_prod);
   free(w->pcl_masks);
   free(w);

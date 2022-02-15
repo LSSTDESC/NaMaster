@@ -8,7 +8,7 @@ CTEST(nmt,covar_f_ell) {
   nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(1,1,-1,-1,-1,-1,-1,-1,-1);
   double *msk=he_read_map("test/benchmarks/msk.fits",cs,0);
   double *map=he_read_map("test/benchmarks/mps.fits",cs,0);
-  nmt_workspace *w=nmt_workspace_read_fits("test/benchmarks/bm_nc_np_w00.fits");
+  nmt_workspace *w=nmt_workspace_read_fits("test/benchmarks/bm_nc_np_w00.fits",1);
   nmt_field *f0=nmt_field_alloc_sph(cs,msk,0,&map,0,NULL,NULL,0,0,3,1E-10,HE_NITER_DEFAULT,0,0,0);
   nmt_covar_workspace *cw=nmt_covar_workspace_init(f0,f0,f0,f0,w->bin->ell_max,HE_NITER_DEFAULT,-1,-1,-1,0);
   nmt_field_free(f0);
@@ -55,7 +55,7 @@ CTEST(nmt,covar) {
   nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(1,1,-1,-1,-1,-1,-1,-1,-1);
   double *msk=he_read_map("test/benchmarks/msk.fits",cs,0);
   double *map=he_read_map("test/benchmarks/mps.fits",cs,0);
-  nmt_workspace *w=nmt_workspace_read_fits("test/benchmarks/bm_nc_np_w00.fits");
+  nmt_workspace *w=nmt_workspace_read_fits("test/benchmarks/bm_nc_np_w00.fits",1);
   nmt_field *f0=nmt_field_alloc_sph(cs,msk,0,&map,0,NULL,NULL,0,0,3,1E-10,HE_NITER_DEFAULT,0,0,0);
   nmt_covar_workspace *cw=nmt_covar_workspace_init(f0,f0,f0,f0,w->bin->ell_max,HE_NITER_DEFAULT,-1,-1,-1,0);
   nmt_covar_workspace *cwr=nmt_covar_workspace_read_fits("test/benchmarks/bm_nc_np_cw00.fits", 0);

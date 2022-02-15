@@ -71,6 +71,7 @@ static void nmt_workspace_info_tohdus(fitsfile *fptr,
 
 static void nmt_workspace_info_fromhdus(fitsfile *fptr,
 					nmt_workspace *w,
+					int w_unbinned,
 					int *status)
 {
   fits_movnam_hdu(fptr,IMAGE_HDU,"WSP_PRIMARY",0,status);
@@ -82,13 +83,17 @@ static void nmt_workspace_info_fromhdus(fitsfile *fptr,
   long ii;
   long n_el=w->ncls*(w->lmax+1);
   long fpixel[2]={1,1};
-  w->coupling_matrix_unbinned=my_malloc(n_el*sizeof(flouble *));
-  for(ii=0;ii<n_el;ii++) {
-    fpixel[1]=ii+1;
-    w->coupling_matrix_unbinned[ii]=my_malloc(n_el*sizeof(flouble));
-    fits_read_pix(fptr,TDOUBLE,fpixel,n_el,NULL,
-		  w->coupling_matrix_unbinned[ii],NULL,status);
+  if(w_unbinned) {
+    w->coupling_matrix_unbinned=my_malloc(n_el*sizeof(flouble *));
+    for(ii=0;ii<n_el;ii++) {
+      fpixel[1]=ii+1;
+      w->coupling_matrix_unbinned[ii]=my_malloc(n_el*sizeof(flouble));
+      fits_read_pix(fptr,TDOUBLE,fpixel,n_el,NULL,
+		    w->coupling_matrix_unbinned[ii],NULL,status);
+    }
   }
+  else
+    w->coupling_matrix_unbinned=NULL;
 }
 
 static void nmt_l_arr_tohdus(fitsfile *fptr,
@@ -148,6 +153,44 @@ static double *nmt_l_arr_fromhdus(fitsfile *fptr, int lmax_expect, char *arrname
 static nmt_binning_scheme *nmt_binning_scheme_fromhdus(fitsfile *fptr,
 						       int *status)
 {
+  nmt_binning_scheme *b;
+  int *bpws,*ells;
+  flouble *weights,*f_ell;
+  int ii,anynul,n_bands,ell_max;
+  long nrows;
+  double nulval;
+  fits_movnam_hdu(fptr,BINARY_TBL,"BANDPOWERS",0,status);
+  fits_read_key(fptr,TINT,"N_BANDS",&n_bands,NULL,status);
+  fits_read_key(fptr,TINT,"ELL_MAX",&ell_max,NULL,status);
+  fits_get_num_rows(fptr,&nrows,status);
+  bpws=my_malloc(nrows*sizeof(int));
+  ells=my_malloc(nrows*sizeof(int));
+  weights=my_malloc(nrows*sizeof(flouble));
+  f_ell=my_malloc(nrows*sizeof(flouble));
+  fits_read_col(fptr,TINT,1,1,1,nrows,&nulval,
+		bpws,&anynul,status);
+  fits_read_col(fptr,TINT,2,1,1,nrows,&nulval,
+		ells,&anynul,status);
+  fits_read_col(fptr,TDOUBLE,3,1,1,nrows,&nulval,
+		weights,&anynul,status);
+  fits_read_col(fptr,TDOUBLE,4,1,1,nrows,&nulval,
+		f_ell,&anynul,status);
+  b=nmt_bins_create((int)nrows,bpws,ells,weights,f_ell,ell_max);
+  if(n_bands!=b->n_bands) {
+    report_error(NMT_ERROR_INCONSISTENT,
+		 "Number of bands doesn't match table contents %d %d\n",
+		 n_bands, b->n_bands);
+  }
+  free(bpws);
+  free(ells);
+  free(weights);
+  free(f_ell);
+  return b;
+}
+
+static nmt_binning_scheme *nmt_binning_scheme_fromhdus_old(fitsfile *fptr,
+							   int *status)
+{
   int ii,anynul;
   long nrows;
   double nulval;
@@ -195,53 +238,65 @@ static void nmt_binning_scheme_tohdus(fitsfile *fptr,
 				      int *status)
 {
   int ii;
-  char title[256];
+  int nrows=b->ell_max+1;
+  int *bpws=my_malloc(nrows*sizeof(int));
+  int *ells=my_malloc(nrows*sizeof(int));
+  flouble *weights=my_calloc(nrows,sizeof(flouble));
+  flouble *f_ell=my_calloc(nrows,sizeof(flouble));
+  for(ii=0;ii<nrows;ii++) {
+    bpws[ii]=-1;
+    ells[ii]=-1;
+  }
+
+  for(ii=0;ii<b->n_bands;ii++) {
+    int jj;
+    for(jj=0;jj<b->nell_list[ii];jj++) {
+      int l=b->ell_list[ii][jj];
+      ells[l]=l;
+      bpws[l]=ii;
+      weights[l]=b->w_list[ii][jj];
+      f_ell[l]=b->f_ell[ii][jj];
+    }
+  }
+
   char **ttype,**tform,**tunit;
-  ttype=my_malloc(3*sizeof(char *));
-  tform=my_malloc(3*sizeof(char *));
-  tunit=my_malloc(3*sizeof(char *));
-  for(ii=0;ii<3;ii++) {
+  ttype=my_malloc(4*sizeof(char *));
+  tform=my_malloc(4*sizeof(char *));
+  tunit=my_malloc(4*sizeof(char *));
+  for(ii=0;ii<4;ii++) {
     ttype[ii]=my_malloc(256);
     tform[ii]=my_malloc(256);
     tunit[ii]=my_malloc(256);
     sprintf(tunit[ii]," ");
   }
-  sprintf(ttype[0],"NL");
+  sprintf(ttype[0],"BAND");
+  sprintf(ttype[1],"ELLS");
+  sprintf(ttype[2],"WEIGHTS");
+  sprintf(ttype[3],"F_ELL");
   sprintf(tform[0],"1J");
-  sprintf(tunit[0]," ");
-
-  fits_create_tbl(fptr,BINARY_TBL,0,1,ttype,tform,tunit,"BINS_SUMMARY",status);
-  fits_write_col(fptr,TINT,1,1,1,b->n_bands,b->nell_list,status);
+  sprintf(tform[1],"1J");
+  sprintf(tform[2],"1D");
+  sprintf(tform[3],"1D");
+  fits_create_tbl(fptr,BINARY_TBL,0,4,ttype,tform,tunit,"BANDPOWERS",status);
   fits_write_key(fptr,TINT,"N_BANDS",&(b->n_bands),NULL,status);
   fits_write_key(fptr,TINT,"ELL_MAX",&(b->ell_max),NULL,status);
+  fits_write_col(fptr,TINT,1,1,1,nrows,bpws,status);
+  fits_write_col(fptr,TINT,2,1,1,nrows,ells,status);
+  fits_write_col(fptr,TDOUBLE,3,1,1,nrows,weights,status);
+  fits_write_col(fptr,TDOUBLE,4,1,1,nrows,f_ell,status);
 
-  sprintf(ttype[0],"ELLS");
-  sprintf(ttype[1],"WEIGHTS");
-  sprintf(ttype[2],"F_ELL");
-  sprintf(tform[0],"1J");
-  sprintf(tform[1],"1D");
-  sprintf(tform[2],"1D");
-  sprintf(tunit[0]," ");
-  sprintf(tunit[1]," ");
-  sprintf(tunit[2]," ");
-
-  for(ii=0;ii<b->n_bands;ii++) {
-    sprintf(title,"BINS_BAND_%d",ii+1);
-    fits_create_tbl(fptr,BINARY_TBL,0,3,ttype,tform,tunit,title,status);
-    fits_write_col(fptr,TINT,1,1,1,b->nell_list[ii],b->ell_list[ii],status);
-    fits_write_col(fptr,TDOUBLE,2,1,1,b->nell_list[ii],b->w_list[ii],status);
-    fits_write_col(fptr,TDOUBLE,3,1,1,b->nell_list[ii],b->f_ell[ii],status);
-    fits_write_key(fptr,TINT,"I_BAND",&ii,NULL,status);
-  }
-
-  for(ii=0;ii<3;ii++) {
+  for(ii=0;ii<4;ii++) {
     free(ttype[ii]);
     free(tform[ii]);
     free(tunit[ii]);
   }
   free(ttype);
   free(tform);
-  free(tunit);  
+  free(tunit);
+  free(bpws);
+  free(ells);
+  free(weights);
+  free(f_ell);
 }
 
 static void nmt_coupling_binned_tohdus(fitsfile *fptr,
@@ -349,7 +404,7 @@ void nmt_workspace_write_fits(nmt_workspace *w,char *fname)
   fits_close_file(fptr,&status);
 }
 
-nmt_workspace *nmt_workspace_read_fits(char *fname)
+nmt_workspace *nmt_workspace_read_fits(char *fname, int w_unbinned)
 {
   fitsfile *fptr;
   int status=0;
@@ -358,7 +413,7 @@ nmt_workspace *nmt_workspace_read_fits(char *fname)
   fits_open_file(&fptr,fname,READONLY,&status);
   check_fits(status,fname,1);
   // Workspace info HDU
-  nmt_workspace_info_fromhdus(fptr,w,&status);
+  nmt_workspace_info_fromhdus(fptr,w,w_unbinned,&status);
   check_fits(status,fname,1);
   // CS info HDU
   w->cs=nmt_curvedsky_info_fromhdus(fptr,&status);
@@ -371,6 +426,8 @@ nmt_workspace *nmt_workspace_read_fits(char *fname)
   check_fits(status,fname,1);
   // bins HDUs
   w->bin=nmt_binning_scheme_fromhdus(fptr,&status);
+  if(status) // maybe used old format
+    w->bin=nmt_binning_scheme_fromhdus_old(fptr,&status);
   check_fits(status,fname,1);
   // binned MCM HDU
   nmt_coupling_binned_fromhdus(fptr,w,&status);

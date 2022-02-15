@@ -13,6 +13,7 @@ class NmtWorkspace(object):
     """
     def __init__(self):
         self.wsp = None
+        self.has_unbinned = False
 
     def __del__(self):
         if self.wsp is not None:
@@ -20,16 +21,28 @@ class NmtWorkspace(object):
                 lib.workspace_free(self.wsp)
             self.wsp = None
 
-    def read_from(self, fname):
+    def check_unbinned(self):
+        """
+        Raises an error if this workspace does not contain the
+        unbinned MCM.
+        """
+        if not self.has_unbinned:
+            raise ValueError("This workspace does not store the unbinned "
+                             "mode-coupling matrix.")
+
+    def read_from(self, fname, read_unbinned_MCM=True):
         """
         Reads the contents of an NmtWorkspace object from a FITS file.
 
         :param str fname: input file name
+        :param bool read_unbinned_MCM: if False, unbinned mode-coupling \
+            matrix will not be read. This can save significant IO time.
         """
         if self.wsp is not None:
             lib.workspace_free(self.wsp)
             self.wsp = None
-        self.wsp = lib.read_workspace(fname)
+        self.wsp = lib.read_workspace(fname, int(read_unbinned_MCM))
+        self.has_unbinned = read_unbinned_MCM
 
     def update_beams(self, beam1, beam2):
         b1arr = isinstance(beam1, (list, tuple, np.ndarray))
@@ -88,6 +101,7 @@ class NmtWorkspace(object):
                                             int(is_teb), int(n_iter),
                                             lmax_mask, l_toeplitz,
                                             l_exact, dl_band)
+        self.has_unbinned = True
 
     def write_to(self, fname):
         """
@@ -97,6 +111,7 @@ class NmtWorkspace(object):
         """
         if self.wsp is None:
             raise RuntimeError("Must initialize workspace before writing")
+        self.check_unbinned()
         lib.write_workspace(self.wsp, "!"+fname)
 
     def get_coupling_matrix(self):
@@ -115,6 +130,7 @@ class NmtWorkspace(object):
         if self.wsp is None:
             raise RuntimeError("Must initialize workspace before "
                                "getting a MCM")
+        self.check_unbinned()
         nrows = (self.wsp.lmax + 1) * self.wsp.ncls
         return lib.get_mcm(self.wsp, nrows * nrows).reshape([nrows, nrows])
 
@@ -134,6 +150,7 @@ class NmtWorkspace(object):
         """
         if self.wsp is None:
             raise RuntimeError("Must initialize workspace before updating MCM")
+        self.check_unbinned()
         if len(new_matrix) != (self.wsp.lmax + 1) * self.wsp.ncls:
             raise ValueError("Input matrix has an inconsistent size")
         lib.update_mcm(self.wsp, len(new_matrix), new_matrix.flatten())
@@ -153,6 +170,7 @@ class NmtWorkspace(object):
         if (len(cl_in) != self.wsp.ncls) or \
            (len(cl_in[0]) < self.wsp.lmax + 1):
             raise ValueError("Input power spectrum has wrong shape")
+        self.check_unbinned()
 
         # Shorten C_ells if they're too long
         cl_in = np.array(cl_in)[:, :self.wsp.lmax+1]
@@ -214,6 +232,7 @@ class NmtWorkspace(object):
         :return: bandpower windows with shape \
             `[n_cls, n_bpws, n_cls, lmax+1]`.
         """
+        self.check_unbinned()
         d = lib.get_bandpower_windows(self.wsp,
                                       self.wsp.ncls * self.wsp.bin.n_bands *
                                       self.wsp.ncls * (self.wsp.lmax+1))
@@ -574,6 +593,7 @@ def compute_full_master(f1, f2, b, cl_noise=None, cl_guess=None,
                               len(cln) * b.bin.n_bands, n_iter, lmax_mask,
                               l_toeplitz, l_exact, dl_band)
     else:
+        workspace.check_unbinned()
         cl1d = lib.comp_pspec(f1.fl, f2.fl, b.bin, workspace.wsp,
                               cln, clg, len(cln) * b.bin.n_bands,
                               n_iter, lmax_mask,
