@@ -299,60 +299,6 @@ static void nmt_binning_scheme_tohdus(fitsfile *fptr,
   free(f_ell);
 }
 
-static void nmt_binning_scheme_tohdus_old(fitsfile *fptr,
-					  nmt_binning_scheme *b,
-					  int *status)
-{
-  int ii;
-  char title[256];
-  char **ttype,**tform,**tunit;
-  ttype=my_malloc(3*sizeof(char *));
-  tform=my_malloc(3*sizeof(char *));
-  tunit=my_malloc(3*sizeof(char *));
-  for(ii=0;ii<3;ii++) {
-    ttype[ii]=my_malloc(256);
-    tform[ii]=my_malloc(256);
-    tunit[ii]=my_malloc(256);
-    sprintf(tunit[ii]," ");
-  }
-  sprintf(ttype[0],"NL");
-  sprintf(tform[0],"1J");
-  sprintf(tunit[0]," ");
-
-  fits_create_tbl(fptr,BINARY_TBL,0,1,ttype,tform,tunit,"BINS_SUMMARY",status);
-  fits_write_col(fptr,TINT,1,1,1,b->n_bands,b->nell_list,status);
-  fits_write_key(fptr,TINT,"N_BANDS",&(b->n_bands),NULL,status);
-  fits_write_key(fptr,TINT,"ELL_MAX",&(b->ell_max),NULL,status);
-
-  sprintf(ttype[0],"ELLS");
-  sprintf(ttype[1],"WEIGHTS");
-  sprintf(ttype[2],"F_ELL");
-  sprintf(tform[0],"1J");
-  sprintf(tform[1],"1D");
-  sprintf(tform[2],"1D");
-  sprintf(tunit[0]," ");
-  sprintf(tunit[1]," ");
-  sprintf(tunit[2]," ");
-
-  for(ii=0;ii<b->n_bands;ii++) {
-    sprintf(title,"BINS_BAND_%d",ii+1);
-    fits_create_tbl(fptr,BINARY_TBL,0,3,ttype,tform,tunit,title,status);
-    fits_write_col(fptr,TINT,1,1,1,b->nell_list[ii],b->ell_list[ii],status);
-    fits_write_col(fptr,TDOUBLE,2,1,1,b->nell_list[ii],b->w_list[ii],status);
-    fits_write_col(fptr,TDOUBLE,3,1,1,b->nell_list[ii],b->f_ell[ii],status);
-    fits_write_key(fptr,TINT,"I_BAND",&ii,NULL,status);
-  }
-
-  for(ii=0;ii<3;ii++) {
-    free(ttype[ii]);
-    free(tform[ii]);
-    free(tunit[ii]);
-  }
-  free(ttype);
-  free(tform);
-  free(tunit);  
-}
-
 static void nmt_coupling_binned_tohdus(fitsfile *fptr,
 				       nmt_workspace *w,
 				       int *status)
@@ -480,6 +426,8 @@ nmt_workspace *nmt_workspace_read_fits(char *fname, int w_unbinned)
   check_fits(status,fname,1);
   // bins HDUs
   w->bin=nmt_binning_scheme_fromhdus(fptr,&status);
+  if(status) // maybe used old format
+    w->bin=nmt_binning_scheme_fromhdus_old(fptr,&status);
   check_fits(status,fname,1);
   // binned MCM HDU
   nmt_coupling_binned_fromhdus(fptr,w,&status);
