@@ -79,10 +79,9 @@ def test_field_get_alms():
 def test_field_masked():
     nside = 64
     b = nmt.NmtBin.from_nside_linear(nside, 16)
-    msk = hp.read_map("test/benchmarks/msk.fits", verbose=False,
+    msk = hp.read_map("test/benchmarks/msk.fits",
                       dtype=float)
     mps = np.array(hp.read_map("test/benchmarks/mps.fits",
-                               verbose=False,
                                field=[0, 1, 2],
                                dtype=float))
     mps_msk = np.array([m * msk for m in mps])
