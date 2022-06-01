@@ -1,3 +1,6 @@
+# v1.4
+- Option to read only the binned MCM (#151)
+
 # v1.3
 - Spin-0-only covariance workspaces (#147)
 - Added functionality to return field mask (#142)
