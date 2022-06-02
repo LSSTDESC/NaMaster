@@ -1,11 +1,23 @@
 # Ignore autoconf build files.
 Makefile
+Makefile.in
 config.h
 config.log
 config.status
 libtool
 stamp-h1
 autom4te.cache
+aclocal.m4
+ar-lib
+compile
+config.guess
+config.h.in
+config.sub
+configure
+depcomp
+install-sh
+ltmain.sh
+missing
 
 # Ignore compile and link build files.
 *.o
