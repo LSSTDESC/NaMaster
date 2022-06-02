@@ -9,6 +9,7 @@ include_HEADERS = src/namaster.h
 
 bin_PROGRAMS = namaster
 namaster_SOURCES = src/nmt_main.c
+namaster_LDADD = libnmt.la
 namaster_CPPFLAGS = $(OPENMP_CFLAGS) -I./src/
 namaster_LDFLAGS = $(OPENMP_CFLAGS) -L./ -lnmt @fftw_thread_type@ -lfftw3 -lgsl -lgslcblas -lcfitsio @libsharp_libs@ -lm
 
