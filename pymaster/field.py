@@ -83,6 +83,11 @@ class NmtField(object):
         if masked_on_input:
             masked_input = 1
 
+        # This ensures the mask will have the right type
+        # and endianness (can cause issues when read from
+        # some FITS files).
+        mask = mask.astype(float)
+
         wt = NmtWCSTranslator(wcs, mask.shape)
         if wt.is_healpix == 0:
             if wt.flip_th:
