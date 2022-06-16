@@ -50,6 +50,10 @@ def test_field_get_mask():
     f = nmt.NmtField(msk, mp, n_iter=0)
     mskb = f.get_mask()
     assert np.amax(np.fabs(mskb-msk)/np.std(msk)) < 1E-5
+    # Do the same with a big-endian mask
+    f = nmt.NmtField(msk.astype('>f8'), mp, n_iter=0)
+    mskb = f.get_mask()
+    assert np.amax(np.fabs(mskb-msk)/np.std(msk)) < 1E-5
 
 
 def test_field_get_alms():
