@@ -214,7 +214,7 @@ void fs_map2alm(nmt_flatsky_info *fs,int ntrans,int spin,flouble **map,fcomplex 
 #endif //_SPREC
 
 #pragma omp parallel default(none) \
-  shared(fs,alm,imap)
+  shared(fs,alm,imap,nmodes)
     {
       long ipix;
       flouble norm=fs->lx*fs->ly/(2*M_PI*fs->nx*fs->ny);
