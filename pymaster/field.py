@@ -345,8 +345,8 @@ class NmtFieldFlat(object):
             lite = True
         else:
             mask_only = False
-            # As in the curved case, to ensure right type and endianness (and solve
-            # the problems when reading it from a fits file)
+            # As in the curved case, to ensure right type and endianness (and
+            # solve the problems when reading it from a fits file)
             maps = np.array(maps, dtype=np.float64)
 
             nmaps = len(maps)
