@@ -103,6 +103,9 @@ class NmtField(object):
             lite = True
         else:
             mask_only = False
+            # As for the mask, ensure dtype is float to avoid
+            # issues when reading the map from a fits file
+            maps = np.array(maps, dtype=float)
             if (len(maps) != 1) and (len(maps) != 2):
                 raise ValueError("Must supply 1 or 2 maps per field")
 
@@ -126,7 +129,6 @@ class NmtField(object):
         # Flatten if 2D maps
         if (not mask_only) and (wt.is_healpix == 0):
             try:
-                maps = np.array(maps)
                 if wt.flip_th:
                     maps = maps[:, ::-1, :]
                 if wt.flip_ph:
@@ -343,6 +345,9 @@ class NmtFieldFlat(object):
             lite = True
         else:
             mask_only = False
+            # As in the curved case, to ensure right type and endianness (and
+            # solve the problems when reading it from a fits file)
+            maps = np.array(maps, dtype=np.float64)
 
             nmaps = len(maps)
             if (nmaps != 1) and (nmaps != 2):
