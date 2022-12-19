@@ -150,8 +150,8 @@ def test_workspace_covar_spin0():
                                  [CT.cltt], [CT.cltt],
                                  [CT.cltt], [CT.cltt],
                                  CT.w)
-    assert np.all(c1 == c2)
-    assert np.all(c1 == c3)
+    assert np.max(np.abs(c1 / c2 - 1)) < 1e-10
+    assert np.max(np.abs(c1 / c3 - 1)) < 1e-10
 
     # Errors thrown otherwise
     # This should be fine
