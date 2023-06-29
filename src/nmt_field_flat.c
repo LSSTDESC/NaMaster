@@ -39,7 +39,7 @@ nmt_flatsky_info *nmt_flatsky_info_alloc(int nx,int ny,flouble lx,flouble ly)
   nmt_flatsky_info *fs=my_malloc(sizeof(nmt_flatsky_info));
   fs->nx=nx;
   fs->ny=ny;
-  fs->npix=nx*ny;
+  fs->npix=nx*((long)ny);
   fs->lx=lx;
   fs->ly=ly;
   fs->pixsize=lx*ly/(nx*ny);
@@ -131,7 +131,7 @@ static void walm_x_lpower(nmt_flatsky_info *fs,fcomplex **walm_in,fcomplex **wal
 	int ipow;
 	flouble kpow=1;
 	flouble kx=ix*dkx;
-	long index=ix+(fs->nx/2+1)*iy;
+	long index=ix+((long)(fs->nx/2+1))*iy;
 	flouble kmod=sqrt(kx*kx+ky*ky);
 	for(ipow=0;ipow<power;ipow++)
 	  kpow*=kmod;
@@ -148,6 +148,7 @@ void nmt_purify_flat(nmt_field_flat *fl,flouble *mask,fcomplex **walm0,
   long ip;
   int imap;
   int purify[2]={0,0};
+  long nmodes=fl->fs->ny*((long)(fl->fs->nx/2+1));
   flouble  **pmap=my_malloc(fl->nmaps*sizeof(flouble *));
   flouble  **wmap=my_malloc(fl->nmaps*sizeof(flouble *));
   fcomplex **walm=my_malloc(fl->nmaps*sizeof(fcomplex *));
@@ -156,11 +157,11 @@ void nmt_purify_flat(nmt_field_flat *fl,flouble *mask,fcomplex **walm0,
   for(imap=0;imap<fl->nmaps;imap++) {
     pmap[imap]=dftw_malloc(fl->npix*sizeof(flouble));
     wmap[imap]=dftw_malloc(fl->npix*sizeof(flouble));
-    walm[imap]=dftw_malloc(fl->fs->ny*(fl->fs->nx/2+1)*sizeof(fcomplex));
-    palm[imap]=dftw_malloc(fl->fs->ny*(fl->fs->nx/2+1)*sizeof(fcomplex));
-    for(ip=0;ip<fl->fs->ny*(fl->fs->nx/2+1);ip++)
+    walm[imap]=dftw_malloc(nmodes*sizeof(fcomplex));
+    palm[imap]=dftw_malloc(nmodes*sizeof(fcomplex));
+    for(ip=0;ip<nmodes;ip++)
       walm[imap][ip]=walm0[imap][ip];
-    alm_out[imap]=dftw_malloc(fl->fs->ny*(fl->fs->nx/2+1)*sizeof(fcomplex)); 
+    alm_out[imap]=dftw_malloc(nmodes*sizeof(fcomplex)); 
   }
 
   if(fl->pure_e)
@@ -202,7 +203,7 @@ void nmt_purify_flat(nmt_field_flat *fl,flouble *mask,fcomplex **walm0,
 	    ky=-(fl->fs->ny-iy)*dky;
 	  for(ix=0;ix<=fl->fs->nx/2;ix++) {
 	    flouble kx=ix*dkx;
-	    long index=ix+(fl->fs->nx/2+1)*iy;
+	    long index=ix+((long)(fl->fs->nx/2+1))*iy;
 	    flouble kmod=sqrt(kx*kx+ky*ky);
 	    if(kmod>0)
 	      alm_out[imap][index]+=2*palm[imap][index]/kmod;
@@ -240,7 +241,7 @@ void nmt_purify_flat(nmt_field_flat *fl,flouble *mask,fcomplex **walm0,
 	    ky=-(fl->fs->ny-iy)*dky;
 	  for(ix=0;ix<=fl->fs->nx/2;ix++) {
 	    flouble kx=ix*dkx;
-	    long index=ix+(fl->fs->nx/2+1)*iy;
+	    long index=ix+((long)(fl->fs->nx/2+1))*iy;
 	    flouble kmod2=kx*kx+ky*ky;
 	    if(kmod2>0)
 	      alm_out[imap][index]+=palm[imap][index]/kmod2;
@@ -251,7 +252,7 @@ void nmt_purify_flat(nmt_field_flat *fl,flouble *mask,fcomplex **walm0,
   }
 
   for(imap=0;imap<fl->nmaps;imap++) {
-    for(ip=0;ip<fl->fs->ny*(fl->fs->nx/2+1);ip++)
+    for(ip=0;ip<nmodes;ip++)
       alms[imap][ip]=alm_out[imap][ip];
   }
   fs_alm2map(fl->fs,1,2,maps_out,alm_out);
@@ -280,7 +281,7 @@ nmt_field_flat *nmt_field_flat_alloc(int nx,int ny,flouble lx,flouble ly,
   int ii,itemp,itemp2,imap;
   nmt_field_flat *fl=my_malloc(sizeof(nmt_field_flat));
   fl->fs=nmt_flatsky_info_alloc(nx,ny,lx,ly);
-  fl->npix=nx*ny;
+  fl->npix=nx*((long)ny);
   fl->spin=spin;
   if(spin) fl->nmaps=2;
   else fl->nmaps=1;
@@ -419,9 +420,10 @@ nmt_field_flat *nmt_field_flat_alloc(int nx,int ny,flouble lx,flouble ly,
   }
 
   //Allocate Fourier coefficients
+  long nmodes=fl->fs->ny*((long)(fl->fs->nx/2+1));
   fl->alms=my_malloc(fl->nmaps*sizeof(fcomplex *));
   for(ii=0;ii<fl->nmaps;ii++)
-    fl->alms[ii]=dftw_malloc(fl->fs->ny*(fl->fs->nx/2+1)*sizeof(fcomplex));
+    fl->alms[ii]=dftw_malloc(nmodes*sizeof(fcomplex));
   if(is_lite)
     fl->a_temp=NULL;
   else {
@@ -430,7 +432,7 @@ nmt_field_flat *nmt_field_flat_alloc(int nx,int ny,flouble lx,flouble ly,
       for(itemp=0;itemp<fl->ntemp;itemp++) {
         fl->a_temp[itemp]=my_malloc(fl->nmaps*sizeof(fcomplex *));
         for(imap=0;imap<fl->nmaps;imap++)
-          fl->a_temp[itemp][imap]=dftw_malloc(fl->fs->ny*(fl->fs->nx/2+1)*sizeof(fcomplex));
+          fl->a_temp[itemp][imap]=dftw_malloc(nmodes*sizeof(fcomplex));
       }
     }
   }
@@ -445,7 +447,7 @@ nmt_field_flat *nmt_field_flat_alloc(int nx,int ny,flouble lx,flouble ly,
     //Compute mask DFT (store in fl->a_mask
     fcomplex **a_mask=my_malloc(fl->nmaps*sizeof(fcomplex *));
     for(imap=0;imap<fl->nmaps;imap++)
-      a_mask[imap]=dftw_malloc(fl->fs->ny*(fl->fs->nx/2+1)*sizeof(fcomplex));
+      a_mask[imap]=dftw_malloc(nmodes*sizeof(fcomplex));
     fs_map2alm(fl->fs,1,0,&(fl->mask),a_mask);
 
     //Purify map

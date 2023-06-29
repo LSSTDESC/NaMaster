@@ -101,7 +101,7 @@ static void qu2eb(nmt_flatsky_info *fs,int spin,fcomplex **alm)
 	fcomplex e,b;
 	int s=0;
 	flouble kx=ix*dkx;
-	long index=ix+(fs->nx/2+1)*iy;
+	long index=ix+((long)(fs->nx/2+1))*iy;
 	flouble kmod2=kx*kx+ky*ky;
 
 	if(kmod2<=0) {
@@ -158,7 +158,7 @@ static void eb2qu(nmt_flatsky_info *fs,int spin,fcomplex **alm)
 	fcomplex q,u;
 	int s=0;
 	flouble kx=ix*dkx;
-	long index=ix+(fs->nx/2+1)*iy;
+	long index=ix+((long)(fs->nx/2+1))*iy;
 	flouble kmod2=kx*kx+ky*ky;
 	
 	if(kmod2<=0) {
@@ -198,6 +198,7 @@ void fs_map2alm(nmt_flatsky_info *fs,int ntrans,int spin,flouble **map,fcomplex 
   fftw_plan plan_ft;
 #endif //_SPREC
   int imap,nmaps=1;
+  long nmodes=fs->ny*((long)(fs->nx/2+1));
   if(spin)
     nmaps=2;
   
@@ -213,12 +214,12 @@ void fs_map2alm(nmt_flatsky_info *fs,int ntrans,int spin,flouble **map,fcomplex 
 #endif //_SPREC
 
 #pragma omp parallel default(none) \
-  shared(fs,alm,imap)
+  shared(fs,alm,imap,nmodes)
     {
       long ipix;
       flouble norm=fs->lx*fs->ly/(2*M_PI*fs->nx*fs->ny);
 #pragma omp for
-      for(ipix=0;ipix<fs->ny*(fs->nx/2+1);ipix++) {
+      for(ipix=0;ipix<nmodes;ipix++) {
 	alm[imap][ipix]*=norm;
       } //end omp for
     } //end omp parallel
@@ -304,9 +305,10 @@ void fs_zero_alm(nmt_flatsky_info *fs,fcomplex *alm)
 #pragma omp parallel default(none)		\
   shared(fs,alm)
   {
-    int ii;
+    long ii;
+    long nmodes=fs->ny*((long)(fs->nx/2+1));
 #pragma omp for
-    for(ii=0;ii<fs->ny*(fs->nx/2+1);ii++) {
+    for(ii=0;ii<nmodes;ii++) {
       alm[ii]=0;
     } //end omp for
   } //end omp parallel
@@ -337,7 +339,7 @@ void fs_alter_alm(nmt_flatsky_info *fs,double fwhm_amin,fcomplex *alm_in,fcomple
 	ky=-(fs->ny-iy)*dky;
       for(ix=0;ix<=fs->nx/2;ix++) {
 	flouble kx=ix*dkx;
-	long index=ix+(fs->nx/2+1)*iy;
+	long index=ix+((long)(fs->nx/2+1))*iy;
 	flouble kmod=sqrt(kx*kx+ky*ky);
 	if(add_to_out)
 	  alm_out[index]+=alm_in[index]*nmt_k_function_eval(beam,kmod,intacc_thr);
@@ -405,7 +407,7 @@ void fs_alm2cl(nmt_flatsky_info *fs,nmt_binning_scheme_flat *bin,
 	    if((kx>=lmn_x) && (kx<=lmx_x))
 	      continue;
 
-	    index=ix_here+(fs->nx/2+1)*iy;
+	    index=ix_here+((long)(fs->nx/2+1))*iy;
 	    kmod=sqrt(kx*kx+ky*ky);
 	    ik=nmt_bins_flat_search_fast(bin,kmod,ik);
 	    if(ik>=0) {
@@ -435,12 +437,13 @@ void fs_anafast(nmt_flatsky_info *fs,nmt_binning_scheme_flat *bin,
   int i1;
   fcomplex **alms_1,**alms_2;
   int nmaps_1=1,nmaps_2=1;
+  long nmodes=fs->ny*((long)(fs->nx/2+1));
   if(spin_1) nmaps_1=2;
   if(spin_2) nmaps_2=2;
 
   alms_1=my_malloc(nmaps_1*sizeof(fcomplex *));
   for(i1=0;i1<nmaps_1;i1++)
-    alms_1[i1]=dftw_malloc(fs->ny*(fs->nx/2+1)*sizeof(fcomplex));
+    alms_1[i1]=dftw_malloc(nmodes*sizeof(fcomplex));
   fs_map2alm(fs,1,spin_1,maps_1,alms_1);
 
   if(maps_1==maps_2)
@@ -448,7 +451,7 @@ void fs_anafast(nmt_flatsky_info *fs,nmt_binning_scheme_flat *bin,
   else {
     alms_2=my_malloc(nmaps_2*sizeof(fcomplex *));
     for(i1=0;i1<nmaps_2;i1++)
-      alms_2[i1]=dftw_malloc(fs->ny*(fs->nx/2+1)*sizeof(fcomplex));
+      alms_2[i1]=dftw_malloc(nmodes*sizeof(fcomplex));
     fs_map2alm(fs,1,spin_2,maps_2,alms_2);
   }
 
@@ -469,9 +472,11 @@ fcomplex **fs_synalm(int nx,int ny,flouble lx,flouble ly,int nmaps,
 {
   int imap;
   fcomplex **alms;
+  long nmodes=ny*((long)(nx/2+1));
+
   alms=my_malloc(nmaps*sizeof(fcomplex *));
   for(imap=0;imap<nmaps;imap++)
-    alms[imap]=dftw_malloc(ny*(nx/2+1)*sizeof(fcomplex));
+    alms[imap]=dftw_malloc(nmodes*sizeof(fcomplex));
 
   //Switch off error handler for Cholesky decomposition
   gsl_error_handler_t *geh=gsl_set_error_handler_off();
@@ -516,7 +521,7 @@ fcomplex **fs_synalm(int nx,int ny,flouble lx,flouble ly,int nmaps,
       for(ix=0;ix<=nx/2;ix++) {
 	int imp1,imp2;
 	flouble kx=ix*dkx;
-	long index=ix+(nx/2+1)*iy;
+	long index=ix+((long)(nx/2+1))*iy;
 	flouble kmod=sqrt(kx*kx+ky*ky);
 	if(kmod<0) {
 	  for(imp1=0;imp1<nmaps;imp1++)
@@ -567,7 +572,7 @@ fcomplex **fs_synalm(int nx,int ny,flouble lx,flouble ly,int nmaps,
 		else {
 		  int iyy=ny-iy;
 		  alms[imp1][index]=(fcomplex)(a_re+I*a_im);
-		  alms[imp1][ix+(nx/2+1)*iyy]=(fcomplex)(a_re-I*a_im);
+		  alms[imp1][ix+((long)(nx/2+1))*iyy]=(fcomplex)(a_re-I*a_im);
 		}
 	      }
 	    }

@@ -707,31 +707,52 @@ nmt_master_calculator *nmt_compute_master_coefficients(int lmax, int lmax_mask,
       for(l3=l_exact;l3<=l2+l_toeplitz-c->lmax;l3++){
         flouble **mat;
         flouble m;
+	int is_den_zero;
         int lx=l_exact+l2-l3;
         for(ic=0;ic<c->npcl;ic++) {
           if(c->has_00) {
             mat = c->xi_00[ic];
-            m=mat[lx][l_exact]*sqrt(fabs(mat[l2][l2]*mat[l3][l3]/
-                                         (mat[lx][lx]*mat[l_exact][l_exact])));
+	    is_den_zero=((mat[lx][lx] == 0) || (mat[l_exact][l_exact] == 0));
+	    if(is_den_zero)
+	      m=0;
+	    else {
+	      m=mat[lx][l_exact]*sqrt(fabs(mat[l2][l2]*mat[l3][l3]/
+					   (mat[lx][lx]*mat[l_exact][l_exact])));
+	    }
             mat[l2][l3]=m;
             mat[l3][l2]=m;
           }
           if(c->has_0s) {
             mat = c->xi_0s[ic][0];
-            m=mat[lx][l_exact]*sqrt(fabs(mat[l2][l2]*mat[l3][l3]/
-                                         (mat[lx][lx]*mat[l_exact][l_exact])));
+	    is_den_zero=((mat[lx][lx] == 0) || (mat[l_exact][l_exact] == 0));
+	    if(is_den_zero)
+	      m=0;
+	    else {
+	      m=mat[lx][l_exact]*sqrt(fabs(mat[l2][l2]*mat[l3][l3]/
+					   (mat[lx][lx]*mat[l_exact][l_exact])));
+	    }
             mat[l2][l3]=m;
             mat[l3][l2]=m;
           }
           if(c->has_ss) {
             mat = c->xi_pp[ic][0];
-            m=mat[lx][l_exact]*sqrt(fabs(mat[l2][l2]*mat[l3][l3]/
-                                         (mat[lx][lx]*mat[l_exact][l_exact])));
+	    is_den_zero=((mat[lx][lx] == 0) || (mat[l_exact][l_exact] == 0));
+	    if(is_den_zero)
+	      m=0;
+	    else {
+	      m=mat[lx][l_exact]*sqrt(fabs(mat[l2][l2]*mat[l3][l3]/
+					   (mat[lx][lx]*mat[l_exact][l_exact])));
+	    }
             mat[l2][l3]=m;
             mat[l3][l2]=m;
             mat = c->xi_mm[ic][0];
-            m=mat[lx][l_exact]*sqrt(fabs(mat[l2][l2]*mat[l3][l3]/
-                                         (mat[lx][lx]*mat[l_exact][l_exact])));
+	    is_den_zero=((mat[lx][lx] == 0) || (mat[l_exact][l_exact] == 0));
+	    if(is_den_zero)
+	      m=0;
+	    else {
+	      m=mat[lx][l_exact]*sqrt(fabs(mat[l2][l2]*mat[l3][l3]/
+					   (mat[lx][lx]*mat[l_exact][l_exact])));
+	    }
             mat[l2][l3]=m;
             mat[l3][l2]=m;
           }
