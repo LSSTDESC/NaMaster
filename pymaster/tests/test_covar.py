@@ -233,7 +233,8 @@ def test_covar_rectangular():
     w2.compute_coupling_matrix(f, f, b2)
     cw = nmt.NmtCovarianceWorkspace()
     cw.compute_coupling_coefficients(f, f, f, f)
-    cov = nmt.gaussian_covariance(cw, 0, 0, 0, 0, [cl], [cl], [cl], [cl], w1, wb=w2)
+    cov = nmt.gaussian_covariance(cw, 0, 0, 0, 0, [cl], [cl], [cl], [cl],
+                                  w1, wb=w2)
     n1, n2 = cov.shape
     assert n1 == b1.get_n_bands()
     assert n2 == b2.get_n_bands()
