@@ -98,7 +98,7 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setup(name="pymaster",
-      version="1.5",
+      version="1.5.1",
       author="David Alonso",
       author_email="david.alonso@physics.ox.ac.uk",
       description="Library for pseudo-Cl computation",

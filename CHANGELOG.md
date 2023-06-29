@@ -1,3 +1,7 @@
+# v1.5.1
+- Bugfix in Toeplitz calculation (#169)
+- Bugfix for rectangular covariances (#175)
+
 # v1.5
 - Compilation refactor (#158, #162)
 - Updated installation instructions for NERSC (#160)
