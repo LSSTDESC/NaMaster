@@ -217,3 +217,24 @@ def test_workspace_covar_errors():
 
     with pytest.raises(ValueError):  # Incompatible resolutions
         cw.compute_coupling_coefficients(CT.f0, CT.f0_half)
+
+
+def test_covar_rectangular():
+    nside = 64
+    cl = np.ones(3*nside)
+    npix = hp.nside2npix(nside)
+    msk = np.ones(npix)
+    f = nmt.NmtField(msk, None, spin=0)
+    b1 = nmt.NmtBin(nside, nlb=4)
+    b2 = nmt.NmtBin(nside, nlb=6)
+    w1 = nmt.NmtWorkspace()
+    w1.compute_coupling_matrix(f, f, b1)
+    w2 = nmt.NmtWorkspace()
+    w2.compute_coupling_matrix(f, f, b2)
+    cw = nmt.NmtCovarianceWorkspace()
+    cw.compute_coupling_coefficients(f, f, f, f)
+    cov = nmt.gaussian_covariance(cw, 0, 0, 0, 0, [cl], [cl], [cl], [cl],
+                                  w1, wb=w2)
+    n1, n2 = cov.shape
+    assert n1 == b1.get_n_bands()
+    assert n2 == b2.get_n_bands()
