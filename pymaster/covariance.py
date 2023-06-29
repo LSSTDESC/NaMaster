@@ -254,7 +254,7 @@ def gaussian_covariance(cw, spin_a1, spin_a2, spin_b1, spin_b2,
         )
     else:
         len_a = wa.wsp.ncls * wa.wsp.bin.n_bands
-        len_b = wb.wsp.ncls * wa.wsp.bin.n_bands
+        len_b = wb.wsp.ncls * wb.wsp.bin.n_bands
 
         covar = lib.comp_gaussian_covariance(
             cw.wsp, spin_a1, spin_a2, spin_b1, spin_b2,
