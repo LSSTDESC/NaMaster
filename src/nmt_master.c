@@ -261,7 +261,7 @@ static void populate_toeplitz(nmt_master_calculator *c, flouble **pcl_masks, int
         lmax_here=ll2+ll3;
 
 	if(c->has_00 || c->has_0s)
-	  drc3jj(ll2,ll3,0,0,&lmin_00,&lmax_00,wigner_00,2*(c->lmax_mask+1));
+	  drc3jj_000(ll2,ll3,&lmin_00,&lmax_00,c->lfac,wigner_00,2*(c->lmax_mask+1));
 	if(c->has_0s || c->has_ss)
 	  drc3jj(ll2,ll3,c->s1,-c->s1,&lmin_ss1,&lmax_ss1,wigner_ss1,2*(c->lmax_mask+1));
         if(has_ss2)
@@ -521,6 +521,14 @@ nmt_master_calculator *nmt_compute_master_coefficients(int lmax, int lmax_mask,
     }
   }
 
+  int lmax_max = NMT_MAX(c->lmax, c->lmax_mask);
+  c->lfac = my_malloc(3*(lmax_max+1)*sizeof(double));
+  // Precompute log-factorial
+  c->lfac[0] = 0.0;
+  c->lfac[1] = 0.0;
+  for(ii=2;ii<3*(lmax_max+1);ii++)
+    c->lfac[ii] = c->lfac[ii-1]+log((double)(ii));
+
   if(l_toeplitz>0)
     populate_toeplitz(c, pcl_masks, l_toeplitz);
 
@@ -581,7 +589,7 @@ nmt_master_calculator *nmt_compute_master_coefficients(int lmax, int lmax_mask,
         }
 
         if(c->has_00 || c->has_0s)
-          drc3jj(ll2,ll3,0,0,&lmin_00,&lmax_00,wigner_00,2*(c->lmax_mask+1));
+	  drc3jj_000(ll2,ll3,&lmin_00,&lmax_00,c->lfac,wigner_00,2*(c->lmax_mask+1));
         if(c->has_0s || c->has_ss)
           drc3jj(ll2,ll3,c->s1,-c->s1,&lmin_ss1,&lmax_ss1,wigner_ss1,2*(c->lmax_mask+1));
         if(has_ss2)
@@ -803,6 +811,7 @@ void nmt_master_calculator_free(nmt_master_calculator *c)
     free(c->xi_pp);
     free(c->xi_mm);
   }
+  free(c->lfac);
   free(c);
 }
 

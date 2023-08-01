@@ -129,6 +129,58 @@ void end_rng(gsl_rng *rng)
   gsl_rng_free(rng);
 }
 
+int drc3jj_000(int il2,int il3,int *l1min_out,int *l1max_out,
+	       double *lfac,double *thrcof,int size)
+{
+  int ii,l1max,l1min,nfin;
+  l1max=il2+il3;
+  l1min=abs(il2-il3);
+  *l1max_out=l1max;
+  *l1min_out=l1min;
+
+  if(l1max-l1min<0) //Check for meaningful values
+    report_error(NMT_ERROR_WIG3J,"WTF?\n");
+
+  if(l1max==l1min) { //If it's only one value:
+    int sign2=1;
+    if(l1min & 1)
+      sign2=-1;
+    thrcof[0]=sign2/sqrt((double)(l1min+il2+il3+1));
+    return 0;
+  }
+
+  nfin=l1max-l1min+1;
+  if(nfin>size) {//Check there's enough space
+    report_error(NMT_ERROR_WIG3J,"Output array is too small %d\n",nfin);
+    return 2;
+  }
+
+  for(ii=0;ii<nfin;ii++) {
+    int il1=l1min+ii;
+    int J=il1+il2+il3;
+    int g,sign;
+    double lth;
+    if(J&1) { //Odd, continue
+      thrcof[ii]=0;
+      continue;
+    }
+
+    //g=J/2
+    g=J>>1;
+
+    // Overall sign
+    if(g&1)
+      sign=-1;
+    else
+      sign=1;
+
+    lth = 0.5*(lfac[J-2*il1]+lfac[J-2*il2]+lfac[J-2*il3]-lfac[J+1]);
+    lth += lfac[g]-lfac[g-il1]-lfac[g-il2]-lfac[g-il3];
+    thrcof[ii]=sign*exp(lth);
+  }
+  return 0;
+}
+
 //Returns all non-zero wigner-3j symbols
 // il2 (in) : l2
 // il3 (in) : l3
