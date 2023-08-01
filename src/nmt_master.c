@@ -1311,7 +1311,8 @@ nmt_workspace *nmt_compute_power_spectra(nmt_field *fl1,nmt_field *fl2,
     cl_data[ii]=my_calloc((fl1->lmax+1),sizeof(flouble));
   }
   nmt_compute_coupled_cell(fl1,fl2,cl_data);
-  nmt_compute_deprojection_bias(fl1,fl2,cl_proposal,cl_bias,niter);
+  if(!(fl1->lite || fl2->lite))
+    nmt_compute_deprojection_bias(fl1,fl2,cl_proposal,cl_bias,niter);
   nmt_decouple_cl_l(w,cl_data,cl_noise,cl_bias,cl_out);
   for(ii=0;ii<w->ncls;ii++) {
     free(cl_bias[ii]);
