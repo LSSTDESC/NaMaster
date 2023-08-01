@@ -959,6 +959,7 @@ typedef struct {
   int has_ss;
   flouble ****xi_pp;
   flouble ****xi_mm;
+  double *lfac;
   int pure_e1;
   int pure_e2;
   int pure_b1;

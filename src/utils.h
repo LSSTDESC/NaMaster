@@ -182,6 +182,29 @@ int drc3jj(int il2,int il3,int im2, int im3,int *l1min_out,
 	   int *l1max_out,double *thrcof,int size);
 
 /**
+ * @brief Wigner 3-j symbols
+ *
+ * Returns all non-zero wigner-3j symbols with m=0
+ * \f[
+ *    \left(
+ *    \begin{array}{ccc}
+ *      \ell_1 & \ell_2 & \ell_3 \\
+ *      0      & 0      & 0
+ *     \end{array}
+ *     \right),
+ * \f]
+ * for
+ * @param il2 =\f$\ell_2\f$
+ * @param il3 =\f$\ell_3\f$
+ * @param l1min_out Minimum value of \f$\ell_1\f$ allowed by selection rules (output).
+ * @param l1max_out Maximum value of \f$\ell_1\f$ allowed by selection rules (output).
+ * @param thrcof Output array that will contain the values of the wigner-3j symbols for \p l1min_out \f$\leq\ell_1\leq\f$ \p l1max_out.
+ * @param size Number of elements allocated for thrcof.
+ */
+int drc3jj_000(int il2,int il3,int *l1min_out,int *l1max_out,
+	       double *lfac,double *thrcof,int size);
+
+/**
  * @brief Moore-Penrose pseudo-inverse.
  *
  * Returns the <a href="https://en.wikipedia.org/wiki/Moore%E2%80%93Penrose_inverse">Moore-Penrose pseudo-inverse</a>.
