@@ -368,8 +368,7 @@ int drc3jj(int il2,int il3,int im2, int im3,int *l1min_out,
 	sumuni=sum1;
       
       cnorm=1./sqrt(sumuni);
-      if(thrcof[nfin-1]<0) sign1=-1;
-      else sign1=1;
+      sign1 = copysign(1., thrcof[nfin-1]);
       
       if(sign1*sign2<=0)
 	cnorm=-cnorm;
