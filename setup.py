@@ -115,5 +115,6 @@ setup(name="pymaster",
           'Operating System :: Unix',
           'Operating System :: MacOS'],
       packages=['pymaster'],
+      install_requires=['scipy', 'numpy', 'healpy'],
       ext_modules=[_nmtlib],
       )
