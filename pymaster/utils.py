@@ -1,5 +1,38 @@
 from pymaster import nmtlib as lib
 import numpy as np
+import os
+import healpy as hp
+
+
+def _setenv(name, value, keep=False):
+    """Set the named environment variable to the given value. If keep==False
+    (the default), existing values are overwritten. If the value is None, then
+    it's deleted from the environment. If keep==True, then this function does
+    nothing if the variable already has a value."""
+    if name in os.environ and keep:
+        return
+    elif name in os.environ and value is None:
+        del os.environ[name]
+    elif value is not None:
+        os.environ[name] = str(value)
+
+
+def _getenv(name, default=None):
+    """Return the value of the named environment variable, or default
+    if it's not set"""
+    try:
+        return os.environ[name]
+    except KeyError:
+        return default
+
+
+# From pixell:
+# Initialize DUCC's thread num variable from OMP's if it's not already set.
+# This must be done before importing ducc0 for the first time. Doing this
+# limits wasted memory from ducc allocating too big a thread pool. For computes
+# with many cores, this can save GBs of memory.
+_setenv("DUCC0_NUM_THREADS", _getenv("OMP_NUM_THREADS"), keep=True)
+import ducc0  # noqa
 
 
 class NmtWCSTranslator(object):
@@ -322,3 +355,79 @@ def synfast_flat(nx, ny, lx, ly, cls, spin_arr, beam=None, seed=-1):
     maps = data.reshape([nmaps, ny, nx])
 
     return maps
+
+
+def moore_penrose_pinvh(self, mat, w_thr):
+    if (w_thr is None) or (w_thr <= 0):
+        return np.linalg.inv(mat)
+
+    w, v = np.linalg.eigh(mat)
+    badw = w < w_thr*np.max(w)
+    w_inv = 1./w
+    w_inv[badw] = 0.
+    pinv = np.dot(v, np.dot(np.diag(w_inv), v.T))
+    return pinv
+
+
+def _ducc_kwargs(spin, map_info, alm_info):
+    kwargs = {'spin': spin, 'theta': map_info.theta, 'nphi': map_info.nphi,
+              'phi0': map_info.phi0, 'ringstart': map_info.offsets,
+              'lmax': alm_info.lmax, 'mmax': alm_info.mmax,
+              'mstart': alm_info.mstart, 'nthreads': 0}
+    return kwargs
+
+
+def _alm2map_ducc0(alm, spin, map_info, alm_info):
+    kwargs = _ducc_kwargs(spin, map_info, alm_info)
+    alm = ducc0.sht.experimental.synthesis(alm=alm, **kwargs)
+    return alm
+
+
+def _map2alm_ducc0(map, spin, map_info, alm_info):
+    kwargs = _ducc_kwargs(spin, map_info, alm_info)
+    alm = ducc0.sht.experimental.adjoint_synthesis(
+        map=map*map_info.pix_area, **kwargs)
+    return alm
+
+
+def _alm2map_healpy(alm, spin, map_info, alm_info):
+    kwargs = {'lmax': alm_info.lmax, 'mmax': alm_info.mmax}
+    if spin == 0:
+        map = [hp.alm2map(alm, mside=map_info.nside, verbose=False,
+                          **kwargs)]
+    else:
+        map = hp.alm2map_spin(alm, map_info.nside, spin, **kwargs)
+    return np.array(map)
+
+
+def _map2alm_healpy(map, spin, map_info, alm_info):
+    kwargs = {'lmax': alm_info.lmax, 'mmax': alm_info.mmax}
+    if spin == 0:
+        alm = [hp.map2alm(map, **kwargs)]
+    else:
+        alm = hp.map2alm_spin(map, spin, **kwargs)
+    return np.array(alm)
+
+
+_m2a_d = {'ducc': _map2alm_ducc0,
+          'healpy': _map2alm_healpy}
+_a2m_d = {'ducc': _alm2map_ducc0,
+          'healpy': _alm2map_healpy}
+
+
+def map2alm(map, spin, map_info, alm_info, n_iter=0,
+            sht_calculator='ducc'):
+    m2a = _m2a_d[sht_calculator]
+    a2m = _a2m_d[sht_calculator]
+    alm = m2a(map, spin, map_info, alm_info)
+    for i in range(n_iter):
+        dmap = a2m(alm, spin, map_info, alm_info)-map
+        alm -= m2a(dmap, spin, map_info, alm_info)
+    return alm
+
+
+def alm2map(alm, spin, map_info, alm_info,
+            sht_calculator='ducc'):
+    a2m = _a2m_d[sht_calculator]
+    map = a2m(alm, spin, map_info, alm_info)
+    return map

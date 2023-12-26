@@ -55,8 +55,10 @@ from pymaster.utils import (  # noqa
     mask_apodization_flat,
     synfast_spherical,
     synfast_flat,
+    moore_penrose_pinvh,
+    map2alm, alm2map,
 )
-from pymaster.field import NmtField, NmtFieldFlat  # noqa
+from pymaster.field import NmtFieldExp, NmtField, NmtFieldFlat  # noqa
 from pymaster.bins import NmtBin, NmtBinFlat  # noqa
 from pymaster.workspaces import (  # noqa
     NmtWorkspace,

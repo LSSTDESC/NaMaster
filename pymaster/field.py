@@ -1,6 +1,304 @@
 from pymaster import nmtlib as lib
 import numpy as np
-from pymaster.utils import NmtWCSTranslator
+import healpy as hp
+import pymaster.utils as ut
+
+
+class HealpixInfo(object):
+    def __init__(self, nside=None, npix=None, map=None):
+        if nside is not None:
+            self.nside = nside
+            self.npix = 12*nside*nside
+        else:
+            if npix is None:
+                npix = len(map)
+            nside = np.sqrt(npix / 12.0)
+            if nside != np.floor(nside):
+                raise ValueError("Wrong number of pixels for HEALPix map")
+            self.nside = int(nside)
+            self.npix = npix
+
+        rings = np.arange(4*self.nside-1)
+        self.nring = len(rings)
+        self.theta = np.zeros(self.nring, np.float64)
+        self.phi0 = np.zeros(self.nring, np.float64)
+        self.nphi = np.zeros(self.nring, np.uint64)
+        rings = rings+1
+        northrings = np.where(rings > 2*self.nside,
+                              4*self.nside-rings,
+                              rings)
+        # Handle polar cap
+        cap = np.where(northrings < self.nside)[0]
+        self.theta[cap] = 2*np.arcsin(northrings[cap]/(6**0.5*self.nside))
+        self.nphi[cap] = 4*northrings[cap]
+        self.phi0[cap] = np.pi/(4*northrings[cap])
+        # Handle rest
+        rest = np.where(northrings >= self.nside)[0]
+        self.theta[rest] = np.arccos((2*self.nside-northrings[rest]) *
+                                     (8*self.nside/self.npix))
+        self.nphi[rest] = 4*self.nside
+        self.phi0[rest] = np.pi/(4*self.nside) * \
+            (((northrings[rest]-self.nside) & 1) == 0)
+        # Above assumed northern hemisphere. Fix southern
+        south = np.where(northrings != rings)[0]
+        self.theta[south] = np.pi-self.theta[south]
+        # Compute the starting point of each ring
+        off = np.cumsum(self.nphi)
+        off = np.concatenate([[0], off[:-1]])
+        self.offsets = off.astype(np.uint64, copy=False)
+        self.pix_area = 4*np.pi/self.npix
+
+    def dot_map(self, m1, m2):
+        return np.sum(m1*m2)*self.pix_area
+
+
+class AlmInfo(object):
+    def __init__(self, lmax):
+        self.lmax = lmax
+        self.mmax = self.lmax
+        m = np.arange(self.mmax+1)
+        self.mstart = (m*(2*self.lmax+1-m)//2).astype(np.uint64, copy=False)
+        self.nelem = int(np.max(self.mstart) + (self.lmax+1))
+
+
+class NmtFieldExp(object):
+    def __init__(self, mask, maps, spin=None, templates=None, beam=None,
+                 purify_e=False, purify_b=False, n_iter_mask_purify=3,
+                 tol_pinv=1E-10, n_iter=3, lmax_sht=-1,
+                 masked_on_input=False, lite=False):
+        # 0. Preliminary initializations
+        self.lite = lite
+        self.maps = None
+        self.alm = None
+        self.temp = None
+        self.alm_temp = None
+        self.beam = None
+
+        # 1. Store mask
+        # This ensures the mask will have the right type
+        # and endianness (can cause issues when read from
+        # some FITS files).
+        mask = mask.astype(np.float64)
+        self.mask = mask
+        self.map_info = HealpixInfo(map=self.mask)
+        if lmax_sht > 0:
+            lmax = lmax_sht
+        else:
+            lmax = 3*self.map_info.nside-1
+        self.alm_info = AlmInfo(lmax)
+
+        # If mask-only, just return
+        if maps is None:
+            if spin is None:
+                raise ValueError("Please supply field spin")
+            self.spin = spin
+            return
+
+        # 2. Check maps
+        # As for the mask, ensure dtype is float to avoid
+        # issues when reading the map from a fits file
+        maps = np.array(maps, dtype=np.float64)
+        if (len(maps) != 1) and (len(maps) != 2):
+            raise ValueError("Must supply 1 or 2 maps per field")
+
+        if spin is None:
+            if len(maps) == 1:
+                spin = 0
+            else:
+                spin = 2
+        else:
+            if (((spin != 0) and len(maps) == 1) or
+                    ((spin == 0) and len(maps) != 1)):
+                raise ValueError("Spin-zero fields are "
+                                 "associated with a single map")
+        self.spin = spin
+
+        if len(maps[0]) != len(mask):
+            raise ValueError("All maps must have the same resolution")
+
+        pure_any = purify_e or purify_b
+        if pure_any and self.spin != 2:
+            raise ValueError("Purification only implemented for spin-2 fields")
+        self.pure_e = purify_e
+        self.pure_b = purify_b
+
+        # 3. Check templates
+        if isinstance(templates, (list, tuple, np.ndarray)):
+            templates = np.array(templates, dtype=np.float64)
+            if (len(templates[0]) != 1) and (len(templates[0]) != 2):
+                raise ValueError("Must supply 1 or 2 maps per field")
+
+            if len(templates[0][0]) != len(mask):
+                raise ValueError("All maps must have the same resolution")
+        else:
+            if templates is not None:
+                raise ValueError("Input templates can only be an array "
+                                 "or None")
+        w_temp = templates is not None
+
+        # 4. Temporarily store unmasked maps if purifying
+        maps_unmasked = None
+        temp_unmasked = None
+        if pure_any:
+            maps_unmasked = np.array(maps)
+            if w_temp:
+                temp_unmasked = np.array(templates)
+            if masked_on_input:
+                good = mask > 0
+                goodm = mask[good]
+                maps_unmasked[:, good] /= goodm[None, :]
+                if w_temp:
+                    temp_unmasked[:, :, good] /= goodm[None, None, :]
+
+        # 5. Mask all maps
+        maps = np.array(maps)
+        if w_temp:
+            templates = np.array(templates)
+        if not masked_on_input:
+            maps *= self.mask[None, :]
+            if w_temp:
+                templates *= self.mask[None, None, :]
+
+        # 6. Compute template normalization matrix and deproject
+        if w_temp:
+            M = np.array([[self.map_info.dot_map(t1, t2)
+                           for t1 in templates]
+                          for t2 in templates])
+            iM = ut.moore_penrose_pinvh(M, tol_pinv)
+            prods = np.array([self.map_info.dot_map(t, maps)
+                              for t in templates])
+            alphas = np.dot(iM, prods)
+            self.alphas = alphas
+            maps = maps - np.sum(alphas[:, None, None]*templates,
+                                 axis=0)
+            # Do it also for unmasked maps if needed
+            if pure_any:
+                maps_unmasked = maps_unmasked - \
+                    np.sum(alphas[:, None, None]*temp_unmasked, axis=0)
+
+        # 7. Compute alms
+        # - If purifying, do so at the same time.
+        alm_temp = None
+        if pure_any:
+            task = [self.pure_e, self.pure_b]
+            alm_mask = ut.map2alm(np.array([mask]), 0, self.map_info,
+                                  self.alm_info, n_iter=n_iter_mask_purify)[0]
+            maps, self.alm = self._purify(mask, alm_mask, maps_unmasked,
+                                          n_iter=n_iter, task=task)
+            if w_temp and (not self.lite):
+                alm_temp = np.array([self._purify(mask, alm_mask, t,
+                                                  n_iter=n_iter,
+                                                  task=task)[1]
+                                     for t in temp_unmasked])
+                # IMPORTANT: at this stage, maps and self.alm contain the
+                # purified map and SH coefficients. However, although alm_temp
+                # contains the purified SH coefficients, templates contains the
+                # ***non-purified*** maps. This is to speed up the calculation
+                # of the deprojection bias.
+        else:
+            self.alm = ut.map2alm(maps, self.spin, self.map_info,
+                                  self.alm_info, n_iter=n_iter)
+            if w_temp and (not self.lite):
+                alm_temp = np.array([ut.map2alm(t, self.spin, self.map_info,
+                                                self.alm_info, n_iter=n_iter)
+                                     for t in templates])
+
+        # 8. Store any additional information needed
+        # - Maps
+        if not self.lite:
+            self.maps = maps.copy()
+            if w_temp:
+                self.temp = templates.copy()
+                self.alm_temp = alm_temp
+        # - Beam
+        if isinstance(beam, (list, tuple, np.ndarray)):
+            if len(beam) <= lmax:
+                raise ValueError("Input beam must have at least %d elements "
+                                 "given the input map resolution" % (lmax+1))
+            beam_use = beam
+        else:
+            if beam is None:
+                beam_use = np.ones(lmax+1)
+            else:
+                raise ValueError("Input beam can only be an array or None\n")
+        self.beam = beam_use
+
+    def get_mask(self):
+        return self.mask
+
+    def get_maps(self):
+        if self.lite:
+            raise ValueError("Input maps unavailable for lightweight fields")
+        return self.maps
+
+    def get_alms(self):
+        return self.alm
+
+    def get_templates(self):
+        if self.lite:
+            raise ValueError("Input maps unavailable for lightweight fields")
+        return self.temp
+
+    def _purify(self, mask, alm_mask, maps_u, n_iter, task=[False, True]):
+        # 1. Spin-0 mask bit
+        # Multiply by mask
+        maps = maps_u*mask[None, :]
+        # Compute alms
+        alms = ut.map2alm(maps, 2, self.map_info,
+                          self.alm_info, n_iter=n_iter)
+
+        # 2. Spin-1 mask bit
+        # Compute spin-1 mask
+        ls = np.arange(self.alm_info.lmax+1)
+        # The minus sign is because of the definition of E-modes
+        fl = -np.sqrt((ls+1.0)*ls)
+        walm = hp.almxfl(alm_mask, fl,
+                         mmax=self.alm_info.mmax)
+        walm = np.array([walm, walm*0])
+        wmap = ut.alm2map(walm, 1, self.map_info, self.alm_info)
+        # Product with spin-1 mask
+        maps = np.array([wmap[0]*maps_u[0]+wmap[1]*maps_u[1],
+                         wmap[0]*maps_u[1]-wmap[1]*maps_u[0]])
+        # Compute SHT, multiply by
+        # 2*sqrt((l+1)!(l-2)!/((l-1)!(l+2)!)) and add to alms
+        palm = ut.map2alm(maps, 1, self.map_info,
+                          self.alm_info, n_iter=n_iter)
+        fl[2:] = 2/np.sqrt((ls[2:]+2.0)*(ls[2:]-1.0))
+        fl[:2] = 0
+        for ipol, purify in enumerate(task):
+            if purify:
+                alms[ipol] += hp.almxfl(palm[ipol], fl,
+                                        mmax=self.alm_info.mmax)
+
+        # 3. Spin-2 mask bit
+        # Compute spin-0 mask
+        # The extra minus sign is because of the scalar SHT below
+        # (E-mode definition for spin=0).
+        fl[2:] = -np.sqrt((ls[2:]+2.0)*(ls[2:]-1.0))
+        fl[:2] = 0
+        walm[0] = hp.almxfl(walm[0], fl, mmax=self.alm_info.mmax)
+        wmap = ut.alm2map(walm, 2, self.map_info, self.alm_info)
+        # Product with spin-2 mask
+        maps = np.array([wmap[0]*maps_u[0]+wmap[1]*maps_u[1],
+                         wmap[0]*maps_u[1]-wmap[1]*maps_u[0]])
+        # Compute SHT, multiply by
+        # sqrt((l-2)!/(l+2)!) and add to alms
+        palm = np.array([ut.map2alm(np.array([m]), 0, self.map_info,
+                                    self.alm_info, n_iter=n_iter)
+                         for m in maps])
+        fl[2:] = 1/np.sqrt((ls[2:]+2.0)*(ls[2:]+1.0) *
+                           ls[2:]*(ls[2:]-1))
+        fl[:2] = 0
+        for ipol, purify in enumerate(task):
+            if purify:
+                alms[ipol] += hp.almxfl(palm[ipol], fl,
+                                        mmax=self.alm_info.mmax)
+
+        # 4. Compute purified map
+        # TODO: is this ever necessary, other than to visualize
+        # the pure map?
+        maps = ut.alm2map(alms, 2, self.map_info, self.alm_info)
+        return alms, maps
 
 
 class NmtField(object):
@@ -88,7 +386,7 @@ class NmtField(object):
         # some FITS files).
         mask = mask.astype(float)
 
-        wt = NmtWCSTranslator(wcs, mask.shape)
+        wt = ut.NmtWCSTranslator(wcs, mask.shape)
         if wt.is_healpix == 0:
             if wt.flip_th:
                 mask = mask[::-1, :]
