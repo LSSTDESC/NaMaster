@@ -35,6 +35,75 @@ _setenv("DUCC0_NUM_THREADS", _getenv("OMP_NUM_THREADS"), keep=True)
 import ducc0  # noqa
 
 
+class _NmtMapInfo(object):
+    def __init__(self, nring, theta, phi0, nphi, weight):
+        self.nring = nring
+        self.theta = theta
+        self.phi0 = phi0
+        self.nphi = nphi
+        # Compute the starting point of each ring
+        off = np.cumsum(nphi)
+        off = np.concatenate([[0], off[:-1]])
+        self.offsets = off.astype(np.uint64, copy=False)
+        self.weight = weight
+
+    @classmethod
+    def from_rectpix(cls, n_theta, theta_min, d_theta,
+                     n_phi, d_phi, phi0):
+        th = theta_min + np.arange(n_theta+1)*d_theta
+        nring = n_theta
+        theta = th[:-1].astype(np.float64)
+        phi0 = np.zeros(n_theta, dtype=np.float64)+phi0
+        nphi = np.zeros(n_theta, dtype=np.uint64)+n_phi
+
+        # CC weights according to ducc0
+        i_theta_0 = int(theta_min/d_theta+0.5)
+        nth_full = int(np.pi/d_theta+0.5)
+        w = ducc0.sht.experimental.get_gridweights('CC', nth_full)
+        w *= d_phi/(2*np.pi)
+        weight = (w[i_theta_0:i_theta_0+n_theta])[:, None]
+        # Alternatively, we could use the pixel area as below
+        # pixarea = (np.cos(th[:-1])-np.cos(theta[1:]))*d_phi
+        # weight = pixarea[:, None]
+
+        return cls(nring=nring, theta=theta, phi0=phi0,
+                   nphi=nphi, weight=weight)
+
+    @classmethod
+    def from_nside(cls, nside):
+        npix = 12*nside*nside
+        rings = np.arange(4*nside-1)
+        nring = len(rings)
+        theta = np.zeros(nring, np.float64)
+        phi0 = np.zeros(nring, np.float64)
+        nphi = np.zeros(nring, np.uint64)
+        rings = rings+1
+        northrings = np.where(rings > 2*nside,
+                              4*nside-rings,
+                              rings)
+        # Handle polar cap
+        cap = np.where(northrings < nside)[0]
+        theta[cap] = 2*np.arcsin(northrings[cap]/(6**0.5*nside))
+        nphi[cap] = 4*northrings[cap]
+        phi0[cap] = np.pi/(4*northrings[cap])
+        # Handle rest
+        rest = np.where(northrings >= nside)[0]
+        theta[rest] = np.arccos((2*nside-northrings[rest]) *
+                                (8*nside/npix))
+        nphi[rest] = 4*nside
+        phi0[rest] = np.pi/(4*nside) * \
+            (((northrings[rest]-nside) & 1) == 0)
+        # Above assumed northern hemisphere. Fix southern
+        south = np.where(northrings != rings)[0]
+        theta[south] = np.pi-theta[south]
+        weight = 4*np.pi/npix
+        return cls(nring=nring, theta=theta, phi0=phi0,
+                   nphi=nphi, weight=weight)
+
+    def dot_map(self, m1, m2):
+        return np.sum(m1*m2*self.weight)
+
+
 class NmtWCSTranslator(object):
     """
     This class takes care of interpreting a WCS object in \
@@ -64,6 +133,7 @@ class NmtWCSTranslator(object):
             dph = -1
             nx = -1
             ny = -1
+            minfo = _NmtMapInfo.from_nside(nside)
         else:
             is_healpix = 0
             nside = -1
@@ -126,6 +196,9 @@ class NmtWCSTranslator(object):
                 raise ValueError("Seems like you're wrapping the "
                                  "sphere more than once")
 
+            minfo = _NmtMapInfo.from_rectpix(ny, theta_min, dth,
+                                             nx, dph, phi0)
+
         # Store values
         self.is_healpix = is_healpix
         self.nside = nside
@@ -139,6 +212,7 @@ class NmtWCSTranslator(object):
         self.d_theta = dth
         self.d_phi = dph
         self.phi0 = phi0
+        self.minfo = minfo
 
     def get_lmax(self):
         return lib.get_lmax_py(self.is_healpix, self.nside, self.nx, self.ny,

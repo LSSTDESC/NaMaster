@@ -4,54 +4,6 @@ import healpy as hp
 import pymaster.utils as ut
 
 
-class HealpixInfo(object):
-    def __init__(self, nside=None, npix=None, map=None):
-        if nside is not None:
-            self.nside = nside
-            self.npix = 12*nside*nside
-        else:
-            if npix is None:
-                npix = len(map)
-            nside = np.sqrt(npix / 12.0)
-            if nside != np.floor(nside):
-                raise ValueError("Wrong number of pixels for HEALPix map")
-            self.nside = int(nside)
-            self.npix = npix
-
-        rings = np.arange(4*self.nside-1)
-        self.nring = len(rings)
-        self.theta = np.zeros(self.nring, np.float64)
-        self.phi0 = np.zeros(self.nring, np.float64)
-        self.nphi = np.zeros(self.nring, np.uint64)
-        rings = rings+1
-        northrings = np.where(rings > 2*self.nside,
-                              4*self.nside-rings,
-                              rings)
-        # Handle polar cap
-        cap = np.where(northrings < self.nside)[0]
-        self.theta[cap] = 2*np.arcsin(northrings[cap]/(6**0.5*self.nside))
-        self.nphi[cap] = 4*northrings[cap]
-        self.phi0[cap] = np.pi/(4*northrings[cap])
-        # Handle rest
-        rest = np.where(northrings >= self.nside)[0]
-        self.theta[rest] = np.arccos((2*self.nside-northrings[rest]) *
-                                     (8*self.nside/self.npix))
-        self.nphi[rest] = 4*self.nside
-        self.phi0[rest] = np.pi/(4*self.nside) * \
-            (((northrings[rest]-self.nside) & 1) == 0)
-        # Above assumed northern hemisphere. Fix southern
-        south = np.where(northrings != rings)[0]
-        self.theta[south] = np.pi-self.theta[south]
-        # Compute the starting point of each ring
-        off = np.cumsum(self.nphi)
-        off = np.concatenate([[0], off[:-1]])
-        self.offsets = off.astype(np.uint64, copy=False)
-        self.pix_area = 4*np.pi/self.npix
-
-    def dot_map(self, m1, m2):
-        return np.sum(m1*m2)*self.pix_area
-
-
 class AlmInfo(object):
     def __init__(self, lmax):
         self.lmax = lmax
@@ -64,7 +16,7 @@ class AlmInfo(object):
 class NmtFieldExp(object):
     def __init__(self, mask, maps, spin=None, templates=None, beam=None,
                  purify_e=False, purify_b=False, n_iter_mask_purify=3,
-                 tol_pinv=1E-10, n_iter=3, lmax_sht=-1,
+                 tol_pinv=1E-10, wcs=None, n_iter=3, lmax_sht=-1,
                  masked_on_input=False, lite=False):
         # 0. Preliminary initializations
         self.lite = lite
@@ -79,13 +31,13 @@ class NmtFieldExp(object):
         # and endianness (can cause issues when read from
         # some FITS files).
         mask = mask.astype(np.float64)
+        self.wt = ut.NmtWCSTranslator(wcs, mask.shape)
         self.mask = mask
-        self.map_info = HealpixInfo(map=self.mask)
         if lmax_sht > 0:
             lmax = lmax_sht
         else:
-            lmax = 3*self.map_info.nside-1
-        self.alm_info = AlmInfo(lmax)
+            lmax = 3*self.wt.minfo.nside-1
+        self.ainfo = AlmInfo(lmax)
 
         # If mask-only, just return
         if maps is None:
@@ -161,11 +113,11 @@ class NmtFieldExp(object):
 
         # 6. Compute template normalization matrix and deproject
         if w_temp:
-            M = np.array([[self.map_info.dot_map(t1, t2)
+            M = np.array([[self.wt.minfo.dot_map(t1, t2)
                            for t1 in templates]
                           for t2 in templates])
             iM = ut.moore_penrose_pinvh(M, tol_pinv)
-            prods = np.array([self.map_info.dot_map(t, maps)
+            prods = np.array([self.wt.minfo.dot_map(t, maps)
                               for t in templates])
             alphas = np.dot(iM, prods)
             self.alphas = alphas
@@ -181,8 +133,8 @@ class NmtFieldExp(object):
         alm_temp = None
         if pure_any:
             task = [self.pure_e, self.pure_b]
-            alm_mask = ut.map2alm(np.array([mask]), 0, self.map_info,
-                                  self.alm_info, n_iter=n_iter_mask_purify)[0]
+            alm_mask = ut.map2alm(np.array([mask]), 0, self.wt.minfo,
+                                  self.ainfo, n_iter=n_iter_mask_purify)[0]
             maps, self.alm = self._purify(mask, alm_mask, maps_unmasked,
                                           n_iter=n_iter, task=task)
             if w_temp and (not self.lite):
@@ -196,11 +148,11 @@ class NmtFieldExp(object):
                 # ***non-purified*** maps. This is to speed up the calculation
                 # of the deprojection bias.
         else:
-            self.alm = ut.map2alm(maps, self.spin, self.map_info,
-                                  self.alm_info, n_iter=n_iter)
+            self.alm = ut.map2alm(maps, self.spin, self.wt.minfo,
+                                  self.ainfo, n_iter=n_iter)
             if w_temp and (not self.lite):
-                alm_temp = np.array([ut.map2alm(t, self.spin, self.map_info,
-                                                self.alm_info, n_iter=n_iter)
+                alm_temp = np.array([ut.map2alm(t, self.spin, self.wt.minfo,
+                                                self.ainfo, n_iter=n_iter)
                                      for t in templates])
 
         # 8. Store any additional information needed
@@ -244,31 +196,31 @@ class NmtFieldExp(object):
         # Multiply by mask
         maps = maps_u*mask[None, :]
         # Compute alms
-        alms = ut.map2alm(maps, 2, self.map_info,
-                          self.alm_info, n_iter=n_iter)
+        alms = ut.map2alm(maps, 2, self.wt.minfo,
+                          self.ainfo, n_iter=n_iter)
 
         # 2. Spin-1 mask bit
         # Compute spin-1 mask
-        ls = np.arange(self.alm_info.lmax+1)
+        ls = np.arange(self.ainfo.lmax+1)
         # The minus sign is because of the definition of E-modes
         fl = -np.sqrt((ls+1.0)*ls)
         walm = hp.almxfl(alm_mask, fl,
-                         mmax=self.alm_info.mmax)
+                         mmax=self.ainfo.mmax)
         walm = np.array([walm, walm*0])
-        wmap = ut.alm2map(walm, 1, self.map_info, self.alm_info)
+        wmap = ut.alm2map(walm, 1, self.wt.minfo, self.ainfo)
         # Product with spin-1 mask
         maps = np.array([wmap[0]*maps_u[0]+wmap[1]*maps_u[1],
                          wmap[0]*maps_u[1]-wmap[1]*maps_u[0]])
         # Compute SHT, multiply by
         # 2*sqrt((l+1)!(l-2)!/((l-1)!(l+2)!)) and add to alms
-        palm = ut.map2alm(maps, 1, self.map_info,
-                          self.alm_info, n_iter=n_iter)
+        palm = ut.map2alm(maps, 1, self.wt.minfo,
+                          self.ainfo, n_iter=n_iter)
         fl[2:] = 2/np.sqrt((ls[2:]+2.0)*(ls[2:]-1.0))
         fl[:2] = 0
         for ipol, purify in enumerate(task):
             if purify:
                 alms[ipol] += hp.almxfl(palm[ipol], fl,
-                                        mmax=self.alm_info.mmax)
+                                        mmax=self.ainfo.mmax)
 
         # 3. Spin-2 mask bit
         # Compute spin-0 mask
@@ -276,15 +228,15 @@ class NmtFieldExp(object):
         # (E-mode definition for spin=0).
         fl[2:] = -np.sqrt((ls[2:]+2.0)*(ls[2:]-1.0))
         fl[:2] = 0
-        walm[0] = hp.almxfl(walm[0], fl, mmax=self.alm_info.mmax)
-        wmap = ut.alm2map(walm, 2, self.map_info, self.alm_info)
+        walm[0] = hp.almxfl(walm[0], fl, mmax=self.ainfo.mmax)
+        wmap = ut.alm2map(walm, 2, self.wt.minfo, self.ainfo)
         # Product with spin-2 mask
         maps = np.array([wmap[0]*maps_u[0]+wmap[1]*maps_u[1],
                          wmap[0]*maps_u[1]-wmap[1]*maps_u[0]])
         # Compute SHT, multiply by
         # sqrt((l-2)!/(l+2)!) and add to alms
-        palm = np.array([ut.map2alm(np.array([m]), 0, self.map_info,
-                                    self.alm_info, n_iter=n_iter)
+        palm = np.array([ut.map2alm(np.array([m]), 0, self.wt.minfo,
+                                    self.ainfo, n_iter=n_iter)
                          for m in maps])
         fl[2:] = 1/np.sqrt((ls[2:]+2.0)*(ls[2:]+1.0) *
                            ls[2:]*(ls[2:]-1))
@@ -292,12 +244,12 @@ class NmtFieldExp(object):
         for ipol, purify in enumerate(task):
             if purify:
                 alms[ipol] += hp.almxfl(palm[ipol], fl,
-                                        mmax=self.alm_info.mmax)
+                                        mmax=self.ainfo.mmax)
 
         # 4. Compute purified map
         # TODO: is this ever necessary, other than to visualize
         # the pure map?
-        maps = ut.alm2map(alms, 2, self.map_info, self.alm_info)
+        maps = ut.alm2map(alms, 2, self.wt.minfo, self.ainfo)
         return alms, maps
 
 

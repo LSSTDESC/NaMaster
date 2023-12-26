@@ -38,6 +38,7 @@ jobs:
           pip install -U numpy
           pip install -U scipy
           pip install -U healpy
+          pip install -U ducc0
           pip install -U flake8
           pip install -U pytest
           pip install -U pytest-cov
