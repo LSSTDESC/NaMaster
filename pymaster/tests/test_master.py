@@ -19,15 +19,12 @@ class WorkspaceTester(object):
         self.lmax = 3*self.nside-1
         self.npix = int(hp.nside2npix(self.nside))
         self.msk = hp.read_map("test/benchmarks/msk.fits",
-                               verbose=False, dtype=float)
+                               dtype=float)
         self.mps = np.array(hp.read_map("test/benchmarks/mps.fits",
-                                        verbose=False,
                                         field=[0, 1, 2], dtype=float))
         self.mps_s1 = np.array(hp.read_map("test/benchmarks/mps_sp1.fits",
-                                           verbose=False,
                                            field=[0, 1, 2], dtype=float))
         self.tmp = np.array(hp.read_map("test/benchmarks/tmp.fits",
-                                        verbose=False,
                                         field=[0, 1, 2], dtype=float))
         self.b = nmt.NmtBin.from_nside_linear(self.nside, self.nlb)
         self.f0 = nmt.NmtField(self.msk,
@@ -508,7 +505,7 @@ def test_lite_errors():
             nmt.deprojection_bias(f0, f, np.zeros([1, 3*WT.nside]))
         with pytest.raises(RuntimeError):  # No deprojection bias
             nmt.uncorr_noise_deprojection_bias(fl, WT.mps[0])
-    with pytest.raises(RuntimeError):  # No C_l without maps
+    with pytest.raises(ValueError):  # No C_l without maps
         nmt.compute_coupled_cell(f0, fe)
 
 

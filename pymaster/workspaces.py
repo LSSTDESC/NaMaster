@@ -1,6 +1,7 @@
 from pymaster import nmtlib as lib
 from pymaster.utils import _toeplitz_sanity
 import numpy as np
+import healpy as hp
 
 
 class NmtWorkspace(object):
@@ -484,15 +485,14 @@ def compute_coupled_cell(f1, f2):
     :param NmtField f1,f2: fields to correlate
     :return: array of coupled power spectra
     """
-    if f1.fl.cs.n_eq != f2.fl.cs.n_eq:
-        raise ValueError("Fields must have same resolution")
-
-    cl1d = lib.comp_pspec_coupled(
-        f1.fl, f2.fl, f1.fl.nmaps * f2.fl.nmaps * (f1.fl.lmax + 1)
-    )
-    clout = np.reshape(cl1d, [f1.fl.nmaps * f2.fl.nmaps, f1.fl.lmax + 1])
-
-    return clout
+    alm1 = f1.get_alms()
+    alm2 = f2.get_alms()
+    ncl = len(alm1) * len(alm2)
+    lmax = min(f1.ainfo.lmax, f2.ainfo.lmax)
+    cls = np.array([[hp.alm2cl(a1, a2, lmax=lmax)
+                     for a2 in alm2] for a1 in alm1])
+    cls = cls.reshape([ncl, lmax+1])
+    return cls
 
 
 def compute_coupled_cell_flat(f1, f2, b, ell_cut_x=[1., -1.],

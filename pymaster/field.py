@@ -41,7 +41,7 @@ class NmtFieldExp(object):
         if lmax_sht > 0:
             lmax = lmax_sht
         else:
-            lmax = wt.get_lmax()
+            lmax = self.wt.get_lmax()
         self.ainfo = AlmInfo(lmax)
 
         # Beam
@@ -186,6 +186,8 @@ class NmtFieldExp(object):
         return self.maps
 
     def get_alms(self):
+        if self.alm is None:
+            raise ValueError("Mask-only fields have no alms")
         return self.alm
 
     def get_templates(self):
@@ -416,6 +418,7 @@ class NmtField(object):
             lmax = lmax_sht
         else:
             lmax = wt.get_lmax()
+        self.ainfo = AlmInfo(lmax)
 
         if isinstance(beam, (list, tuple, np.ndarray)):
             if len(beam) <= lmax:
@@ -454,6 +457,7 @@ class NmtField(object):
                     mask, maps, beam_use, pure_e, pure_b, n_iter_mask_purify,
                     n_iter, masked_input, int(lite))
         self.lite = lite
+        self.mask_only = mask_only
 
     def __del__(self):
         if self.fl is not None:
@@ -494,8 +498,8 @@ class NmtField(object):
 
         :return: 2D array of alms
         """
-        if self.lite:
-            raise ValueError("Alms unavailable for lightweight fields")
+        if self.mask_only:
+            raise ValueError("Alms unavailable for mask-only fields")
         alms = []
         for imap in range(self.fl.nmaps):
             alms.append(lib.get_alms(self.fl, imap, int(2*self.fl.nalms)))
