@@ -36,11 +36,15 @@ import ducc0  # noqa
 
 
 class _NmtMapInfo(object):
-    def __init__(self, nring, theta, phi0, nphi, weight):
+    def __init__(self, nring, theta, phi0, nphi, weight,
+                 is_CAR=False, nx_short=-1, nx_full=-1):
         self.nring = nring
         self.theta = theta
         self.phi0 = phi0
         self.nphi = nphi
+        self.is_CAR = is_CAR
+        self.nx_short = nx_short
+        self.nx_full = nx_full
         # Compute the starting point of each ring
         off = np.cumsum(nphi)
         off = np.concatenate([[0], off[:-1]])
@@ -54,20 +58,22 @@ class _NmtMapInfo(object):
         nring = n_theta
         theta = th[:-1].astype(np.float64)
         phi0 = np.zeros(n_theta, dtype=np.float64)+phi0
-        nphi = np.zeros(n_theta, dtype=np.uint64)+n_phi
+        nx_short = n_phi
+        nx_full = int(2*np.pi/d_phi)
+        nphi = np.zeros(n_theta, dtype=np.uint64)+nx_full
 
         # CC weights according to ducc0
         i_theta_0 = int(theta_min/d_theta+0.5)
         nth_full = int(np.pi/d_theta+0.5)
         w = ducc0.sht.experimental.get_gridweights('CC', nth_full)
         w *= d_phi/(2*np.pi)
-        weight = (w[i_theta_0:i_theta_0+n_theta])[:, None]
+        weight_th = w[i_theta_0:i_theta_0+n_theta]
         # Alternatively, we could use the pixel area as below
-        # pixarea = (np.cos(th[:-1])-np.cos(theta[1:]))*d_phi
-        # weight = pixarea[:, None]
+        # weight_th = (np.cos(th[:-1])-np.cos(th[1:]))*d_phi
 
         return cls(nring=nring, theta=theta, phi0=phi0,
-                   nphi=nphi, weight=weight)
+                   nphi=nphi, weight=weight_th, is_CAR=True,
+                   nx_short=nx_short, nx_full=nx_full)
 
     @classmethod
     def from_nside(cls, nside):
@@ -100,8 +106,45 @@ class _NmtMapInfo(object):
         return cls(nring=nring, theta=theta, phi0=phi0,
                    nphi=nphi, weight=weight)
 
+    def pad_map(self, maps):
+        if not self.is_CAR:
+            return maps
+        # Shapes
+        pre = maps.shape[:-1]
+        shape_short = pre + (self.nring, self.nx_short)
+        shape_pad = pre + (self.nring, self.nx_full)
+        shape_flat = pre + (self.nring*self.nx_full,)
+        # Init to zero
+        maps_pad = np.zeros(shape_pad)
+        # Copy over
+        maps_pad[..., :self.nx_short] = maps.reshape(shape_short)
+        # Flatten
+        maps_pad = maps_pad.reshape(shape_flat)
+        return maps_pad
+
+    def unpad_map(self, maps):
+        if not self.is_CAR:
+            return maps
+        pre = maps.shape[:-1]
+        shape_pad = pre + (self.nring, self.nx_full)
+        shape_flat = pre + (self.nring*self.nx_short,)
+        maps_unpad = maps.reshape(shape_pad)[..., :self.nx_short]
+        return maps_unpad.reshape(shape_flat)
+
+    def times_weight(self, m):
+        if self.is_CAR:  # Weight depends on theta
+            npix = m.shape[-1]
+            nx = npix // self.nring
+            pre = m.shape[:-1]
+            shape_2d = pre + (self.nring, nx)
+            shape_flat = pre + (self.nring*nx,)
+            return (m.reshape(shape_2d) *
+                    self.weight[:, None]).reshape(shape_flat)
+        else:  # Weight is constant in healpix
+            return m*self.weight
+
     def dot_map(self, m1, m2):
-        return np.sum(m1*m2*self.weight)
+        return np.sum(self.times_weight(m1*m2))
 
 
 class NmtWCSTranslator(object):
@@ -116,7 +159,7 @@ class NmtWCSTranslator(object):
 
     def __init__(self, wcs, axes):
         if wcs is None:
-            is_healpix = 1
+            is_healpix = True
             nside = 2
             while 12 * nside * nside != axes[0]:
                 nside *= 2
@@ -135,7 +178,7 @@ class NmtWCSTranslator(object):
             ny = -1
             minfo = _NmtMapInfo.from_nside(nside)
         else:
-            is_healpix = 0
+            is_healpix = False
             nside = -1
 
             d_ra, d_dec = wcs.wcs.cdelt[:2]
@@ -213,6 +256,27 @@ class NmtWCSTranslator(object):
         self.d_phi = dph
         self.phi0 = phi0
         self.minfo = minfo
+
+    def reform_map(self, maps):
+        if not self._map_compatible(maps):
+            raise ValueError("Incompatible map!")
+        if self.is_healpix:
+            return maps
+
+        # Flipping dimensions
+        if self.flip_th:
+            maps = maps[..., ::-1, :]
+        if self.flip_ph:
+            maps = maps[..., :, ::-1]
+        # Flatten last two dimensions
+        maps = maps.reshape(maps.shape[::-2]+(self.npix,))
+        return maps
+
+    def _map_compatible(self, mp):
+        if self.is_healpix:
+            return mp.shape[-1] == self.npix
+        else:
+            return mp.shape[-2:] == (self.ny, self.nx)
 
     def get_lmax(self):
         return lib.get_lmax_py(self.is_healpix, self.nside, self.nx, self.ny,
@@ -453,18 +517,20 @@ def _ducc_kwargs(spin, map_info, alm_info):
 
 def _alm2map_ducc0(alm, spin, map_info, alm_info):
     kwargs = _ducc_kwargs(spin, map_info, alm_info)
-    alm = ducc0.sht.experimental.synthesis(alm=alm, **kwargs)
-    return alm
+    maps = ducc0.sht.experimental.synthesis(alm=alm, **kwargs)
+    return maps
 
 
 def _map2alm_ducc0(map, spin, map_info, alm_info):
     kwargs = _ducc_kwargs(spin, map_info, alm_info)
     alm = ducc0.sht.experimental.adjoint_synthesis(
-        map=map*map_info.pix_area, **kwargs)
+        map=map_info.times_weight(map), **kwargs)
     return alm
 
 
 def _alm2map_healpy(alm, spin, map_info, alm_info):
+    if map_info.is_CAR:
+        raise ValueError("Can't use healpy for CAR maps")
     kwargs = {'lmax': alm_info.lmax, 'mmax': alm_info.mmax}
     if spin == 0:
         map = [hp.alm2map(alm, mside=map_info.nside, verbose=False,
@@ -475,6 +541,8 @@ def _alm2map_healpy(alm, spin, map_info, alm_info):
 
 
 def _map2alm_healpy(map, spin, map_info, alm_info):
+    if map_info.is_CAR:
+        raise ValueError("Can't use healpy for CAR maps")
     kwargs = {'lmax': alm_info.lmax, 'mmax': alm_info.mmax}
     if spin == 0:
         alm = [hp.map2alm(map, **kwargs)]
@@ -491,6 +559,7 @@ _a2m_d = {'ducc': _alm2map_ducc0,
 
 def map2alm(map, spin, map_info, alm_info, n_iter=0,
             sht_calculator='ducc'):
+    map = map_info.pad_map(map)
     m2a = _m2a_d[sht_calculator]
     a2m = _a2m_d[sht_calculator]
     alm = m2a(map, spin, map_info, alm_info)
@@ -504,4 +573,4 @@ def alm2map(alm, spin, map_info, alm_info,
             sht_calculator='ducc'):
     a2m = _a2m_d[sht_calculator]
     map = a2m(alm, spin, map_info, alm_info)
-    return map
+    return map_info.unpad_map(map)

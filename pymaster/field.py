@@ -19,25 +19,43 @@ class NmtFieldExp(object):
                  tol_pinv=1E-10, wcs=None, n_iter=3, lmax_sht=-1,
                  masked_on_input=False, lite=False):
         # 0. Preliminary initializations
+        # These first three attributes are compulsory for all fields
         self.lite = lite
-        self.maps = None
-        self.alm = None
-        self.temp = None
-        self.alm_temp = None
+        self.mask = None
         self.beam = None
+        # The alm is only required for non-mask-only maps
+        self.alm = None
+        # The remaining attributes are only required for non-lite maps
+        self.maps = None
+        self.temp = None
+        # The template alms are only stored for purified, non-lite maps
+        self.alm_temp = None
 
-        # 1. Store mask
+        # 1. Store mask and beam
         # This ensures the mask will have the right type
         # and endianness (can cause issues when read from
         # some FITS files).
         mask = mask.astype(np.float64)
         self.wt = ut.NmtWCSTranslator(wcs, mask.shape)
-        self.mask = mask
+        self.mask = self.wt.reform_map(mask)
         if lmax_sht > 0:
             lmax = lmax_sht
         else:
             lmax = 3*self.wt.minfo.nside-1
         self.ainfo = AlmInfo(lmax)
+
+        # Beam
+        if isinstance(beam, (list, tuple, np.ndarray)):
+            if len(beam) <= lmax:
+                raise ValueError("Input beam must have at least %d elements "
+                                 "given the input map resolution" % (lmax+1))
+            beam_use = beam
+        else:
+            if beam is None:
+                beam_use = np.ones(lmax+1)
+            else:
+                raise ValueError("Input beam can only be an array or None\n")
+        self.beam = beam_use
 
         # If mask-only, just return
         if maps is None:
@@ -65,8 +83,7 @@ class NmtFieldExp(object):
                                  "associated with a single map")
         self.spin = spin
 
-        if len(maps[0]) != len(mask):
-            raise ValueError("All maps must have the same resolution")
+        maps = self.wt.reform_map(maps)
 
         pure_any = purify_e or purify_b
         if pure_any and self.spin != 2:
@@ -79,9 +96,7 @@ class NmtFieldExp(object):
             templates = np.array(templates, dtype=np.float64)
             if (len(templates[0]) != 1) and (len(templates[0]) != 2):
                 raise ValueError("Must supply 1 or 2 maps per field")
-
-            if len(templates[0][0]) != len(mask):
-                raise ValueError("All maps must have the same resolution")
+            templates = self.wt.reform_map(templates)
         else:
             if templates is not None:
                 raise ValueError("Input templates can only be an array "
@@ -156,24 +171,11 @@ class NmtFieldExp(object):
                                      for t in templates])
 
         # 8. Store any additional information needed
-        # - Maps
         if not self.lite:
             self.maps = maps.copy()
             if w_temp:
                 self.temp = templates.copy()
                 self.alm_temp = alm_temp
-        # - Beam
-        if isinstance(beam, (list, tuple, np.ndarray)):
-            if len(beam) <= lmax:
-                raise ValueError("Input beam must have at least %d elements "
-                                 "given the input map resolution" % (lmax+1))
-            beam_use = beam
-        else:
-            if beam is None:
-                beam_use = np.ones(lmax+1)
-            else:
-                raise ValueError("Input beam can only be an array or None\n")
-        self.beam = beam_use
 
     def get_mask(self):
         return self.mask
@@ -339,7 +341,7 @@ class NmtField(object):
         mask = mask.astype(float)
 
         wt = ut.NmtWCSTranslator(wcs, mask.shape)
-        if wt.is_healpix == 0:
+        if not wt.is_healpix:
             if wt.flip_th:
                 mask = mask[::-1, :]
             if wt.flip_ph:
@@ -377,7 +379,7 @@ class NmtField(object):
             raise ValueError("Purification only implemented for spin-2 fields")
 
         # Flatten if 2D maps
-        if (not mask_only) and (wt.is_healpix == 0):
+        if (not mask_only) and (not wt.is_healpix):
             try:
                 if wt.flip_th:
                     maps = maps[:, ::-1, :]
@@ -392,7 +394,7 @@ class NmtField(object):
             if (len(templates[0]) != 1) and (len(templates[0]) != 2):
                 raise ValueError("Must supply 1 or 2 maps per field")
 
-            if wt.is_healpix == 0:  # Flatten if 2D maps
+            if not wt.is_healpix:  # Flatten if 2D maps
                 try:
                     templates = np.array(templates)
                     if wt.flip_th:
@@ -427,7 +429,8 @@ class NmtField(object):
                 raise ValueError("Input beam can only be an array or None\n")
 
         if mask_only:
-            self.fl = lib.field_alloc_empty(wt.is_healpix, wt.nside, lmax_sht,
+            self.fl = lib.field_alloc_empty(int(wt.is_healpix),
+                                            wt.nside, lmax_sht,
                                             wt.nx, wt.ny,
                                             wt.d_phi, wt.d_theta,
                                             wt.phi0, wt.theta_max, spin,
@@ -435,7 +438,7 @@ class NmtField(object):
                                             n_iter_mask_purify)
         else:
             if isinstance(templates, (list, tuple, np.ndarray)):
-                self.fl = lib.field_alloc_new(wt.is_healpix, wt.nside,
+                self.fl = lib.field_alloc_new(int(wt.is_healpix), wt.nside,
                                               lmax_sht, wt.nx, wt.ny,
                                               wt.d_phi, wt.d_theta,
                                               wt.phi0, wt.theta_max, spin,
@@ -446,8 +449,8 @@ class NmtField(object):
                                               int(lite))
             else:
                 self.fl = lib.field_alloc_new_notemp(
-                    wt.is_healpix, wt.nside, lmax_sht, wt.nx, wt.ny, wt.d_phi,
-                    wt.d_theta, wt.phi0, wt.theta_max, spin,
+                    int(wt.is_healpix), wt.nside, lmax_sht, wt.nx, wt.ny,
+                    wt.d_phi, wt.d_theta, wt.phi0, wt.theta_max, spin,
                     mask, maps, beam_use, pure_e, pure_b, n_iter_mask_purify,
                     n_iter, masked_input, int(lite))
         self.lite = lite
