@@ -9,28 +9,17 @@ class BinTester(object):
         self.nside = 1024
         self.lmax = 2000
         self.nlb = 4
-        self.bc = nmt.NmtBin(self.nside, nlb=4, lmax=self.lmax)
+        self.bc = nmt.NmtBin.from_lmax_linear(lmax=self.lmax, nlb=4)
         ells = np.arange(self.lmax - 4, dtype=int)+2
         bpws = (ells - 2)//4
         weights = 0.25*np.ones(self.lmax - 4)
         fell = ells*(ells+1.)/(2*np.pi)
-        self.bv = nmt.NmtBin(nside=self.nside,
-                             bpws=bpws, ells=ells,
-                             weights=weights,
-                             lmax=self.lmax)
-        self.bcf = nmt.NmtBin(nside=self.nside,
-                              nlb=4, lmax=self.lmax,
-                              is_Dell=True)
-        self.bvf1 = nmt.NmtBin(nside=self.nside,
-                               bpws=bpws, ells=ells,
-                               weights=weights,
-                               lmax=self.lmax,
-                               is_Dell=True)
-        self.bvf2 = nmt.NmtBin(nside=self.nside,
-                               bpws=bpws, ells=ells,
-                               weights=weights,
-                               lmax=self.lmax,
-                               f_ell=fell)
+        self.bv = nmt.NmtBin(lmax=self.lmax, bpws=bpws, ells=ells,
+                             weights=weights)
+        self.bcf = nmt.NmtBin.from_lmax_linear(lmax=self.lmax, nlb=4,
+                                               is_Dell=True)
+        self.bvf = nmt.NmtBin(lmax=self.lmax, bpws=bpws, ells=ells,
+                              weights=weights, f_ell=fell)
         self.l_edges = np.arange(2, self.lmax+2, 4, dtype=int)
         self.be = nmt.NmtBin.from_edges(self.l_edges[:-1], self.l_edges[1:])
 
@@ -45,21 +34,16 @@ def test_bins_errors():
     weights = 0.25*np.ones(BT.lmax - 4)
     weights[16:20] = 0
     with pytest.raises(RuntimeError):
-        nmt.NmtBin(nside=BT.nside,
+        nmt.NmtBin(lmax=BT.lmax,
                    bpws=bpws,
                    ells=ells,
-                   weights=weights,
-                   lmax=BT.lmax)
+                   weights=weights)
     with pytest.raises(ValueError):
         BT.bv.bin_cell(np.random.randn(3, 3, 3))
     with pytest.raises(ValueError):
         BT.bv.unbin_cell(np.random.randn(3, 3, 3))
-    with pytest.raises(KeyError):
+    with pytest.raises(TypeError):
         nmt.NmtBin()
-    with pytest.raises(ValueError):
-        nmt.NmtBin(nlb=10)
-    with pytest.raises(KeyError):
-        nmt.NmtBin(nside=16, weights=1)
 
 
 def test_bins_nell_list():
@@ -89,7 +73,7 @@ def test_bins_constant():
     # Tests constant bandpower initialization
     assert (BT.bc.get_n_bands() == (BT.lmax - 2)//BT.nlb)
     assert (BT.bc.get_ell_list(5)[2] == 2+BT.nlb*5+2)
-    b = nmt.NmtBin(nside=1024, nlb=4, lmax=2000)
+    b = nmt.NmtBin.from_lmax_linear(lmax=2000, nlb=4)
     assert (b.bin.ell_max == 2000)
 
 
@@ -137,11 +121,9 @@ def test_bins_binning_f_ell():
     cls = np.arange(BT.lmax+1, dtype=float)
     fell = cls * (cls + 1.) / 2 / np.pi
     cl_b = BT.bcf.bin_cell(cls)
-    assert normdiff(cl_b, BT.bvf1.bin_cell(cls)) < 1E-5
-    assert normdiff(cl_b, BT.bvf2.bin_cell(cls)) < 1E-5
+    assert normdiff(cl_b, BT.bvf.bin_cell(cls)) < 1E-5
     cl_u = BT.bcf.unbin_cell(cl_b)
-    assert normdiff(cl_u, BT.bvf1.unbin_cell(cl_b)) < 1E-5
-    assert normdiff(cl_u, BT.bvf2.unbin_cell(cl_b)) < 1E-5
+    assert normdiff(cl_u, BT.bvf.unbin_cell(cl_b)) < 1E-5
     iend = 2+BT.nlb*((BT.lmax - 2)//BT.nlb)
     cl_b_p = np.mean((fell*cls)[2:iend].reshape([-1, BT.nlb]), axis=1)
     assert normdiff(cl_b_p, cl_b) < 1E-5
