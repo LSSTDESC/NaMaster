@@ -41,7 +41,7 @@ class NmtFieldExp(object):
         if lmax_sht > 0:
             lmax = lmax_sht
         else:
-            lmax = 3*self.wt.minfo.nside-1
+            lmax = wt.get_lmax()
         self.ainfo = AlmInfo(lmax)
 
         # Beam

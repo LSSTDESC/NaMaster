@@ -279,9 +279,11 @@ class NmtWCSTranslator(object):
             return mp.shape[-2:] == (self.ny, self.nx)
 
     def get_lmax(self):
-        return lib.get_lmax_py(self.is_healpix, self.nside, self.nx, self.ny,
-                               self.d_phi, self.d_theta, self.phi0,
-                               self.theta_max)
+        if self.is_healpix:
+            return 3*self.nside-1
+        else:
+            dxmin = min(self.d_theta, self.d_phi)
+            return int(np.pi/dxmin)
 
 
 def mask_apodization(mask_in, aposize, apotype="C1"):
