@@ -64,7 +64,8 @@ class _NmtMapInfo(object):
 
         # CC weights according to ducc0
         i_theta_0 = int(theta_min/d_theta+0.5)
-        nth_full = int(np.pi/d_theta+0.5)
+        # +1 below because both poles get a ring
+        nth_full = int(np.pi/d_theta+0.5)+1
         w = ducc0.sht.experimental.get_gridweights('CC', nth_full)
         w *= d_phi/(2*np.pi)
         weight_th = w[i_theta_0:i_theta_0+n_theta]
@@ -269,7 +270,7 @@ class NmtWCSTranslator(object):
         if self.flip_ph:
             maps = maps[..., :, ::-1]
         # Flatten last two dimensions
-        maps = maps.reshape(maps.shape[::-2]+(self.npix,))
+        maps = maps.reshape(maps.shape[:-2]+(self.npix,))
         return maps
 
     def _map_compatible(self, mp):
