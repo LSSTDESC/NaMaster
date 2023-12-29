@@ -313,6 +313,24 @@ class NmtWCSTranslator(object):
             return int(np.pi/dxmin)
 
 
+class AlmInfo(object):
+    def __init__(self, lmax):
+        self.lmax = lmax
+        self.mmax = self.lmax
+        m = np.arange(self.mmax+1)
+        self.mstart = (m*(2*self.lmax+1-m)//2).astype(np.uint64, copy=False)
+        self.nelem = int(np.max(self.mstart) + (self.lmax+1))
+
+    def __eq__(self, other):
+        if self is other:
+            return True
+        if type(other) is not type(self):
+            return False
+        if self.lmax != other.lmax:
+            return False
+        return True
+
+
 def mask_apodization(mask_in, aposize, apotype="C1"):
     """
     Apodizes a mask with an given apodization scale using different methods. \

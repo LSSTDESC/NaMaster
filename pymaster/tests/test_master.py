@@ -513,9 +513,9 @@ def test_workspace_methods():
     w = nmt.NmtWorkspace()
     w.compute_coupling_matrix(WT.f0, WT.f0, WT.b)  # OK init
     assert w.wsp.cs.n_eq == 64
-    with pytest.raises(RuntimeError):  # Incompatible bandpowers
+    with pytest.raises(ValueError):  # Incompatible bandpowers
         w.compute_coupling_matrix(WT.f0, WT.f0, WT.b_doub)
-    with pytest.raises(RuntimeError):  # Incompatible resolutions
+    with pytest.raises(ValueError):  # Incompatible resolutions
         w.compute_coupling_matrix(WT.f0, WT.f0_half, WT.b)
     with pytest.raises(RuntimeError):  # Wrong fields for TEB
         w.compute_coupling_matrix(WT.f0, WT.f0, WT.b, is_teb=True)
@@ -563,7 +563,7 @@ def test_workspace_full_master():
 
     c = nmt.compute_full_master(WT.f0, WT.f0, WT.b)
     assert c.shape == (1, WT.b.bin.n_bands)
-    with pytest.raises(RuntimeError):  # Incompatible bandpowers
+    with pytest.raises(ValueError):  # Incompatible bandpowers
         nmt.compute_full_master(WT.f0, WT.f0, WT.b_doub)
     with pytest.raises(ValueError):  # Incompatible resolutions
         nmt.compute_full_master(WT.f0, WT.f0_half, WT.b)
@@ -573,7 +573,7 @@ def test_workspace_full_master():
     c = nmt.compute_full_master(WT.f0, WT.f0, WT.b,
                                 workspace=w)
     assert c.shape == (1, WT.b.bin.n_bands)
-    with pytest.raises(RuntimeError):  # Inconsistent workspace
+    with pytest.raises(ValueError):  # Inconsistent workspace
         nmt.compute_full_master(WT.f0_half, WT.f0_half,
                                 WT.b_half, workspace=w)
     # Incorrect input spectra
@@ -583,10 +583,10 @@ def test_workspace_full_master():
     with pytest.raises(ValueError):
         nmt.compute_full_master(WT.f0, WT.f0, WT.b,
                                 cl_guess=WT.n_bad)
-    with pytest.raises(RuntimeError):
+    with pytest.raises(ValueError):
         nmt.compute_full_master(WT.f0, WT.f0, WT.b,
                                 cl_noise=WT.n_half)
-    with pytest.raises(RuntimeError):
+    with pytest.raises(ValueError):
         nmt.compute_full_master(WT.f0, WT.f0, WT.b,
                                 cl_guess=WT.n_half)
 

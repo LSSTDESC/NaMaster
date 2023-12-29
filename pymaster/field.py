@@ -4,15 +4,6 @@ import healpy as hp
 import pymaster.utils as ut
 
 
-class AlmInfo(object):
-    def __init__(self, lmax):
-        self.lmax = lmax
-        self.mmax = self.lmax
-        m = np.arange(self.mmax+1)
-        self.mstart = (m*(2*self.lmax+1-m)//2).astype(np.uint64, copy=False)
-        self.nelem = int(np.max(self.mstart) + (self.lmax+1))
-
-
 class NmtFieldExp(object):
     def __init__(self, mask, maps, spin=None, templates=None, beam=None,
                  purify_e=False, purify_b=False, n_iter_mask_purify=3,
@@ -42,7 +33,7 @@ class NmtFieldExp(object):
             lmax = lmax_sht
         else:
             lmax = self.wt.get_lmax()
-        self.ainfo = AlmInfo(lmax)
+        self.ainfo = ut.AlmInfo(lmax)
 
         # Beam
         if isinstance(beam, (list, tuple, np.ndarray)):
@@ -180,7 +171,11 @@ class NmtFieldExp(object):
                 self.alm_temp = alm_temp
 
     def is_compatible(self, other):
-        self.wt == other.wt
+        if self.wt != other.wt:
+            return False
+        if self.ainfo != other.ainfo:
+            return False
+        return True
 
     def get_mask(self):
         return self.mask
@@ -423,7 +418,7 @@ class NmtField(object):
             lmax = lmax_sht
         else:
             lmax = wt.get_lmax()
-        self.ainfo = AlmInfo(lmax)
+        self.ainfo = ut.AlmInfo(lmax)
 
         if isinstance(beam, (list, tuple, np.ndarray)):
             if len(beam) <= lmax:
@@ -466,7 +461,11 @@ class NmtField(object):
         self.nmaps = 2 if spin else 1
 
     def is_compatible(self, other):
-        return self.fl.cs.n_eq == other.fl.cs.n_eq
+        if self.fl.cs.n_eq != other.fl.cs.n_eq:
+            return False
+        if self.ainfo != other.ainfo:
+            return False
+        return True
 
     def __del__(self):
         if self.fl is not None:

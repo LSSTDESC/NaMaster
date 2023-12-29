@@ -8,9 +8,8 @@ def _get_bpw_arrays_linear(lmax, nlb):
     bpws[:2] = -1
     # Remove last bandpower if smaller
     if np.sum(bpws == bpws[-1]) != nlb:
-        good = bpws != bpws[-1]
-        ells = ells[good]
-        bpws = bpws[good]
+        bad = bpws == bpws[-1]
+        bpws[bad] = -1
     return ells, bpws
 
 

@@ -92,6 +92,11 @@ class NmtWorkspace(object):
             Delta ell_band in Fig. 3 of Louis et al. 2020.  Ignored if \
             `l_toeplitz<=0`.
         """
+        if not fl1.is_compatible(fl2):
+            raise ValueError("Fields have incompatible pixelizations.")
+        if fl1.ainfo.lmax != bins.lmax:
+            raise ValueError("Maximum multipoles in bins and fields "
+                             "are not the same.")
         if self.wsp is not None:
             lib.workspace_free(self.wsp)
             self.wsp = None
@@ -398,9 +403,9 @@ def deprojection_bias(f1, f2, cls_guess, n_iter=3):
     :param n_iter: number of iterations when computing a_lms.
     :return: deprojection bias power spectra.
     """
-    if len(cls_guess) != f1.fl.nmaps * f2.fl.nmaps:
+    if len(cls_guess) != f1.nmaps * f2.nmaps:
         raise ValueError("Proposal Cell doesn't match number of maps")
-    if len(cls_guess[0]) != f1.fl.lmax + 1:
+    if len(cls_guess[0]) != f1.ainfo.lmax + 1:
         raise ValueError("Proposal Cell doesn't match map resolution")
     cl1d = lib.comp_deproj_bias(f1.fl, f2.fl, cls_guess,
                                 len(cls_guess) * len(cls_guess[0]),
@@ -485,6 +490,8 @@ def compute_coupled_cell(f1, f2):
     :param NmtField f1,f2: fields to correlate
     :return: array of coupled power spectra
     """
+    if not f1.is_compatible(f2):
+        raise ValueError("You're trying to correlate incompatible fields")
     alm1 = f1.get_alms()
     alm2 = f2.get_alms()
     ncl = len(alm1) * len(alm2)
@@ -531,7 +538,7 @@ def compute_coupled_cell_flat(f1, f2, b, ell_cut_x=[1., -1.],
     return clout
 
 
-def compute_full_master(f1, f2, b, cl_noise=None, cl_guess=None,
+def compute_full_master(f1, f2, b=None, cl_noise=None, cl_guess=None,
                         workspace=None, n_iter=3, lmax_mask=-1,
                         l_toeplitz=-1, l_exact=-1, dl_band=-1):
     """
@@ -543,8 +550,9 @@ def compute_full_master(f1, f2, b, cl_noise=None, cl_guess=None,
     - :func:`pymaster.compute_coupled_cell`
     - :func:`pymaster.NmtWorkspace.decouple_cell`
 
-    :param NmtField f1,f2: fields to correlate
-    :param NmtBin b: binning scheme defining output bandpower
+    :param NmtField f1,f2: fields to correlate.
+    :param NmtBin b: binning scheme defining output bandpowers. Only \
+        needed if `workspace=None`.
     :param cl_noise: noise bias (i.e. angular power spectrum of \
         masked noise realizations) (optional).
     :param cl_guess: set of power spectra corresponding to a \
@@ -570,38 +578,41 @@ def compute_full_master(f1, f2, b, cl_noise=None, cl_guess=None,
         `l_toeplitz<=0`.
     :return: set of decoupled bandpowers
     """
-    if f1.fl.cs.n_eq != f2.fl.cs.n_eq:
-        raise ValueError("Fields must have same resolution")
-    if cl_noise is not None:
-        if len(cl_noise) != f1.fl.nmaps * f2.fl.nmaps:
-            raise ValueError("Wrong length for noise power spectrum")
-        cln = cl_noise.copy()
-    else:
-        cln = np.zeros([f1.fl.nmaps * f2.fl.nmaps, (f1.fl.lmax + 1)])
-    if cl_guess is not None:
-        if len(cl_guess) != f1.fl.nmaps * f2.fl.nmaps:
-            raise ValueError("Wrong length for guess power spectrum")
-        clg = cl_guess.copy()
-    else:
-        clg = np.zeros([f1.fl.nmaps * f2.fl.nmaps, (f1.fl.lmax + 1)])
+    if (b is None) and (workspace is None):
+        raise KeyError("Must supply either workspace or bins.")
+    if not f1.is_compatible(f2):
+        raise ValueError("Fields have incompatible pixelizations.")
+    pcl_shape = (f1.nmaps * f2.nmaps, f1.ainfo.lmax+1)
 
-    _toeplitz_sanity(l_toeplitz, l_exact, dl_band,
-                     b.bin.ell_max, f1, f2)
+    if cl_noise is not None:
+        if cl_noise.shape != pcl_shape:
+            raise ValueError(
+                f"Noise Cl should have shape {pcl_shape}")
+        pcln = cl_noise
+    else:
+        pcln = np.zeros(pcl_shape)
+    if cl_guess is not None:
+        if cl_guess.shape != pcl_shape:
+            raise ValueError(
+                f"Guess Cl should have shape {pcl_shape}")
+        clg = cl_guess
+    else:
+        clg = np.zeros(pcl_shape)
+
+    # Data power spectrum
+    pcld = compute_coupled_cell(f1, f2)
+    # Deprojection bias
+    pclb = deprojection_bias(f1, f2, clg)
 
     if workspace is None:
-        cl1d = lib.comp_pspec(f1.fl, f2.fl, b.bin, None, cln, clg,
-                              len(cln) * b.bin.n_bands, n_iter, lmax_mask,
-                              l_toeplitz, l_exact, dl_band)
+        w = NmtWorkspace()
+        w.compute_coupling_matrix(
+            f1, f2, b, n_iter=n_iter, lmax_mask=lmax_mask,
+            l_toeplitz=l_toeplitz, l_exact=l_exact, dl_band=dl_band)
     else:
-        workspace.check_unbinned()
-        cl1d = lib.comp_pspec(f1.fl, f2.fl, b.bin, workspace.wsp,
-                              cln, clg, len(cln) * b.bin.n_bands,
-                              n_iter, lmax_mask,
-                              l_toeplitz, l_exact, dl_band)
+        w = workspace
 
-    clout = np.reshape(cl1d, [len(cln), b.bin.n_bands])
-
-    return clout
+    return w.decouple_cell(pcld - pclb - pcln)
 
 
 def compute_full_master_flat(
