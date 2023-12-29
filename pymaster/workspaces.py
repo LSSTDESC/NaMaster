@@ -451,7 +451,6 @@ def deprojection_bias(f1, f2, cl_guess, n_iter=3):
                         for m in range(f1.nmaps)], axis=0)
                 for n in range(f2.nmaps)])
             # SHT^-1[C^ba*SHT[v*fj]]
-            print(ftild_j.shape)
             ftild_j = ut.alm2map(ftild_j, f2.spin, f2.wt.minfo,
                                  f2.ainfo)
             # SHT[w*SHT^-1[C^ba*SHT[v*fj]]]
