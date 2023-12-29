@@ -485,7 +485,7 @@ def deprojection_bias(f1, f2, cl_guess, n_iter=3):
                 for m in range(f1.nmaps)])
             # SHT^-1[C^ab*SHT[w*gj]]
             gtild_j = ut.alm2map(gtild_j, f1.spin, f1.wt.minfo,
-                                 f1.ainfo) * f1.mask[None, :]
+                                 f1.ainfo)
             if f1.n_temp > 0:
                 # Int[f^i*v*SHT^-1[C^ab*SHT[w*gj]]]
                 for ii, ti in enumerate(f1.temp):
