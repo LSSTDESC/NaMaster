@@ -77,19 +77,6 @@ CTEST(nmt,bins_variable) {
   nmt_bins_free(bin);
 }
 
-CTEST(nmt,bins_read) {
-  set_error_policy(THROW_ON_ERROR);
-
-  nmt_binning_scheme *b=NULL;
-  try { b=nmt_bins_read("test/cls.txt",2000); }
-  ASSERT_NOT_EQUAL(0,nmt_exception_status);
-  ASSERT_NULL(b);
-  set_error_policy(EXIT_ON_ERROR);
-
-  b=nmt_bins_read("test/bins.txt",100);
-  nmt_bins_free(b);
-}
-
 CTEST(nmt,bins_binning) {
   int i,nside=256;
   int lmax=3*nside-1;

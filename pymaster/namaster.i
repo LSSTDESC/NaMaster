@@ -22,7 +22,9 @@
 %apply (double* ARGOUT_ARRAY1, long DIM1) {(double* ldout, long nldout)};
 %apply (int DIM1,double *IN_ARRAY1) {(int npix_1,double *mask),
                                      (int nell3,double *weights),
-                                     (int nell4,double *f_ell)};
+     (int nell4,double *f_ell),
+     (int nlb1,double *beam1),
+     (int nlb2,double *beam2)};
 %apply (int DIM1,int *IN_ARRAY1) {(int nell1,int *bpws),
                                   (int nell2,int *ells),
                                   (int nfields,int *spin_arr)};
@@ -636,11 +638,24 @@ void synfast_new_flat(int nx,int ny,double lx,double ly,
   free(larr);
 }
 
- nmt_workspace *comp_coupling_matrix(nmt_field *fl1,nmt_field *fl2,nmt_binning_scheme *bin,
-				     int is_teb,int n_iter,int lmax_mask,int l_toeplitz,
-                                     int l_exact,int dl_band)
+nmt_workspace *comp_coupling_matrix(int spin1,int spin2,
+				    int lmax,int lmax_mask,
+				    int pure_e_1,int pure_b_1,
+				    int pure_e_2,int pure_b_2,
+				    int nlb1,double *beam1,
+				    int nlb2,double *beam2,
+				    int nell4,double *f_ell,
+				    nmt_binning_scheme *bin,
+				    int is_teb,int l_toeplitz,
+				    int l_exact,int dl_band)
 {
-  return nmt_compute_coupling_matrix(fl1,fl2,bin,is_teb,n_iter,lmax_mask,l_toeplitz,l_exact,dl_band);
+  asserting(nlb1==lmax+1);
+  asserting(nlb2==lmax+1);
+  asserting(nell4==lmax_mask+1);
+  return nmt_compute_coupling_matrix(spin1,spin2,lmax,lmax_mask,
+				     pure_e_1,pure_b_1,pure_e_2,pure_b_2,
+				     f_ell,beam1,beam2,
+				     bin,is_teb,l_toeplitz,l_exact,dl_band);
 }
 
 nmt_workspace_flat *comp_coupling_matrix_flat(nmt_field_flat *fl1,nmt_field_flat *fl2,
@@ -1047,10 +1062,10 @@ void comp_pspec(nmt_field *fl1,nmt_field *fl2,
 }
 
 void wsp_update_beams(nmt_workspace *w,  // Workspace
-		      int nell3,double *weights, // 1st beam
-		      int nell4,double *f_ell) // 2nd beam
+		      int nlb1,double *beam1, // 1st beam
+		      int nlb2,double *beam2) // 2nd beam
 {
-  nmt_workspace_update_beams(w,nell3,weights,nell4,f_ell);
+  nmt_workspace_update_beams(w,nlb1,beam1,nlb3,beam2);
 }
 
 void wsp_update_bins(nmt_workspace *w,nmt_binning_scheme *b)

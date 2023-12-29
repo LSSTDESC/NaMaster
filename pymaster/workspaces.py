@@ -1,5 +1,5 @@
 from pymaster import nmtlib as lib
-from pymaster.utils import _toeplitz_sanity
+import pymaster.utils as ut
 import numpy as np
 import healpy as hp
 
@@ -64,9 +64,8 @@ class NmtWorkspace(object):
             raise ValueError("Can't replace with uninitialized bins")
         lib.wsp_update_bins(self.wsp, bins.bin)
 
-    def compute_coupling_matrix(self, fl1, fl2, bins, is_teb=False, n_iter=3,
-                                lmax_mask=-1, l_toeplitz=-1,
-                                l_exact=-1, dl_band=-1):
+    def compute_coupling_matrix(self, fl1, fl2, bins, is_teb=False,
+                                l_toeplitz=-1, l_exact=-1, dl_band=-1):
         """
         Computes coupling matrix associated with the cross-power spectrum \
         of two NmtFields and an NmtBin binning scheme. Note that the mode \
@@ -78,9 +77,6 @@ class NmtWorkspace(object):
         :param boolean is_teb: if true, all mode-coupling matrices \
             (0-0,0-2,2-2) will be computed at the same time. In this case, \
             fl1 must be a spin-0 field and fl1 must be spin-2.
-        :param n_iter: number of iterations when computing a_lms.
-        :param lmax_mask: maximum multipole for masks. If smaller than the \
-            maximum multipoles of the fields, it will be set to that.
         :param l_toeplitz: if a positive number, the Toeplitz approximation \
             described in Louis et al. 2020 (arXiv:2010.14344) will be used. \
             In that case, this quantity corresponds to ell_toeplitz in Fig. \
@@ -101,12 +97,17 @@ class NmtWorkspace(object):
             lib.workspace_free(self.wsp)
             self.wsp = None
 
-        _toeplitz_sanity(l_toeplitz, l_exact, dl_band,
-                         bins.bin.ell_max, fl1, fl2)
-        self.wsp = lib.comp_coupling_matrix(fl1.fl, fl2.fl, bins.bin,
-                                            int(is_teb), int(n_iter),
-                                            lmax_mask, l_toeplitz,
-                                            l_exact, dl_band)
+        # Get mask PCL
+        alm1 = fl1.get_mask_alms()
+        if fl2 is fl1:
+            alm2 = alm1
+        else:
+            alm2 = fl2.get_mask_alms()
+        pcl_mask = hp.alm2cl(alm1, alm2, lmax=fl1.ainfo_mask.lmax)
+        ut._toeplitz_sanity(l_toeplitz, l_exact, dl_band,
+                            bins.bin.ell_max, fl1, fl2)
+        self.wsp = lib.comp_coupling_matrix(pcl_mask, bins.bin, int(is_teb),
+                                            l_toeplitz, l_exact, dl_band)
         self.has_unbinned = True
 
     def write_to(self, fname):
@@ -392,27 +393,121 @@ class NmtWorkspaceFlat(object):
         return clout
 
 
-def deprojection_bias(f1, f2, cls_guess, n_iter=3):
+def deprojection_bias(f1, f2, cl_guess, n_iter=3):
     """
     Computes the bias associated to contaminant removal to the \
     cross-pseudo-Cl of two fields.
 
     :param NmtField f1,f2: fields to correlate
-    :param cls_guess: set of power spectra corresponding to a \
+    :param cl_guess: set of power spectra corresponding to a \
         best-guess of the true power spectra of f1 and f2.
     :param n_iter: number of iterations when computing a_lms.
     :return: deprojection bias power spectra.
     """
-    if len(cls_guess) != f1.nmaps * f2.nmaps:
-        raise ValueError("Proposal Cell doesn't match number of maps")
-    if len(cls_guess[0]) != f1.ainfo.lmax + 1:
-        raise ValueError("Proposal Cell doesn't match map resolution")
-    cl1d = lib.comp_deproj_bias(f1.fl, f2.fl, cls_guess,
-                                len(cls_guess) * len(cls_guess[0]),
-                                n_iter)
-    cl2d = np.reshape(cl1d, [len(cls_guess), len(cls_guess[0])])
+    if not f1.is_compatible(f2):
+        raise ValueError("Fields have incompatible pixelizations.")
 
-    return cl2d
+    def purify_if_needed(fld, mp):
+        if fld.pure_e or fld.pure_b:
+            # Compute mask alms if needed
+            amask = fld.get_mask_alms()
+            return fld._purify(fld.mask, amask, mp,
+                               n_iter=n_iter, return_maps=False,
+                               task=[fld.pure_e, fld.pure_b])
+        else:
+            return ut.map2alm(mp*fld.mask[None, :], fld.spin,
+                              fld.wt.minfo, fld.ainfo, n_iter=n_iter)
+
+    pcl_shape = (f1.nmaps * f2.nmaps, f1.ainfo.lmax+1)
+    if cl_guess.shape != pcl_shape:
+        raise ValueError(
+            f"Guess Cl should have shape {pcl_shape}")
+    clg = cl_guess.reshape([f1.nmaps, f2.nmaps, f1.ainfo.lmax+1])
+
+    if f1.lite or f2.lite:
+        raise ValueError("Can't compute deprojection bias for "
+                         "lightweight fields")
+
+    clb = np.zeros((f1.nmaps, f2.nmaps, f1.ainfo.lmax+1))
+
+    # Compute ff part
+    if f1.ntemp > 0:
+        pcl_ff = np.zeros((f1.ntemp, f1.ntemp,
+                           f1.nmaps, f2.nmaps,
+                           f1.ainfo.lmax+1))
+        for ij, tj in enumerate(f1.temp):
+            # SHT(v*fj)
+            ftild_j = ut.map2alm(tj*f1.mask[None, :], f1.spin,
+                                 f1.wt.minfo, f1.ainfo, n_iter=n_iter)
+            # C^ba*SHT[v*fj]
+            ftild_j = np.array([
+                np.sum([hp.almxfl(ftild_j[m], clg[m, n],
+                                  mmax=f1.ainfo.mmax)
+                        for m in range(f1.nmaps)])
+                for n in range(f2.nmaps)])
+            # SHT^-1[C^ba*SHT[v*fj]]
+            ftild_j = ut.alm2map(ftild_j, f2.spin, f2.wt.minfo,
+                                 f2.ainfo)
+            # SHT[w*SHT^-1[C^ba*SHT[v*fj]]]
+            ftild_j = purify_if_needed(f2, ftild_j)
+            for ii, f_i in enumerate(f1.alm_temp):
+                clij = np.array([[hp.alm2cl(a1, a2, lmax=f1.ainfo.lmax)
+                                  for a2 in ftild_j]
+                                 for a1 in f_i])
+                pcl_ff[ii, ij, :, :, :] = clij
+        clb -= np.einsum('ij,ijklm', f1.iM, pcl_ff)
+
+    # Compute gg part and fg part
+    if f2.ntemp > 0:
+        pcl_gg = np.zeros((f2.ntemp, f2.ntemp,
+                           f1.nmaps, f2.nmaps,
+                           f1.ainfo.lmax+1))
+        if f1.ntemp > 0:
+            prod_fg = np.zeros((f2.ntemp, f1.ntemp))
+            pcl_fg = np.zeros((f1.ntemp, f2.ntemp,
+                               f1.nmaps, f2.nmaps,
+                               f1.ainfo.lmax+1))
+
+        for ij, tj in enumerate(f2.temp):
+            # SHT(w*gj)
+            gtild_j = ut.map2alm(tj*f2.mask[None, :], f2.spin,
+                                 f2.wt.minfo, f2.ainfo, n_iter=n_iter)
+            # C^ab*SHT[w*gj]
+            gtild_j = np.array([
+                np.sum([hp.almxfl(gtild_j[n], clg[m, n],
+                                  mmax=f2.ainfo.mmax)
+                        for n in range(f2.nmaps)])
+                for m in range(f1.nmaps)])
+            # SHT^-1[C^ab*SHT[w*gj]]
+            gtild_j = ut.alm2map(gtild_j, f1.spin, f1.wt.minfo,
+                                 f1.ainfo) * f1.mask[None, :]
+            if f1.ntemp > 0:
+                # Int[f^i*v*SHT^-1[C^ab*SHT[w*gj]]]
+                for ii, ti in enumerate(f1.temp):
+                    prod_fg[ii, ij] = f1.wt.minfo.dot_map(
+                        ti, gtild_j*f1.mask[None, :])
+
+            # SHT[v*SHT^-1[C^ab*SHT[w*gj]]]
+            gtild_j = purify_if_needed(f1, gtild_j)
+
+            # PCL[g_i, gtild_j]
+            for ii, g_i in enumerate(f2.alm_temp):
+                clij = np.array([[hp.alm2cl(a1, a2, lmax=f1.ainfo.lmax)
+                                  for a2 in g_i]
+                                 for a1 in gtild_j])
+                pcl_gg[ii, ij, :, :, :] = clij
+
+        clb -= np.einsum('ij,ijklm', f2.iM, pcl_gg)
+        if f1.ntemp > 0:
+            # PCL[f_i, g_j]
+            pcl_fg = np.array([[[[hp.alm2cl(a1, a2, lmax=f1.ainfo.lmax)
+                                  for a2 in gj]
+                                 for a1 in fi]
+                                for gj in f2.alm_temp]
+                               for fi in f2.alm_temp])
+            clb += np.einsum('ij,rs,jr,isklm',
+                             f1.iM, f2.iM, prod_fg, pcl_fg)
+    return clb.reshape(pcl_shape)
 
 
 def uncorr_noise_deprojection_bias(f1, map_var, n_iter=3):
@@ -422,7 +517,7 @@ def uncorr_noise_deprojection_bias(f1, map_var, n_iter=3):
     given field f1.
 
     :param NmtField f1: fields to correlate
-    :param map_cls_guess: array containing a HEALPix map corresponding \
+    :param map_var: array containing a HEALPix map corresponding \
         to the local noise variance (in one sterad).
     :param n_iter: number of iterations when computing a_lms.
     :return: deprojection bias power spectra.
@@ -439,7 +534,7 @@ def uncorr_noise_deprojection_bias(f1, map_var, n_iter=3):
 
 
 def deprojection_bias_flat(
-    f1, f2, b, ells, cls_guess, ell_cut_x=[1., -1.], ell_cut_y=[1., -1.]
+    f1, f2, b, ells, cl_guess, ell_cut_x=[1., -1.], ell_cut_y=[1., -1.]
 ):
     """
     Computes the bias associated to contaminant removal to the \
@@ -451,7 +546,7 @@ def deprojection_bias_flat(
     :param NmtBinFlat b: binning scheme defining output bandpower
     :param ells: list of multipoles on which the proposal power \
         spectra are defined
-    :param cls_guess: set of power spectra corresponding to a \
+    :param cl_guess: set of power spectra corresponding to a \
         best-guess of the true power spectra of f1 and f2.
     :param float(2) ell_cut_x: remove all modes with ell_x in the \
         interval [ell_cut_x[0],ell_cut_x[1]] from the calculation.
@@ -459,10 +554,10 @@ def deprojection_bias_flat(
         interval [ell_cut_y[0],ell_cut_y[1]] from the calculation.
     :return: deprojection bias power spectra.
     """
-    if len(cls_guess) != f1.fl.nmaps * f2.fl.nmaps:
+    if len(cl_guess) != f1.fl.nmaps * f2.fl.nmaps:
         raise ValueError("Proposal Cell doesn't match number of maps")
-    if len(cls_guess[0]) != len(ells):
-        raise ValueError("cls_guess and ells must have the same length")
+    if len(cl_guess[0]) != len(ells):
+        raise ValueError("cl_guess and ells must have the same length")
     cl1d = lib.comp_deproj_bias_flat(
         f1.fl,
         f2.fl,
@@ -472,7 +567,7 @@ def deprojection_bias_flat(
         ell_cut_y[0],
         ell_cut_y[1],
         ells,
-        cls_guess,
+        cl_guess,
         f1.fl.nmaps * f2.fl.nmaps * b.bin.n_bands,
     )
     cl2d = np.reshape(cl1d, [f1.fl.nmaps * f2.fl.nmaps, b.bin.n_bands])

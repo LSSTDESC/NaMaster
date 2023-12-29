@@ -30,9 +30,9 @@ if '--disable-openmp' in sys.argv:
 else:
     USE_OPENMP = True
 
-libs = ['sharp2', 'cfitsio', 'gsl', 'gslcblas', 'm'] + FFTW_LIBS
+libs = ['cfitsio', 'gsl', 'gslcblas', 'm'] + FFTW_LIBS
 
-use_icc = False  # Set to True if you compiled libsharp with icc
+use_icc = False
 if use_icc:
     extra = []
     if USE_OPENMP:
@@ -43,14 +43,6 @@ else:
     if USE_OPENMP:
         libs += ['gomp']
     extra += ['-fopenmp']
-
-def _compile_libsharp():
-    if not os.path.exists('_deps/include/libsharp2/sharp.h'):
-        try:
-            sp.check_call('./scripts/install_libsharp.sh',
-                          shell=True)
-        except:
-            raise DistutilsError('Failed to install libsharp.')
 
 def _compile_libchealpix():
     if not os.path.exists('_deps/lib/libchealpix.a'):
@@ -71,7 +63,6 @@ def _compile_libnmt():
 class build(_build):
     """Specialized Python source builder."""
     def run(self):
-        _compile_libsharp()
         _compile_libchealpix()
         _compile_libnmt()
         _build.run(self)
@@ -79,7 +70,6 @@ class build(_build):
 class develop(_develop):
     """Specialized Python develop mode."""
     def run(self):
-        _compile_libsharp()
         _compile_libchealpix()
         _compile_libnmt()
         _develop.run(self)

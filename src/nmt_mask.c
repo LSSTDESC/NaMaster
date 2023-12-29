@@ -87,6 +87,7 @@ static void apodize_mask_CX(long nside,flouble *mask_in,flouble *mask_out,floubl
   free(phiv);
 }
 
+/*
 static void apodize_mask_smooth(long nside,flouble *mask_in,flouble *mask_out,flouble aposize)
 {
   long npix=he_nside2npix(nside);
@@ -137,6 +138,7 @@ static void apodize_mask_smooth(long nside,flouble *mask_in,flouble *mask_out,fl
   free(alms_dum);
   free(cs);
 }
+*/
 
 void nmt_apodize_mask(long nside,flouble *mask_in,flouble *mask_out,flouble aposize,char *apotype)
 {
@@ -148,8 +150,10 @@ void nmt_apodize_mask(long nside,flouble *mask_in,flouble *mask_out,flouble apos
     if((!strcmp(apotype,"C1")) || (!strcmp(apotype,"C2"))) {
       apodize_mask_CX(nside,mask_in,mask_out,aposize,apotype);
     }
-    else if(!strcmp(apotype,"Smooth")) 
-      apodize_mask_smooth(nside,mask_in,mask_out,aposize);
+    else if(!strcmp(apotype,"Smooth")) {
+      report_error(NMT_ERROR_APO,"Smooth disabled\n");
+      //apodize_mask_smooth(nside,mask_in,mask_out,aposize);
+    }
     else
       report_error(NMT_ERROR_APO,"Unknown apodization type %s. Allowed: \"Smooth\", \"C1\", \"C2\"\n",apotype);
   }

@@ -46,7 +46,7 @@ CTEST(nmt,master_teb_flat_full) {
   }
 
   //Read signal and noise power spectrum
-  FILE *fi=my_fopen("test/benchmarks/cls_lss.txt","r");
+  FILE *fi=fopen("test/benchmarks/cls_lss.txt","r");
   for(ii=0;ii<nlth;ii++) {
     int jj;
     double dum;
@@ -155,7 +155,7 @@ CTEST(nmt,master_22_flat_full) {
   }
 
   //Read signal and noise power spectrum
-  FILE *fi=my_fopen("test/benchmarks/cls_lss.txt","r");
+  FILE *fi=fopen("test/benchmarks/cls_lss.txt","r");
   for(ii=0;ii<nlth;ii++) {
     int jj;
     double dum;
@@ -312,7 +312,7 @@ CTEST(nmt,master_11_flat_full) {
   }
 
   //Read signal and noise power spectrum
-  FILE *fi=my_fopen("test/benchmarks/cls_lss.txt","r");
+  FILE *fi=fopen("test/benchmarks/cls_lss.txt","r");
   for(ii=0;ii<nlth;ii++) {
     int jj;
     double dum;
@@ -393,7 +393,7 @@ CTEST(nmt,master_lite_flat) {
     cell_noise_coup[ii]=my_calloc(bin->n_bands,sizeof(double));
   }
   //Read signal and noise power spectrum
-  FILE *fi=my_fopen("test/benchmarks/cls_lss.txt","r");
+  FILE *fi=fopen("test/benchmarks/cls_lss.txt","r");
   for(ii=0;ii<nlth;ii++) {
     int jj;
     double dum;
@@ -523,7 +523,7 @@ CTEST(nmt,master_02_flat_full) {
   }
 
   //Read signal and noise power spectrum
-  FILE *fi=my_fopen("test/benchmarks/cls_lss.txt","r");
+  FILE *fi=fopen("test/benchmarks/cls_lss.txt","r");
   for(ii=0;ii<nlth;ii++) {
     int jj;
     double dum;
@@ -716,7 +716,7 @@ CTEST(nmt,master_01_flat_full) {
   }
 
   //Read signal and noise power spectrum
-  FILE *fi=my_fopen("test/benchmarks/cls_lss.txt","r");
+  FILE *fi=fopen("test/benchmarks/cls_lss.txt","r");
   for(ii=0;ii<nlth;ii++) {
     int jj;
     double dum;
@@ -810,7 +810,7 @@ CTEST(nmt,master_sp1_flat_full) {
   }
 
   //Read signal and noise power spectrum
-  FILE *fi=my_fopen("test/benchmarks/cls_lss.txt","r");
+  FILE *fi=fopen("test/benchmarks/cls_lss.txt","r");
   for(ii=0;ii<nlth;ii++) {
     int jj;
     double dum;
@@ -914,7 +914,7 @@ CTEST(nmt,master_00_flat_full) {
   }
 
   //Read signal and noise power spectrum
-  FILE *fi=my_fopen("test/benchmarks/cls_lss.txt","r");
+  FILE *fi=fopen("test/benchmarks/cls_lss.txt","r");
   for(ii=0;ii<nlth;ii++) {
     int jj;
     double dum;

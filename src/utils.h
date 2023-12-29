@@ -54,31 +54,6 @@ gsl_rng *init_rng(unsigned int seed);
 double rng_01(gsl_rng *rng);
 
 /**
- * @brief Poisson random numbers
- *
- * Draw a random integer from a Poisson distribution with mean and variance given by \p lambda.
- * @param lambda Mean and variance of the distribution.
- * @param rng A random number generator.
- * @return Random integer.
- */
-int rng_poisson(double lambda,gsl_rng *rng);
-
-/**
- * @brief Gaussian random numbers (mod-phase).
- *
- * Draw modulus and phase of a complex Gaussian random numbers with variance \p sigma.
- * @param module Output random modulus.
- * @param phase Output random phase.
- * @param rng A random number generator.
- * @param sigma2 Input variance.
- * @warning From \p module and \p phase you could build a complex number with real
-            and imaginary parts \p re and \p im. The input \p sigma2 parameter is
-            the mean modulus squared, i.e. \p sigma2 = < \p re^2 + \p im^2 >. Therefore
- 	    the variance of either \p re or \p im on their own is \p sigma2 / 2.
- */
-void rng_delta_gauss(double *module,double *phase,
-		     gsl_rng *rng,double sigma2);
-/**
  * @brief Gaussian random numbers.
  *
  * Draw a pair of Gaussian random numbers with zero mean and unit variance.
@@ -93,66 +68,13 @@ void rng_gauss(gsl_rng *rng,double *r1,double *r2);
  */
 void end_rng(gsl_rng *rng);
 
-/**
- * @brief Count number of lines in an ASCII file.
- *
- * @param f An open file.
- * @return Number of lines in file.
- */
-int my_linecount(FILE *f);
-
 #ifndef NO_DOXY
 void set_error_policy(int i);
 void report_error(int level,char *fmt,...);
 #endif //NO_DOXY
 
-/**
- * @brief Error-checked malloc.
- *
- * @param size Size in bytes of pointer to initialize.
- * @return Allocated pointer.
- */
 void *my_malloc(size_t size);
-
-/**
- * @brief Error-checked calloc.
- *
- * @param nmemb Number of elements in pointer to initialize.
- * @param size Size in bytes of each element in pointer to initialize.
- * @return Allocated pointer.
- */
 void *my_calloc(size_t nmemb,size_t size);
-
-/**
- * @brief Error-checked fopen.
- *
- * @param path Path to file.
- * @param mode Opening mode ("w", "r" etc.).
- * @return Opened file.
- */
-FILE *my_fopen(const char *path,const char *mode);
-
-/**
- * @brief Error-checked fwrite.
- *
- * @param ptr Pointer to data to output data.
- * @param size Size of each element of output data in bytes.
- * @param nmemb Number of elements in output data.
- * @param stream Open file to write into.
- * @return \p nmbemb.
- */
-size_t my_fwrite(const void *ptr, size_t size, size_t nmemb,FILE *stream);
-
-/**
- * @brief Error-checked fread.
- *
- * @param ptr Pointer to data to input data.
- * @param size Size of each element of input data in bytes.
- * @param count Number of elements in input data.
- * @param stream Open file to read from.
- * @return \p count.
- */
-size_t my_fread(void *ptr,size_t size,size_t count,FILE *stream);
 
 /**
  * @brief Wigner 3-j symbols
@@ -452,156 +374,6 @@ void he_pix2vec_ring(long nside, long ipix, double *vec);
 long he_ang2pix(long nside,double cth,double phi);
 
 /**
- * @brief Number of alm coefficients
- *
- * Returns number of harmonic coefficients up to a given multipole order.
- * @param lmax Maximum multipole order.
- * @return Number of harmonic coefficients.
- */
-long he_nalms(int lmax);
-
-/**
- * @brief Harmonic coefficient ordering.
- *
- * Returns the position of a given harmonic coefficient.
- * @param l \f$\ell\f$ index
- * @param m \f$m\f$ index
- * @param lmax maximum multipole order.
- * @return Index holding the value of \f$a_{\ell m}\f$.
- */
-long he_indexlm(int l,int m,int lmax);
-
-/**
- * @brief Full-sky inverse SHT
- *
- * Computes the inverse SHT of a set of spin-s full-sky fields.
- * See scientific documentation and companion paper for further details.
- * @param cs curved sky geometry information.
- * @param lmax maximum multipole order.
- * @param ntrans Number of transfoms to carry out.
- * @param spin Spin of the fields to transform (0 or 2).
- * @param maps Will hold the output maps. Must have shape [\p ntrans * \p nmap][\p npix],
-          where \p nmap is 1 or 2 for spin-0 and spin-2 respectively, and \p npix is
-	  the number of pixels associated with \p nside.
- * @param alms SHT coefficients to inverse-transform. Must have shape
-          [\p ntrans * \p nmap][\p nalm], where \p nmap is defined above and
-	  \p nalm can be computed with he_nalm().
- */
-void he_alm2map(nmt_curvedsky_info *cs,int lmax,int ntrans,int spin,flouble **maps,fcomplex **alms);
-
-/**
- * @brief Full-sky SHT
- *
- * Computes the direct SHT of a set of spin-s full-sky fields.
- * See scientific documentation and companion paper for further details.
- * @param cs curved sky geometry information.
- * @param lmax maximum multipole order.
- * @param ntrans Number of transfoms to carry out.
- * @param spin Spin of the fields to transform (0 or 2).
- * @param maps Maps to transform. Must have shape [\p ntrans * \p nmap][\p npix],
-          where \p nmap is 1 or 2 for spin-0 and spin-2 respectively, and \p npix is
-	  the number of pixels associated with \p nside.
- * @param alms Will hold the output SHT coefficients. Must have shape
-          [\p ntrans * \p nmap][\p nalm], where \p nmap is defined above and
-	  \p nalm can be computed with he_nalm().
- * @param niter Number of iterations to use when computing the spherical harmonic transforms.
- */
-void he_map2alm(nmt_curvedsky_info *cs,int lmax,int ntrans,int spin,flouble **maps,
-		fcomplex **alms,int niter);
-
-/**
- * @brief Computes Full-sky power spectrum from harmonic coefficients.
- *
- * Computes the angular power spectrum of two sets of harmonic coefficients
- * @param alms_1 First set of harmonic coefficients to correlate.
- * @param alms_2 Second set of harmonic coefficients to correlate.
- * @param spin_1 alms_1 spin.
- * @param spin_2 alms_2 spin.
- * @param cls Will hold the output power spectra. Should have shape [\p ncls][\p lmax + 1],
-          where \p ncls is the appropriate number of power spectra given the
-	  spins of the input fields  (e.g. \p ncls = 2*2 = 4 if both fields have spin=2).
- * @param lmax maximum multipole order.
- */
-void he_alm2cl(fcomplex **alms_1,fcomplex **alms_2,int spin_1,int spin_2,flouble **cls,int lmax);
-
-/**
- * @brief Gets the multipole approximately corresponding to the Nyquist frequency.
- *
- * Computes the maximum multipole probed by a map.
- * @param cs curved sky geometry info.
- * @return maximum multipole.
- */
-int he_get_largest_possible_lmax(nmt_curvedsky_info *cs);
-
-/**
- * @brief Get maximum multipole allowed by sky geometry configuration.
- *
- * Returns the maximum multipole for a nmt_curvedsky_info.
- * @param cs curved sky geometry info.
- * @return maximum multipole.
- */
-int he_get_lmax(nmt_curvedsky_info *cs);
-
-/**
- * @brief Computes Full-sky power spectrum from maps.
- *
- * Computes the angular power spectrum of two sets of maps.
- * @param maps_1 First set of maps to correlate.
- * @param maps_2 Second set of maps to correlate.
- * @param spin_1 maps_1 spin.
- * @param spin_2 maps_2 spin.
- * @param cls Will hold the output power spectra. Should have shape [\p ncls][\p lmax + 1],
-          where \p ncls is the appropriate number of power spectra given the
-	  spins of the input fields  (e.g. \p ncls = 2*2 = 4 if both fields have spin=2).
- * @param cs curved sky geometry information.
- * @param lmax maximum multipole order.
- * @param iter Number of iterations to use when computing the spherical harmonic transforms.
- */
-void he_anafast(flouble **maps_1,flouble **maps_2,int spin_1,int spin_2,flouble **cls,
-		nmt_curvedsky_info *cs,int lmax,int iter);
-
-/**
- * @brief Writes full-sky maps to FITS file.
- *
- * @param tmap Array of maps to write.
- * @param nfields Number of maps to write.
- * @param nside HEALPix resolution parameter.
- * @param fname Path to output FITS file.
- */
-void he_write_healpix_map(flouble **tmap,int nfields,long nside,char *fname);
-
-/**
- * @brief Writes CAR maps to FITS file.
- *
- * @param tmap Array of maps to write.
- * @param nfields Number of maps to write.
- * @param sky_info curved sky geometry information
- * @param fname Path to output FITS file.
- */
-void he_write_CAR_map(flouble **tmap,int nfields,nmt_curvedsky_info *sky_info,char *fname);
-
-/**
- * @brief Read map parameters from FITS file.
- *
- * @param fname Path to input FITS file.
- * @param is_healpix Whether pixelization should be HEALPix.
- * @param nfields number of fields in file.
- * @param isnest >0 if maps are in NESTED ordering.
- * @return curved sky geometry information.
- */
-nmt_curvedsky_info *he_get_file_params(char *fname,int is_healpix,int *nfields,int *isnest);
-
-/**
- * @brief Reads full-sky map from FITS file.
- *
- * @param fname Path to input FITS file.
- * @param sky_info curved sky geometry information.
- * @param nfield Which field to read (i.e. HDU number to read the map from, starting from 0).
- * @return Read map.
- */
-flouble *he_read_map(char *fname,nmt_curvedsky_info *sky_info,int nfield);
-
-/**
  * @brief HEALPix ring number.
  *
  * @param nside HEALPix resolution parameter.
@@ -685,62 +457,25 @@ void he_query_disc(int nside,double cth0,double phi,flouble radius,int *listtot,
 void he_udgrade(flouble *map_in,long nside_in,flouble *map_out,long nside_out,int nest);
 
 /**
- * @brief Gaussian beam
- *
- * Generates an array defining the harmonic coefficients of a Gaussian beam.
- * @param lmax Maximum multipole order.
- * @param fwhm_amin FWHM of the beam in arcminutes.
- * @return List of harmonic coefficients from 0 to lmax (inclusive).
- */
-double *he_generate_beam_window(int lmax,double fwhm_amin);
-
-/**
- * @brief Zero SHT coefficients.
- *
- * Sets all elements of a set of harmonic coefficients to zero.
- * @param lmax Maximum multipole order
- * @param alm Coefficients to zero. Must have a length given by he_nalms().
- */
-void he_zero_alm(int lmax,fcomplex *alm);
-
-/**
- * @brief Multiply SHT coefficients by beam.
- *
- * Multiplies a given set of harmonic coefficients by a circularly-symmetric function.
- * @param lmax Maximum multipole order.
- * @param fwhm_amin Full-width at half-maximum of the Gaussian beam in arcminutes.
-          Only used if \p window is a NULL pointer.
- * @param alm_in Input harmonic coefficients.
- * @param alm_out Output harmonic coefficients.
- * @param window Array of size \p lmax + 1 containing the function to multiply by.
-          Pass a NULL pointer if you want a Gaussian beam with a FWHM defined by \p fwhm_amin.
- * @param add_to_out If >0, the result of multiplying \p alm_in with the window function
-          will be added to the current contents of \p alm_out. Otherwise, \p alm_out is
-	  overwritten with the product.
- */
-void he_alter_alm(int lmax,double fwhm_amin,fcomplex *alm_in,fcomplex *alm_out,
-		  double *window,int add_to_out);
-
-/**
  * @brief Computes pixel area
  *
- * @param cs curved sky geometry info.
+ * @param nside nside parameter.
  * @param i ring number.
  * @return pixel area in sterad.
  */
-flouble he_get_pix_area(nmt_curvedsky_info *cs,long i);
+flouble he_get_pix_area(long nside,long i);
 
 /**
  * @brief Multiplies two full-sky maps.
  *
- * @param cs curved sky geometry information.
+ * @param nside nside parameter.
  * @param mp1 First map to multiply
  * @param mp2 Second map to multiply.
  * @param mp_out Output map containing the product of \p mp1 and \p mp2. It is safe to
           pass either of the input maps as \p mp_out, in which case that map will be
 	  overwritten with the product.
  */
-void he_map_product(nmt_curvedsky_info *cs,flouble *mp1,flouble *mp2,flouble *mp_out);
+void he_map_product(long nside,flouble *mp1,flouble *mp2,flouble *mp_out);
 
 /**
  * @brief Dot product of full-sky maps.
@@ -750,30 +485,12 @@ void he_map_product(nmt_curvedsky_info *cs,flouble *mp1,flouble *mp2,flouble *mp
  *    \int d\Omega\, m_1(\hat{\bf n})\,m_2(\hat{\bf n}),
  * \f]
  * The integral is computed as a Riemann sum over all pixels in the map.
- * @param cs curved sky geometry information.
+ * @param nside nside parameter.
  * @param mp1 First map to multiply.
  * @param mp2 Second map to multiply.
  * @return Dot product.
  */
-flouble he_map_dot(nmt_curvedsky_info *cs,flouble *mp1,flouble *mp2);
-
-/**
- * @brief Gaussian realizations of full-sky harmonic coefficients.
- *
- * Generates a Gaussian realization of a set of harmonic coefficients given an input power spectrum.
- * @param cs curved sky geometry information.
- * @param nmaps Number of fields to generate.
- * @param lmax Maximum multipole order
- * @param cells Set of \p nmaps * (\p nmaps + 1) / 2 arrays of length \p lmax + 1 defining each
-          of the power spectra needed to generate the Fourier coefficients. It must contain only the
-	  the upper-triangular part in row-major order (e.g. if \p nmaps is 3, there will be 6
-	  power spectra ordered as [1-1,1-2,1-3,2-2,2-3,3-3].
- * @param beam Set of \p nmaps arrays of length \p lmax + 1 defining the beam of each field.
- * @param seed Seed for this particular realization.
- * @return Gaussian realization with shape [\p nmaps][\p nalm], where \p nalm can be computed
-           with he_nalms().
- */
-fcomplex **he_synalm(nmt_curvedsky_info *cs,int nmaps,int lmax,flouble **cells,flouble **beam,int seed);
+flouble he_map_dot(long nside,flouble *mp1,flouble *mp2);
 
 int cov_get_coupling_pair_index(int na,int nc,int nb,int nd,
 				int ia1,int ia2,int ic1,int ic2,
