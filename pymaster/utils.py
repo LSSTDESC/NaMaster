@@ -157,7 +157,6 @@ class NmtWCSTranslator(object):
         http://docs.astropy.org/en/stable/wcs/index.html).
     :param axes: shape of the maps you want to analyze.
     """
-
     def __init__(self, wcs, axes):
         if wcs is None:
             is_healpix = True
@@ -257,6 +256,33 @@ class NmtWCSTranslator(object):
         self.d_phi = dph
         self.phi0 = phi0
         self.minfo = minfo
+
+    def __eq__(self, other):
+        # Is it the same thing?
+        if self is other:
+            return True
+        # Is it the same type?
+        if type(other) is not type(self):
+            return False
+
+        # If HEALPix
+        if self.is_healpix:
+            if not other.is_healpix:
+                return False
+            if other.nside != self.nside:
+                return False
+            return True
+
+        # If CAR
+        if other.is_healpix:
+            return False
+        for att in ['npix', 'nx', 'ny', 'theta_min',
+                    'theta_max', 'phi0', 'd_theta', 'd_phi']:
+            a_this = getattr(self, att, None)
+            a_other = getattr(self, att, None)
+            if a_this != a_other:
+                return False
+        return True
 
     def reform_map(self, maps):
         if not self._map_compatible(maps):

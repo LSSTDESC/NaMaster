@@ -62,6 +62,7 @@ class NmtFieldExp(object):
             if spin is None:
                 raise ValueError("Please supply field spin")
             self.spin = spin
+            self.nmaps = 2 if spin else 1
             return
 
         # 2. Check maps
@@ -82,6 +83,7 @@ class NmtFieldExp(object):
                 raise ValueError("Spin-zero fields are "
                                  "associated with a single map")
         self.spin = spin
+        self.nmaps = 2 if spin else 1
 
         maps = self.wt.reform_map(maps)
 
@@ -176,6 +178,9 @@ class NmtFieldExp(object):
             if w_temp:
                 self.temp = templates.copy()
                 self.alm_temp = alm_temp
+
+    def is_compatible(self, other):
+        self.wt == other.wt
 
     def get_mask(self):
         return self.mask
@@ -458,6 +463,10 @@ class NmtField(object):
                     n_iter, masked_input, int(lite))
         self.lite = lite
         self.mask_only = mask_only
+        self.nmaps = 2 if spin else 1
+
+    def is_compatible(self, other):
+        return self.fl.cs.n_eq == other.fl.cs.n_eq
 
     def __del__(self):
         if self.fl is not None:
