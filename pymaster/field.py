@@ -79,6 +79,8 @@ class NmtField(object):
         self.beam = None
         self.n_iter = n_iter
         self.n_iter_mask = n_iter_mask
+        self.pure_e = purify_e
+        self.pure_b = purify_b
         # The alm is only required for non-mask-only maps
         self.alm = None
         # The remaining attributes are only required for non-lite maps
@@ -146,17 +148,16 @@ class NmtField(object):
 
         maps = self.wt.reform_map(maps)
 
-        pure_any = purify_e or purify_b
+        pure_any = self.pure_e or self.pure_b
         if pure_any and self.spin != 2:
             raise ValueError("Purification only implemented for spin-2 fields")
-        self.pure_e = purify_e
-        self.pure_b = purify_b
 
         # 3. Check templates
         if isinstance(templates, (list, tuple, np.ndarray)):
             templates = np.array(templates, dtype=np.float64)
-            if (len(templates[0]) != 1) and (len(templates[0]) != 2):
-                raise ValueError("Must supply 1 or 2 maps per field")
+            if (len(templates[0]) != len(maps)):
+                raise ValueError("Each template must have the same number of "
+                                 "components as the map.")
             templates = self.wt.reform_map(templates)
             self.n_temp = len(templates)
         else:
@@ -173,14 +174,13 @@ class NmtField(object):
             if w_temp:
                 temp_unmasked = np.array(templates)
             if masked_on_input:
-                good = mask > 0
-                goodm = mask[good]
+                good = self.mask > 0
+                goodm = self.mask[good]
                 maps_unmasked[:, good] /= goodm[None, :]
                 if w_temp:
                     temp_unmasked[:, :, good] /= goodm[None, None, :]
 
         # 5. Mask all maps
-        maps = np.array(maps)
         if w_temp:
             templates = np.array(templates)
         if not masked_on_input:
@@ -213,10 +213,10 @@ class NmtField(object):
         if pure_any:
             task = [self.pure_e, self.pure_b]
             alm_mask = self.get_mask_alms()
-            self.alm, maps = self._purify(mask, alm_mask, maps_unmasked,
+            self.alm, maps = self._purify(self.mask, alm_mask, maps_unmasked,
                                           n_iter=n_iter, task=task)
             if w_temp and (not self.lite):
-                alm_temp = np.array([self._purify(mask, alm_mask, t,
+                alm_temp = np.array([self._purify(self.mask, alm_mask, t,
                                                   n_iter=n_iter,
                                                   task=task)[0]
                                      for t in temp_unmasked])

@@ -97,6 +97,9 @@ class NmtWorkspace(object):
             lib.workspace_free(self.wsp)
             self.wsp = None
 
+        ut._toeplitz_sanity(l_toeplitz, l_exact, dl_band,
+                            bins.bin.ell_max, fl1, fl2)
+
         # Get mask PCL
         alm1 = fl1.get_mask_alms()
         if fl2 is fl1:
@@ -104,8 +107,6 @@ class NmtWorkspace(object):
         else:
             alm2 = fl2.get_mask_alms()
         pcl_mask = hp.alm2cl(alm1, alm2, lmax=fl1.ainfo_mask.lmax)
-        ut._toeplitz_sanity(l_toeplitz, l_exact, dl_band,
-                            bins.bin.ell_max, fl1, fl2)
         self.wsp = lib.comp_coupling_matrix(
             int(fl1.spin), int(fl2.spin),
             int(fl1.ainfo.lmax), int(fl1.ainfo_mask.lmax),
@@ -435,8 +436,8 @@ def deprojection_bias(f1, f2, cl_guess, n_iter=3):
     clb = np.zeros((f1.nmaps, f2.nmaps, f1.ainfo.lmax+1))
 
     # Compute ff part
-    if f1.ntemp > 0:
-        pcl_ff = np.zeros((f1.ntemp, f1.ntemp,
+    if f1.n_temp > 0:
+        pcl_ff = np.zeros((f1.n_temp, f1.n_temp,
                            f1.nmaps, f2.nmaps,
                            f1.ainfo.lmax+1))
         for ij, tj in enumerate(f1.temp):
@@ -447,9 +448,10 @@ def deprojection_bias(f1, f2, cl_guess, n_iter=3):
             ftild_j = np.array([
                 np.sum([hp.almxfl(ftild_j[m], clg[m, n],
                                   mmax=f1.ainfo.mmax)
-                        for m in range(f1.nmaps)])
+                        for m in range(f1.nmaps)], axis=0)
                 for n in range(f2.nmaps)])
             # SHT^-1[C^ba*SHT[v*fj]]
+            print(ftild_j.shape)
             ftild_j = ut.alm2map(ftild_j, f2.spin, f2.wt.minfo,
                                  f2.ainfo)
             # SHT[w*SHT^-1[C^ba*SHT[v*fj]]]
@@ -462,13 +464,13 @@ def deprojection_bias(f1, f2, cl_guess, n_iter=3):
         clb -= np.einsum('ij,ijklm', f1.iM, pcl_ff)
 
     # Compute gg part and fg part
-    if f2.ntemp > 0:
-        pcl_gg = np.zeros((f2.ntemp, f2.ntemp,
+    if f2.n_temp > 0:
+        pcl_gg = np.zeros((f2.n_temp, f2.n_temp,
                            f1.nmaps, f2.nmaps,
                            f1.ainfo.lmax+1))
-        if f1.ntemp > 0:
-            prod_fg = np.zeros((f2.ntemp, f1.ntemp))
-            pcl_fg = np.zeros((f1.ntemp, f2.ntemp,
+        if f1.n_temp > 0:
+            prod_fg = np.zeros((f1.n_temp, f2.n_temp))
+            pcl_fg = np.zeros((f1.n_temp, f2.n_temp,
                                f1.nmaps, f2.nmaps,
                                f1.ainfo.lmax+1))
 
@@ -480,12 +482,12 @@ def deprojection_bias(f1, f2, cl_guess, n_iter=3):
             gtild_j = np.array([
                 np.sum([hp.almxfl(gtild_j[n], clg[m, n],
                                   mmax=f2.ainfo.mmax)
-                        for n in range(f2.nmaps)])
+                        for n in range(f2.nmaps)], axis=0)
                 for m in range(f1.nmaps)])
             # SHT^-1[C^ab*SHT[w*gj]]
             gtild_j = ut.alm2map(gtild_j, f1.spin, f1.wt.minfo,
                                  f1.ainfo) * f1.mask[None, :]
-            if f1.ntemp > 0:
+            if f1.n_temp > 0:
                 # Int[f^i*v*SHT^-1[C^ab*SHT[w*gj]]]
                 for ii, ti in enumerate(f1.temp):
                     prod_fg[ii, ij] = f1.wt.minfo.dot_map(
@@ -502,13 +504,13 @@ def deprojection_bias(f1, f2, cl_guess, n_iter=3):
                 pcl_gg[ii, ij, :, :, :] = clij
 
         clb -= np.einsum('ij,ijklm', f2.iM, pcl_gg)
-        if f1.ntemp > 0:
+        if f1.n_temp > 0:
             # PCL[f_i, g_j]
             pcl_fg = np.array([[[[hp.alm2cl(a1, a2, lmax=f1.ainfo.lmax)
                                   for a2 in gj]
                                  for a1 in fi]
                                 for gj in f2.alm_temp]
-                               for fi in f2.alm_temp])
+                               for fi in f1.alm_temp])
             clb += np.einsum('ij,rs,jr,isklm',
                              f1.iM, f2.iM, prod_fg, pcl_fg)
     return clb.reshape(pcl_shape)
@@ -706,8 +708,8 @@ def compute_full_master(f1, f2, b=None, cl_noise=None, cl_guess=None,
     if workspace is None:
         w = NmtWorkspace()
         w.compute_coupling_matrix(
-            f1, f2, b, n_iter=n_iter, lmax_mask=lmax_mask,
-            l_toeplitz=l_toeplitz, l_exact=l_exact, dl_band=dl_band)
+            f1, f2, b, l_toeplitz=l_toeplitz,
+            l_exact=l_exact, dl_band=dl_band)
     else:
         w = workspace
 

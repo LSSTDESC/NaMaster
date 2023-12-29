@@ -1,6 +1,7 @@
-from pymaster import nmtlib as lib
-from pymaster.utils import _toeplitz_sanity
 import numpy as np
+import healpy as hp
+from pymaster import nmtlib as lib
+import pymaster.utils as ut
 
 
 class NmtCovarianceWorkspace(object):
@@ -38,7 +39,6 @@ class NmtCovarianceWorkspace(object):
 
     def compute_coupling_coefficients(self, fla1, fla2,
                                       flb1=None, flb2=None,
-                                      lmax=None, n_iter=3,
                                       l_toeplitz=-1,
                                       l_exact=-1, dl_band=-1,
                                       spin0_only=False):
@@ -75,21 +75,35 @@ class NmtCovarianceWorkspace(object):
         if flb2 is None:
             flb2 = fla2
 
+        if (not (fla1.is_compatible(fla2) and
+                 fla1.is_compatible(flb1) and
+                 fla1.is_compatible(flb2))):
+            raise ValueError("Fields have incompatible pixelizations.")
+
+        ut._toeplitz_sanity(l_toeplitz, l_exact, dl_band,
+                            fla1.ainfo.lmax, fla1, flb1)
+
         if self.wsp is not None:
             lib.covar_workspace_free(self.wsp)
             self.wsp = None
 
-        ns = fla1.fl.cs.n_eq
-        if (fla2.fl.cs.n_eq != ns) or (flb1.fl.cs.n_eq != ns) or \
-           (flb2.fl.cs.n_eq != ns):
-            raise ValueError("Everything should have the same resolution!")
+        def get_mask_prod_cl(f1_p1, f2_p1, f1_p2, f2_p2):
+            mask_p1 = f1_p1.get_mask()*f2_p1.get_mask()
+            alm_p1 = ut.map2alm(np.array([mask_p1]), 0,
+                                f1_p1.wt.minfo, f1_p1.ainfo_mask,
+                                n_iter=f1_p1.n_iter_mask)[0]
+            mask_p2 = f1_p2.get_mask()*f2_p2.get_mask()
+            alm_p2 = ut.map2alm(np.array([mask_p2]), 0,
+                                f1_p2.wt.minfo, f1_p2.ainfo_mask,
+                                n_iter=f1_p2.n_iter_mask)[0]
+            return hp.alm2cl(alm_p1, alm_p2, lmax=f1_p1.ainfo_mask.lmax)
 
-        if lmax is None:
-            lmax = lib.get_lmax_from_cs_py(fla1.fl.cs)
-
-        _toeplitz_sanity(l_toeplitz, l_exact, dl_band, lmax, fla1, flb1)
-        self.wsp = lib.covar_workspace_init_py(fla1.fl, fla2.fl, flb1.fl,
-                                               flb2.fl, lmax, n_iter,
+        pcl_mask_11_22 = get_mask_prod_cl(fla1, flb1, fla2, flb2)
+        pcl_mask_12_21 = get_mask_prod_cl(fla1, flb2, fla2, flb1)
+        self.wsp = lib.covar_workspace_init_py(pcl_mask_11_22,
+                                               pcl_mask_12_21,
+                                               int(fla1.ainfo.lmax),
+                                               int(fla1.ainfo_mask.lmax),
                                                l_toeplitz, l_exact, dl_band,
                                                int(spin0_only))
 
