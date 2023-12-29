@@ -213,12 +213,12 @@ class NmtField(object):
         if pure_any:
             task = [self.pure_e, self.pure_b]
             alm_mask = self.get_mask_alms()
-            maps, self.alm = self._purify(mask, alm_mask, maps_unmasked,
+            self.alm, maps = self._purify(mask, alm_mask, maps_unmasked,
                                           n_iter=n_iter, task=task)
             if w_temp and (not self.lite):
                 alm_temp = np.array([self._purify(mask, alm_mask, t,
                                                   n_iter=n_iter,
-                                                  task=task)[1]
+                                                  task=task)[0]
                                      for t in temp_unmasked])
                 # IMPORTANT: at this stage, maps and self.alm contain the
                 # purified map and SH coefficients. However, although alm_temp
@@ -253,8 +253,8 @@ class NmtField(object):
         return self.mask
 
     def get_maps(self):
-        if self.lite:
-            raise ValueError("Input maps unavailable for lightweight fields")
+        if self.maps is None:
+            raise ValueError("Input maps unavailable for this field")
         return self.maps
 
     def get_alms(self):
@@ -274,8 +274,8 @@ class NmtField(object):
         return amask
 
     def get_templates(self):
-        if self.lite:
-            raise ValueError("Input maps unavailable for lightweight fields")
+        if self.temp is None:
+            raise ValueError("Input templates unavailable for this field")
         return self.temp
 
     def _purify(self, mask, alm_mask, maps_u, n_iter, task=[False, True],
@@ -325,7 +325,7 @@ class NmtField(object):
         # Compute SHT, multiply by
         # sqrt((l-2)!/(l+2)!) and add to alms
         palm = np.array([ut.map2alm(np.array([m]), 0, self.wt.minfo,
-                                    self.ainfo, n_iter=n_iter)
+                                    self.ainfo, n_iter=n_iter)[0]
                          for m in maps])
         fl[2:] = 1/np.sqrt((ls[2:]+2.0)*(ls[2:]+1.0) *
                            ls[2:]*(ls[2:]-1))

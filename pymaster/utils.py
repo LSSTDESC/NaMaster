@@ -542,7 +542,7 @@ def synfast_flat(nx, ny, lx, ly, cls, spin_arr, beam=None, seed=-1):
     return maps
 
 
-def moore_penrose_pinvh(self, mat, w_thr):
+def moore_penrose_pinvh(mat, w_thr):
     if (w_thr is None) or (w_thr <= 0):
         return np.linalg.inv(mat)
 

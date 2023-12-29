@@ -106,8 +106,12 @@ class NmtWorkspace(object):
         pcl_mask = hp.alm2cl(alm1, alm2, lmax=fl1.ainfo_mask.lmax)
         ut._toeplitz_sanity(l_toeplitz, l_exact, dl_band,
                             bins.bin.ell_max, fl1, fl2)
-        self.wsp = lib.comp_coupling_matrix(pcl_mask, bins.bin, int(is_teb),
-                                            l_toeplitz, l_exact, dl_band)
+        self.wsp = lib.comp_coupling_matrix(
+            int(fl1.spin), int(fl2.spin),
+            int(fl1.ainfo.lmax), int(fl1.ainfo_mask.lmax),
+            int(fl1.pure_e), int(fl1.pure_b), int(fl2.pure_e), int(fl2.pure_b),
+            fl1.beam, fl2.beam, pcl_mask,
+            bins.bin, int(is_teb), l_toeplitz, l_exact, dl_band)
         self.has_unbinned = True
 
     def write_to(self, fname):

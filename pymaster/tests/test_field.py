@@ -128,7 +128,7 @@ def test_field_alloc():
     f2p = nmt.NmtField(FT.msk, [FT.mps[1], FT.mps[2]],
                        beam=FT.beam,
                        purify_e=True, purify_b=True,
-                       n_iter_mask_purify=10)
+                       n_iter_mask=10)
     assert (normdiff(f0.get_maps()[0],
                      FT.mps[0]*FT.msk) < 1E-10)
     assert (normdiff(f2.get_maps()[0],
@@ -141,9 +141,9 @@ def test_field_alloc():
     assert (1E-5*np.mean(np.fabs(f2p.get_maps()[1])) >
             np.mean(np.fabs(f2p.get_maps()[1] -
                             FT.mps[2]*FT.msk)))
-    assert (len(f0.get_templates()) == 0)
-    assert (len(f2.get_templates()) == 0)
-    assert (len(f2p.get_templates()) == 0)
+    for f in [f0, f2, f2p]:
+        with pytest.raises(ValueError):  # No templates
+            f.get_templates()
 
     # With templates
     f0 = nmt.NmtField(FT.msk, [FT.mps[0]],
@@ -200,10 +200,10 @@ def test_field_error():
 
     # Automatically assign spin = 0 for a single map
     f = nmt.NmtField(FT.msk, [FT.mps[0]], n_iter=0)
-    assert (f.fl.spin == 0)
+    assert (f.spin == 0)
     # Automatically assign spin = 2 for 2 maps
     f = nmt.NmtField(FT.msk, [FT.mps[1], FT.mps[2]], n_iter=0)
-    assert (f.fl.spin == 2)
+    assert (f.spin == 2)
     with pytest.raises(ValueError):  # Spin=0 but 2 maps
         f = nmt.NmtField(FT.msk, [FT.mps[1], FT.mps[2]],
                          spin=0, n_iter=0)
