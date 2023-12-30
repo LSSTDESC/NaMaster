@@ -25,7 +25,7 @@ def test_mask_errors():
         nmt.mask_apodization(MT.msk[:13], MT.aposize, apotype="C1")
     with pytest.raises(RuntimeError):  # Negative apodization
         nmt.mask_apodization(MT.msk, -MT.aposize, apotype="C1")
-    with pytest.raises(RuntimeError):  # Wrong apodization type
+    with pytest.raises(ValueError):  # Wrong apodization type
         nmt.mask_apodization(MT.msk, MT.aposize, apotype="C3")
     with pytest.raises(RuntimeError):  # Aposize too small
         nmt.mask_apodization(MT.msk[:12*2**2], 1., apotype='C1')
