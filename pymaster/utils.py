@@ -279,7 +279,7 @@ class NmtWCSTranslator(object):
         for att in ['npix', 'nx', 'ny', 'theta_min',
                     'theta_max', 'phi0', 'd_theta', 'd_phi']:
             a_this = getattr(self, att, None)
-            a_other = getattr(self, att, None)
+            a_other = getattr(other, att, None)
             if a_this != a_other:
                 return False
         return True
