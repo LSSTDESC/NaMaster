@@ -18,8 +18,8 @@ nmt_covar_workspace *nmt_covar_workspace_init(flouble *cl_masks_11_22,
   cl_masks[0]=my_malloc((cw->lmax_mask+1)*sizeof(flouble));
   cl_masks[1]=my_malloc((cw->lmax_mask+1)*sizeof(flouble));
   for(ii=0;ii<=cw->lmax_mask;ii++) {
-    cl_masks[0][ii]*=(ii+0.5)/(2*M_PI);
-    cl_masks[1][ii]*=(ii+0.5)/(2*M_PI);
+    cl_masks[0][ii]=cl_masks_11_22[ii]*(ii+0.5)/(2*M_PI);
+    cl_masks[1][ii]=cl_masks_12_21[ii]*(ii+0.5)/(2*M_PI);
   }
 
   nmt_master_calculator *c;
