@@ -555,7 +555,8 @@ def uncorr_noise_deprojection_bias(f1, map_var, n_iter=3):
                             f1.wt.minfo, f1.ainfo, n_iter=n_iter)
         for i, fi in enumerate(f1.alm_temp):
             cl = np.array([[hp.alm2cl(a1, a2, lmax=f1.ainfo.lmax)
-                            for a2 in fj_v_s] for a1 in fi])
+                            for a1 in fi]
+                           for a2 in fj_v_s])
             pcl_ff[i, j, :, :, :] = cl
     clb -= 2*np.einsum('ij,ijklm', f1.iM, pcl_ff)
 

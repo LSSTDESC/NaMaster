@@ -604,10 +604,22 @@ def test_workspace_deprojection_bias():
 
 def test_workspace_uncorr_noise_deprojection_bias():
     # Test uncorr_noise_deprojection_bias
+    # Smoke
     c = nmt.uncorr_noise_deprojection_bias(WT.f0, np.zeros(WT.npix))
     assert c.shape == (1, WT.f0.ainfo.lmax+1)
+
+    # Errors
     with pytest.raises(ValueError):
         nmt.uncorr_noise_deprojection_bias(WT.f0, WT.n_good)
+
+    # Actual test
+    f = nmt.NmtField(WT.msk, [WT.mps[1], WT.mps[2]],
+                     templates=[[WT.tmp[1], WT.tmp[2]]])
+    sig2 = np.ones(WT.npix)
+    c = nmt.uncorr_noise_deprojection_bias(f, sig2)
+    b = np.loadtxt("test/benchmarks/bm_uncorr_noise_dp.txt",
+                   unpack=True)
+    assert np.all(np.fabs(c-b) <= 1E-5*np.fabs(b))
 
 
 def test_workspace_compute_coupled_cell():
