@@ -345,8 +345,28 @@ def mask_apodization(mask_in, aposize, apotype="C1"):
         of these methods.
     :return: apodized mask as a HEALPix map
     """
-    return lib.apomask(mask_in.astype("float64"), len(mask_in),
-                       aposize, apotype)
+    if apotype not in ['C1', 'C2', 'Smooth']:
+        raise ValueError(f"Apodization type {apotype} unknown. "
+                         "Choose from ['C1', 'C2', 'Smooth']")
+
+    m = lib.apomask(mask_in.astype("float64"), len(mask_in),
+                    aposize, apotype)
+
+    if apotype != 'Smooth':
+        return m
+
+    # Smooth
+    wt = NmtWCSTranslator(None, mask_in.shape)
+    lmax = 3*wt.nside-1
+    ainfo = AlmInfo(lmax)
+    ls = np.arange(lmax+1)
+    beam = np.exp(-0.5*ls*(ls+1)*np.radians(aposize)**2)
+    alm = map2alm(np.array([m]), 0, wt.minfo, ainfo, n_iter=3)[0]
+    alm = hp.almxfl(alm, beam, mmax=ainfo.mmax)
+    m = alm2map(np.array([alm]), 0, wt.minfo, ainfo)[0]
+    # Multiply by original mask
+    m *= mask_in
+    return m
 
 
 def mask_apodization_flat(mask_in, lx, ly, aposize, apotype="C1"):

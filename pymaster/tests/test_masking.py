@@ -29,7 +29,7 @@ def test_mask_errors():
         nmt.mask_apodization(MT.msk, MT.aposize, apotype="C3")
     with pytest.raises(RuntimeError):  # Aposize too small
         nmt.mask_apodization(MT.msk[:12*2**2], 1., apotype='C1')
-    with pytest.raises(RuntimeError):
+    with pytest.raises(RuntimeError):  # Aposize too small
         nmt.mask_apodization(MT.msk[:12*2**2], 1., apotype='Smooth')
 
 

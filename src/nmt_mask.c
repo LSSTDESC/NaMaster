@@ -87,22 +87,18 @@ static void apodize_mask_CX(long nside,flouble *mask_in,flouble *mask_out,floubl
   free(phiv);
 }
 
-/*
-static void apodize_mask_smooth(long nside,flouble *mask_in,flouble *mask_out,flouble aposize)
+static void apodize_mask_smooth_binary(long nside,flouble *mask_in,flouble *mask_out,flouble aposize)
 {
   long npix=he_nside2npix(nside);
-  nmt_curvedsky_info *cs=nmt_curvedsky_info_alloc(1,nside,-1,-1,-1,-1,-1,-1,-1);
   double aporad=aposize*M_PI/180;
-  flouble *mask_dum=my_malloc(npix*sizeof(flouble));
-  fcomplex *alms_dum=my_malloc(he_nalms(3*nside-1)*sizeof(fcomplex));
-  memcpy(mask_dum,mask_in,npix*sizeof(flouble));
+  memcpy(mask_out,mask_in,npix*sizeof(flouble));
 
   int lenlist0=(int)(4*npix*(1-cos(2.5*aporad)));
   if(lenlist0 < 2)
     report_error(NMT_ERROR_APO,"Your apodization scale is too small for this pixel size\n");
-  
+
 #pragma omp parallel default(none)                      \
-  shared(npix,mask_in,mask_dum,nside,aporad,lenlist0)
+  shared(npix,mask_in,mask_out,nside,aporad,lenlist0)
   {
     long ip;
     int *listpix=my_malloc(lenlist0*sizeof(int));
@@ -122,23 +118,15 @@ static void apodize_mask_smooth(long nside,flouble *mask_in,flouble *mask_out,fl
 	for(j=0;j<lenlist_half;j++) {
 	  int ip2=listpix[j];
 #pragma omp atomic
-	  mask_dum[ip2]*=0;
+	  mask_out[ip2]*=0;
 	}
       }
     } //end omp for
     free(listpix);
   }//end omp parallel
 
-  he_map2alm(cs,3*nside-1,1,0,&mask_dum,&alms_dum,3);
-  he_alter_alm(3*nside-1,aporad*180*60*2.355/M_PI,alms_dum,alms_dum,NULL,0);
-  he_alm2map(cs,3*nside-1,1,0,&mask_dum,&alms_dum);
-  he_map_product(cs,mask_in,mask_dum,mask_out);
-
-  free(mask_dum);
-  free(alms_dum);
-  free(cs);
 }
-*/
+
 
 void nmt_apodize_mask(long nside,flouble *mask_in,flouble *mask_out,flouble aposize,char *apotype)
 {
@@ -147,13 +135,10 @@ void nmt_apodize_mask(long nside,flouble *mask_in,flouble *mask_out,flouble apos
   else if(aposize==0)
     memcpy(mask_out,mask_in,he_nside2npix(nside)*sizeof(flouble));
   else {
-    if((!strcmp(apotype,"C1")) || (!strcmp(apotype,"C2"))) {
+    if((!strcmp(apotype,"C1")) || (!strcmp(apotype,"C2")))
       apodize_mask_CX(nside,mask_in,mask_out,aposize,apotype);
-    }
-    else if(!strcmp(apotype,"Smooth")) {
-      report_error(NMT_ERROR_APO,"Smooth disabled\n");
-      //apodize_mask_smooth(nside,mask_in,mask_out,aposize);
-    }
+    else if(!strcmp(apotype,"Smooth"))
+      apodize_mask_smooth_binary(nside,mask_in,mask_out,aposize);
     else
       report_error(NMT_ERROR_APO,"Unknown apodization type %s. Allowed: \"Smooth\", \"C1\", \"C2\"\n",apotype);
   }
