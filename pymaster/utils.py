@@ -443,19 +443,25 @@ def synfast_spherical(nside, cls, spin_arr, beam=None, seed=-1,
     lmax = min(lmax_cls, lmax)
     ainfo = AlmInfo(lmax)
 
-    if beam is None:
-        beam = np.ones([nfields, lmax + 1])
-    else:
-        if len(beam) != nfields:
-            raise ValueError("Must provide one beam per field")
-        if len(beam[0]) != lmax + 1:
-            raise ValueError(
-                "The beam should have as many multipoles as the power spectrum"
-            )
-
+    # 1. Generate alms
     # Note that, if `new=False` stops being allowed in healpy, we'll need
     # to change the Cl ordering.
     alms = np.array(hp.synalm(cls, lmax=lmax, mmax=lmax, new=False))
+
+    # 2. Multiply by beam
+    if beam is not None:
+        if len(beam) != nfields:
+            raise ValueError("Must provide one beam per field")
+        if len(beam[0]) < lmax + 1:
+            raise ValueError(f"The beam should be provided to ell = {lmax}")
+        beam_per = []
+        for ifield, n in enumerate(nmap_arr):
+            for i in range(n):
+                beam_per.append(beam[ifield])
+        alms = np.array([hp.almxfl(alm, bl, mmax=lmax)
+                         for alm, bl in zip(alms, beam_per)])
+
+    # 3. SHT back to real space
     maps = np.concatenate([alm2map(alms[i0:i0+n], s, wt.minfo, ainfo)
                            for i0, n, s in zip(map_first, nmap_arr, spin_arr)])
 
