@@ -522,20 +522,57 @@ def uncorr_noise_deprojection_bias(f1, map_var, n_iter=3):
     given field f1.
 
     :param NmtField f1: fields to correlate
-    :param map_var: array containing a HEALPix map corresponding \
-        to the local noise variance (in one sterad).
+    :param map_var: array containing a map corresponding to the local \
+        noise variance (in one sterad). The map should have the same \
+        pixelization used by `f1`.
     :param n_iter: number of iterations when computing a_lms.
     :return: deprojection bias power spectra.
     """
-    ncls = f1.fl.nmaps * f1.fl.nmaps
-    nells = f1.fl.lmax + 1
-    if len(map_var) != f1.fl.npix:
-        raise ValueError("Variance map doesn't match map resolution")
-    cl1d = lib.comp_uncorr_noise_deproj_bias(f1.fl, map_var,
-                                             ncls * nells, n_iter)
-    cl2d = np.reshape(cl1d, [ncls, nells])
+    if f1.lite:
+        raise ValueError("Can't compute deprojection bias for "
+                         "lightweight fields")
 
-    return cl2d
+    # Flatten in case it's a 2D map
+    sig2 = map_var.flatten()
+    if len(sig2) != f1.wt.npix:
+        raise ValueError("Variance map doesn't match map resolution")
+
+    pcl_shape = (f1.nmaps * f1.nmaps, f1.ainfo.lmax+1)
+
+    # Return if no contamination
+    if f1.n_temp == 0:
+        return np.zeros(pcl_shape)
+
+    clb = np.zeros((f1.nmaps, f1.nmaps, f1.ainfo.lmax+1))
+
+    # First term in Eq. 39 of the NaMaster paper
+    pcl_ff = np.zeros((f1.n_temp, f1.n_temp,
+                       f1.nmaps, f1.nmaps,
+                       f1.ainfo.lmax+1))
+    for j, fj in enumerate(f1.temp):
+        # SHT(v^2 sig^2 f_j)
+        fj_v_s = ut.map2alm(fj*(f1.mask**2*sig2)[None, :], f1.spin,
+                            f1.wt.minfo, f1.ainfo, n_iter=n_iter)
+        for i, fi in enumerate(f1.alm_temp):
+            cl = np.array([[hp.alm2cl(a1, a2, lmax=f1.ainfo.lmax)
+                            for a2 in fj_v_s] for a1 in fi])
+            pcl_ff[i, j, :, :, :] = cl
+    clb -= 2*np.einsum('ij,ijklm', f1.iM, pcl_ff)
+
+    # Second term in Eq. 39 of the namaster paper
+    # PCL(fi, fs)
+    pcl_ff = np.array([[[[hp.alm2cl(a1, a2, lmax=f1.ainfo.lmax)
+                          for a2 in fs]
+                         for a1 in fi]
+                        for fs in f1.alm_temp]
+                       for fi in f1.alm_temp])
+    # Int[fj * fr * v^2 * sig^2]
+    prod_ff = np.array([[
+        f1.wt.minfo.dot_map(fj, fr*(f1.mask**2*sig2)[None, :])
+        for fr in f1.temp] for fj in f1.temp])
+    clb += np.einsum('ij,rs,jr,isklm', f1.iM, f1.iM, prod_ff, pcl_ff)
+
+    return clb.reshape(pcl_shape)
 
 
 def deprojection_bias_flat(

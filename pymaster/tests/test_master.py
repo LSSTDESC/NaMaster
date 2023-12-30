@@ -502,8 +502,8 @@ def test_lite_errors():
 
     with pytest.raises(ValueError):  # No deprojection bias
         nmt.deprojection_bias(f0, fl, np.zeros([1, 3*WT.nside]))
-    #with pytest.raises(RuntimeError):  # No deprojection bias
-    #    nmt.uncorr_noise_deprojection_bias(fl, WT.mps[0])
+    with pytest.raises(ValueError):  # No deprojection bias
+        nmt.uncorr_noise_deprojection_bias(fl, WT.mps[0])
     with pytest.raises(ValueError):  # No C_l without maps
         nmt.compute_coupled_cell(f0, fe)
 
@@ -605,7 +605,7 @@ def test_workspace_deprojection_bias():
 def test_workspace_uncorr_noise_deprojection_bias():
     # Test uncorr_noise_deprojection_bias
     c = nmt.uncorr_noise_deprojection_bias(WT.f0, np.zeros(WT.npix))
-    assert c.shape == (1, WT.f0.fl.lmax+1)
+    assert c.shape == (1, WT.f0.ainfo.lmax+1)
     with pytest.raises(ValueError):
         nmt.uncorr_noise_deprojection_bias(WT.f0, WT.n_good)
 
