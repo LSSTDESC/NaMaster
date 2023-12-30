@@ -11,9 +11,3 @@ f2 = nmt.NmtField(msk, [mq, mu], templates=[[cq, cu]])
 cln = nmt.uncorr_noise_deprojection_bias(f2, sig2)
 
 np.savetxt("bm_uncorr_noise_dp.txt", cln.T)
-import matplotlib.pyplot as plt
-plt.plot(cln[0], 'k-')
-plt.plot(cln[3], 'r-')
-plt.plot(cln[1], 'b--')
-plt.plot(cln[2], 'c--')
-plt.show()
