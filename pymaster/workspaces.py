@@ -717,7 +717,7 @@ def compute_full_master(f1, f2, b=None, cl_noise=None, cl_guess=None,
     :return: set of decoupled bandpowers
     """
     if (b is None) and (workspace is None):
-        raise KeyError("Must supply either workspace or bins.")
+        raise SyntaxError("Must supply either workspace or bins.")
     if not f1.is_compatible(f2):
         raise ValueError("Fields have incompatible pixelizations.")
     pcl_shape = (f1.nmaps * f2.nmaps, f1.ainfo.lmax+1)

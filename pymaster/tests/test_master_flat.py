@@ -300,6 +300,12 @@ def test_workspace_flat_full_master():
 
     c = nmt.compute_full_master_flat(WT.f0, WT.f0, WT.b)
     assert c.shape == (1, WT.b.bin.n_bands)
+
+    c = nmt.compute_full_master_flat(WT.f0, WT.f0, WT.b,
+                                     ells_guess=np.arange(1000),
+                                     cl_guess=np.zeros([1, 1000]))
+    assert c.shape == (1, WT.b.bin.n_bands)
+
     with pytest.raises(ValueError):  # Incompatible resolutions
         nmt.compute_full_master_flat(WT.f0, WT.f0_half, WT.b)
     c = nmt.compute_full_master_flat(WT.f0, WT.f0, WT.b_half)

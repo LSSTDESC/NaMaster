@@ -437,15 +437,35 @@ def test_workspace_rebin():
     with pytest.raises(RuntimeError):  # Wrong lmax
         w.update_bins(b4)
 
+    # Uninitialised
+    with pytest.raises(ValueError):
+        b4.bin = None
+        w.update_bins(b4)
+    with pytest.raises(ValueError):
+        w = nmt.NmtWorkspace()
+        w.update_bins(b4)
+
 
 def test_workspace_io():
-    w = nmt.NmtWorkspace()
+    with pytest.raises(RuntimeError):  # Uninitialised
+        w = nmt.NmtWorkspace()
+        w.get_coupling_matrix()
+    with pytest.raises(RuntimeError):  # Uninitialised
+        w.update_coupling_matrix(None)
     with pytest.raises(RuntimeError):  # Invalid writing
+        w = nmt.NmtWorkspace()
         w.write_to("test/wspc.fits")
+
+    w = nmt.NmtWorkspace()
     w.read_from("test/benchmarks/bm_yc_yp_w02.fits")  # OK read
     assert w.wsp.lmax == 3*64-1
     w.get_coupling_matrix()  # Read mode coupling matrix
     # Updating mode-coupling matrix
+    # 1. Wrong update
+    with pytest.raises(ValueError):  # Uninitialised
+        mcm_new = np.identity(3)
+        w.update_coupling_matrix(mcm_new)
+    # 2. Right update
     mcm_new = np.identity(2*(w.wsp.lmax+1))
     w.update_coupling_matrix(mcm_new)
     # Retireve MCM and check it's correct
@@ -562,6 +582,13 @@ def test_workspace_full_master():
 
     c = nmt.compute_full_master(WT.f0, WT.f0, WT.b)
     assert c.shape == (1, WT.b.bin.n_bands)
+
+    c = nmt.compute_full_master(WT.f0, WT.f0, WT.b,
+                                cl_noise=WT.n_good,
+                                cl_guess=WT.n_good)
+    assert c.shape == (1, WT.b.bin.n_bands)
+    with pytest.raises(SyntaxError):  # Incompatible bandpowers
+        nmt.compute_full_master(WT.f0, WT.f0)
     with pytest.raises(ValueError):  # Incompatible bandpowers
         nmt.compute_full_master(WT.f0, WT.f0, WT.b_doub)
     with pytest.raises(ValueError):  # Incompatible resolutions
