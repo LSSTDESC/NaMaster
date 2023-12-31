@@ -6,12 +6,15 @@ import pymaster.utils as ut
 
 class NmtCovarianceWorkspace(object):
     """
-    NmtCovarianceWorkspace objects are used to compute and store \
-    the coupling coefficients needed to calculate the Gaussian \
-    covariance matrix under the approximations in astro-ph/0307515 \
-    and arXiv/1609.09730. When initialized, this object is \
-    practically empty. The information describing the coupling \
-    coefficients must be computed or read from a file afterwards.
+    :obj:`NmtCovarianceWorkspace` objects are used to compute and store
+    the coupling coefficients needed to calculate the Gaussian
+    covariance matrix under the approximations in `Garcia-Garcia et al.
+    2019 <https://arxiv.org/abs/1906.11765>`_ (see also
+    `Efstathiou et al. 2003 <https://arxiv.org/abs/astro-ph/0307515>`_,
+    and `Couchot et al. 2016 <https://arxiv.org/abs/1609.09730>`_).
+    When initialized, this object is practically empty. The information
+    describing the coupling coefficients must be computed or read from
+    a file afterwards using the methods below.
     """
     def __init__(self):
         self.wsp = None
@@ -24,12 +27,14 @@ class NmtCovarianceWorkspace(object):
 
     def read_from(self, fname, force_spin0_only=False):
         """
-        Reads the contents of an NmtCovarianceWorkspace object \
+        Reads the contents of an :obj:`NmtCovarianceWorkspace` object
         from a FITS file.
 
-        :param str fname: input file name
-        :param bool force_spin0_only: if `True`, only spin-0 \
-            combinations will be read and stored.
+        Args:
+            fname (:obj:`str`): input file name.
+            force_spin_only (:obj:`bool`): if ``True``, only spin-0
+                combinations of the mode-coupling coefficients will
+                be read and stored.
         """
         if self.wsp is not None:
             lib.covar_workspace_free(self.wsp)
@@ -43,31 +48,41 @@ class NmtCovarianceWorkspace(object):
                                       l_exact=-1, dl_band=-1,
                                       spin0_only=False):
         """
-        Computes coupling coefficients of the Gaussian covariance \
-        between the power spectra of two pairs of NmtField objects \
-        (fla1, fla2, flb1 and flb2). Note that you can reuse this \
-        workspace for the covariance of power spectra between any \
-        pairs of fields as long as the fields have the same masks \
-        as those passed to this function, and as long as the binning \
-        scheme used are also the same.
+        Computes coupling coefficients of the Gaussian covariance
+        between the power spectra of two pairs of
+        :class:`~pymaster.field.NmtField` objects (``fla1``, ``fla2``,
+        ``flb1``, and ``flb2``). Note that you can reuse this
+        workspace for the covariance of power spectra between any
+        pairs of fields as long as the fields have the same masks
+        as those passed to this function, and as long as the binning
+        schemes used are also the same.
 
-        :param NmtField fla1,fla2: fields contributing to the first \
-            power spectrum whose covariance you want to compute.
-        :param NmtField flb1,flb2: fields contributing to the second \
-            power spectrum whose covariance you want to compute. If \
-            None, fla1,fla2 will be used.
-        :param l_toeplitz: if a positive number, the Toeplitz approximation \
-            described in Louis et al. 2020 (arXiv:2010.14344) will be used. \
-            In that case, this quantity corresponds to ell_toeplitz in Fig. \
-            3 of that paper.
-        :param l_exact: if `l_toeplitz>0`, this quantity corresponds to \
-            ell_exact in Fig. 3 of Louis et al. 2020.  Ignored if \
-            `l_toeplitz<=0`.
-        :param dl_band: if `l_toeplitz>0`, this quantity corresponds to \
-            Delta ell_band in Fig. 3 of Louis et al. 2020.  Ignored if \
-            `l_toeplitz<=0`.
-        :spin0_only: if `True`, only spin-0 combinations of the MCMs will \
-            be computed and stored.
+        Args:
+            fla1 (:class:`~pymaster.field.NmtField`): first field contributing
+                to the first power spectrum whose covariance you want to
+                compute.
+            fla2 (:class:`~pymaster.field.NmtField`): second field contributing
+                to the first power spectrum whose covariance you want to
+                compute.
+            flb1 (:class:`~pymaster.field.NmtField`): as ``fla1`` for the
+                second power spectrum. If ``None``, it will be set to
+                ``fla1``.
+            flb2 (:class:`~pymaster.field.NmtField`): as ``fla2`` for the
+                second power spectrum. If ``None``, it will be set to
+                ``fla2``.
+            l_toeplitz (:obj:`int`): if a positive number, the Toeplitz
+                approximation described in `Louis et al. 2020
+                <https://arxiv.org/abs/2010.14344>`_ will be used.
+                In that case, this quantity corresponds to
+                :math:`\\ell_{\\rm toeplitz}` in Fig. 3 of that paper.
+            l_exact (:obj:`int`): if ``l_toeplitz>0``, it corresponds to
+                :math:`\\ell_{\\rm exact}` in Fig. 3 of the paper.
+                Ignored if ``l_toeplitz<=0``.
+            dl_band (:obj:`int`): if ``l_toeplitz>0``, this quantity
+                corresponds to :math:`\\Delta \\ell_{\\rm band}` in Fig.
+                3 of the paper. Ignored if ``l_toeplitz<=0``.
+            spin0_only (:obj:`bool`): if ``True``, only spin-0 combinations
+                of the mode-coupling coefficients will be computed and stored.
         """
         if flb1 is None:
             flb1 = fla1
@@ -108,9 +123,11 @@ class NmtCovarianceWorkspace(object):
 
     def write_to(self, fname):
         """
-        Writes the contents of an NmtCovarianceWorkspace object to a FITS file.
+        Writes the contents of an :obj:`NmtCovarianceWorkspace` object to
+        a FITS file.
 
-        :param str fname: output file name
+        Args:
+            fname (:obj:`str`): output file name.
         """
         if self.wsp is None:
             raise ValueError("Must initialize workspace before writing")
@@ -119,12 +136,13 @@ class NmtCovarianceWorkspace(object):
 
 class NmtCovarianceWorkspaceFlat(object):
     """
-    NmtCovarianceWorkspaceFlat objects are used to compute and store the \
-    coupling coefficients needed to calculate the Gaussian covariance \
-    matrix under a flat-sky version the Efstathiou approximations in \
-    astro-ph/0307515 and arXiv/1609.09730. When initialized, this object \
-    is practically empty. The information describing the coupling \
-    coefficients must be computed or read from a file afterwards.
+    :obj:`NmtCovarianceWorkspaceFlat` objects are used to compute and
+    store the coupling coefficients needed to calculate the Gaussian
+    covariance matrix under a flat-sky version the approximations in
+    `Garcia-Garcia et al. 2019 <https://arxiv.org/abs/1906.11765>`_.
+    When initialized, this object is practically empty. The
+    information describing the coupling coefficients must be computed
+    or read from a file afterwards.
     """
     def __init__(self):
         self.wsp = None
@@ -137,10 +155,11 @@ class NmtCovarianceWorkspaceFlat(object):
 
     def read_from(self, fname):
         """
-        Reads the contents of an NmtCovarianceWorkspaceFlat object from a \
-        FITS file.
+        Reads the contents of an :obj:`NmtCovarianceWorkspaceFlat`
+        object from a FITS file.
 
-        :param str fname: input file name
+        Args:
+            fname (:obj:`str`): input file name.
         """
         if self.wsp is not None:
             lib.covar_workspace_flat_free(self.wsp)
@@ -150,22 +169,32 @@ class NmtCovarianceWorkspaceFlat(object):
     def compute_coupling_coefficients(self, fla1, fla2, bin_a,
                                       flb1=None, flb2=None, bin_b=None):
         """
-        Computes coupling coefficients of the Gaussian covariance between \
-        the power spectra of two pairs of NmtFieldFlat objects (fla1, fla2, \
-        flb1 and flb2). Note that you can reuse this workspace for the \
-        covariance of power spectra between any pairs of fields as long \
-        as the fields have the same masks as those passed to this function, \
-        and as long as the binning scheme used are also the same.
+        Computes coupling coefficients of the Gaussian covariance
+        between the power spectra of two pairs of
+        :class:`~pymaster.field.NmtFieldFlat` objects (``fla1``, ``fla2``,
+        ``flb1``, and ``flb2``). Note that you can reuse this
+        workspace for the covariance of power spectra between any
+        pairs of fields as long as the fields have the same masks
+        as those passed to this function, and as long as the binning
+        schemes used are also the same.
 
-        :param NmtFieldFlat fla1,fla2: fields contributing to the first \
-            power spectrum whose covariance you want to compute.
-        :param NmtBinFlat bin_a: binning scheme for the first power \
-            spectrum.
-        :param NmtFieldFlat flb1,flb2: fields contributing to the second \
-            power spectrum whose covariance you want to compute. If None, \
-            fla1,fla2 will be used.
-        :param NmtBinFlat bin_b: binning scheme for the second power \
-            spectrum. If none, bin_a will be used.
+        Args:
+            fla1 (:class:`~pymaster.field.NmtFieldFlat`): first field
+                contributing to the first power spectrum whose covariance
+                you want to compute.
+            fla2 (:class:`~pymaster.field.NmtFieldFlat`): second field
+                contributing to the first power spectrum whose covariance
+                you want to compute.
+            bin_a (:class:`~pymaster.bins.NmtBinFlat`): binning scheme for the
+                first power spectrum.
+            flb1 (:class:`~pymaster.field.NmtFieldFlat`): as ``fla1`` for the
+                second power spectrum. If ``None``, it will be set to
+                ``fla1``.
+            flb2 (:class:`~pymaster.field.NmtFieldFlat`): as ``fla2`` for the
+                second power spectrum. If ``None``, it will be set to
+                ``fla2``.
+            bin_b (:class:`~pymaster.bins.NmtBinFlat`): binning scheme for the
+                first power spectrum. If ``None``, ``bin_a`` will be used.
         """
         if flb1 is None:
             flb1 = fla1
@@ -192,10 +221,11 @@ class NmtCovarianceWorkspaceFlat(object):
 
     def write_to(self, fname):
         """
-        Writes the contents of an NmtCovarianceWorkspaceFlat object to \
+        Writes the contents of an :obj:`NmtCovarianceWorkspaceFlat` object to
         a FITS file.
 
-        :param str fname: output file name
+        Args:
+            fname (:obj:`str`): output file name.
         """
         if self.wsp is None:
             raise ValueError("Must initialize workspace before writing")
@@ -206,30 +236,61 @@ def gaussian_covariance(cw, spin_a1, spin_a2, spin_b1, spin_b2,
                         cla1b1, cla1b2, cla2b1, cla2b2, wa, wb=None,
                         coupled=False):
     """
-    Computes Gaussian covariance matrix for power spectra using the \
-    information precomputed in cw (a NmtCovarianceWorkspace object). \
-    cw should have been initialized using four NmtField objects (let's \
-    call them a1, a2, b1 and b2), corresponding to the two pairs of \
-    fields whose power spectra we want the covariance of. These power \
-    spectra should have been computed using two NmtWorkspace objects, \
-    wa and wb, which must be passed as arguments of this function (the \
-    power spectrum for fields a1 and a2 was computed with wa, and that \
-    of b1 and b2 with wb). Using the same notation, clXnYm should be a \
-    prediction for the power spectrum between fields Xn and Ym. These \
-    predicted input power spectra should be defined for all \
-    ells <=3*nside (where nside is the HEALPix resolution parameter of \
-    the fields that were correlated).
+    Computes Gaussian covariance matrix for power spectra using the
+    information precomputed in cw (a :class:`NmtCovarianceWorkspace`
+    object). ``cw`` should have been initialized using four
+    :class:`~pymaster.field.NmtField` objects (let's call them `a1`,
+    `a2`, `b1`, and `b2`), corresponding to the two pairs of fields
+    whose power spectra we want the covariance of. These power spectra
+    should have been computed using two
+    :class:`~pymaster.workspaces.NmtWorkspace` objects, ``wa`` and
+    ``wb``, which must be passed as arguments of this function (the
+    power spectrum for fields `a1` and `a2` was computed with ``wa``,
+    and that of `b1` and `b2` with ``wb``). Using the same notation,
+    ``clXnYm`` should be a prediction for the power spectrum between
+    fields `Xn` and `Ym`. These predicted input power spectra should
+    be defined for all multipoles :math:`\\ell` up to the
+    :math:`\\ell_{\\rm max}` with which all fields were constructed.
 
-    :param NmtCovarianceWorkspace cw: workspaces containing the \
-        precomputed coupling coefficients.
-    :param int spin_Xn: spin for the n-th field in pair X.
-    :param clXnYm: prediction for the cross-power spectrum between \
-        fields Xn and Ym.
-    :param NmtWorkspace wX: workspace containing the mode-coupling \
-        matrix pair X. If `wb` is `None`, the code will assume `wb=wa`.
-    :param coupled: if `True`, the covariance matrix of the
-        mode-coupled pseudo-Cls will be computed. Otherwise it'll be
-        the covariance of decoupled bandpowers.
+    .. note::
+        Note that, as suggested in
+        `Nicola et al. 2020 <https://arxiv.org/abs/2010.09717>`_
+        (the so-called "improved narrow-kernel approximation"), an
+        optimal choice for the input power spectra would be the
+        mode-coupled version of the true power spectra of the
+        corresponding fields divided by the average of the product
+        of the associated masks across the sky. Often, a good
+        substitute for this can be obtained as the pseudo-Cl of the
+        associated maps (e.g. computed via
+        :meth:`~pymaster.workspaces.compute_coupled_cell`), divided
+        by the same mean mask product.
+
+    Args:
+        cw (:obj:`NmtCovarianceWorkspace`): workspaces containing the
+            precomputed coupling coefficients.
+        spin_a1 (:obj:`int`): spin of field `a1`.
+        spin_a2 (:obj:`int`): spin of field `a2`.
+        spin_b1 (:obj:`int`): spin of field `b1`.
+        spin_b2 (:obj:`int`): spin of field `b2`.
+        cla1b1 (`array`): prediction for the cross-power spectrum
+            between fields `a1` and `b1`.
+        cla1b2 (`array`): prediction for the cross-power spectrum
+            between fields `a1` and `b2`.
+        cla2b1 (`array`): prediction for the cross-power spectrum
+            between fields `a2` and `b1`.
+        cla2b2 (`array`): prediction for the cross-power spectrum
+            between fields `a2` and `b2`.
+        wa (:class:`~pymaster.workspaces.NmtWorkspace`): workspace
+            containing the mode-coupling matrix for the first power
+            spectrum (that of fields `a1` and `a2`).
+        wb (:class:`~pymaster.workspaces.NmtWorkspace`): workspace
+            containing the mode-coupling matrix for the second power
+            spectrum (that of fields `b1` and `b2`). If ``None``,
+            ``wa`` will be used instead.
+        coupled (:obj:`bool`): if ``True``, the covariance matrix
+            of the mode-coupled pseudo-Cls will be computed.
+            Otherwise it'll be the covariance of mode-decoupled
+            bandpowers.
     """
     nm_a1 = 2 if spin_a1 else 1
     nm_a2 = 2 if spin_a2 else 1
@@ -280,35 +341,10 @@ def gaussian_covariance(cw, spin_a1, spin_a2, spin_b1, spin_b2,
 def gaussian_covariance_flat(cw, spin_a1, spin_a2, spin_b1, spin_b2, larr,
                              cla1b1, cla1b2, cla2b1, cla2b2, wa, wb=None):
     """
-    Computes Gaussian covariance matrix for flat-sky power spectra using \
-    the information precomputed in cw (a NmtCovarianceWorkspaceFlat object). \
-    cw should have been initialized using four NmtFieldFlat objects (let's \
-    call them a1, a2, b1 and b2), corresponding to the two pairs of fields \
-    whose power spectra we want the covariance of. These power spectra should \
-    have been computed using two NmtWorkspaceFlat objects, wa and wb, which \
-    must be passed as arguments of this function (the power spectrum for \
-    fields a1 and a2 was computed with wa, and that of b1 and b2 with wb). \
-    Using the same notation, clXnYm should be a prediction for the power \
-    spectrum between fields Xn and Ym. These predicted input power spectra \
-    should be defined in a sufficiently well sampled range of ells given the \
-    map properties from which the power spectra were computed. The values of \
-    ell at which they are sampled are given by larr.
-
-    Please note that, while the method used to estimate these covariance \
-    is sufficiently accurate in a large number of scenarios, it is based on \
-    a numerical approximation, and its accuracy should be assessed if in \
-    doubt. In particular, we discourage users from using it to compute any \
-    covariance matrix involving B-mode components.
-
-    :param NmtCovarianceWorkspaceFlat cw: workspaces containing the \
-        precomputed coupling coefficients.
-    :param int spin_Xn: spin for the n-th field in pair X.
-    :param larr: values of ell at which the following power spectra are \
-        computed.
-    :param clXnYm: prediction for the cross-power spectrum between fields \
-        Xn and Ym.
-    :param NmtWorkspaceFlat wX: workspace containing the mode-coupling matrix \
-        pair X. If `wb` is `None`, the code will assume `wb=wa`.
+    As :meth:`gaussian_covariance` but for the flat-sky versions of all
+    quantities involved. The only difference with :meth:`gaussian_covariance`
+    is that all power spectra must have been sampled at the input
+    multipoles ``larr``.
     """
     nm_a1 = 2 if spin_a1 else 1
     nm_a2 = 2 if spin_a2 else 1
