@@ -88,7 +88,7 @@ class NmtField(object):
             not advisable if you're using purification, as correcting for this
             usually incurs inaccuracies around the mask edges that may lead
             to significantly biased power spectra.
-        lite (:obj:`bool`): set to `True` if you want to only store the bare
+        lite (:obj:`bool`): set to ``True`` if you want to only store the bare
             minimum necessary to run a standard pseudo-Cl with deprojection
             and purification, but you don't care about deprojection bias. This
             will reduce the memory taken up by the resulting object.
@@ -273,6 +273,9 @@ class NmtField(object):
                 self.alm_temp = alm_temp
 
     def is_compatible(self, other):
+        """ Returns ``True`` if the pixelization of this :obj:`NmtField`
+        is compatible with that of another one (``other``).
+        """
         if self.minfo != other.minfo:
             return False
         if self.ainfo != other.ainfo:
@@ -282,19 +285,25 @@ class NmtField(object):
         return True
 
     def get_mask(self):
+        """ Get this field's mask.
+
+
+        Returns:
+            (`array`): 1D array containing the field's mask.
+        """
         return self.mask
 
-    def get_maps(self):
-        if self.maps is None:
-            raise ValueError("Input maps unavailable for this field")
-        return self.maps
-
-    def get_alms(self):
-        if self.alm is None:
-            raise ValueError("Mask-only fields have no alms")
-        return self.alm
-
     def get_mask_alms(self):
+        """ Get the :math:`a_{\\ell m}` coefficients of this field's mask.
+        Note that, in most cases, the mask :math:`a_{\\ell n}` s are not
+        computed when generating the field. When calling this function for
+        the first time, if they have not been calculated, they will be
+        (which may be a slow operation), and stored internally for any future
+        calls.
+
+        Returns:
+            (`array`): 1D array containing the mask :math:`a_{\\ell m}` s.
+        """
         if self.alm_mask is None:
             amask = ut.map2alm(np.array([self.mask]), 0,
                                self.minfo, self.ainfo_mask,
@@ -305,7 +314,38 @@ class NmtField(object):
             amask = self.alm_mask
         return amask
 
+    def get_maps(self):
+        """ Get this field's set of maps. The returned maps will be
+        masked, contaminant-deprojected, and purified (if so required
+        when generating this :obj:`NmtField`).
+
+        Returns:
+            (`array`): 2D array containing the field's maps.
+        """
+        if self.maps is None:
+            raise ValueError("Input maps unavailable for this field")
+        return self.maps
+
+    def get_alms(self):
+        """ Get the :math:`a_{\\ell m}` coefficients of this field. They
+        include the effects of masking, as well as contaminant deprojection
+        and purification (if required when generating this
+        :obj:`NmtField`).
+
+        Returns:
+            (`array`): 2D array containing the field's :math:`a_{\\ell m}` s.
+        """
+        if self.alm is None:
+            raise ValueError("Mask-only fields have no alms")
+        return self.alm
+
     def get_templates(self):
+        """ Get this field's set of contaminant templates maps. The
+        returned maps will have the mask applied to them.
+
+        Returns:
+            (`array`): 3D array containing the field's contaminant maps.
+        """
         if self.temp is None:
             raise ValueError("Input templates unavailable for this field")
         return self.temp
