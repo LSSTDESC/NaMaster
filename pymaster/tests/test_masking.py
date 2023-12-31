@@ -68,3 +68,18 @@ def test_mask_c2():
                        np.radians(MT.aposize)))
     assert (np.fabs(msk_apo[ind_transition] -
                     f[ind_transition]) < 2E-2).all()
+
+
+def test_mask_smooth():
+    # Here there's no analytical expression, so we just do some basic
+    # sanity checks
+    msk_apo = nmt.mask_apodization(MT.msk, MT.aposize,
+                                   apotype="Smooth")
+    # We've removed area
+    assert np.mean(msk_apo) < np.mean(MT.msk)
+    # Mask is positive or zero
+    assert np.all(msk_apo >= 0)
+    # We haven't suppressed it too much
+    assert np.fabs(np.amax(msk_apo)-1) < 1E-3
+    # All masked pixels are still masked
+    assert np.all(msk_apo[MT.msk == 0] == 0)
