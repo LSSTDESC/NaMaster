@@ -77,7 +77,7 @@ class NmtField(object):
         if n_iter is None:
             n_iter = ut.nmt_params.n_iter_default
         if tol_pinv is None:
-            tol_pinv = ut.nmt_params.tol_pinv
+            tol_pinv = ut.nmt_params.tol_pinv_default
 
         # 0. Preliminary initializations
         # These first attributes are compulsory for all fields

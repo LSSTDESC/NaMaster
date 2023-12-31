@@ -50,6 +50,11 @@ in the form of HEALPix maps exclusively with RING ordering.
 from pymaster import nmtlib as lib  # noqa
 import numpy as np  # noqa
 from pymaster.utils import (  # noqa
+    nmt_params,
+    set_sht_calculator,
+    set_n_iter_default,
+    set_tol_pinv_default,
+    get_default_params,
     NmtMapInfo,
     NmtAlmInfo,
     mask_apodization,

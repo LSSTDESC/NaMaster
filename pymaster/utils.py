@@ -44,7 +44,7 @@ class NmtParams(object):
         self.sht_calculator = 'ducc' if HAVE_DUCC else 'healpy'
         self.n_iter_default = 3
         self.n_iter_mask_default = 3
-        self.tol_pinv = 1E-10
+        self.tol_pinv_default = 1E-10
 
 
 nmt_params = NmtParams()
@@ -71,7 +71,7 @@ def set_n_iter_default(n_iter, mask=False):
 def set_tol_pinv_default(tol_pinv, mask=False):
     if (tol_pinv > 1) or (tol_pinv < 0):
         raise ValueError('tol_pinv must be between 0 and 1.')
-    nmt_params.tol_pinv = tol_pinv
+    nmt_params.tol_pinv_default = tol_pinv
 
 
 def get_default_params():
@@ -79,12 +79,12 @@ def get_default_params():
             for k in ['sht_calculator',
                       'n_iter_default',
                       'n_iter_mask_default',
-                      'tol_pinv']}
+                      'tol_pinv_default']}
 
 
 class _SHTInfo(object):
     def __init__(self, nring, theta, phi0, nphi, weight,
-                 is_CAR=False, nx_short=-1, nx_full=-1):
+                 is_CAR=False, nx_short=-1, nx_full=-1, nside=-1):
         self.nring = nring
         self.theta = theta
         self.phi0 = phi0
@@ -97,6 +97,7 @@ class _SHTInfo(object):
         off = np.concatenate([[0], off[:-1]])
         self.offsets = off.astype(np.uint64, copy=False)
         self.weight = weight
+        self.nside = nside
 
     @classmethod
     def from_rectpix(cls, n_theta, theta_min, d_theta,
@@ -152,7 +153,7 @@ class _SHTInfo(object):
         theta[south] = np.pi-theta[south]
         weight = 4*np.pi/npix
         return cls(nring=nring, theta=theta, phi0=phi0,
-                   nphi=nphi, weight=weight)
+                   nphi=nphi, weight=weight, nside=nside)
 
     def pad_map(self, maps):
         if not self.is_CAR:
@@ -666,8 +667,7 @@ def _alm2map_healpy(alm, spin, sht_info, alm_info):
         raise ValueError("Can't use healpy for CAR maps")
     kwargs = {'lmax': alm_info.lmax, 'mmax': alm_info.mmax}
     if spin == 0:
-        map = [hp.alm2map(alm, mside=sht_info.nside, verbose=False,
-                          **kwargs)]
+        map = [hp.alm2map(alm[0], nside=sht_info.nside, **kwargs)]
     else:
         map = hp.alm2map_spin(alm, sht_info.nside, spin, **kwargs)
     return np.array(map)
@@ -678,7 +678,7 @@ def _map2alm_healpy(map, spin, sht_info, alm_info):
         raise ValueError("Can't use healpy for CAR maps")
     kwargs = {'lmax': alm_info.lmax, 'mmax': alm_info.mmax}
     if spin == 0:
-        alm = [hp.map2alm(map, **kwargs)]
+        alm = [hp.map2alm(map[0], iter=0, **kwargs)]
     else:
         alm = hp.map2alm_spin(map, spin, **kwargs)
     return np.array(alm)

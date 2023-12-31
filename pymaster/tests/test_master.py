@@ -306,7 +306,9 @@ def test_spin1():
                                               np.fabs(tl))*1E-5).all()
 
 
-def mastest(wtemp, wpure, do_teb=False):
+def mastest(wtemp, wpure, do_teb=False, use_healpy=False):
+    if use_healpy:
+        nmt.set_sht_calculator('healpy')
     prefix = "test/benchmarks/bm"
     if wtemp:
         prefix += "_yc"
@@ -386,6 +388,8 @@ def mastest(wtemp, wpure, do_teb=False):
         assert ((np.fabs(cl-tl) <=
                  np.fmin(np.fabs(cl),
                          np.fabs(tl))*1E-5).all())
+    if use_healpy:
+        nmt.set_sht_calculator('ducc')
 
 
 @pytest.mark.parametrize("wtemp,wpure,do_teb",
@@ -397,6 +401,11 @@ def mastest(wtemp, wpure, do_teb=False):
                           (True, True, False)])
 def test_workspace_master_teb_np(wtemp, wpure, do_teb):
     mastest(wtemp, wpure, do_teb=do_teb)
+
+
+def test_workspace_master_healpy():
+    mastest(False, False, do_teb=False, use_healpy=True)
+    assert nmt.get_default_params()['sht_calculator'] == 'ducc'
 
 
 def test_workspace_shorten():

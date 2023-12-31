@@ -118,6 +118,17 @@ def test_field_alloc():
 
 
 def test_field_error():
+    # SHTs using healpy for CAR maps
+    f0 = nmt.NmtField(FT.msk, [FT.mps[0]], wcs=FT.wcs)
+    mp = f0.get_maps()
+    alm = f0.get_alms()
+    nmt.set_sht_calculator('healpy')
+    with pytest.raises(ValueError):
+        nmt.utils.map2alm(mp, 0, f0.minfo, f0.ainfo, n_iter=0)
+    with pytest.raises(ValueError):
+        nmt.utils.alm2map(alm, 0, f0.minfo, f0.ainfo)
+    nmt.set_sht_calculator('ducc')
+
     with pytest.raises(ValueError):  # Not passing WCS
         nmt.NmtField(FT.msk, [FT.mps[0]], beam=FT.beam)
     with pytest.raises(ValueError):  # Passing 1D maps
