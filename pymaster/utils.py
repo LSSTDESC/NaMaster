@@ -26,13 +26,60 @@ def _getenv(name, default=None):
         return default
 
 
-# From pixell:
-# Initialize DUCC's thread num variable from OMP's if it's not already set.
-# This must be done before importing ducc0 for the first time. Doing this
-# limits wasted memory from ducc allocating too big a thread pool. For computes
-# with many cores, this can save GBs of memory.
-_setenv("DUCC0_NUM_THREADS", _getenv("OMP_NUM_THREADS"), keep=True)
-import ducc0  # noqa
+try:
+    # From pixell:
+    # Initialize DUCC's thread num variable from OMP's if it's not already set.
+    # This must be done before importing ducc0 for the first time. Doing this
+    # limits wasted memory from ducc allocating too big a thread pool. For
+    # computes with many cores, this can save GBs of memory.
+    _setenv("DUCC0_NUM_THREADS", _getenv("OMP_NUM_THREADS"), keep=True)
+    import ducc0  # noqa
+    HAVE_DUCC = True
+except ModuleNotFoundError:
+    HAVE_DUCC = False
+
+
+class NmtParams(object):
+    def __init__(self):
+        self.sht_calculator = 'ducc' if HAVE_DUCC else 'healpy'
+        self.n_iter_default = 3
+        self.n_iter_mask_default = 3
+        self.tol_pinv = 1E-10
+
+
+nmt_params = NmtParams()
+
+
+def set_sht_calculator(calc_name):
+    if calc_name not in ['ducc', 'healpy']:
+        raise KeyError("SHT calculator must be 'ducc' or 'healpy'")
+    if (calc_name == 'ducc') and (not HAVE_DUCC):
+        raise ValueError("ducc not found. "
+                         "Select a different SHT calculator.")
+    nmt_params.sht_calculator = calc_name
+
+
+def set_n_iter_default(n_iter, mask=False):
+    if n_iter < 0:
+        raise ValueError('n_iter must be positive.')
+    if mask:
+        nmt_params.n_iter_mask_default = int(n_iter)
+    else:
+        nmt_params.n_iter_default = int(n_iter)
+
+
+def set_tol_pinv_default(tol_pinv, mask=False):
+    if (tol_pinv > 1) or (tol_pinv < 0):
+        raise ValueError('tol_pinv must be between 0 and 1.')
+    nmt_params.tol_pinv = tol_pinv
+
+
+def get_default_params():
+    return {k: getattr(nmt_params, k)
+            for k in ['sht_calculator',
+                      'n_iter_default',
+                      'n_iter_mask_default',
+                      'tol_pinv']}
 
 
 class _SHTInfo(object):
@@ -365,7 +412,8 @@ def mask_apodization(mask_in, aposize, apotype="C1"):
     ainfo = NmtAlmInfo(lmax)
     ls = np.arange(lmax+1)
     beam = np.exp(-0.5*ls*(ls+1)*np.radians(aposize)**2)
-    alm = map2alm(np.array([m]), 0, minfo, ainfo, n_iter=3)[0]
+    alm = map2alm(np.array([m]), 0, minfo, ainfo,
+                  n_iter=3)[0]
     alm = hp.almxfl(alm, beam, mmax=ainfo.mmax)
     m = alm2map(np.array([alm]), 0, minfo, ainfo)[0]
     # Multiply by original mask
@@ -642,11 +690,10 @@ _a2m_d = {'ducc': _alm2map_ducc0,
           'healpy': _alm2map_healpy}
 
 
-def map2alm(map, spin, map_info, alm_info, n_iter=0,
-            sht_calculator='ducc'):
+def map2alm(map, spin, map_info, alm_info, *, n_iter):
     map = map_info.si.pad_map(map)
-    m2a = _m2a_d[sht_calculator]
-    a2m = _a2m_d[sht_calculator]
+    m2a = _m2a_d[nmt_params.sht_calculator]
+    a2m = _a2m_d[nmt_params.sht_calculator]
     alm = m2a(map, spin, map_info.si, alm_info)
     for i in range(n_iter):
         dmap = a2m(alm, spin, map_info.si, alm_info)-map
@@ -654,8 +701,7 @@ def map2alm(map, spin, map_info, alm_info, n_iter=0,
     return alm
 
 
-def alm2map(alm, spin, map_info, alm_info,
-            sht_calculator='ducc'):
-    a2m = _a2m_d[sht_calculator]
+def alm2map(alm, spin, map_info, alm_info):
+    a2m = _a2m_d[nmt_params.sht_calculator]
     map = a2m(alm, spin, map_info.si, alm_info)
     return map_info.si.unpad_map(map)

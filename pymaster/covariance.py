@@ -56,7 +56,6 @@ class NmtCovarianceWorkspace(object):
         :param NmtField flb1,flb2: fields contributing to the second \
             power spectrum whose covariance you want to compute. If \
             None, fla1,fla2 will be used.
-        :param n_iter: number of iterations when computing a_lms.
         :param l_toeplitz: if a positive number, the Toeplitz approximation \
             described in Louis et al. 2020 (arXiv:2010.14344) will be used. \
             In that case, this quantity corresponds to ell_toeplitz in Fig. \

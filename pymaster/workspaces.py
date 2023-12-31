@@ -398,7 +398,7 @@ class NmtWorkspaceFlat(object):
         return clout
 
 
-def deprojection_bias(f1, f2, cl_guess, n_iter=3):
+def deprojection_bias(f1, f2, cl_guess, n_iter=None):
     """
     Computes the bias associated to contaminant removal to the \
     cross-pseudo-Cl of two fields.
@@ -409,6 +409,9 @@ def deprojection_bias(f1, f2, cl_guess, n_iter=3):
     :param n_iter: number of iterations when computing a_lms.
     :return: deprojection bias power spectra.
     """
+    if n_iter is None:
+        n_iter = ut.nmt_params.n_iter_default
+
     if not f1.is_compatible(f2):
         raise ValueError("Fields have incompatible pixelizations.")
 
@@ -515,7 +518,7 @@ def deprojection_bias(f1, f2, cl_guess, n_iter=3):
     return clb.reshape(pcl_shape)
 
 
-def uncorr_noise_deprojection_bias(f1, map_var, n_iter=3):
+def uncorr_noise_deprojection_bias(f1, map_var, n_iter=None):
     """
     Computes the bias associated to contaminant removal in the presence \
     of uncorrelated inhomogeneous noise to the auto-pseudo-Cl of a \
@@ -531,6 +534,8 @@ def uncorr_noise_deprojection_bias(f1, map_var, n_iter=3):
     if f1.lite:
         raise ValueError("Can't compute deprojection bias for "
                          "lightweight fields")
+    if n_iter is None:
+        n_iter = ut.nmt_params.n_iter_default
 
     # Flatten in case it's a 2D map
     sig2 = map_var.flatten()
@@ -677,8 +682,7 @@ def compute_coupled_cell_flat(f1, f2, b, ell_cut_x=[1., -1.],
 
 
 def compute_full_master(f1, f2, b=None, cl_noise=None, cl_guess=None,
-                        workspace=None, n_iter=3, lmax_mask=-1,
-                        l_toeplitz=-1, l_exact=-1, dl_band=-1):
+                        workspace=None, l_toeplitz=-1, l_exact=-1, dl_band=-1):
     """
     Computes the full MASTER estimate of the power spectrum of two \
     fields (f1 and f2). This is equivalent to successively calling:
@@ -701,9 +705,6 @@ def compute_full_master(f1, f2, b=None, cl_noise=None, cl_guess=None,
         provided, the function will skip the computation of the \
         mode-coupling matrix and use the information encoded in this \
         object.
-    :param n_iter: number of iterations when computing a_lms.
-    :param lmax_mask: maximum multipole for masks. If smaller than the \
-        maximum multipoles of the fields, it will be set to that.
     :param l_toeplitz: if a positive number, the Toeplitz approximation \
         described in Louis et al. 2020 (arXiv:2010.14344) will be used. \
         In that case, this quantity corresponds to ell_toeplitz in Fig. \

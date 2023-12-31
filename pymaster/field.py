@@ -69,9 +69,16 @@ class NmtField(object):
         will reduce the memory taken up by the resulting object.
     """
     def __init__(self, mask, maps, spin=None, templates=None, beam=None,
-                 purify_e=False, purify_b=False, n_iter_mask=3,
-                 tol_pinv=1E-10, wcs=None, n_iter=3, lmax=-1, lmax_mask=-1,
+                 purify_e=False, purify_b=False, n_iter_mask=None,
+                 tol_pinv=None, wcs=None, n_iter=None, lmax=-1, lmax_mask=-1,
                  masked_on_input=False, lite=False):
+        if n_iter_mask is None:
+            n_iter_mask = ut.nmt_params.n_iter_mask_default
+        if n_iter is None:
+            n_iter = ut.nmt_params.n_iter_default
+        if tol_pinv is None:
+            tol_pinv = ut.nmt_params.tol_pinv
+
         # 0. Preliminary initializations
         # These first attributes are compulsory for all fields
         self.lite = lite
