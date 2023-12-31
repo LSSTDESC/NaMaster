@@ -43,7 +43,7 @@ class NmtCovarianceWorkspace(object):
                                             int(force_spin0_only))
 
     def compute_coupling_coefficients(self, fla1, fla2,
-                                      flb1=None, flb2=None,
+                                      flb1=None, flb2=None, *,
                                       l_toeplitz=-1,
                                       l_exact=-1, dl_band=-1,
                                       spin0_only=False):

@@ -6,71 +6,96 @@ import pymaster.utils as ut
 
 class NmtField(object):
     """
-    An NmtField object contains all the information describing the fields to
-    correlate, including their observed maps, masks and contaminant templates.
+    An :obj:`NmtField` object contains all the information describing the
+    fields to correlate, including their observed maps, masks and
+    contaminant templates.
 
-    :param mask: array containing a map corresponding to the field's mask. \
-        Should be 1-dimensional for a HEALPix map or 2-dimensional for a map \
-        with rectangular pixelization.
-    :param maps: array containing the observed maps for this field. Should be \
-        at least 2-dimensional. The first dimension corresponds to the number \
-        of maps, which should be 1 for a spin-0 field and 2 otherwise. \
-        The other dimensions should be [npix] for HEALPix maps or \
-        [ny,nx] for maps with rectangular pixels. For a spin>0 field, the two \
-        maps to pass should be the usual Q/U Stokes parameters for \
-        polarization, or e1/e2 (gamma1/gamma2 etc.) in the case of cosmic \
-        shear. It is important to note that NaMaster uses the same \
-        polarization convention as HEALPix (i.e. with the x-coordinate \
-        growing with increasing colatitude theta). It is however more common \
-        for galaxy ellipticities to be provided using the IAU convention \
-        (i.e. x grows with declination). In this case, the sign of the \
-        e2/gamma2 map should be swapped before using it to create an \
-        NmtField. See more \
-        `here <https://healpix.jpl.nasa.gov/html/intronode12.htm>`_ . \
-        If `None`, this field will only contain a mask but no maps. The field \
-        can then be used to compute a mode-coupling matrix, for instance, \
-        but not actual power spectra.
-    :param spin: field's spin. If `None` it will be set to 0 if there is
-        a single map on input, and will default to 2 if there are 2 maps.
-    :param templates: array containing a set of contaminant templates for \
-        this field. This array should have shape [ntemp][nmap]..., where \
-        ntemp is the number of templates, nmap should be 1 for spin-0 fields \
-        and 2 otherwise. The other dimensions should be [npix] for \
-        HEALPix maps or [ny,nx] for maps with rectangular pixels. The \
-        best-fit contribution from each contaminant is automatically removed \
-        from the maps unless templates=None.
-    :param beam: spherical harmonic transform of the instrumental beam \
-        (assumed to be rotationally symmetric - i.e. no m dependence). If \
-        None, no beam will be corrected for. Otherwise, this array should \
-        have at least as many elements as the maximum multipole sampled by \
-        the maps + 1 (e.g. if a HEALPix map, it should contain 3*nside \
-        elements, corresponding to multipoles from 0 to 3*nside-1).
-    :param purify_e: use pure E-modes?
-    :param purify_b: use pure B-modes?
-    :param n_iter_mask_purify: number of iterations used to compute an \
-        accurate SHT of the mask when using E/B purification.
-    :param tol_pinv: when computing the pseudo-inverse of the contaminant \
-        covariance matrix, all eigenvalues below tol_pinv * max_eval will be \
-        treated as singular values, where max_eval is the largest eigenvalue. \
-        Only relevant if passing contaminant templates that are likely to be \
-        highly correlated.
-    :param wcs: a WCS object if using rectangular pixels (see \
-        http://docs.astropy.org/en/stable/wcs/index.html).
-    :param n_iter: number of iterations when computing a_lms.
-    :param lmax_sht: maximum multipole up to which map power spectra will be \
-        computed. If negative or zero, the maximum multipole given the map \
-        resolution will be used (e.g. 3 * nside - 1 for HEALPix maps).
-    :param masked_on_input: set to `True` if input maps and templates are \
-        already multiplied by the masks. Note that this is not advisable \
-        if you're using purification.
-    :param lite: set to `True` if you want to only store the bare minimum \
-        necessary to run a standard pseudo-Cl with deprojection and \
-        purification, but you don't care about deprojection bias. This \
-        will reduce the memory taken up by the resulting object.
+    Args:
+        mask (`array`): array containing a map corresponding to the
+            field's mask. Should be 1-dimensional for a HEALPix map
+            or 2-dimensional for a map with rectangular pixelization.
+        maps (`array`): array containing the observed maps for this
+            field. Should be at least 2-dimensional. The first
+            dimension corresponds to the number of maps, which should
+            be 1 for a spin-0 field and 2 otherwise. The other
+            dimensions should be either ``[npix]`` for HEALPix maps or
+            ``[ny,nx]`` for maps with rectangular pixels (with the
+            `y` and `x` dimensions corresponding to latitude and longitude
+            respectively). For a spin>0 field, the two maps passed should
+            be the usual Q/U Stokes parameters for polarization, or
+            :math:`e_1`/:math:`e_2` (:math:`\\gamma_1`/:math:`\\gamma_2` etc.)
+            in the case of cosmic shear. It is important to note that
+            NaMaster uses the same polarization convention as HEALPix (i.e.
+            with the growing colatitude :math:`\\theta`). It is however more
+            common for galaxy ellipticities to be provided using the IAU
+            convention (e.g. growing declination). In this case, the sign of
+            the :math:`e_2`/:math:`\\gamma_2` map should be swapped before
+            using it to create an :obj:`NmtField`. See more
+            `here <https://healpix.jpl.nasa.gov/html/intronode12.htm>`_.
+            If ``None``, this field will only contain a mask but no maps.
+            The field can then be used to compute a mode-coupling matrix,
+            for instance, but not actual power spectra.
+        spin (:obj:`int`): spin of this field. If equal to 0, ``maps`` should
+            contain  single map, and two maps otherwise. If ``None`` it will
+            default to 0 or 2 if ``maps`` contains 1 or 2 maps, respectively.
+        templates (`array`): array containing a set of contaminant templates
+            for this field. This array should have shape ``[ntemp,nmap,...]``,
+            where ``ntemp`` is the number of templates, ``nmap`` should be 1
+            for spin-0 fields and 2 otherwise. The other dimensions should be
+            ``[npix]`` for HEALPix maps or ``[ny,nx]`` for maps with
+            rectangular pixels. The best-fit contribution from each
+            contaminant is automatically removed from the maps unless
+            ``templates=None``.
+        beam (`array`): spherical harmonic transform of the instrumental beam
+            (assumed to be rotationally symmetric - i.e. no :math:`m`
+            dependence). If ``None``, no beam will be corrected for. Otherwise,
+            this array should have at least as many elements as the maximum
+            multipole sampled by the maps + 1 (see ``lmax``).
+        purify_e (:obj:`bool`): purify E-modes?
+        purify_b (:obj:`bool`): purify E-modes?
+        n_iter (:obj:`int`): number of iterations when computing the
+            :math:`a_{\\ell m}` s of the input maps. See the documentation of
+            :meth:`pymaster.utils.map2alm`. If ``None``, it will default to the
+            internal value, which can be accessed via
+            :meth:`pymaster.utils.get_default_params`, and modified via
+            :meth:`pymaster.utils.set_n_iter_default`.
+        n_iter_mask (:obj:`int`): number of iterations when computing the
+            spherical harmonic transform of the mask. If ``None``, it will
+            default to the internal value, which can be accessed via
+            :meth:`pymaster.utils.get_default_params`, and modified via
+            :meth:`pymaster.utils.set_n_iter_default`.
+        lmax (:obj:`int`): maximum multipole up to which map power spectra
+            will be computed. If negative or zero, the maximum multipole given
+            the map resolution will be used (e.g. :math:`3N_{\\rm side}`
+            for HEALPix maps).
+        lmax_mask (:obj:`int`): maximum multipole up to which the power
+            spectrum of the mask will be computed. If negative or zero, the
+            maximum multipole given the map resolution will be used (e.g.
+            :math:`3N_{\\rm side}` for HEALPix maps).
+        tol_pinv (:obj:`float`): when computing the pseudo-inverse of the
+            contaminant covariance matrix. See documentation of
+            :meth:`pymaster.utils.moore_penrose_pinvh`. Only relevant if
+            passing contaminant templates that are likely to be highly
+            correlated. If ``None``, it will default to the internal value,
+            which can be accessed via
+            :meth:`pymaster.utils.get_default_params`, and modified via
+            :meth:`pymaster.utils.set_tol_pinv_default`.
+        wcs (`WCS`): a WCS object if using rectangular pixels (see `the astropy
+            documentation
+            <http://docs.astropy.org/en/stable/wcs/index.html>`_).
+        masked_on_input (:obj:`bool`): set to ``True`` if the input maps and
+            templates are already multiplied by the mask. Note that this is
+            not advisable if you're using purification, as correcting for this
+            usually incurs inaccuracies around the mask edges that may lead
+            to significantly biased power spectra.
+        lite (:obj:`bool`): set to `True` if you want to only store the bare
+            minimum necessary to run a standard pseudo-Cl with deprojection
+            and purification, but you don't care about deprojection bias. This
+            will reduce the memory taken up by the resulting object.
     """
-    def __init__(self, mask, maps, spin=None, templates=None, beam=None,
-                 purify_e=False, purify_b=False, n_iter_mask=None,
-                 tol_pinv=None, wcs=None, n_iter=None, lmax=-1, lmax_mask=-1,
+    def __init__(self, mask, maps, *, spin=None, templates=None, beam=None,
+                 purify_e=False, purify_b=False, n_iter=None, n_iter_mask=None,
+                 tol_pinv=None, wcs=None, lmax=-1, lmax_mask=-1,
                  masked_on_input=False, lite=False):
         if n_iter_mask is None:
             n_iter_mask = ut.nmt_params.n_iter_mask_default
