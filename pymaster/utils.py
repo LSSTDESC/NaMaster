@@ -240,7 +240,7 @@ class NmtMapInfo(object):
             typdec = wcs.wcs.ctype[1]
             try:
                 ny, nx = axes
-            except TypeError:
+            except ValueError:
                 raise ValueError("Input maps must be 2D if not HEALPix")
             npix = ny*nx
 

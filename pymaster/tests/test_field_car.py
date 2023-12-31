@@ -117,6 +117,47 @@ def test_field_alloc():
     assert (len(f2.get_templates()) == 5)
 
 
+def test_alminfo_eq():
+    ainfo = nmt.NmtAlmInfo(lmax=1000)
+
+    # Identity is equivalence
+    assert ainfo == ainfo
+
+    # Equivalence without identity
+    ainfob = nmt.NmtAlmInfo(lmax=1000)
+    assert ainfo == ainfob
+
+    # Wrong type
+    assert ainfo != 3
+
+    # Wrong lmax
+    ainfob = nmt.NmtAlmInfo(lmax=1001)
+    assert ainfo != ainfob
+
+
+def test_mapinfo_eq():
+    # MapInfo for CAR with wrong input
+    with pytest.raises(ValueError):
+        nmt.NmtMapInfo(FT.wcs, FT.mps[0].flatten().shape)
+
+    mi_car = nmt.NmtMapInfo(FT.wcs, FT.mps[0].shape)
+
+    # Identity is equivalence
+    assert mi_car == mi_car
+
+    # Equivalence without identity
+    mi_car2 = nmt.NmtMapInfo(FT.wcs, FT.mps[0].shape)
+    assert mi_car == mi_car2
+
+    # Wrong type
+    assert mi_car != 3
+
+    # Healpix and CAR
+    mi_hpx = nmt.NmtMapInfo(None, (12*64*64,))
+    assert mi_car != mi_hpx
+    assert mi_hpx != mi_car
+
+
 def test_field_error():
     # SHTs using healpy for CAR maps
     f0 = nmt.NmtField(FT.msk, [FT.mps[0]], wcs=FT.wcs)
