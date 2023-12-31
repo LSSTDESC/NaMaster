@@ -21,10 +21,35 @@ class BinTester(object):
         self.bvf = nmt.NmtBin(lmax=self.lmax, bpws=bpws, ells=ells,
                               weights=weights, f_ell=fell)
         self.l_edges = np.arange(2, self.lmax+2, 4, dtype=int)
-        self.be = nmt.NmtBin.from_edges(self.l_edges[:-1], self.l_edges[1:])
+        self.be = nmt.NmtBin.from_edges(self.l_edges[:-1],
+                                        self.l_edges[1:], is_Dell=True)
 
 
 BT = BinTester()
+
+
+def test_bins_nside():
+    b1 = nmt.NmtBin.from_nside_linear(nside=256, nlb=4, is_Dell=True)
+    b2 = nmt.NmtBin.from_lmax_linear(lmax=3*256-1, nlb=4, is_Dell=True)
+    ls1 = b1.get_effective_ells()
+    ls2 = b2.get_effective_ells()
+    assert np.allclose(ls1, ls2, atol=0, rtol=1E-10)
+
+
+def test_bins_defaults():
+    ells = np.arange(BT.lmax+1, dtype=int)
+    bpws = ells // 4
+    b = nmt.NmtBin(ells=ells, bpws=bpws)
+    # Default ell_max
+    assert b.lmax == BT.lmax
+
+    # Default weights
+    for i in np.unique(bpws):
+        w = b.get_weight_list(i)
+        # Equal weights
+        assert len(np.unique(w)) == 1
+        # Normalised
+        assert np.fabs(w[0] - 1/len(w)) < 1E-5
 
 
 def test_bins_errors():

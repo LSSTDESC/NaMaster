@@ -42,12 +42,9 @@ class NmtBin(object):
             by all pseudo-Cl computations carried out using this
             bandpower scheme.
     """
-    def __init__(self, bpws, ells, lmax=None, weights=None,
+    def __init__(self, *, bpws, ells, lmax=None, weights=None,
                  f_ell=None):
         self.bin = None
-
-        if (bpws is None) or (ells is None):
-            raise KeyError("Must supply bandpower arrays")
 
         if lmax is None:
             lmax = np.amax(ells)
@@ -231,7 +228,8 @@ class NmtBin(object):
             (`array`) array of multipoles associated with bandpower
             ``b``.
         """
-        return lib.get_ell_list(self.bin, b, lib.get_nell(self.bin, b))
+        return lib.get_ell_list(self.bin, int(b),
+                                lib.get_nell(self.bin, int(b)))
 
     def get_weight_list(self, b):
         """
@@ -246,8 +244,8 @@ class NmtBin(object):
             (`array`) weights associated to multipoles in bandpower
             ``b``.
         """
-        return lib.get_weight_list(self.bin, b,
-                                   lib.get_nell(self.bin, b))
+        return lib.get_weight_list(self.bin, int(b),
+                                   lib.get_nell(self.bin, int(b)))
 
     def get_effective_ells(self):
         """
