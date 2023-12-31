@@ -596,4 +596,7 @@ def wsp_update_bins(w, b):
 def comp_pspec_flat(fl1, fl2, bin, w0, ncl1, nell3, ncl2, dout, lmn_x, lmx_x, lmn_y, lmx_y):
     return _nmtlib.comp_pspec_flat(fl1, fl2, bin, w0, ncl1, nell3, ncl2, dout, lmn_x, lmx_x, lmn_y, lmx_y)
 
+def get_ell_sampling_flat(f, dout):
+    return _nmtlib.get_ell_sampling_flat(f, dout)
+
 

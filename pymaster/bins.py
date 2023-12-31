@@ -177,7 +177,7 @@ class NmtBin(object):
         Returns the number of bandpowers stored in this object
 
         Returns:
-            (:obj:`int`) number of bandpowers.
+            (:obj:`int`): number of bandpowers.
         """
         return self.bin.n_bands
 
@@ -187,7 +187,7 @@ class NmtBin(object):
         bandpower stored in this object
 
         Returns:
-            (`array`) number of multipoles per bandpower.
+            (`array`): number of multipoles per bandpower.
         """
         return lib.get_nell_list(self.bin, self.bin.n_bands)
 
@@ -200,7 +200,7 @@ class NmtBin(object):
             b (:obj:`int`): bandpower index.
 
         Returns:
-            (:obj:`int`) minimum :math:`\\ell` value.
+            (:obj:`int`): minimum :math:`\\ell` value.
         """
         return self.get_ell_list(b)[0]
 
@@ -213,7 +213,7 @@ class NmtBin(object):
             b (:obj:`int`): bandpower index.
 
         Returns:
-            (:obj:`int`) maximum :math:`\\ell` value.
+            (:obj:`int`): maximum :math:`\\ell` value.
         """
         return self.get_ell_list(b)[-1]
 
@@ -225,7 +225,7 @@ class NmtBin(object):
             b (:obj:`int`): bandpower index.
 
         Returns:
-            (`array`) array of multipoles associated with bandpower
+            (`array`): array of multipoles associated with bandpower
             ``b``.
         """
         return lib.get_ell_list(self.bin, int(b),
@@ -241,7 +241,7 @@ class NmtBin(object):
             b (:obj:`int`): bandpower index.
 
         Returns:
-            (`array`) weights associated to multipoles in bandpower
+            (`array`): weights associated to multipoles in bandpower
             ``b``.
         """
         return lib.get_weight_list(self.bin, int(b),
@@ -254,7 +254,7 @@ class NmtBin(object):
         multipoles within each bandpower.
 
         Returns:
-            (`array`) effective multipoles for each bandpower.
+            (`array`): effective multipoles for each bandpower.
         """
         return lib.get_ell_eff(self.bin, self.bin.n_bands)
 
@@ -267,7 +267,7 @@ class NmtBin(object):
             cls_in (`array`): 1 or 2-D array of power spectra.
 
         Returns:
-            (`array`) array of bandpowers.
+            (`array`): array of bandpowers.
         """
         oned = False
         if cls_in.ndim != 2:
@@ -291,7 +291,7 @@ class NmtBin(object):
             cls_in (`array`) 1 or 2-D array of bandpowers.
 
         Returns:
-            (`array`) array of power spectra.
+            (`array`): array of power spectra.
         """
         oned = False
         if cls_in.ndim != 2:
@@ -336,7 +336,7 @@ class NmtBinFlat(object):
         Returns the number of bandpowers stored in this object
 
         Returns:
-            (:obj:`int`) number of bandpowers.
+            (:obj:`int`): number of bandpowers.
         """
         return self.bin.n_bands
 
@@ -347,7 +347,7 @@ class NmtBinFlat(object):
         the multipoles within each bandpower.
 
         Returns:
-            (`array`) effective multipoles for each bandpower.
+            (`array`): effective multipoles for each bandpower.
         """
         return lib.get_ell_eff_flat(self.bin, self.bin.n_bands)
 
@@ -363,7 +363,7 @@ class NmtBinFlat(object):
                 spectra.
 
         Returns:
-            (`array`) array of bandpowers.
+            (`array`): array of bandpowers.
         """
         oned = False
         if cls_in.ndim != 2:
@@ -390,7 +390,7 @@ class NmtBinFlat(object):
                 spectra should be intepolated.
 
         Returns:
-            (`array`) array of power spectra.
+            (`array`): array of power spectra.
         """
         oned = False
         if cls_in.ndim != 2:

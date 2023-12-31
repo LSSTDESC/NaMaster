@@ -3801,6 +3801,14 @@ void comp_pspec_flat(nmt_field_flat *fl1,nmt_field_flat *fl2,
     nmt_workspace_flat_free(w);
 }
 
+void get_ell_sampling_flat(nmt_field_flat *f, double *dout, int ndout)
+{
+  int ii;
+  asserting(ndout==f->fs->n_ell);
+  for(ii=0;ii<f->fs->n_ell;ii++)
+    dout[ii]=f->fs->ell_min[ii]+0.5*f->fs->dell;
+}
+
 
 #if NPY_API_VERSION < 0x00000007
 #define NPY_ARRAY_DEFAULT NPY_DEFAULT
@@ -18298,6 +18306,56 @@ fail:
 }
 
 
+SWIGINTERN PyObject *_wrap_get_ell_sampling_flat(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_field_flat *arg1 = (nmt_field_flat *) 0 ;
+  double *arg2 = (double *) 0 ;
+  int arg3 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject *array2 = NULL ;
+  PyObject *swig_obj[2] ;
+  
+  if (!SWIG_Python_UnpackTuple(args, "get_ell_sampling_flat", 2, 2, swig_obj)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_nmt_field_flat, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "get_ell_sampling_flat" "', argument " "1"" of type '" "nmt_field_flat *""'"); 
+  }
+  arg1 = (nmt_field_flat *)(argp1);
+  {
+    npy_intp dims[1];
+    if (!PyInt_Check(swig_obj[1]))
+    {
+      const char* typestring = pytype_string(swig_obj[1]);
+      PyErr_Format(PyExc_TypeError,
+        "Int dimension expected.  '%s' given.",
+        typestring);
+      SWIG_fail;
+    }
+    arg3 = (int) PyInt_AsLong(swig_obj[1]);
+    dims[0] = (npy_intp) arg3;
+    array2 = PyArray_SimpleNew(1, dims, NPY_DOUBLE);
+    if (!array2) SWIG_fail;
+    arg2 = (double*) array_data(array2);
+  }
+  {
+    try {
+      get_ell_sampling_flat(arg1,arg2,arg3);
+    }
+    finally {
+      SWIG_exception(SWIG_RuntimeError,nmt_error_message);
+    }
+  }
+  resultobj = SWIG_Py_Void();
+  {
+    resultobj = SWIG_Python_AppendOutput(resultobj,(PyObject*)array2);
+  }
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
 static PyMethodDef SwigMethods[] = {
 	 { "SWIG_PyInstanceMethod_New", SWIG_PyInstanceMethod_New, METH_O, NULL},
 	 { "binning_scheme_flat_n_bands_set", _wrap_binning_scheme_flat_n_bands_set, METH_VARARGS, NULL},
@@ -18663,6 +18721,7 @@ static PyMethodDef SwigMethods[] = {
 	 { "wsp_update_beams", _wrap_wsp_update_beams, METH_VARARGS, NULL},
 	 { "wsp_update_bins", _wrap_wsp_update_bins, METH_VARARGS, NULL},
 	 { "comp_pspec_flat", _wrap_comp_pspec_flat, METH_VARARGS, NULL},
+	 { "get_ell_sampling_flat", _wrap_get_ell_sampling_flat, METH_VARARGS, NULL},
 	 { NULL, NULL, 0, NULL }
 };
 

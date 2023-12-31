@@ -824,4 +824,12 @@ void comp_pspec_flat(nmt_field_flat *fl1,nmt_field_flat *fl2,
   if(w0==NULL)
     nmt_workspace_flat_free(w);
 }
+
+void get_ell_sampling_flat(nmt_field_flat *f, double *dout, int ndout)
+{
+  int ii;
+  asserting(ndout==f->fs->n_ell);
+  for(ii=0;ii<f->fs->n_ell;ii++)
+    dout[ii]=f->fs->ell_min[ii]+0.5*f->fs->dell;
+}
 %}
