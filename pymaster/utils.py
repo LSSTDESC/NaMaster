@@ -35,7 +35,7 @@ _setenv("DUCC0_NUM_THREADS", _getenv("OMP_NUM_THREADS"), keep=True)
 import ducc0  # noqa
 
 
-class _NmtMapInfo(object):
+class _SHTInfo(object):
     def __init__(self, nring, theta, phi0, nphi, weight,
                  is_CAR=False, nx_short=-1, nx_full=-1):
         self.nring = nring
@@ -148,14 +148,18 @@ class _NmtMapInfo(object):
         return np.sum(self.times_weight(m1*m2))
 
 
-class NmtWCSTranslator(object):
+class NmtMapInfo(object):
     """
-    This class takes care of interpreting a WCS object in \
-    terms of a Clenshaw-Curtis grid.
+    This object contains information about the pixelization of
+    a curved-sky map.
 
     :param wcs: a WCS object (see \
         http://docs.astropy.org/en/stable/wcs/index.html).
-    :param axes: shape of the maps you want to analyze.
+        If `None`, HEALPix pixelization is assumed, and `axes`
+        should be a 1-element sequence with the number of pixels
+        of the map.
+    :param axes: shape of the maps (2D for CAR maps, 1D for
+        HEALPix).
     """
     def __init__(self, wcs, axes):
         if wcs is None:
@@ -176,7 +180,7 @@ class NmtWCSTranslator(object):
             dph = -1
             nx = -1
             ny = -1
-            minfo = _NmtMapInfo.from_nside(nside)
+            si = _SHTInfo.from_nside(nside)
         else:
             is_healpix = False
             nside = -1
@@ -239,8 +243,8 @@ class NmtWCSTranslator(object):
                 raise ValueError("Seems like you're wrapping the "
                                  "sphere more than once")
 
-            minfo = _NmtMapInfo.from_rectpix(ny, theta_min, dth,
-                                             nx, dph, phi0)
+            si = _SHTInfo.from_rectpix(ny, theta_min, dth,
+                                       nx, dph, phi0)
 
         # Store values
         self.is_healpix = is_healpix
@@ -255,7 +259,7 @@ class NmtWCSTranslator(object):
         self.d_theta = dth
         self.d_phi = dph
         self.phi0 = phi0
-        self.minfo = minfo
+        self.si = si
 
     def __eq__(self, other):
         # Is it the same thing?
@@ -313,7 +317,7 @@ class NmtWCSTranslator(object):
             return int(np.pi/dxmin)
 
 
-class AlmInfo(object):
+class NmtAlmInfo(object):
     def __init__(self, lmax):
         self.lmax = lmax
         self.mmax = self.lmax
@@ -356,14 +360,14 @@ def mask_apodization(mask_in, aposize, apotype="C1"):
         return m
 
     # Smooth
-    wt = NmtWCSTranslator(None, mask_in.shape)
-    lmax = 3*wt.nside-1
-    ainfo = AlmInfo(lmax)
+    minfo = NmtMapInfo(None, mask_in.shape)
+    lmax = 3*minfo.nside-1
+    ainfo = NmtAlmInfo(lmax)
     ls = np.arange(lmax+1)
     beam = np.exp(-0.5*ls*(ls+1)*np.radians(aposize)**2)
-    alm = map2alm(np.array([m]), 0, wt.minfo, ainfo, n_iter=3)[0]
+    alm = map2alm(np.array([m]), 0, minfo, ainfo, n_iter=3)[0]
     alm = hp.almxfl(alm, beam, mmax=ainfo.mmax)
-    m = alm2map(np.array([alm]), 0, wt.minfo, ainfo)[0]
+    m = alm2map(np.array([alm]), 0, minfo, ainfo)[0]
     # Multiply by original mask
     m *= mask_in
     return m
@@ -435,16 +439,16 @@ def synfast_spherical(nside, cls, spin_arr, beam=None, seed=-1,
         n_ra = int(round(360./np.fabs(wcs.wcs.cdelt[0])))
         n_dec = int(round(180./np.fabs(wcs.wcs.cdelt[1])))+1
         wtshape = [n_dec, n_ra]
-    wt = NmtWCSTranslator(wcs, wtshape)
+    minfo = NmtMapInfo(wcs, wtshape)
 
     if wcs is not None:  # Check that theta_min and theta_max are 0 and pi
-        if (np.fabs(wt.theta_min) > 1E-4) or \
-           (np.fabs(wt.theta_max - np.pi) > 1E-4):
+        if (np.fabs(minfo.theta_min) > 1E-4) or \
+           (np.fabs(minfo.theta_max - np.pi) > 1E-4):
             raise ValueError("Given your WCS, the map wouldn't cover the "
                              "whole sphere exactly")
 
     if lmax is None:
-        lmax = wt.get_lmax()
+        lmax = minfo.get_lmax()
 
     spin_arr = np.array(spin_arr).astype(np.int32)
     nfields = len(spin_arr)
@@ -461,7 +465,7 @@ def synfast_spherical(nside, cls, spin_arr, beam=None, seed=-1,
             f"Must provide all Cls necessary to simulate all field ({ncls}).")
     lmax_cls = len(cls[0]) - 1
     lmax = min(lmax_cls, lmax)
-    ainfo = AlmInfo(lmax)
+    ainfo = NmtAlmInfo(lmax)
 
     # 1. Generate alms
     # Note that, if `new=False` stops being allowed in healpy, we'll need
@@ -482,16 +486,16 @@ def synfast_spherical(nside, cls, spin_arr, beam=None, seed=-1,
                          for alm, bl in zip(alms, beam_per)])
 
     # 3. SHT back to real space
-    maps = np.concatenate([alm2map(alms[i0:i0+n], s, wt.minfo, ainfo)
+    maps = np.concatenate([alm2map(alms[i0:i0+n], s, minfo, ainfo)
                            for i0, n, s in zip(map_first, nmap_arr, spin_arr)])
 
-    if wt.is_healpix:
-        maps = maps.reshape([nmaps, wt.npix])
+    if minfo.is_healpix:
+        maps = maps.reshape([nmaps, minfo.npix])
     else:
-        maps = maps.reshape([nmaps, wt.ny, wt.nx])
-        if wt.flip_th:
+        maps = maps.reshape([nmaps, minfo.ny, minfo.nx])
+        if minfo.flip_th:
             maps = maps[:, ::-1, :]
-        if wt.flip_ph:
+        if minfo.flip_ph:
             maps = maps[:, :, ::-1]
 
     return maps
@@ -588,41 +592,41 @@ def moore_penrose_pinvh(mat, w_thr):
     return pinv
 
 
-def _ducc_kwargs(spin, map_info, alm_info):
-    kwargs = {'spin': spin, 'theta': map_info.theta, 'nphi': map_info.nphi,
-              'phi0': map_info.phi0, 'ringstart': map_info.offsets,
+def _ducc_kwargs(spin, sht_info, alm_info):
+    kwargs = {'spin': spin, 'theta': sht_info.theta, 'nphi': sht_info.nphi,
+              'phi0': sht_info.phi0, 'ringstart': sht_info.offsets,
               'lmax': alm_info.lmax, 'mmax': alm_info.mmax,
               'mstart': alm_info.mstart, 'nthreads': 0}
     return kwargs
 
 
-def _alm2map_ducc0(alm, spin, map_info, alm_info):
-    kwargs = _ducc_kwargs(spin, map_info, alm_info)
+def _alm2map_ducc0(alm, spin, sht_info, alm_info):
+    kwargs = _ducc_kwargs(spin, sht_info, alm_info)
     maps = ducc0.sht.experimental.synthesis(alm=alm, **kwargs)
     return maps
 
 
-def _map2alm_ducc0(map, spin, map_info, alm_info):
-    kwargs = _ducc_kwargs(spin, map_info, alm_info)
+def _map2alm_ducc0(map, spin, sht_info, alm_info):
+    kwargs = _ducc_kwargs(spin, sht_info, alm_info)
     alm = ducc0.sht.experimental.adjoint_synthesis(
-        map=map_info.times_weight(map), **kwargs)
+        map=sht_info.times_weight(map), **kwargs)
     return alm
 
 
-def _alm2map_healpy(alm, spin, map_info, alm_info):
-    if map_info.is_CAR:
+def _alm2map_healpy(alm, spin, sht_info, alm_info):
+    if sht_info.is_CAR:
         raise ValueError("Can't use healpy for CAR maps")
     kwargs = {'lmax': alm_info.lmax, 'mmax': alm_info.mmax}
     if spin == 0:
-        map = [hp.alm2map(alm, mside=map_info.nside, verbose=False,
+        map = [hp.alm2map(alm, mside=sht_info.nside, verbose=False,
                           **kwargs)]
     else:
-        map = hp.alm2map_spin(alm, map_info.nside, spin, **kwargs)
+        map = hp.alm2map_spin(alm, sht_info.nside, spin, **kwargs)
     return np.array(map)
 
 
-def _map2alm_healpy(map, spin, map_info, alm_info):
-    if map_info.is_CAR:
+def _map2alm_healpy(map, spin, sht_info, alm_info):
+    if sht_info.is_CAR:
         raise ValueError("Can't use healpy for CAR maps")
     kwargs = {'lmax': alm_info.lmax, 'mmax': alm_info.mmax}
     if spin == 0:
@@ -640,18 +644,18 @@ _a2m_d = {'ducc': _alm2map_ducc0,
 
 def map2alm(map, spin, map_info, alm_info, n_iter=0,
             sht_calculator='ducc'):
-    map = map_info.pad_map(map)
+    map = map_info.si.pad_map(map)
     m2a = _m2a_d[sht_calculator]
     a2m = _a2m_d[sht_calculator]
-    alm = m2a(map, spin, map_info, alm_info)
+    alm = m2a(map, spin, map_info.si, alm_info)
     for i in range(n_iter):
-        dmap = a2m(alm, spin, map_info, alm_info)-map
-        alm -= m2a(dmap, spin, map_info, alm_info)
+        dmap = a2m(alm, spin, map_info.si, alm_info)-map
+        alm -= m2a(dmap, spin, map_info.si, alm_info)
     return alm
 
 
 def alm2map(alm, spin, map_info, alm_info,
             sht_calculator='ducc'):
     a2m = _a2m_d[sht_calculator]
-    map = a2m(alm, spin, map_info, alm_info)
-    return map_info.unpad_map(map)
+    map = a2m(alm, spin, map_info.si, alm_info)
+    return map_info.si.unpad_map(map)

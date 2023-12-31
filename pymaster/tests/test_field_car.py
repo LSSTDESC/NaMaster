@@ -21,8 +21,8 @@ class FieldTesterCAR(object):
         self.ny, self.nx = hdul[0].data.shape
         hdul.close()
 
-        self.wt = nmt.NmtWCSTranslator(self.wcs, (self.ny, self.nx))
-        self.lmax = self.wt.get_lmax()
+        self.minfo = nmt.NmtMapInfo(self.wcs, (self.ny, self.nx))
+        self.lmax = self.minfo.get_lmax()
         self.ntemp = 5
         self.npix = self.ny*self.nx
         self.msk = np.ones([self.ny, self.nx])

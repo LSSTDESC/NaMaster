@@ -421,7 +421,7 @@ def deprojection_bias(f1, f2, cl_guess, n_iter=3):
                                task=[fld.pure_e, fld.pure_b])
         else:
             return ut.map2alm(mp*fld.mask[None, :], fld.spin,
-                              fld.wt.minfo, fld.ainfo, n_iter=n_iter)
+                              fld.minfo, fld.ainfo, n_iter=n_iter)
 
     pcl_shape = (f1.nmaps * f2.nmaps, f1.ainfo.lmax+1)
     if cl_guess.shape != pcl_shape:
@@ -443,7 +443,7 @@ def deprojection_bias(f1, f2, cl_guess, n_iter=3):
         for ij, tj in enumerate(f1.temp):
             # SHT(v*fj)
             ftild_j = ut.map2alm(tj*f1.mask[None, :], f1.spin,
-                                 f1.wt.minfo, f1.ainfo, n_iter=n_iter)
+                                 f1.minfo, f1.ainfo, n_iter=n_iter)
             # C^ba*SHT[v*fj]
             ftild_j = np.array([
                 np.sum([hp.almxfl(ftild_j[m], clg[m, n],
@@ -451,7 +451,7 @@ def deprojection_bias(f1, f2, cl_guess, n_iter=3):
                         for m in range(f1.nmaps)], axis=0)
                 for n in range(f2.nmaps)])
             # SHT^-1[C^ba*SHT[v*fj]]
-            ftild_j = ut.alm2map(ftild_j, f2.spin, f2.wt.minfo,
+            ftild_j = ut.alm2map(ftild_j, f2.spin, f2.minfo,
                                  f2.ainfo)
             # SHT[w*SHT^-1[C^ba*SHT[v*fj]]]
             ftild_j = purify_if_needed(f2, ftild_j)
@@ -476,7 +476,7 @@ def deprojection_bias(f1, f2, cl_guess, n_iter=3):
         for ij, tj in enumerate(f2.temp):
             # SHT(w*gj)
             gtild_j = ut.map2alm(tj*f2.mask[None, :], f2.spin,
-                                 f2.wt.minfo, f2.ainfo, n_iter=n_iter)
+                                 f2.minfo, f2.ainfo, n_iter=n_iter)
             # C^ab*SHT[w*gj]
             gtild_j = np.array([
                 np.sum([hp.almxfl(gtild_j[n], clg[m, n],
@@ -484,12 +484,12 @@ def deprojection_bias(f1, f2, cl_guess, n_iter=3):
                         for n in range(f2.nmaps)], axis=0)
                 for m in range(f1.nmaps)])
             # SHT^-1[C^ab*SHT[w*gj]]
-            gtild_j = ut.alm2map(gtild_j, f1.spin, f1.wt.minfo,
+            gtild_j = ut.alm2map(gtild_j, f1.spin, f1.minfo,
                                  f1.ainfo)
             if f1.n_temp > 0:
                 # Int[f^i*v*SHT^-1[C^ab*SHT[w*gj]]]
                 for ii, ti in enumerate(f1.temp):
-                    prod_fg[ii, ij] = f1.wt.minfo.dot_map(
+                    prod_fg[ii, ij] = f1.minfo.si.dot_map(
                         ti, gtild_j*f1.mask[None, :])
 
             # SHT[v*SHT^-1[C^ab*SHT[w*gj]]]
@@ -534,7 +534,7 @@ def uncorr_noise_deprojection_bias(f1, map_var, n_iter=3):
 
     # Flatten in case it's a 2D map
     sig2 = map_var.flatten()
-    if len(sig2) != f1.wt.npix:
+    if len(sig2) != f1.minfo.npix:
         raise ValueError("Variance map doesn't match map resolution")
 
     pcl_shape = (f1.nmaps * f1.nmaps, f1.ainfo.lmax+1)
@@ -552,7 +552,7 @@ def uncorr_noise_deprojection_bias(f1, map_var, n_iter=3):
     for j, fj in enumerate(f1.temp):
         # SHT(v^2 sig^2 f_j)
         fj_v_s = ut.map2alm(fj*(f1.mask**2*sig2)[None, :], f1.spin,
-                            f1.wt.minfo, f1.ainfo, n_iter=n_iter)
+                            f1.minfo, f1.ainfo, n_iter=n_iter)
         for i, fi in enumerate(f1.alm_temp):
             cl = np.array([[hp.alm2cl(a1, a2, lmax=f1.ainfo.lmax)
                             for a1 in fi]
@@ -569,7 +569,7 @@ def uncorr_noise_deprojection_bias(f1, map_var, n_iter=3):
                        for fi in f1.alm_temp])
     # Int[fj * fr * v^2 * sig^2]
     prod_ff = np.array([[
-        f1.wt.minfo.dot_map(fj, fr*(f1.mask**2*sig2)[None, :])
+        f1.minfo.si.dot_map(fj, fr*(f1.mask**2*sig2)[None, :])
         for fr in f1.temp] for fj in f1.temp])
     clb += np.einsum('ij,rs,jr,isklm', f1.iM, f1.iM, prod_ff, pcl_ff)
 

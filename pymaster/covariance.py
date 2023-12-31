@@ -90,11 +90,11 @@ class NmtCovarianceWorkspace(object):
         def get_mask_prod_cl(f1_p1, f2_p1, f1_p2, f2_p2):
             mask_p1 = f1_p1.get_mask()*f2_p1.get_mask()
             alm_p1 = ut.map2alm(np.array([mask_p1]), 0,
-                                f1_p1.wt.minfo, f1_p1.ainfo_mask,
+                                f1_p1.minfo, f1_p1.ainfo_mask,
                                 n_iter=f1_p1.n_iter_mask)[0]
             mask_p2 = f1_p2.get_mask()*f2_p2.get_mask()
             alm_p2 = ut.map2alm(np.array([mask_p2]), 0,
-                                f1_p2.wt.minfo, f1_p2.ainfo_mask,
+                                f1_p2.minfo, f1_p2.ainfo_mask,
                                 n_iter=f1_p2.n_iter_mask)[0]
             return hp.alm2cl(alm_p1, alm_p2, lmax=f1_p1.ainfo_mask.lmax)
 

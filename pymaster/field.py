@@ -96,14 +96,14 @@ class NmtField(object):
         # and endianness (can cause issues when read from
         # some FITS files).
         mask = mask.astype(np.float64)
-        self.wt = ut.NmtWCSTranslator(wcs, mask.shape)
-        self.mask = self.wt.reform_map(mask)
+        self.minfo = ut.NmtMapInfo(wcs, mask.shape)
+        self.mask = self.minfo.reform_map(mask)
         if lmax <= 0:
-            lmax = self.wt.get_lmax()
+            lmax = self.minfo.get_lmax()
         if lmax_mask <= 0:
-            lmax_mask = self.wt.get_lmax()
-        self.ainfo = ut.AlmInfo(lmax)
-        self.ainfo_mask = ut.AlmInfo(lmax_mask)
+            lmax_mask = self.minfo.get_lmax()
+        self.ainfo = ut.NmtAlmInfo(lmax)
+        self.ainfo_mask = ut.NmtAlmInfo(lmax_mask)
 
         # Beam
         if isinstance(beam, (list, tuple, np.ndarray)):
@@ -146,7 +146,7 @@ class NmtField(object):
         self.spin = spin
         self.nmaps = 2 if spin else 1
 
-        maps = self.wt.reform_map(maps)
+        maps = self.minfo.reform_map(maps)
 
         pure_any = self.pure_e or self.pure_b
         if pure_any and self.spin != 2:
@@ -158,7 +158,7 @@ class NmtField(object):
             if (len(templates[0]) != len(maps)):
                 raise ValueError("Each template must have the same number of "
                                  "components as the map.")
-            templates = self.wt.reform_map(templates)
+            templates = self.minfo.reform_map(templates)
             self.n_temp = len(templates)
         else:
             if templates is not None:
@@ -190,11 +190,11 @@ class NmtField(object):
 
         # 6. Compute template normalization matrix and deproject
         if w_temp:
-            M = np.array([[self.wt.minfo.dot_map(t1, t2)
+            M = np.array([[self.minfo.si.dot_map(t1, t2)
                            for t1 in templates]
                           for t2 in templates])
             iM = ut.moore_penrose_pinvh(M, tol_pinv)
-            prods = np.array([self.wt.minfo.dot_map(t, maps)
+            prods = np.array([self.minfo.si.dot_map(t, maps)
                               for t in templates])
             alphas = np.dot(iM, prods)
             self.iM = iM
@@ -226,10 +226,10 @@ class NmtField(object):
                 # ***non-purified*** maps. This is to speed up the calculation
                 # of the deprojection bias.
         else:
-            self.alm = ut.map2alm(maps, self.spin, self.wt.minfo,
+            self.alm = ut.map2alm(maps, self.spin, self.minfo,
                                   self.ainfo, n_iter=n_iter)
             if w_temp and (not self.lite):
-                alm_temp = np.array([ut.map2alm(t, self.spin, self.wt.minfo,
+                alm_temp = np.array([ut.map2alm(t, self.spin, self.minfo,
                                                 self.ainfo, n_iter=n_iter)
                                      for t in templates])
 
@@ -241,7 +241,7 @@ class NmtField(object):
                 self.alm_temp = alm_temp
 
     def is_compatible(self, other):
-        if self.wt != other.wt:
+        if self.minfo != other.minfo:
             return False
         if self.ainfo != other.ainfo:
             return False
@@ -265,7 +265,7 @@ class NmtField(object):
     def get_mask_alms(self):
         if self.alm_mask is None:
             amask = ut.map2alm(np.array([self.mask]), 0,
-                               self.wt.minfo, self.ainfo_mask,
+                               self.minfo, self.ainfo_mask,
                                n_iter=self.n_iter_mask)[0]
             if not self.lite:  # Store while we're at it
                 self.alm_mask = amask
@@ -284,7 +284,7 @@ class NmtField(object):
         # Multiply by mask
         maps = maps_u*mask[None, :]
         # Compute alms
-        alms = ut.map2alm(maps, 2, self.wt.minfo,
+        alms = ut.map2alm(maps, 2, self.minfo,
                           self.ainfo_mask, n_iter=n_iter)
 
         # 2. Spin-1 mask bit
@@ -295,13 +295,13 @@ class NmtField(object):
         walm = hp.almxfl(alm_mask, fl,
                          mmax=self.ainfo_mask.mmax)
         walm = np.array([walm, walm*0])
-        wmap = ut.alm2map(walm, 1, self.wt.minfo, self.ainfo_mask)
+        wmap = ut.alm2map(walm, 1, self.minfo, self.ainfo_mask)
         # Product with spin-1 mask
         maps = np.array([wmap[0]*maps_u[0]+wmap[1]*maps_u[1],
                          wmap[0]*maps_u[1]-wmap[1]*maps_u[0]])
         # Compute SHT, multiply by
         # 2*sqrt((l+1)!(l-2)!/((l-1)!(l+2)!)) and add to alms
-        palm = ut.map2alm(maps, 1, self.wt.minfo,
+        palm = ut.map2alm(maps, 1, self.minfo,
                           self.ainfo, n_iter=n_iter)
         fl[2:] = 2/np.sqrt((ls[2:]+2.0)*(ls[2:]-1.0))
         fl[:2] = 0
@@ -318,13 +318,13 @@ class NmtField(object):
         fl[2:] = -np.sqrt((ls[2:]+2.0)*(ls[2:]-1.0))
         fl[:2] = 0
         walm[0] = hp.almxfl(walm[0], fl, mmax=self.ainfo_mask.mmax)
-        wmap = ut.alm2map(walm, 2, self.wt.minfo, self.ainfo_mask)
+        wmap = ut.alm2map(walm, 2, self.minfo, self.ainfo_mask)
         # Product with spin-2 mask
         maps = np.array([wmap[0]*maps_u[0]+wmap[1]*maps_u[1],
                          wmap[0]*maps_u[1]-wmap[1]*maps_u[0]])
         # Compute SHT, multiply by
         # sqrt((l-2)!/(l+2)!) and add to alms
-        palm = np.array([ut.map2alm(np.array([m]), 0, self.wt.minfo,
+        palm = np.array([ut.map2alm(np.array([m]), 0, self.minfo,
                                     self.ainfo, n_iter=n_iter)[0]
                          for m in maps])
         fl[2:] = 1/np.sqrt((ls[2:]+2.0)*(ls[2:]+1.0) *
@@ -338,7 +338,7 @@ class NmtField(object):
 
         if return_maps:
             # 4. Compute purified map if needed
-            maps = ut.alm2map(alms, 2, self.wt.minfo, self.ainfo)
+            maps = ut.alm2map(alms, 2, self.minfo, self.ainfo)
             return alms, maps
         return alms
 

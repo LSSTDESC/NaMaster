@@ -20,10 +20,10 @@ class WorkspaceTesterCAR(object):
         self.mps = hdul[0].data
         hdul.close()
 
-        self.wt = nmt.NmtWCSTranslator(self.wcs, (self.ny, self.nx))
-        self.lmax = self.wt.get_lmax()
+        self.minfo = nmt.NmtMapInfo(self.wcs, (self.ny, self.nx))
+        self.lmax = self.minfo.get_lmax()
         self.nlb = 50
-        self.npix = self.wt.npix
+        self.npix = self.minfo.npix
         self.b = nmt.NmtBin.from_lmax_linear(self.lmax, self.nlb)
         (self.l, self.cltt, self.clte,
          self.clee, self.clbb, self.cltb,

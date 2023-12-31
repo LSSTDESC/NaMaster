@@ -50,8 +50,8 @@ in the form of HEALPix maps exclusively with RING ordering.
 from pymaster import nmtlib as lib  # noqa
 import numpy as np  # noqa
 from pymaster.utils import (  # noqa
-    NmtWCSTranslator,
-    AlmInfo,
+    NmtMapInfo,
+    NmtAlmInfo,
     mask_apodization,
     mask_apodization_flat,
     synfast_spherical,
