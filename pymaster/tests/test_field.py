@@ -42,6 +42,30 @@ class FieldTester(object):
 FT = FieldTester()
 
 
+def test_field_compatibility():
+    map_ran = np.random.rand(FT.npix)*0.1+1
+    f0 = nmt.NmtField(FT.msk, [FT.mps[0]])
+    f1 = nmt.NmtField(FT.msk*map_ran, [map_ran])
+    assert f0.is_compatible(f1)
+
+    # Diff. lmax
+    f1 = nmt.NmtField(FT.msk*map_ran, [map_ran],
+                      lmax=127)
+    assert not f0.is_compatible(f1)
+
+    # Diff. lmax_mask
+    f1 = nmt.NmtField(FT.msk*map_ran, [map_ran],
+                      lmax_mask=127)
+    assert not f0.is_compatible(f1)
+
+    # Diff. nside
+    npix = hp.nside2npix(128)
+    msk = np.ones(npix)
+    mp = np.random.randn(npix)
+    f1 = nmt.NmtField(msk, [mp])
+    assert not f0.is_compatible(f1)
+
+
 def test_field_get_mask():
     nside = 32
     npix = hp.nside2npix(nside)
@@ -85,15 +109,16 @@ def test_field_masked():
     b = nmt.NmtBin.from_nside_linear(nside, 16)
     msk = hp.read_map("test/benchmarks/msk.fits",
                       dtype=float)
+    mskb = msk > 0
     mps = np.array(hp.read_map("test/benchmarks/mps.fits",
                                field=[0, 1, 2],
-                               dtype=float))
+                               dtype=float))*mskb[None, :]
     mps_msk = np.array([m * msk for m in mps])
     f0 = nmt.NmtField(msk, [mps[0]])
     f0_msk = nmt.NmtField(msk, [mps_msk[0]],
                           masked_on_input=True)
-    f2 = nmt.NmtField(msk, [mps[1], mps[2]])
-    f2_msk = nmt.NmtField(msk, [mps_msk[1], mps_msk[2]],
+    f2 = nmt.NmtField(msk, mps[1:])
+    f2_msk = nmt.NmtField(msk, mps_msk[1:],
                           masked_on_input=True)
     w00 = nmt.NmtWorkspace()
     w00.compute_coupling_matrix(f0, f0, b)
@@ -115,6 +140,37 @@ def test_field_masked():
                    np.mean(c00) < 1E-10))
     assert (np.all(np.fabs(c02-c02_msk) /
                    np.mean(c02) < 1E-10))
+    assert (np.all(np.fabs(c22-c22_msk) /
+                   np.mean(c22) < 1E-10))
+
+
+def test_field_masked_pure():
+    nside = 64
+    b = nmt.NmtBin.from_nside_linear(nside, 16)
+    msk = hp.read_map("test/benchmarks/msk.fits",
+                      dtype=float)
+    mskb = msk > 0
+    mps = np.array(hp.read_map("test/benchmarks/mps.fits",
+                               field=[1, 2],
+                               dtype=float))*mskb[None, :]
+    mps_msk = np.array([m * msk for m in mps])
+    f2 = nmt.NmtField(msk, mps,
+                      templates=[[FT.tmp[0][1]*mskb,
+                                  FT.tmp[0][2]*mskb]],
+                      purify_b=True)
+    f2_msk = nmt.NmtField(msk, mps_msk,
+                          templates=[[FT.tmp[0][1]*msk*mskb,
+                                      FT.tmp[0][2]*msk*mskb]],
+                          masked_on_input=True,
+                          purify_b=True)
+    w22 = nmt.NmtWorkspace()
+    w22.compute_coupling_matrix(f2, f2, b)
+
+    def mkcl(w, f, g):
+        return w.decouple_cell(nmt.compute_coupled_cell(f, g))
+
+    c22 = mkcl(w22, f2, f2).flatten()
+    c22_msk = mkcl(w22, f2_msk, f2_msk).flatten()
     assert (np.all(np.fabs(c22-c22_msk) /
                    np.mean(c22) < 1E-10))
 
