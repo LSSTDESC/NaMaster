@@ -40,7 +40,7 @@ except ModuleNotFoundError:
 
 
 class NmtParams(object):
-    """ Class that holds the values of several variables controlling the
+    """ Class that holds the values of several parameters controlling the
     default behaviour of different NaMaster methods. Currently these are:
 
     - ``sht_calculator``: the software package to use to calculate \
@@ -54,8 +54,8 @@ class NmtParams(object):
     - ``tol_pinv_default``: relative eigenvalue threshold to use when \
       computing matrix pseudo-inverses.
 
-    All variables can be changed using the ``set_`` methods below, and
-    their current values can be checked with :meth:`get_default_params`.
+    All variables can be changed using the ``set_`` methods described below,
+    and their current values can be checked with :meth:`get_default_params`.
     Note that, except for ``sht_calculator``, all of these variables can
     be tweaked when calling different various NaMaster functions. The
     values stored in this object only hold the values they default to if
@@ -75,7 +75,7 @@ def set_sht_calculator(calc_name):
     """ Select default spherical harmonic transform calculator.
 
     Args:
-        calc_name (:obj:`str`): calculator name. Allowed options
+        calc_name (:obj:`str`): Calculator name. Allowed options
             are ``'ducc'`` or ``'healpy'``.
     """
     if calc_name not in ['ducc', 'healpy']:
@@ -87,12 +87,12 @@ def set_sht_calculator(calc_name):
 
 
 def set_n_iter_default(n_iter, mask=False):
-    """ Select the number of iterations to use when computing
+    """ Select the number of Jacobi iterations to use when computing
     `map2alm` spherical harmonic transforms.
 
     Args:
-        n_iter (:obj:`int`): number of iterations.
-        mask (:obj:`bool`): if ``True``, ``n_iter`` will be the
+        n_iter (:obj:`int`): Number of iterations.
+        mask (:obj:`bool`): If ``True``, ``n_iter`` will be the
             number of iterations used when computing mask transforms.
             Otherwise, it will be the number used for all other
             transforms.
@@ -111,7 +111,7 @@ def set_tol_pinv_default(tol_pinv):
     :meth:`moore_penrose_pinvh`.
 
     Args:
-        tol_pinv (:obj:`float`): relative eigenvalue threshold.
+        tol_pinv (:obj:`float`): Relative eigenvalue threshold.
     """
     if (tol_pinv > 1) or (tol_pinv < 0):
         raise ValueError('tol_pinv must be between 0 and 1.')
@@ -251,13 +251,13 @@ class NmtMapInfo(object):
     with compatible pixelizations.
 
     Args:
-        wcs (:obj:`wcs`): a WCS object (see the `astropy
+        wcs (`WCS`): a WCS object (see the `astropy
             <http://docs.astropy.org/en/stable/wcs/index.html>`_
-            documentation). If `None`, HEALPix pixelization is
+            documentation). If ``None``, HEALPix pixelization is
             assumed, and ``axes`` should be a 1-element
             sequence with the number of pixels of the map.
-        axes (`array`): shape of the maps (2D for CAR maps,
-            1D for HEALPix).
+        axes (`array`): shape of the maps (length-2 for CAR maps,
+            length-1 for HEALPix).
     """
     def __init__(self, wcs, axes):
         if wcs is None:
@@ -389,17 +389,17 @@ class NmtMapInfo(object):
     def reform_map(self, maps):
         """ Modifies a map to make it compatible with the
         standards used by NaMaster for map manipulation (e.g.
-        spherical harmonic transforms. This includes
+        spherical harmonic transforms). This includes
         flattening 2D maps, and flipping their coordinate
-        axes if required by their associated WCS. HEALPix
-        maps are unmodified.
+        axes if required by their associated WCS information.
+        HEALPix maps are unmodified.
 
         Args:
             maps (`array`): 2D (for HEALPix) or 3D (for CAR)
                 array containing a set of maps.
 
         Returns:
-            (`array`: reformed map.
+            (`array`): Reformed map.
         """
         if not self._map_compatible(maps):
             raise ValueError("Incompatible map!")
@@ -422,9 +422,9 @@ class NmtMapInfo(object):
             return mp.shape[-2:] == (self.ny, self.nx)
 
     def get_lmax(self):
-        """ Returns the default maximum multipole :math:`\\ell_{\\rm max}``
+        """ Returns the default maximum multipole :math:`\\ell_{\\rm max}`
         associated with this pixelization scheme. This will be
-        :math:`3 N_{\\rm side}` for HEALPix and
+        :math:`3 N_{\\rm side}-1` for HEALPix or
         :math:`\\pi/{\\rm min}(\\Delta\\theta,\\Delta\\varphi)` for
         CAR maps (with :math:`\\Delta\\theta` and :math:`\\Delta\\varphi`
         the constant intervals of colatitude and azimuth in radians).
@@ -441,7 +441,7 @@ class NmtAlmInfo(object):
     spherical harmonic coefficients :math:`a_{\\ell m}`.
 
     Args:
-        lmax (:obj:`int`): maximum multipole :math:`\\ell_{\\rm max}`
+        lmax (:obj:`int`): Maximum multipole :math:`\\ell_{\\rm max}`
             to which the :math:`a_{\\ell m}` s are calculated.
     """
     def __init__(self, lmax):
@@ -462,13 +462,12 @@ class NmtAlmInfo(object):
 
 
 def mask_apodization(mask_in, aposize, apotype="C1"):
-    """
-    Apodizes a mask with an given apodization scale using different methods.
-    A given pixel is determined to be "masked" if its value is 0. This
-    method only works for HEALPix maps. Three apodization methods are
+    """ Apodizes a mask with an given apodization scale using different
+    methods. A given pixel is determined to be "masked" if its value is 0.
+    This method only works for HEALPix maps. Three apodization methods are
     currently implemented:
 
-    - "C1" apodization: all pixels are multiplied by a factor :math:`f` \
+    - **"C1"** apodization: all pixels are multiplied by a factor :math:`f` \
       given by
 
       .. math::
@@ -479,11 +478,12 @@ def mask_apodization(mask_in, aposize, apotype="C1"):
         \\end{array}
         \\right..
 
-      where :math:`x=\\sqrt{(1-\\cos\\theta)/(1-\\cos\\theta_*)}, with
-      :math:``\\theta_*` the apodization scale, and :math:`\\theta` the
+      where :math:`x=\\sqrt{(1-\\cos\\theta)/(1-\\cos\\theta_*)}`, with
+      :math:`\\theta_*` the apodization scale, and :math:`\\theta` the
       separation between a pixel and its nearest masked pixel (i.e. where
-      the mask takes a zero value).
-    - "C2" apodization: similar to "C1", but wusing the apodization
+      the mask takes a zero value). See `Grain et al. 2009
+      <https://arxiv.org/abs/0903.2350>`_.
+    - **"C2"** apodization: similar to "C1", but using the apodization
       function:
 
       .. math::
@@ -494,9 +494,9 @@ def mask_apodization(mask_in, aposize, apotype="C1"):
         \\end{array}
         \\right..
 
-    - "Smooth" apodization: this is carried out in three steps:
+    - **"Smooth"** apodization: this is carried out in three steps:
 
-      1. All pixels within a disk or radius :math:`2.5\\theta_*` of a
+      1. All pixels within a disk of radius :math:`2.5\\theta_*` of a
          masked pixel are masked.
       2. The resulting map is smoothed with a Gaussian window function
          with standard deviation :math:`\\theta_*`.
@@ -504,14 +504,13 @@ def mask_apodization(mask_in, aposize, apotype="C1"):
          that all pixels that were previously masked are still masked.
 
     Args:
-        mask_in (`array`): input mask, provided as an array of floats
+        mask_in (`array`): Input mask, provided as an array of floats
             corresponding to a HEALPix map in RING order.
-        aposize (:obj:`float`): apodization scale in degrees.
-        apotype (:obj:`str`): apodization type. Three methods implemented:
-        ``"C1"``, ``"C2"``, and ``"Smooth"``.
+        aposize (:obj:`float`): Apodization scale in degrees.
+        apotype (:obj:`str`): Apodization type.
 
     Returns:
-        (`array`): apodized mask.
+        (`array`): Apodized mask.
     """
     if apotype not in ['C1', 'C2', 'Smooth']:
         raise ValueError(f"Apodization type {apotype} unknown. "
@@ -539,20 +538,20 @@ def mask_apodization(mask_in, aposize, apotype="C1"):
 
 
 def mask_apodization_flat(mask_in, lx, ly, aposize, apotype="C1"):
-    """
-    Apodizes a flat-sky mask with an given apodization scale using \
-    different methods. A given pixel is determined to be "masked" if \
-    its value is 0.
+    """ Apodizes a flat-sky mask. See the docstrings of
+    :meth:`mask_apodization` for a description of the different
+    methods implemented.
 
-    :param mask_in: input mask, provided as a 2D array (ny,nx) of floats.
-    :param float lx: patch size in the x-axis (in radians)
-    :param float ly: patch size in the y-axis (in radians)
-    :param aposize: apodization scale in degrees.
-    :param apotype: apodization type. Three methods implemented: "C1", \
-       "C2" and "Smooth". See the description of the C-function \
-       nmt_apodize_mask in the C API documentation for a full \
-       description of these methods.
-    :return: apodized mask as a 2D array (ny,nx)
+    Args:
+        mask_in (`array`): Input mask, provided as a 2D array of
+            shape ``(ny, nx)``.
+        lx (:obj:`float`): Patch size in the x axis (radians).
+        ly (:obj:`float`): Patch size in the y axis (radians).
+        aposize (:obj:`float`): Apodization scale in degrees.
+        apotype (:obj:`str`): Apodization type.
+
+    Returns:
+        (`array`): Apodized mask.
     """
     if mask_in.ndim != 2:
         raise ValueError("Mask must be a 2D array")
@@ -567,34 +566,41 @@ def mask_apodization_flat(mask_in, lx, ly, aposize, apotype="C1"):
 
 def synfast_spherical(nside, cls, spin_arr, beam=None, seed=-1,
                       wcs=None, lmax=None):
-    """
-    Generates a full-sky Gaussian random field according to a given \
-    power spectrum. This function should produce outputs similar to \
-    healpy's synfast.
+    """ Generates full-sky Gaussian random fields according to a given
+    power spectrum. This function should produce outputs similar to
+    healpy's `synfast <https://healpy.readthedocs.io/en/latest/generated/healpy.sphtfunc.synfast.html>`_.
 
-    :param int nside: HEALpix resolution parameter. If you want \
-        rectangular pixel maps, ignore this parameter and pass a \
-        WCS object as `wcs` (see below).
-    :param array-like cls: array containing power spectra. Shape \
-        should be [n_cls][n_ell], where n_cls is the number of power \
-        spectra needed to define all the fields. This should be \
-        n_cls = n_maps * (n_maps + 1) / 2, where n_maps is the total \
-        number of maps required (1 for each spin-0 field, 2 for each \
-        spin>0 field). Power spectra must be provided only for the \
-        upper-triangular part in row-major order (e.g. if n_maps is \
-        3, there will be 6 power spectra ordered as \
-        [1-1,1-2,1-3,2-2,2-3,3-3].
-    :param array-like spin_arr: array containing the spins of all the \
-        fields to generate.
-    :param beam array-like: 2D array containing the instrumental beam \
-        of each field to simulate (the output map(s) will be convolved \
-        with it)
-    :param int seed: RNG seed. If negative, will use a random seed.
-    :param wcs: a WCS object \
-        (see http://docs.astropy.org/en/stable/wcs/index.html).
-    :return: a number of full-sky maps (1 for each spin-0 field, 2 for \
-        each spin-2 field).
-    """
+    Args:
+        nside (:obj:`int`): HEALpix resolution parameter.
+            If you want rectangular pixel maps, ignore this parameter
+            and pass a WCS object as ``wcs`` (see below).
+        cls (`array`): Array contiaining power spectra. Shape
+            should be ``(n_cls, n_ell)``, where ``n_cls`` is the
+            number of power spectra needed to define all the fields.
+            This should be ``n_cls = n_maps * (n_maps + 1) / 2``,
+            where ``n_maps`` is the total number of maps required
+            (1 for each spin-0 field, 2 for each spin>0 field).
+            Power spectra must be provided only for the upper-triangular
+            part of the full power spectrum matrix in row-major order
+            (e.g. if ``n_maps=3``, there will be 6 power spectra ordered
+            as [1x1, 1x2, 1x3, 2x2, 2x3, 3x3]).
+        spin_arr (`array`): Array containing the spins of all the
+            fields to generate.
+        beam (`array`): 2D array containing the instrumental beam
+            of each field to simulate (the output map(s) will be
+            convolved with it).
+        seed (:obj:`int`): Seed for the random number generator. If
+            negative, a random seed will be used.
+        wcs (`WCS`): A WCS object if using rectangular pixels (see `the astropy
+            documentation
+            <http://docs.astropy.org/en/stable/wcs/index.html>`_).
+        lmax (:obj:`int`): Maximum multipole up to which the spherical
+            harmonic coefficients of the maps will be generated.
+
+    Returns:
+        (`array`): A set of full-sky maps (1 for each spin-0 field, 2 for \
+            each spin-s field).
+    """  # noqa
     if seed < 0:
         seed = np.random.randint(50000000)
 
@@ -685,28 +691,38 @@ def _toeplitz_sanity(l_toeplitz, l_exact, dl_band, lmax, fl1, fl2):
 
 def synfast_flat(nx, ny, lx, ly, cls, spin_arr, beam=None, seed=-1):
     """
-    Generates a flat-sky Gaussian random field according to a given power \
-    spectrum. This function is the flat-sky equivalent of healpy's synfast.
+    Generates flat-sky Gaussian random fields according to a given
+    power spectrum. This is the flat-sky equivalent of
+    :meth:`synfast_spherical`.
 
-    :param int nx: number of pixels in the x-axis
-    :param int ny: number of pixels in the y-axis
-    :param float lx: patch size in the x-axis (in radians)
-    :param float ly: patch size in the y-axis (in radians)
-    :param array-like cls: array containing power spectra. Shape should be \
-        [n_cls][n_ell], where n_cls is the number of power spectra needed \
-        to define all the fields. This should be \
-        n_cls = n_maps * (n_maps + 1) / 2, where n_maps is the total number \
-        of maps required (1 for each spin-0 field, 2 for each spin>0 field). \
-        Power spectra must be provided only for the upper-triangular part in \
-        row-major order (e.g. if n_maps is 3, there will be 6 power spectra \
-        ordered as [1-1,1-2,1-3,2-2,2-3,3-3].
-    :param array-like spin_arr: array containing the spins of all the fields \
-        to generate.
-    :param beam array-like: 2D array containing the instrumental beam of each \
-        field to simulate (the output map(s) will be convolved with it)
-    :param int seed: RNG seed. If negative, will use a random seed.
-    :return: a number of arrays (1 for each spin-0 field, 2 for each \
-        spin-2 field) of size (ny,nx) containing the simulated maps.
+    Args:
+        nx (:obj:`int`): Number of pixels in the x axis.
+        ny (:obj:`int`): Number of pixels in the y axis.
+        lx (:obj:`float`): Patch size in the x axis (radians).
+        ly (:obj:`float`): Patch size in the y axis (radians).
+        cls (`array`): Array contiaining power spectra. Shape
+            should be ``(n_cls, n_ell)``, where ``n_cls`` is the
+            number of power spectra needed to define all the fields.
+            This should be ``n_cls = n_maps * (n_maps + 1) / 2``,
+            where ``n_maps`` is the total number of maps required
+            (1 for each spin-0 field, 2 for each spin>0 field).
+            Power spectra must be provided only for the upper-triangular
+            part of the full power spectrum matrix in row-major order
+            (e.g. if ``n_maps=3``, there will be 6 power spectra ordered
+            as [1x1, 1x2, 1x3, 2x2, 2x3, 3x3]). The power spectra are
+            assumed to be sampled at all integer multipoles from
+            :math:`\\ell=0` to ``n_ell-1``.
+        spin_arr (`array`): Array containing the spins of all the
+            fields to generate.
+        beam (`array`): 2D array containing the instrumental beam
+            of each field to simulate (the output map(s) will be
+            convolved with it).
+        seed (:obj:`int`): Seed for the random number generator. If
+            negative, a random seed will be used.
+
+    Returns:
+        (`array`): An array of flat-sky maps (1 for each spin-0 field, 2 for \
+            each spin-s field) with shape ``(nmaps, ny, nx)``.
     """
     if seed < 0:
         seed = np.random.randint(50000000)
@@ -745,12 +761,30 @@ def synfast_flat(nx, ny, lx, ly, cls, spin_arr, beam=None, seed=-1):
     return maps
 
 
-def moore_penrose_pinvh(mat, w_thr):
-    if (w_thr is None) or (w_thr <= 0):
+def moore_penrose_pinvh(mat, tol_pinv):
+    """ Compute the Moore-Penrose pseudo-inverse of a
+    Hermitian matrix. This is done by diagonalising
+    the matrix, setting the inverse of all eigenvales
+    below a given threshold to zero, and reconstructing
+    the inverse matrix from the modified eigenvalues.
+    The inverse of all eigenvalues smaller than a factor
+    ``tol_pinv`` times the largest eigenvalue will be set
+    to zero. If ``tol_pinv <= 0``, the standard inverse
+    is computed.
+
+    Args:
+        mat (`array`): 2D Hermitian matrix.
+        tol_pinv (:obj:`float`): Relative eigenvalue
+            threshold.
+
+    Returns:
+        (`array`): Pseudo-inverse of input matrix.
+    """
+    if (tol_pinv is None) or (tol_pinv <= 0):
         return np.linalg.inv(mat)
 
     w, v = np.linalg.eigh(mat)
-    badw = w < w_thr*np.max(w)
+    badw = w < tol_pinv*np.max(w)
     w_inv = 1./w
     w_inv[badw] = 0.
     pinv = np.dot(v, np.dot(np.diag(w_inv), v.T))
@@ -807,6 +841,31 @@ _a2m_d = {'ducc': _alm2map_ducc0,
 
 
 def map2alm(map, spin, map_info, alm_info, *, n_iter):
+    """ Computes the spherical harmonic transform (SHT)
+    for a set of input maps. The SHT implementation to
+    be used can be selected via :meth:`set_sht_calculator`
+    (see the documentation of :class:`NmtParams`).
+
+    Args:
+        map (`array`): 2D array with shape ``(nmaps, npix)``
+            where  ``nmaps`` is either 1 (for spin-0 fields)
+            or 2 (for spin-s fields), and ``npix`` is the
+            number of pixels. If using CAR rectangular
+            pixels, the map should be provided flattened.
+        spin (:obj:`int`): Field spin.
+        map_info (:class:`NmtMapInfo`): Object describing
+            the pixelization of the input map.
+        alm_info (:class:`NmtAlmInfo`): Object describing
+            the structure of the output spherical harmonic
+            coefficients.
+        n_iter (:obj:`int`): Number of Jacobi iterations used
+            to improve the accuracy of the SHT.
+
+    Returns:
+        (`array`): Harmonic coefficients :math:`a_{\\ell m}` \
+            of the input map. A set of two arrays (E and B \
+            modes) is returned if ``spin>0``.
+    """
     map = map_info.si.pad_map(map)
     m2a = _m2a_d[nmt_params.sht_calculator]
     a2m = _a2m_d[nmt_params.sht_calculator]
@@ -818,6 +877,30 @@ def map2alm(map, spin, map_info, alm_info, *, n_iter):
 
 
 def alm2map(alm, spin, map_info, alm_info):
+    """ Computes the inverse spherical harmonic transform
+    (SHT) for a set of input :math:`a_{\\ell m}` s. The SHT
+    implementation to be used can be selected via
+    :meth:`set_sht_calculator` (see the documentation of
+    :class:`NmtParams`).
+
+    Args:
+        alm (`array`): 2D array with shape ``(nmaps, n_lm)``
+            where  ``nmaps`` is either 1 (for spin-0 fields)
+            or 2 (for spin-s fields), and ``n_lm`` is the
+            number of harmonic coefficients.
+        spin (:obj:`int`): Field spin.
+        map_info (:class:`NmtMapInfo`): Object describing
+            the pixelization of the output map.
+        alm_info (:class:`NmtAlmInfo`): Object describing
+            the structure of the input spherical harmonic
+            coefficients.
+
+    Returns:
+        (`array`): Map reconstructed from the input \
+            :math:`a_{\\ell m}` s. A set of two arrays \
+            (e.g. Q and U Stokes parameters) is returned \
+            if ``spin>0``.
+    """
     a2m = _a2m_d[nmt_params.sht_calculator]
     map = a2m(alm, spin, map_info.si, alm_info)
     return map_info.si.unpad_map(map)

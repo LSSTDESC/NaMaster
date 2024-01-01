@@ -5,16 +5,15 @@ import pymaster.utils as ut
 
 
 class NmtField(object):
-    """
-    An :obj:`NmtField` object contains all the information describing the
-    fields to correlate, including their observed maps, masks and
-    contaminant templates.
+    """ An :obj:`NmtField` object contains all the information
+    describing the fields to correlate, including their observed
+    maps, masks and contaminant templates.
 
     Args:
-        mask (`array`): array containing a map corresponding to the
-            field's mask. Should be 1-dimensional for a HEALPix map
-            or 2-dimensional for a map with rectangular pixelization.
-        maps (`array`): array containing the observed maps for this
+        mask (`array`): Array containing a map corresponding to the
+            field's mask. Should be 1-dimensional for a HEALPix map or
+            2-dimensional for a map with rectangular (CAR) pixelization.
+        maps (`array`): Array containing the observed maps for this
             field. Should be at least 2-dimensional. The first
             dimension corresponds to the number of maps, which should
             be 1 for a spin-0 field and 2 otherwise. The other
@@ -35,10 +34,9 @@ class NmtField(object):
             If ``None``, this field will only contain a mask but no maps.
             The field can then be used to compute a mode-coupling matrix,
             for instance, but not actual power spectra.
-        spin (:obj:`int`): spin of this field. If equal to 0, ``maps`` should
-            contain  single map, and two maps otherwise. If ``None`` it will
+        spin (:obj:`int`): Spin of this field. If ``None`` it will
             default to 0 or 2 if ``maps`` contains 1 or 2 maps, respectively.
-        templates (`array`): array containing a set of contaminant templates
+        templates (`array`): Array containing a set of contaminant templates
             for this field. This array should have shape ``[ntemp,nmap,...]``,
             where ``ntemp`` is the number of templates, ``nmap`` should be 1
             for spin-0 fields and 2 otherwise. The other dimensions should be
@@ -46,52 +44,55 @@ class NmtField(object):
             rectangular pixels. The best-fit contribution from each
             contaminant is automatically removed from the maps unless
             ``templates=None``.
-        beam (`array`): spherical harmonic transform of the instrumental beam
+        beam (`array`): Spherical harmonic transform of the instrumental beam
             (assumed to be rotationally symmetric - i.e. no :math:`m`
             dependence). If ``None``, no beam will be corrected for. Otherwise,
             this array should have at least as many elements as the maximum
             multipole sampled by the maps + 1 (see ``lmax``).
-        purify_e (:obj:`bool`): purify E-modes?
-        purify_b (:obj:`bool`): purify E-modes?
-        n_iter (:obj:`int`): number of iterations when computing the
+        purify_e (:obj:`bool`): Purify E-modes?
+        purify_b (:obj:`bool`): Purify B-modes?
+        n_iter (:obj:`int`): Number of iterations when computing the
             :math:`a_{\\ell m}` s of the input maps. See the documentation of
-            :meth:`pymaster.utils.map2alm`. If ``None``, it will default to the
-            internal value, which can be accessed via
-            :meth:`pymaster.utils.get_default_params`, and modified via
-            :meth:`pymaster.utils.set_n_iter_default`.
-        n_iter_mask (:obj:`int`): number of iterations when computing the
+            :meth:`~pymaster.utils.map2alm`. If ``None``, it will default to
+            the internal value (see documentation of
+            :class:`~pymaster.utils.NmtParams`), which can be accessed via
+            :meth:`~pymaster.utils.get_default_params`, and modified via
+            :meth:`~pymaster.utils.set_n_iter_default`.
+        n_iter_mask (:obj:`int`): Number of iterations when computing the
             spherical harmonic transform of the mask. If ``None``, it will
-            default to the internal value, which can be accessed via
-            :meth:`pymaster.utils.get_default_params`, and modified via
-            :meth:`pymaster.utils.set_n_iter_default`.
-        lmax (:obj:`int`): maximum multipole up to which map power spectra
+            default to the internal value (see documentation of
+            :class:`~pymaster.utils.NmtParams`), which can be accessed via
+            :meth:`~pymaster.utils.get_default_params`,
+            and modified via :meth:`~pymaster.utils.set_n_iter_default`.
+        lmax (:obj:`int`): Maximum multipole up to which map power spectra
             will be computed. If negative or zero, the maximum multipole given
-            the map resolution will be used (e.g. :math:`3N_{\\rm side}`
+            the map resolution will be used (e.g. :math:`3N_{\\rm side}-1`
             for HEALPix maps).
-        lmax_mask (:obj:`int`): maximum multipole up to which the power
+        lmax_mask (:obj:`int`): Maximum multipole up to which the power
             spectrum of the mask will be computed. If negative or zero, the
             maximum multipole given the map resolution will be used (e.g.
-            :math:`3N_{\\rm side}` for HEALPix maps).
-        tol_pinv (:obj:`float`): when computing the pseudo-inverse of the
+            :math:`3N_{\\rm side}-1` for HEALPix maps).
+        tol_pinv (:obj:`float`): When computing the pseudo-inverse of the
             contaminant covariance matrix. See documentation of
-            :meth:`pymaster.utils.moore_penrose_pinvh`. Only relevant if
+            :meth:`~pymaster.utils.moore_penrose_pinvh`. Only relevant if
             passing contaminant templates that are likely to be highly
             correlated. If ``None``, it will default to the internal value,
             which can be accessed via
-            :meth:`pymaster.utils.get_default_params`, and modified via
-            :meth:`pymaster.utils.set_tol_pinv_default`.
-        wcs (`WCS`): a WCS object if using rectangular pixels (see `the astropy
-            documentation
+            :meth:`~pymaster.utils.get_default_params`, and modified via
+            :meth:`~pymaster.utils.set_tol_pinv_default`.
+        wcs (`WCS`): A WCS object if using rectangular (CAR) pixels (see
+            `the astropy documentation
             <http://docs.astropy.org/en/stable/wcs/index.html>`_).
-        masked_on_input (:obj:`bool`): set to ``True`` if the input maps and
+        masked_on_input (:obj:`bool`): Set to ``True`` if the input maps and
             templates are already multiplied by the mask. Note that this is
             not advisable if you're using purification, as correcting for this
             usually incurs inaccuracies around the mask edges that may lead
             to significantly biased power spectra.
-        lite (:obj:`bool`): set to ``True`` if you want to only store the bare
-            minimum necessary to run a standard pseudo-Cl with deprojection
-            and purification, but you don't care about deprojection bias. This
-            will reduce the memory taken up by the resulting object.
+        lite (:obj:`bool`): Set to ``True`` if you want to only store the bare
+            minimum necessary to run a standard pseudo-:math:`C_\\ell` with
+            deprojection and purification, but you don't care about
+            deprojection bias. This will significantly reduce the memory taken
+            up by the resulting object.
     """
     def __init__(self, mask, maps, *, spin=None, templates=None, beam=None,
                  purify_e=False, purify_b=False, n_iter=None, n_iter_mask=None,
@@ -287,7 +288,6 @@ class NmtField(object):
     def get_mask(self):
         """ Get this field's mask.
 
-
         Returns:
             (`array`): 1D array containing the field's mask.
         """
@@ -416,59 +416,58 @@ class NmtField(object):
 
 
 class NmtFieldFlat(object):
-    """
-    An :obj:`NmtFieldFlat` object contains all the information describing the
-    fields to correlate, including their observed maps, masks and
-    contaminant templates.
+    """ An :obj:`NmtFieldFlat` object contains all the information
+    describing the flat-sky fields to correlate, including their observed
+    maps, masks and contaminant templates.
 
     Args:
-        lx (:obj:`float`): size of the patch in the `x` direction (in
-            radians.
-        ly (:obj:`float`): size of the patch in the `y` direction (in
-            radians.
-        mask (`array`): 2D array of shape ``(nx, ny)`` containing the
+        lx (:obj:`float`): Size of the patch in the `x` direction (in
+            radians).
+        ly (:obj:`float`): Size of the patch in the `y` direction (in
+            radians).
+        mask (`array`): 2D array of shape ``(ny, nx)`` containing the
             field's mask.
-        maps (`array`): array containing the observed maps for this
+        maps (`array`): Array containing the observed maps for this
             field. Should be at 3-dimensional. The first dimension
             corresponds to the number of maps, which should be 1 for a
             spin-0 field and 2 otherwise. The other dimensions should be
-            ``(nx, ny)``. If ``None``, this field will only contain a
+            ``(ny, nx)``. If ``None``, this field will only contain a
             mask but no maps. The field can then be used to compute a
             mode-coupling matrix, for instance, but not actual power
             spectra.
-        spin (:obj:`int`): spin of this field. If equal to 0, ``maps`` should
-            contain  single map, and two maps otherwise. If ``None`` it will
+        spin (:obj:`int`): Spin of this field. If ``None`` it will
             default to 0 or 2 if ``maps`` contains 1 or 2 maps, respectively.
-        templates (`array`): array containing a set of contaminant templates
+        templates (`array`): Array containing a set of contaminant templates
             for this field. This array should have shape
-            ``[ntemp,nmap,nx,ny]``, where ``ntemp`` is the number of
+            ``[ntemp,nmap,ny,nx]``, where ``ntemp`` is the number of
             templates, and ``nmap`` should be 1 for spin-0 fields and, 2
             otherwise. The best-fit contribution from each contaminant is
             automatically removed from the maps unless ``templates=None``.
-        beam (`array`): spherical harmonic transform of the instrumental beam
+        beam (`array`): Spherical harmonic transform of the instrumental beam
             (assumed to be rotationally symmetric). Should be 2D, with shape
             ``(2,nl)``. ``beam[0]`` contains the values of :math:`\\ell` for
             which de beam is defined, with ``beam[1]`` containing the
             corresponding beam values. If None, no beam will be corrected for.
-        purify_e (:obj:`bool`): purify E-modes?
-        purify_b (:obj:`bool`): purify E-modes?
-        tol_pinv (:obj:`float`): when computing the pseudo-inverse of the
+        purify_e (:obj:`bool`): Purify E-modes?
+        purify_b (:obj:`bool`): Purify B-modes?
+        tol_pinv (:obj:`float`): When computing the pseudo-inverse of the
             contaminant covariance matrix. See documentation of
-            :meth:`pymaster.utils.moore_penrose_pinvh`. Only relevant if
+            :meth:`~pymaster.utils.moore_penrose_pinvh`. Only relevant if
             passing contaminant templates that are likely to be highly
             correlated. If ``None``, it will default to the internal value,
             which can be accessed via
-            :meth:`pymaster.utils.get_default_params`, and modified via
-            :meth:`pymaster.utils.set_tol_pinv_default`.
-        masked_on_input (:obj:`bool`): set to ``True`` if the input maps and
+            :meth:`~pymaster.utils.get_default_params`, and modified via
+            :meth:`~pymaster.utils.set_tol_pinv_default`.
+        masked_on_input (:obj:`bool`): Set to ``True`` if the input maps and
             templates are already multiplied by the mask. Note that this is
             not advisable if you're using purification, as correcting for this
             usually incurs inaccuracies around the mask edges that may lead
             to significantly biased power spectra.
-        lite (:obj:`bool`): set to ``True`` if you want to only store the bare
-            minimum necessary to run a standard pseudo-Cl with deprojection
-            and purification, but you don't care about deprojection bias. This
-            will reduce the memory taken up by the resulting object.
+        lite (:obj:`bool`): Set to ``True`` if you want to only store the bare
+            minimum necessary to run a standard pseudo-:math:`C_\\ell` with
+            deprojection and purification, but you don't care about
+            deprojection bias. This will significantly reduce the memory taken
+            up by the resulting object.
     """
     def __init__(self, lx, ly, mask, maps, spin=None, templates=None,
                  beam=None, purify_e=False, purify_b=False,
@@ -596,11 +595,11 @@ class NmtFieldFlat(object):
             self.fl = None
 
     def get_mask(self):
-        """
-        Returns this field's mask as a 2D array with shape ``(ny, nx)``.
+        """ Returns this field's mask as a 2D array with shape
+        ``(ny, nx)``.
 
         Returns:
-            (`array`): mask.
+            (`array`): Mask.
         """
         msk = lib.get_mask_flat(self.fl,
                                 int(self.fl.npix)).reshape([self.ny,
@@ -609,14 +608,13 @@ class NmtFieldFlat(object):
         return msk
 
     def get_maps(self):
-        """
-        Returns a 3D array with shape ``(nmap, ny, nx)`` corresponding
+        """ Returns a 3D array with shape ``(nmap, ny, nx)`` corresponding
         to the observed maps for this field. If the field was initialized
         with contaminant templates, the maps returned by this function
         have their best-fit contribution from these contaminants removed.
 
         Returns:
-            (`array`): maps.
+            (`array`): Maps.
         """
         if self.lite:
             raise ValueError("Input maps unavailable for lightweight fields. "
@@ -630,13 +628,12 @@ class NmtFieldFlat(object):
         return mps
 
     def get_templates(self):
-        """
-        Returns a 4D array with shape ``(ntemp, nmap, ny, nx)``,
+        """ Returns a 4D array with shape ``(ntemp, nmap, ny, nx)``,
         corresponding to the contaminant templates passed when initializing
         this field.
 
         Return:
-            (`array`): contaminant maps.
+            (`array`): Contaminant maps.
         """
         if self.lite:
             raise ValueError("Input maps unavailable for lightweight fields. "
@@ -657,8 +654,7 @@ class NmtFieldFlat(object):
         power spectra calculated involving this field are evaluated.
 
         Return:
-            (`array`): array of :math:`\\ell` values at which the power \
-                spectra are evaluated.
+            (`array`): Array of :math:`\\ell` values.
         """
         ells = lib.get_ell_sampling_flat(self.fl, int(self.fl.fs.n_ell))
         return ells

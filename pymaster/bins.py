@@ -15,32 +15,33 @@ def _get_bpw_arrays_linear(lmax, nlb):
 
 class NmtBin(object):
     """:obj:`NmtBin` objects define the set of bandpowers used in the
-    computation of the pseudo-Cl estimator. The definition of
-    bandpowers is described in Section 3.6 of the scientific
-    documentation. We provide several convenience constructors
-    that cover a range of common use cases requiring fewer
-    parameters (see :meth:`NmtBin.from_nside_linear`,
-    :meth:`NmtBin.from_lmax_linear` and :meth:`Nmt.from_edges`).
+    computation of the pseudo-:math:`C_\\ell` estimator. The
+    definition of bandpowers is described in Section 2.1.3 of the
+    NaMaster paper, and Section 3.6 of the
+    scientific documentation. We provide several convenience
+    constructors that cover a range of common use cases requiring
+    fewer parameters (see :meth:`NmtBin.from_nside_linear`,
+    :meth:`NmtBin.from_lmax_linear` and :meth:`NmtBin.from_edges`).
 
     Args:
-        ells (`array`): array of integers corresponding to different
+        ells (`array`): Array of integers corresponding to different
             multipoles.
-        bpws (`array`): array of integers that assign the multipoles
-            in `ells` to different bandpowers. All negative values
+        bpws (`array`): Array of integers that assign the multipoles
+            in ``ells`` to different bandpowers. All negative values
             will be ignored.
-        lmax (:obj:`int`): maximum to be considered by these
+        lmax (:obj:`int`): Maximum :math:`\\ell` to be considered by these
             bandpowers, and by any calculation that uses them (e.g.
             mode-coupling matrices, band limit used when computing
             spherical harmonic coefficients of input maps, etc.).
-            If `None`, the maximum of `ells` will be used.
-        weights (`array`): array of floats corresponding to the
-            weights associated to each multipole in `ells`. The sum
+            If ``None``, the maximum of ``ells`` will be used.
+        weights (`array`): Array of floats corresponding to the
+            weights associated to each multipole in ``ells``. The sum
             of weights within each bandpower will be automatically
-            normalized to 1. If `None`, uniform weights are assumed.
-        f_ell (`array`): if present, this is array represents an
+            normalized to 1. If ``None``, uniform weights are assumed.
+        f_ell (`array`): If present, this is array represents an
             :math:`\\ell`-dependent function that will be multiplied
-            by all pseudo-Cl computations carried out using this
-            bandpower scheme.
+            by all pseudo-:math:`C_\\ell` computations carried out
+            using this bandpower scheme.
     """
     def __init__(self, *, bpws, ells, lmax=None, weights=None,
                  f_ell=None):
@@ -63,28 +64,30 @@ class NmtBin(object):
         binning, starting at :math:`\\ell=2`, and up to
         :math:`\\ell=3 N_{\\rm side}`. Although this will also be the
         maximum multipole associated with this :obj:`NmtBin` object,
-        only bandpowers containing a total of `nlb` multipoles within
+        only bandpowers containing a total of ``nlb`` multipoles within
         this range will be used (i.e. the last bin will be discarded
         if not complete).
 
         Args:
             nside (:obj:`int`): HEALPix :math:`N_{\\rm side}` resolution
                 parameter of the maps you intend to correlate.
-            nlb (:obj:`int`): integer value corresponding to a constant
+            nlb (:obj:`int`): Integer value corresponding to a constant
                 bandpower width. I.e. the bandpowers will be defined as
-                consecutive sets of nlb multipoles from l=2 to l=lmax
-                with equal weights.
-            is_Dell (:obj:`bool`): if `True`, the output of all pseudo-Cl
-                computations carried out using this bandpower scheme (e.g.
-                from :py:meth:`pymaster.workspaces.NmtWorkspace.decouple_cell`)
+                consecutive sets of ``nlb`` multipoles from
+                :math:`\\ell=2` with equal weights.
+            is_Dell (:obj:`bool`): If ``True``, the output of all
+                pseudo-:math:`C_\\ell` computations carried out using
+                this bandpower scheme (e.g. from
+                :meth:`~pymaster.workspaces.NmtWorkspace.decouple_cell`)
                 will be multiplied by :math:`\\ell (\\ell + 1) / 2 \\pi`
                 (no prefactor otherwise).
-            f_ell (`array`): if present, this is array represents an
+            f_ell (`array`): If present, this is array represents an
                 :math:`\\ell`-dependent function that will be multiplied by
-                all pseudo-Cl computations carried out using this bandpower
-                scheme. If not `None`, the value of `is_Dell` is ignored.
-                If provided, it must be sampled at all :math:`\\ell` s up to
-                (and including) :math:`3 N_{\\rm side}`.
+                all pseudo-:math:`C_\\ell` computations carried out using
+                this bandpower scheme. If not ``None``, the value of
+                ``is_Dell`` is ignored. If provided, it must be sampled at
+                all :math:`\\ell` s up to (and including)
+                :math:`3 N_{\\rm side}`.
         """
         ells, bpws = _get_bpw_arrays_linear(3*nside-1, nlb)
         weights = np.ones(len(ells))
@@ -96,30 +99,32 @@ class NmtBin(object):
     @classmethod
     def from_lmax_linear(cls, lmax, nlb, is_Dell=False, f_ell=None):
         """ Convenience constructor for generic linear binning, starting
-        at :math:`\\ell=2`, and up to :math:`\\ell=` `lmax`. Although this
+        at :math:`\\ell=2`, and up to :math:`\\ell=` ``lmax``. Although this
         will also be the maximum multipole associated with this :obj:`NmtBin`
-        object, only bandpowers containing a total of `nlb` multipoles within
+        object, only bandpowers containing a total of ``nlb`` multipoles within
         this range will be used (i.e. the last bin will be discarded
         if not complete).
 
         Args:
-            lmax (:obj:`int`): integer value corresponding to the maximum
+            lmax (:obj:`int`): Integer value corresponding to the maximum
                 multipole to be used.
-            nlb (:obj:`int`): integer value corresponding to a constant
+            nlb (:obj:`int`): Integer value corresponding to a constant
                 bandpower width. I.e. the bandpowers will be defined as
-                consecutive sets of nlb multipoles from l=2 to l=lmax
+                consecutive sets of ``nlb`` multipoles from :math:`\\ell=2`
                 with equal weights.
-            is_Dell (:obj:`bool`): if `True`, the output of all pseudo-Cl
-                computations carried out using this bandpower scheme (e.g.
-                from :py:meth:`pymaster.workspaces.NmtWorkspace.decouple_cell`)
+            is_Dell (:obj:`bool`): If ``True``, the output of all
+                pseudo-:math:`C_\\ell` computations carried out using this
+                bandpower scheme (e.g. from
+                :meth:`~pymaster.workspaces.NmtWorkspace.decouple_cell`)
                 will be multiplied by :math:`\\ell (\\ell + 1) / 2 \\pi`
                 (no prefactor otherwise).
-            f_ell (`array`): if present, this is array represents an
+            f_ell (`array`): If present, this is array represents an
                 :math:`\\ell`-dependent function that will be multiplied by
-                all pseudo-Cl computations carried out using this bandpower
-                scheme. If not `None`, the value of `is_Dell` is ignored.
-                If provided, it must be sampled at all :math:`\\ell` s up to
-                (and including) :math:`\\ell_{\\rm max}`.
+                all pseudo-:math:`C_\\ell` computations carried out using
+                this bandpower scheme. If not ``None``, the value of
+                ``is_Dell`` is ignored. If provided, it must be sampled at
+                all :math:`\\ell` s up to (and including)
+                :math:`\\ell_{\\rm max}`.
         """
         ells, bpws = _get_bpw_arrays_linear(lmax, nlb)
         weights = np.ones(len(ells))
@@ -132,25 +137,26 @@ class NmtBin(object):
     def from_edges(cls, ell_ini, ell_end, is_Dell=False, f_ell=None):
         """
         Convenience constructor for general equal-weight bands.
-        All :math:`\\ell` s in the interval `[ell_ini, ell_end)` will be
+        All :math:`\\ell` s in the interval ``[ell_ini, ell_end)`` will be
         binned with equal weights across the band.
 
         Args:
-            ell_ini (`array`): array of integers containing the lower edges
+            ell_ini (`array`): Array of integers containing the lower edges
                 of each bandpower.
-            ell_end (`array`): array containing the upper edges of each
+            ell_end (`array`): Array containing the upper edges of each
                 bandpower.
-            is_Dell (:obj:`bool`): if `True`, the output of all pseudo-Cl
-                computations carried out using this bandpower scheme (e.g.
-                from :py:meth:`pymaster.workspaces.NmtWorkspace.decouple_cell`)
+            is_Dell (:obj:`bool`): If `True`, the output of all
+                pseudo-:math:`C_\\ell` computations carried out using this
+                bandpower scheme (e.g. from
+                :meth:`~pymaster.workspaces.NmtWorkspace.decouple_cell`)
                 will be multiplied by :math:`\\ell (\\ell + 1) / 2 \\pi`
                 (no prefactor otherwise).
-            f_ell (`array`): if present, this is array represents an
+            f_ell (`array`): If present, this is array represents an
                 :math:`\\ell`-dependent function that will be multiplied by
-                all pseudo-Cl computations carried out using this bandpower
-                scheme. If not `None`, the value of `is_Dell` is ignored.
-                If provided, it must be sampled at all :math:`\\ell` s covered
-                by `ell_ini` and `ell_end`.
+                all pseudo-:math:`C_\\ell` computations carried out using
+                this bandpower scheme. If not ``None``, the value of
+                ``is_Dell`` is ignored. If provided, it must be sampled at
+                all :math:`\\ell` s covered by ``ell_ini`` and ``ell_end``.
         """
         ells, bpws, weights = [], [], []
         for ib, (li, le) in enumerate(zip(ell_ini, ell_end)):
@@ -173,101 +179,95 @@ class NmtBin(object):
             self.bin = None
 
     def get_n_bands(self):
-        """
-        Returns the number of bandpowers stored in this object
+        """ Returns the number of bandpowers stored in this
+        object.
 
         Returns:
-            (:obj:`int`): number of bandpowers.
+            (:obj:`int`): Number of bandpowers.
         """
         return self.bin.n_bands
 
     def get_nell_list(self):
-        """
-        Returns an array with the number of multipoles in each
-        bandpower stored in this object
+        """ Returns an array with the number of multipoles
+        in each bandpower stored in this object.
 
         Returns:
-            (`array`): number of multipoles per bandpower.
+            (`array`): Number of multipoles per bandpower.
         """
         return lib.get_nell_list(self.bin, self.bin.n_bands)
 
     def get_ell_min(self, b):
-        """
-        Returns the minimum ell value used by bandpower with
+        """ Returns the minimum ell value used by bandpower with
         index ``b``.
 
         Args:
-            b (:obj:`int`): bandpower index.
+            b (:obj:`int`): Bandpower index.
 
         Returns:
-            (:obj:`int`): minimum :math:`\\ell` value.
+            (:obj:`int`): Minimum :math:`\\ell` value.
         """
         return self.get_ell_list(b)[0]
 
     def get_ell_max(self, b):
-        """
-        Returns the maximum ell value used by bandpower with
+        """ Returns the maximum ell value used by bandpower with
         index ``b``.
 
         Args:
-            b (:obj:`int`): bandpower index.
+            b (:obj:`int`): Bandpower index.
 
         Returns:
-            (:obj:`int`): maximum :math:`\\ell` value.
+            (:obj:`int`): Maximum :math:`\\ell` value.
         """
         return self.get_ell_list(b)[-1]
 
     def get_ell_list(self, b):
-        """
-        Returns an array with the multipoles in the ``b``-th bandpower
+        """ Returns an array with the multipoles in the
+        ``b``-th bandpower
 
         Args:
-            b (:obj:`int`): bandpower index.
+            b (:obj:`int`): Bandpower index.
 
         Returns:
-            (`array`): array of multipoles associated with bandpower
+            (`array`): Array of multipoles associated with bandpower
             ``b``.
         """
         return lib.get_ell_list(self.bin, int(b),
                                 lib.get_nell(self.bin, int(b)))
 
     def get_weight_list(self, b):
-        """
-        Returns an array with the weights associated to each multipole
-        in the ``b``-th bandpower
+        """ Returns an array with the weights associated with each
+        multipole in the ``b``-th bandpower
 
 
         Args:
-            b (:obj:`int`): bandpower index.
+            b (:obj:`int`): Bandpower index.
 
         Returns:
-            (`array`): weights associated to multipoles in bandpower
+            (`array`): Weights associated to multipoles in bandpower
             ``b``.
         """
         return lib.get_weight_list(self.bin, int(b),
                                    lib.get_nell(self.bin, int(b)))
 
     def get_effective_ells(self):
-        """
-        Returns an array with the effective multipole associated to each
+        """ Returns an array with the effective multipole of each
         bandpower. These are computed as a weighted average of the
-        multipoles within each bandpower.
+        multipoles within each bin.
 
         Returns:
-            (`array`): effective multipoles for each bandpower.
+            (`array`): Effective multipoles for each bandpower.
         """
         return lib.get_ell_eff(self.bin, self.bin.n_bands)
 
     def bin_cell(self, cls_in):
-        """
-        Bins a power spectrum into bandpowers. This is carried out as a
-        weighted average over the multipoles in each bandpower.
+        """ Bins a power spectrum into bandpowers. This is carried
+        out as a weighted average over the multipoles in each bandpower.
 
         Args:
             cls_in (`array`): 1 or 2-D array of power spectra.
 
         Returns:
-            (`array`): array of bandpowers.
+            (`array`): Array of bandpowers.
         """
         oned = False
         if cls_in.ndim != 2:
@@ -282,16 +282,15 @@ class NmtBin(object):
         return clout
 
     def unbin_cell(self, cls_in):
-        """
-        Un-bins a set of bandpowers into a power spectrum. This is simply
-        done by assigning a constant value for every multipole in each
-        bandpower (corresponding to the value of that bandpower).
+        """ Un-bins a set of bandpowers into a power spectrum. This is
+        simply done by assigning a constant value for every multipole in
+        each bandpower.
 
         Args:
-            cls_in (`array`) 1 or 2-D array of bandpowers.
+            cls_in (`array`): 1 or 2-D array of bandpowers.
 
         Returns:
-            (`array`): array of power spectra.
+            (`array`): Array of power spectra.
         """
         oned = False
         if cls_in.ndim != 2:
@@ -308,16 +307,16 @@ class NmtBin(object):
 
 
 class NmtBinFlat(object):
-    """
-    An :obj:`NmtBinFlat` object defines the set of bandpowers used in the
-    computation of the pseudo-Cl estimator. The definition of bandpowers
-    is described in Section 3.6 of the scientific documentation. Note that
-    ``pymaster`` only supports top-hat bandpowers for flat-sky power spectra.
+    """ An :obj:`NmtBinFlat` object defines the set of bandpowers used in
+    the computation of the pseudo-:math:`C_\\ell` estimator. The definition
+    of bandpowers is described in Section 2.5.1 of the NaMaster paper, or
+    Section 3.6 of the scientific documentation. Note that NaMaster only
+    supports top-hat bandpowers for flat-sky power spectra.
 
     Args:
-        l0 (`array`): array of floats corresponding to the lower bound of
+        l0 (`array`): Array of floats corresponding to the lower bound of
             each bandpower.
-        lf (`array`): array of floats corresponding to the upper bound of
+        lf (`array`): Array of floats corresponding to the upper bound of
             each bandpower. ``lf`` should have the same shape as ``l0``.
     """
 
@@ -336,34 +335,34 @@ class NmtBinFlat(object):
         Returns the number of bandpowers stored in this object
 
         Returns:
-            (:obj:`int`): number of bandpowers.
+            (:obj:`int`): Number of bandpowers.
         """
         return self.bin.n_bands
 
     def get_effective_ells(self):
         """
-        Returns an array with the effective multipole associated to
+        Returns an array with the effective multipole associated with
         each bandpower. These are computed as a weighted average of
-        the multipoles within each bandpower.
+        the multipoles within each bin.
 
         Returns:
-            (`array`): effective multipoles for each bandpower.
+            (`array`): Effective multipoles for each bandpower.
         """
         return lib.get_ell_eff_flat(self.bin, self.bin.n_bands)
 
     def bin_cell(self, ells, cls_in):
         """
         Bins a power spectrum into bandpowers. This is carried out
-        as a weighted average over the multipoles in each bandpower.
+        as a weighted average over the multipoles in each bin.
 
         Args:
-            ells (`array`): multipole values at which the input
+            ells (`array`): Multipole values at which the input
                 power spectra are sampled.
             cls_in (`array`): 1 or 2-D array of input power
                 spectra.
 
         Returns:
-            (`array`): array of bandpowers.
+            (`array`): Array of bandpowers.
         """
         oned = False
         if cls_in.ndim != 2:
@@ -382,15 +381,15 @@ class NmtBinFlat(object):
         """
         Un-bins a set of bandpowers into power spectra. This is
         simply done by assigning a constant value for every multipole
-        in each bandpower (corresponding to the value of that bandpower).
+        in each bandpower.
 
         Args:
             cls_in (`array`): 1 or 2-D array of bandpowers.
-            ells (`array`): array of multipoles at which the power
-                spectra should be intepolated.
+            ells (`array`): Array of multipoles at which the input
+                power spectra are evaluated.
 
         Returns:
-            (`array`): array of power spectra.
+            (`array`): Array of power spectra.
         """
         oned = False
         if cls_in.ndim != 2:
