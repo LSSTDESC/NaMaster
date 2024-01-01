@@ -43,11 +43,7 @@ plt.figure()
 plt.title("Map from NmtField")
 plt.imshow(f0.get_maps().reshape([mp_t.shape[0], -1]),
            interpolation='nearest', origin='lower')
-# You'll notice that, after creating the NmtField, the maps get extended
-# to cover the full 2*pi azimuth range. If you want to recover the original
-# map, you'll need to cut that out.
-plt.figure()
-plt.title("Map from NmtField, cut")
-plt.imshow(f0.get_maps().reshape([mp_t.shape[0], -1])[:, :mp_t.shape[1]],
-           interpolation='nearest', origin='lower')
 plt.show()
+
+# You can now use these NmtFields just like you would use HEALPix-based
+# ones in terms of power spectrum estimation.
