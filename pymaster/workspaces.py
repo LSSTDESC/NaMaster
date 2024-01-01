@@ -224,9 +224,9 @@ class NmtWorkspace(object):
 
     def decouple_cell(self, cl_in, cl_bias=None, cl_noise=None):
         """
-        Decouples a set of pseudo-Cl power spectra into a set of bandpowers
-        by inverting the binned coupling matrix (se Eq. 16 of the NaMaster
-        paper).
+        Decouples a set of pseudo-:math:`C_\\ell` power spectra into a set
+        of bandpowers by inverting the binned coupling matrix (se Eq. 16 of
+        the NaMaster paper).
 
         Args:
             cl_in (`array`): set of input power spectra. The number of power
@@ -238,8 +238,8 @@ class NmtWorkspace(object):
             cl_bias (`array`): bias to the power spectrum associated with
                 contaminant residuals (optional). This can be computed through
                 :func:`deprojection_bias`.
-            cl_noise (`array`): noise bias (i.e. angular pseudo-Cl of
-                masked noise realizations).
+            cl_noise (`array`): noise bias (i.e. angular
+                pseudo-:math:`C_\\ell` of masked noise realizations).
 
         Returns:
             (`array`): set of decoupled bandpowers.
@@ -404,7 +404,7 @@ class NmtWorkspaceFlat(object):
 
     def decouple_cell(self, cl_in, cl_bias=None, cl_noise=None):
         """
-        Decouples a set of pseudo-Cl power spectra into a set of
+        Decouples a set of pseudo-:math:`C_\\ell` power spectra into a set of
         bandpowers by inverting the binned coupling matrix (see
         Eq. 47 of the NaMaster paper).
 
@@ -421,8 +421,8 @@ class NmtWorkspaceFlat(object):
             cl_bias (`array`): bias to the power spectrum associated with
                 contaminant residuals (optional). This can be computed through
                 :func:`deprojection_bias_flat`.
-            cl_noise (`array`): noise bias (i.e. angular pseudo-Cl of
-                masked noise realisations).
+            cl_noise (`array`): noise bias (i.e. angular
+                pseudo-:math:`C_\\ell` of masked noise realisations).
 
         Returns:
             (`array`): set of decoupled bandpowers.
@@ -456,14 +456,21 @@ class NmtWorkspaceFlat(object):
 
 def deprojection_bias(f1, f2, cl_guess, n_iter=None):
     """
-    Computes the bias associated to contaminant removal to the \
-    cross-pseudo-Cl of two fields.
+    Computes the bias associated to contaminant removal to the
+    cross-pseudo-:math:`C_\\ell` of two fields. See Eq. 26 in the NaMaster
+    paper.
 
-    :param NmtField f1,f2: fields to correlate
-    :param cl_guess: set of power spectra corresponding to a \
-        best-guess of the true power spectra of f1 and f2.
-    :param n_iter: number of iterations when computing a_lms.
-    :return: deprojection bias power spectra.
+    Args:
+        f1 (:class:`~pymaster.field.NmtField`): first field to correlate.
+        f2 (:class:`~pymaster.field.NmtField`): second field to correlate.
+        cl_guess (`array`): array of power spectra corresponding to a
+            best-guess of the true power spectra of ``f1`` and ``f2``.
+        n_iter (:obj:`int`): number of iterations when computing
+            :math:`a_{\\ell m}` s. See docstring of
+            :class:`~pymaster.field.NmtField`.
+
+    Returns:
+        (`array`): deprojection bias pseudo-:math:`C_\\ell`.
     """
     if n_iter is None:
         n_iter = ut.nmt_params.n_iter_default
@@ -576,16 +583,21 @@ def deprojection_bias(f1, f2, cl_guess, n_iter=None):
 
 def uncorr_noise_deprojection_bias(f1, map_var, n_iter=None):
     """
-    Computes the bias associated to contaminant removal in the presence \
-    of uncorrelated inhomogeneous noise to the auto-pseudo-Cl of a \
-    given field f1.
+    Computes the bias associated to contaminant removal in the presence
+    of uncorrelated inhomogeneous noise to the
+    auto-pseudo-:math:`C_\\ell` of a given field.
 
-    :param NmtField f1: fields to correlate
-    :param map_var: array containing a map corresponding to the local \
-        noise variance (in one sterad). The map should have the same \
-        pixelization used by `f1`.
-    :param n_iter: number of iterations when computing a_lms.
-    :return: deprojection bias power spectra.
+    Args:
+        f1 (:class:`~pymaster.field.NmtField`): field being correlated.
+        map_var (`array`): single map containing the local noise
+            variance in one steradian. The map should have the same
+            pixelization used by ``f1``.
+        n_iter (:obj:`int`): number of iterations when computing
+            :math:`a_{\\ell m}` s. See docstring of
+            :class:`~pymaster.field.NmtField`.
+
+    Returns:
+        (`array`): deprojection bias pseudo-:math:`C_\\ell`.
     """
     if f1.lite:
         raise ValueError("Can't compute deprojection bias for "
@@ -637,26 +649,33 @@ def uncorr_noise_deprojection_bias(f1, map_var, n_iter=None):
     return clb.reshape(pcl_shape)
 
 
-def deprojection_bias_flat(
-    f1, f2, b, ells, cl_guess, ell_cut_x=[1., -1.], ell_cut_y=[1., -1.]
-):
+def deprojection_bias_flat(f1, f2, b, ells, cl_guess,
+                           ell_cut_x=[1., -1.], ell_cut_y=[1., -1.]):
     """
-    Computes the bias associated to contaminant removal to the \
-    cross-pseudo-Cl of two flat-sky fields. The returned power \
-    spectrum is defined at the multipoles returned by the method \
-    :func:`get_ell_sampling` of either f1 or f2.
+    Computes the bias associated to contaminant removal to the
+    cross-pseudo-:math:`C_\\ell` of two flat-sky fields. See Eq. 50 in
+    the NaMaster paper.
 
-    :param NmtFieldFlat f1,f2: fields to correlate
-    :param NmtBinFlat b: binning scheme defining output bandpower
-    :param ells: list of multipoles on which the proposal power \
-        spectra are defined
-    :param cl_guess: set of power spectra corresponding to a \
-        best-guess of the true power spectra of f1 and f2.
-    :param float(2) ell_cut_x: remove all modes with ell_x in the \
-        interval [ell_cut_x[0],ell_cut_x[1]] from the calculation.
-    :param float(2) ell_cut_y: remove all modes with ell_y in the \
-        interval [ell_cut_y[0],ell_cut_y[1]] from the calculation.
-    :return: deprojection bias power spectra.
+    Args:
+        f1 (:class:`~pymaster.field.NmtFieldFlat`): first field to
+            correlate.
+        f2 (:class:`~pymaster.field.NmtFieldFlat`): second field to
+            correlate.
+        b (:class:`~pymaster.bins.NmtBinFlat`): binning scheme defining
+            the output bandpowers.
+        ells (`array`): list of multipoles on which the guess power
+            spectra are defined.
+        cl_guess (`array`): array of power spectra corresponding to a
+            best-guess of the true power spectra of ``f1`` and ``f2``.
+        ell_cut_x (`array`): sequence of two elements determining the
+            range of :math:`l_x` to remove from the calculation. No
+            Fourier modes removed by default.
+        ell_cut_y (`array`): sequence of two elements determining the
+            range of :math:`l_y` to remove from the calculation. No
+            Fourier modes removed by default.
+
+    Returns:
+        (`array`): deprojection bias pseudo-:math:`C_\\ell`.
     """
     if len(cl_guess) != f1.fl.nmaps * f2.fl.nmaps:
         raise ValueError("Proposal Cell doesn't match number of maps")
@@ -680,14 +699,20 @@ def deprojection_bias_flat(
 
 
 def compute_coupled_cell(f1, f2):
-    """
-    Computes the full-sky angular power spectra of two masked fields \
-    (f1 and f2) without aiming to deconvolve the mode-coupling matrix. \
-    Effectively, this is equivalent to calling the usual HEALPix \
-    anafast routine on the masked and contaminant-cleaned maps.
+    """ Computes the full-sky pseudo-:math:`C_\\ell` of two masked
+    fields (``f1`` and ``f2``) without aiming to deconvolve the
+    mode-coupling matrix (Eq. 7 of the NaMaster paper). Effectively,
+    this is equivalent to calling the usual HEALPix ``anafast``
+    routine on the masked and contaminant-cleaned maps.
 
-    :param NmtField f1,f2: fields to correlate
-    :return: array of coupled power spectra
+    Args:
+        f1 (:class:`~pymaster.field.NmtField`): first field to
+            correlate.
+        f2 (:class:`~pymaster.field.NmtField`): second field to
+            correlate.
+
+    Returns:
+        (`array`): array of coupled pseudo-:math:`C_\\ell` s.
     """
     if not f1.is_compatible(f2):
         raise ValueError("You're trying to correlate incompatible fields")
@@ -703,21 +728,31 @@ def compute_coupled_cell(f1, f2):
 
 def compute_coupled_cell_flat(f1, f2, b, ell_cut_x=[1., -1.],
                               ell_cut_y=[1., -1.]):
-    """
-    Computes the angular power spectra of two masked flat-sky fields \
-    (f1 and f2) without aiming to deconvolve the mode-coupling matrix. \
-    Effectively, this is equivalent to computing the map FFTs and \
-    averaging over rings of wavenumber.  The returned power spectrum \
-    is defined at the multipoles returned by the method \
-    :func:`get_ell_sampling` of either f1 or f2.
+    """ Computes the flat-sky pseudo-:math:`C_\\ell` of two masked
+    fields (``f1`` and ``f2``) without aiming to deconvolve the
+    mode-coupling matrix (Eq. 42 of the NaMaster paper). Effectively,
+    this is equivalent to computing the map FFTs and
+    averaging over rings of wavenumber.  The returned power
+    spectrum is defined at the multipoles returned by the
+    method :meth:`~pytest.field.NmtFieldFlat.get_ell_sampling`
+    of either ``f1`` or ``f2``.
 
-    :param NmtFieldFlat f1,f2: fields to correlate
-    :param NmtBinFlat b: binning scheme defining output bandpower
-    :param float(2) ell_cut_x: remove all modes with ell_x in the \
-        interval [ell_cut_x[0],ell_cut_x[1]] from the calculation.
-    :param float(2) ell_cut_y: remove all modes with ell_y in the \
-        interval [ell_cut_y[0],ell_cut_y[1]] from the calculation.
-    :return: array of coupled power spectra
+    Args:
+        f1 (:class:`~pymaster.field.NmtFieldFlat`): first field to
+            correlate.
+        f2 (:class:`~pymaster.field.NmtFieldFlat`): second field to
+            correlate.
+        b (:class:`~pymaster.bins.NmtBinFlat`): binning scheme defining
+            the output bandpowers.
+        ell_cut_x (`array`): sequence of two elements determining the
+            range of :math:`l_x` to remove from the calculation. No
+            Fourier modes removed by default.
+        ell_cut_y (`array`): sequence of two elements determining the
+            range of :math:`l_y` to remove from the calculation. No
+            Fourier modes removed by default.
+
+    Returns:
+        (`array`): array of coupled pseudo-:math:`C_\\ell` s.
     """
     if (f1.nx != f2.nx) or (f1.ny != f2.ny):
         raise ValueError("Fields must have same resolution")
@@ -740,38 +775,44 @@ def compute_coupled_cell_flat(f1, f2, b, ell_cut_x=[1., -1.],
 def compute_full_master(f1, f2, b=None, cl_noise=None, cl_guess=None,
                         workspace=None, l_toeplitz=-1, l_exact=-1, dl_band=-1):
     """
-    Computes the full MASTER estimate of the power spectrum of two \
-    fields (f1 and f2). This is equivalent to successively calling:
+    Computes the full MASTER estimate of the power spectrum of two
+    fields (``f1`` and ``f2``). This is equivalent to successively calling:
 
-    - :func:`pymaster.NmtWorkspace.compute_coupling_matrix`
-    - :func:`pymaster.deprojection_bias`
-    - :func:`pymaster.compute_coupled_cell`
-    - :func:`pymaster.NmtWorkspace.decouple_cell`
+    - :meth:`NmtWorkspace.compute_coupling_matrix`
+    - :meth:`deprojection_bias`
+    - :meth:`compute_coupled_cell`
+    - :meth:`NmtWorkspace.decouple_cell`
 
-    :param NmtField f1,f2: fields to correlate.
-    :param NmtBin b: binning scheme defining output bandpowers. Only \
-        needed if `workspace=None`.
-    :param cl_noise: noise bias (i.e. angular power spectrum of \
-        masked noise realizations) (optional).
-    :param cl_guess: set of power spectra corresponding to a \
-        best-guess of the true power spectra of f1 and f2. Needed \
-        only to compute the contaminant cleaning bias (optional).
-    :param NmtWorkspace workspace: object containing the mode-coupling \
-        matrix associated with an incomplete sky coverage. If \
-        provided, the function will skip the computation of the \
-        mode-coupling matrix and use the information encoded in this \
-        object.
-    :param l_toeplitz: if a positive number, the Toeplitz approximation \
-        described in Louis et al. 2020 (arXiv:2010.14344) will be used. \
-        In that case, this quantity corresponds to ell_toeplitz in Fig. \
-        3 of that paper.
-    :param l_exact: if `l_toeplitz>0`, this quantity corresponds to \
-        ell_exact in Fig. 3 of Louis et al. 2020.  Ignored if \
-        `l_toeplitz<=0`.
-    :param dl_band: if `l_toeplitz>0`, this quantity corresponds to \
-        Delta ell_band in Fig. 3 of Louis et al. 2020.  Ignored if \
-        `l_toeplitz<=0`.
-    :return: set of decoupled bandpowers
+
+    Args:
+        fl1 (:class:`~pymaster.field.NmtField`): first field to
+            correlate.
+        fl2 (:class:`~pymaster.field.NmtField`): second field to
+            correlate.
+        b (:class:`~pymaster.bins.NmtBin`): binning scheme.
+        cl_noise (`array`): noise bias (i.e. angular
+            pseudo-:math:`C_\\ell` of masked noise realizations).
+        cl_guess (`array`): array of power spectra corresponding to a
+            best-guess of the true power spectra of ``f1`` and ``f2``.
+        workspace (:class:`~pymaster.workspaces.NmtWorkspace`):
+            object containing the mode-coupling matrix associated with
+            an incomplete sky coverage. If provided, the function will
+            skip the computation of the mode-coupling matrix and use
+            the information encoded in this object.
+        l_toeplitz (:obj:`int`): if a positive number, the Toeplitz
+            approximation described in `Louis et al. 2020
+            <https://arxiv.org/abs/2010.14344>`_ will be used.
+            In that case, this quantity corresponds to
+            :math:`\\ell_{\\rm toeplitz}` in Fig. 3 of that paper.
+        l_exact (:obj:`int`): if ``l_toeplitz>0``, it corresponds to
+            :math:`\\ell_{\\rm exact}` in Fig. 3 of the paper.
+            Ignored if ``l_toeplitz<=0``.
+        dl_band (:obj:`int`): if ``l_toeplitz>0``, this quantity
+            corresponds to :math:`\\Delta \\ell_{\\rm band}` in Fig.
+            3 of the paper. Ignored if ``l_toeplitz<=0``.
+
+    Returns:
+        (`array`): set of decoupled bandpowers.
     """
     if (b is None) and (workspace is None):
         raise SyntaxError("Must supply either workspace or bins.")
@@ -810,46 +851,48 @@ def compute_full_master(f1, f2, b=None, cl_noise=None, cl_guess=None,
     return w.decouple_cell(pcld - pclb - pcln)
 
 
-def compute_full_master_flat(
-    f1,
-    f2,
-    b,
-    cl_noise=None,
-    cl_guess=None,
-    ells_guess=None,
-    workspace=None,
-    ell_cut_x=[1., -1.],
-    ell_cut_y=[1., -1.],
-):
+def compute_full_master_flat(f1, f2, b, cl_noise=None, cl_guess=None,
+                             ells=None, workspace=None,
+                             ell_cut_x=[1., -1.], ell_cut_y=[1., -1.]):
     """
-    Computes the full MASTER estimate of the power spectrum of two flat-sky \
-    fields (f1 and f2). This is equivalent to successively calling:
+    Computes the full MASTER estimate of the power spectrum of two
+    flat-sky fields (``f1`` and ``f2``). This is equivalent to
+    successively calling:
 
-    - :func:`pymaster.NmtWorkspaceFlat.compute_coupling_matrix`
-    - :func:`pymaster.deprojection_bias_flat`
-    - :func:`pymaster.compute_coupled_cell_flat`
-    - :func:`pymaster.NmtWorkspaceFlat.decouple_cell`
+    - :meth:`NmtWorkspaceFlat.compute_coupling_matrix`
+    - :meth:`deprojection_bias_flat`
+    - :meth:`compute_coupled_cell_flat`
+    - :meth:`NmtWorkspaceFlat.decouple_cell`
 
-    :param NmtFieldFlat f1,f2: fields to correlate
-    :param NmtBinFlat b: binning scheme defining output bandpower
-    :param cl_noise: noise bias (i.e. angular power spectrum of masked noise \
-        realizations) (optional).  This power spectrum should correspond to \
-        the bandpowers defined by b.
-    :param cl_guess: set of power spectra corresponding to a best-guess of \
-        the true power spectra of f1 and f2. Needed only to compute the \
-        contaminant cleaning bias (optional).
-    :param ells_guess: multipoles at which cl_guess is defined.
-    :param NmtWorkspaceFlat workspace: object containing the mode-coupling \
-        matrix associated with an incomplete sky coverage. If provided, the \
-        function will skip the computation of the mode-coupling matrix and \
-        use the information encoded in this object.
-    :param int nell_rebin: number of sub-intervals into which the base \
-        k-intervals will be sub-sampled to compute the coupling matrix
-    :param float(2) ell_cut_x: remove all modes with ell_x in the interval \
-        [ell_cut_x[0],ell_cut_x[1]] from the calculation.
-    :param float(2) ell_cut_y: remove all modes with ell_y in the interval \
-        [ell_cut_y[0],ell_cut_y[1]] from the calculation.
-    :return: set of decoupled bandpowers
+    Args:
+        f1 (:class:`~pymaster.field.NmtFieldFlat`): first field to
+            correlate.
+        f2 (:class:`~pymaster.field.NmtFieldFlat`): second field to
+            correlate.
+        b (:class:`~pymaster.bins.NmtBinFlat`): binning scheme defining
+            the output bandpowers.
+        cl_noise (`array`): noise bias (i.e. angular
+            pseudo-:math:`C_\\ell` of masked noise realisations).
+        cl_guess (`array`): array of power spectra corresponding to a
+            best-guess of the true power spectra of ``f1`` and ``f2``.
+        ells (`array`): list of multipoles on which the guess power
+            spectra are defined.
+        workspace (:class:`~pymaster.workspaces.NmtWorkspaceFlat`):
+            object containing the mode-coupling matrix associated with
+            an incomplete sky coverage. If provided, the function will
+            skip the computation of the mode-coupling matrix and use
+            the information encoded in this object.
+        ell_cut_x (`array`): sequence of two elements determining the
+            range of :math:`l_x` to remove from the calculation. No
+            Fourier modes removed by default.
+        ell_cut_y (`array`): sequence of two elements determining the
+            range of :math:`l_y` to remove from the calculation. No
+            Fourier modes removed by default.
+            cl_noise (`array`): noise bias (i.e. angular
+            pseudo-:math:`C_\\ell` of masked noise realisations).
+
+    Returns:
+        (`array`): set of decoupled bandpowers.
     """
     if (f1.nx != f2.nx) or (f1.ny != f2.ny):
         raise ValueError("Fields must have same resolution")
@@ -862,13 +905,13 @@ def compute_full_master_flat(
     else:
         cln = np.zeros([f1.fl.nmaps * f2.fl.nmaps, b.bin.n_bands])
     if cl_guess is not None:
-        if ells_guess is None:
+        if ells is None:
             raise ValueError("Must provide ell-values for cl_guess")
         if (len(cl_guess) != f1.fl.nmaps * f2.fl.nmaps) or (
-            len(cl_guess[0]) != len(ells_guess)
+            len(cl_guess[0]) != len(ells)
         ):
             raise ValueError("Wrong length for guess power spectrum")
-        lf = ells_guess.copy()
+        lf = ells.copy()
         clg = cl_guess.copy()
     else:
         lf = b.get_effective_ells()
