@@ -40,6 +40,27 @@ except ModuleNotFoundError:
 
 
 class NmtParams(object):
+    """ Class that holds the values of several variables controlling the
+    default behaviour of different NaMaster methods. Currently these are:
+
+    - ``sht_calculator``: the software package to use to calculate \
+      spherical harmonic transforms. Defaults to \
+      `ducc <https://gitlab.mpcdf.mpg.de/mtr/ducc>`_, with the other \
+      choice being `healpy <https://healpy.readthedocs.io/en/latest/>`_.
+    - ``n_iter_default``: number of iterations to use when computing \
+      `map2alm` spherical harmonic transforms of most maps. Defaults to 3.
+    - ``n_iter_mask_default``: number of iterations to use when computing \
+      `map2alm` spherical harmonic transforms of masks. Defaults to 3.
+    - ``tol_pinv_default``: relative eigenvalue threshold to use when \
+      computing matrix pseudo-inverses.
+
+    All variables can be changed using the ``set_`` methods below, and
+    their current values can be checked with :meth:`get_default_params`.
+    Note that, except for ``sht_calculator``, all of these variables can
+    be tweaked when calling different various NaMaster functions. The
+    values stored in this object only hold the values they default to if
+    they are not set in those function calls.
+    """
     def __init__(self):
         self.sht_calculator = 'ducc' if HAVE_DUCC else 'healpy'
         self.n_iter_default = 3
@@ -51,6 +72,12 @@ nmt_params = NmtParams()
 
 
 def set_sht_calculator(calc_name):
+    """ Select default spherical harmonic transform calculator.
+
+    Args:
+        calc_name (:obj:`str`): calculator name. Allowed options
+            are ``'ducc'`` or ``'healpy'``.
+    """
     if calc_name not in ['ducc', 'healpy']:
         raise KeyError("SHT calculator must be 'ducc' or 'healpy'")
     if (calc_name == 'ducc') and (not HAVE_DUCC):
@@ -60,6 +87,16 @@ def set_sht_calculator(calc_name):
 
 
 def set_n_iter_default(n_iter, mask=False):
+    """ Select the number of iterations to use when computing
+    `map2alm` spherical harmonic transforms.
+
+    Args:
+        n_iter (:obj:`int`): number of iterations.
+        mask (:obj:`bool`): if ``True``, ``n_iter`` will be the
+            number of iterations used when computing mask transforms.
+            Otherwise, it will be the number used for all other
+            transforms.
+    """
     if n_iter < 0:
         raise ValueError('n_iter must be positive.')
     if mask:
@@ -68,13 +105,23 @@ def set_n_iter_default(n_iter, mask=False):
         nmt_params.n_iter_default = int(n_iter)
 
 
-def set_tol_pinv_default(tol_pinv, mask=False):
+def set_tol_pinv_default(tol_pinv):
+    """ Select the relative eigenvalue threshold to use when
+    computing matrix pseudo-inverses. Check the docstring of
+    :meth:`moore_penrose_pinvh`.
+
+    Args:
+        tol_pinv (:obj:`float`): relative eigenvalue threshold.
+    """
     if (tol_pinv > 1) or (tol_pinv < 0):
         raise ValueError('tol_pinv must be between 0 and 1.')
     nmt_params.tol_pinv_default = tol_pinv
 
 
 def get_default_params():
+    """ Returns a dictionary with the current values of all
+    default parameters.
+    """
     return {k: getattr(nmt_params, k)
             for k in ['sht_calculator',
                       'n_iter_default',
@@ -199,15 +246,18 @@ class _SHTInfo(object):
 class NmtMapInfo(object):
     """
     This object contains information about the pixelization of
-    a curved-sky map.
+    a curved-sky map. :obj:`NmtMapInfo` objects can be compared
+    with one another using ``==`` and ``!=`` to check for fields
+    with compatible pixelizations.
 
-    :param wcs: a WCS object (see \
-        http://docs.astropy.org/en/stable/wcs/index.html).
-        If `None`, HEALPix pixelization is assumed, and `axes`
-        should be a 1-element sequence with the number of pixels
-        of the map.
-    :param axes: shape of the maps (2D for CAR maps, 1D for
-        HEALPix).
+    Args:
+        wcs (:obj:`wcs`): a WCS object (see the `astropy
+            <http://docs.astropy.org/en/stable/wcs/index.html>`_
+            documentation). If `None`, HEALPix pixelization is
+            assumed, and ``axes`` should be a 1-element
+            sequence with the number of pixels of the map.
+        axes (`array`): shape of the maps (2D for CAR maps,
+            1D for HEALPix).
     """
     def __init__(self, wcs, axes):
         if wcs is None:
@@ -337,6 +387,20 @@ class NmtMapInfo(object):
         return True
 
     def reform_map(self, maps):
+        """ Modifies a map to make it compatible with the
+        standards used by NaMaster for map manipulation (e.g.
+        spherical harmonic transforms. This includes
+        flattening 2D maps, and flipping their coordinate
+        axes if required by their associated WCS. HEALPix
+        maps are unmodified.
+
+        Args:
+            maps (`array`): 2D (for HEALPix) or 3D (for CAR)
+                array containing a set of maps.
+
+        Returns:
+            (`array`: reformed map.
+        """
         if not self._map_compatible(maps):
             raise ValueError("Incompatible map!")
         if self.is_healpix:
@@ -358,6 +422,13 @@ class NmtMapInfo(object):
             return mp.shape[-2:] == (self.ny, self.nx)
 
     def get_lmax(self):
+        """ Returns the default maximum multipole :math:`\\ell_{\\rm max}``
+        associated with this pixelization scheme. This will be
+        :math:`3 N_{\\rm side}` for HEALPix and
+        :math:`\\pi/{\\rm min}(\\Delta\\theta,\\Delta\\varphi)` for
+        CAR maps (with :math:`\\Delta\\theta` and :math:`\\Delta\\varphi`
+        the constant intervals of colatitude and azimuth in radians).
+        """
         if self.is_healpix:
             return 3*self.nside-1
         else:
@@ -366,6 +437,13 @@ class NmtMapInfo(object):
 
 
 class NmtAlmInfo(object):
+    """ Object containing information useful to manipulate sets of
+    spherical harmonic coefficients :math:`a_{\\ell m}`.
+
+    Args:
+        lmax (:obj:`int`): maximum multipole :math:`\\ell_{\\rm max}`
+            to which the :math:`a_{\\ell m}` s are calculated.
+    """
     def __init__(self, lmax):
         self.lmax = lmax
         self.mmax = self.lmax
@@ -385,17 +463,55 @@ class NmtAlmInfo(object):
 
 def mask_apodization(mask_in, aposize, apotype="C1"):
     """
-    Apodizes a mask with an given apodization scale using different methods. \
-    A given pixel is determined to be "masked" if its value is 0.
+    Apodizes a mask with an given apodization scale using different methods.
+    A given pixel is determined to be "masked" if its value is 0. This
+    method only works for HEALPix maps. Three apodization methods are
+    currently implemented:
 
-    :param mask_in: input mask, provided as an array of floats \
-        corresponding to a HEALPix map in RING order.
-    :param aposize: apodization scale in degrees.
-    :param apotype: apodization type. Three methods implemented: \
-        "C1", "C2" and "Smooth". See the description of the C-function \
-        nmt_apodize_mask in the C API documentation for a full description \
-        of these methods.
-    :return: apodized mask as a HEALPix map
+    - "C1" apodization: all pixels are multiplied by a factor :math:`f` \
+      given by
+
+      .. math::
+        f=\\left\\{
+        \\begin{array}{cc}
+            x-\\sin(2\\pi x)/(2\\pi) & x<1\\\\
+            1 & {\\rm otherwise}
+        \\end{array}
+        \\right..
+
+      where :math:`x=\\sqrt{(1-\\cos\\theta)/(1-\\cos\\theta_*)}, with
+      :math:``\\theta_*` the apodization scale, and :math:`\\theta` the
+      separation between a pixel and its nearest masked pixel (i.e. where
+      the mask takes a zero value).
+    - "C2" apodization: similar to "C1", but wusing the apodization
+      function:
+
+      .. math::
+        f=\\left\\{
+        \\begin{array}{cc}
+            \\frac{1}{2}\\left[1-\\cos(\\pi x)\\right] & x<1\\\\
+            1 & {\\rm otherwise}
+        \\end{array}
+        \\right..
+
+    - "Smooth" apodization: this is carried out in three steps:
+
+      1. All pixels within a disk or radius :math:`2.5\\theta_*` of a
+         masked pixel are masked.
+      2. The resulting map is smoothed with a Gaussian window function
+         with standard deviation :math:`\\theta_*`.
+      3. The resulting map is multiplied by the original mask to ensure
+         that all pixels that were previously masked are still masked.
+
+    Args:
+        mask_in (`array`): input mask, provided as an array of floats
+            corresponding to a HEALPix map in RING order.
+        aposize (:obj:`float`): apodization scale in degrees.
+        apotype (:obj:`str`): apodization type. Three methods implemented:
+        ``"C1"``, ``"C2"``, and ``"Smooth"``.
+
+    Returns:
+        (`array`): apodized mask.
     """
     if apotype not in ['C1', 'C2', 'Smooth']:
         raise ValueError(f"Apodization type {apotype} unknown. "
