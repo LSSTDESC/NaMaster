@@ -5,3 +5,9 @@ This sample script showcases the use of the NmtWorkspace class to speed up the c
 
 .. literalinclude:: ../../test/sample_workspaces.py
    :language: python
+
+After running this script, you should see the following result:
+
+.. image:: ../figs/cls_workspaces.png
+   :width: 700
+   :alt: Average power spectrum

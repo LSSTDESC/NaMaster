@@ -8,3 +8,9 @@ This sample script showcases the computation of power spectra using the pure-E a
 
 .. literalinclude:: ../../test/sample_pureB.py
    :language: python
+
+After running this script, you should see the following result:
+
+.. image:: ../figs/sigma_cl.png
+   :width: 700
+   :alt: Average power spectrum

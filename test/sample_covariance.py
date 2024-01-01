@@ -14,7 +14,7 @@ nside = 256
 # We start by creating some synthetic masks and maps with contaminants.
 # Here we will focus on the auto-correlation of a spin-1 field.
 # a) Read and apodize mask
-mask = nmt.mask_apodization(hp.read_map("mask.fits", verbose=False),
+mask = nmt.mask_apodization(hp.read_map("mask.fits"),
                             1., apotype="Smooth")
 
 # Let's now create a fictitious theoretical power spectrum to generate
@@ -32,8 +32,7 @@ cl_eb = 0*clarr
 # This routine generates a spin-0 and a spin-2 Gaussian random field based
 # on these power spectra
 def get_sample_field():
-    mp_t, mp_q, mp_u = hp.synfast([cl_tt, cl_ee, cl_bb, cl_te],
-                                  nside, verbose=False)
+    mp_t, mp_q, mp_u = hp.synfast([cl_tt, cl_ee, cl_bb, cl_te], nside)
     return nmt.NmtField(mask, [mp_t]), nmt.NmtField(mask, [mp_q, mp_u])
 
 
@@ -173,11 +172,22 @@ mean_sample /= nsamp
 covar_sample = covar_sample / nsamp
 covar_sample -= mean_sample[None, :] * mean_sample[:, None]
 
-# Let's plot them:
+# Let's plot the error bars (first and second diagonals)
+l_eff = b.get_effective_ells()
+l_mid = 0.5*(l_eff[1:]+l_eff[:-1])
 plt.figure()
-plt.imshow(covar_TT_TT, origin='lower', interpolation='nearest')
-plt.figure()
-plt.imshow(covar_sample, origin='lower', interpolation='nearest')
-plt.figure()
-plt.imshow(covar_TT_TT-covar_sample, origin='lower', interpolation='nearest')
+plt.plot(l_eff, np.sqrt(np.diag(covar_TT_TT)),
+         'r-', label='Analytical, 1st-diag.')
+plt.plot(l_mid, np.sqrt(np.fabs(np.diag(covar_TT_TT, k=1))),
+         'r--', label='Analytical, 2nd-diag.')
+plt.plot(l_eff, np.sqrt(np.diag(covar_sample)),
+         'g-', label='Simulated, 1st-diag.')
+plt.plot(l_mid, np.sqrt(np.fabs(np.diag(covar_sample, k=1))),
+         'g--', label='Simulated, 2nd-diag.')
+plt.xlabel(r'$\ell$', fontsize=16)
+plt.ylabel(r'$\sigma(C_\ell)$', fontsize=16)
+plt.yscale('log')
+plt.xscale('log')
+plt.legend(fontsize=12, frameon=False)
+plt.savefig('sigma_cl_comp.png', bbox_inches='tight')
 plt.show()

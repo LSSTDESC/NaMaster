@@ -11,10 +11,10 @@ import pymaster as nmt
 # binning scheme
 nside = 256
 ls = np.arange(3*nside)
-mask = nmt.mask_apodization(hp.read_map("mask.fits", verbose=False),
+mask = nmt.mask_apodization(hp.read_map("mask.fits"),
                             1., apotype="Smooth")
 cl_theory = (ls+50.)**(-1.5)
-mp_t = hp.synfast(cl_theory, nside, verbose=False)
+mp_t = hp.synfast(cl_theory, nside)
 f0 = nmt.NmtField(mask, [mp_t])
 b = nmt.NmtBin.from_nside_linear(nside, 20)
 leff = b.get_effective_ells()

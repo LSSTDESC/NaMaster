@@ -13,14 +13,14 @@ import pymaster as nmt
 nside = 256
 
 # Read mask and apodize it on a scale of ~1deg
-mask = nmt.mask_apodization(hp.read_map("mask.fits", verbose=False),
+mask = nmt.mask_apodization(hp.read_map("mask.fits"),
                             1., apotype="Smooth")
 hp.mollview(mask, coord=['G', 'C'], title='Apodized mask')
 plt.show()
 
 # Read healpix maps and initialize a spin-0 and spin-2 field
-f_0 = nmt.NmtField(mask, [hp.read_map("maps.fits", field=0, verbose=False)])
-f_2 = nmt.NmtField(mask, hp.read_map("maps.fits", field=[1, 2], verbose=False))
+f_0 = nmt.NmtField(mask, [hp.read_map("maps.fits", field=0)])
+f_2 = nmt.NmtField(mask, hp.read_map("maps.fits", field=[1, 2]))
 
 # Initialize binning scheme with 4 ells per bandpower
 b = nmt.NmtBin.from_nside_linear(nside, 4)
