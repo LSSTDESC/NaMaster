@@ -836,7 +836,7 @@ def compute_full_master(f1, f2, b=None, cl_noise=None, cl_guess=None,
 
 
 def compute_full_master_flat(f1, f2, b, cl_noise=None, cl_guess=None,
-                             ells=None, workspace=None,
+                             ells_guess=None, workspace=None,
                              ell_cut_x=[1., -1.], ell_cut_y=[1., -1.]):
     """
     Computes the full MASTER estimate of the power spectrum of two
@@ -859,7 +859,7 @@ def compute_full_master_flat(f1, f2, b, cl_noise=None, cl_guess=None,
             pseudo-:math:`C_\\ell` of masked noise realisations).
         cl_guess (`array`): Array of power spectra corresponding to a
             best-guess of the true power spectra of ``f1`` and ``f2``.
-        ells (`array`): List of multipoles on which the guess power
+        ells_guess (`array`): List of multipoles on which the guess power
             spectra are defined.
         workspace (:class:`~pymaster.workspaces.NmtWorkspaceFlat`):
             Object containing the mode-coupling matrix associated with
@@ -887,13 +887,13 @@ def compute_full_master_flat(f1, f2, b, cl_noise=None, cl_guess=None,
     else:
         cln = np.zeros([f1.fl.nmaps * f2.fl.nmaps, b.bin.n_bands])
     if cl_guess is not None:
-        if ells is None:
+        if ells_guess is None:
             raise ValueError("Must provide ell-values for cl_guess")
         if (len(cl_guess) != f1.fl.nmaps * f2.fl.nmaps) or (
-            len(cl_guess[0]) != len(ells)
+            len(cl_guess[0]) != len(ells_guess)
         ):
             raise ValueError("Wrong length for guess power spectrum")
-        lf = ells.copy()
+        lf = ells_guess.copy()
         clg = cl_guess.copy()
     else:
         lf = b.get_effective_ells()
