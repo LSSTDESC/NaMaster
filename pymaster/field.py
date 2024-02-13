@@ -123,6 +123,7 @@ class NmtField(object):
         # The mask alms are only stored if computed for non-lite maps
         self.alm_mask = None
         self.n_temp = 0
+        self.Nw = 0
 
         # 1. Store mask and beam
         # This ensures the mask will have the right type

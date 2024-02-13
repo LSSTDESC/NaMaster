@@ -745,7 +745,8 @@ nmt_workspace *nmt_compute_coupling_matrix(int spin1,int spin2,
 					   flouble *pcl_masks,
 					   flouble *beam1,flouble *beam2,
 					   nmt_binning_scheme *bin,int is_teb,
-                                           int l_toeplitz,int l_exact,int dl_band);
+                                           int l_toeplitz,int l_exact,int dl_band,
+					   double Nw);
 
 /**
  * @brief Updates the mode coupling matrix with a new one.Saves nmt_workspace structure to file

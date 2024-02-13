@@ -431,7 +431,8 @@ nmt_workspace *comp_coupling_matrix(int spin1,int spin2,
 				    int nell4,double *f_ell,
 				    nmt_binning_scheme *bin,
 				    int is_teb,int l_toeplitz,
-				    int l_exact,int dl_band)
+				    int l_exact,int dl_band,
+				    double Nw)
 {
   asserting(nlb1==lmax+1);
   asserting(nlb2==lmax+1);
@@ -439,7 +440,8 @@ nmt_workspace *comp_coupling_matrix(int spin1,int spin2,
   return nmt_compute_coupling_matrix(spin1,spin2,lmax,lmax_mask,
 				     pure_e_1,pure_b_1,pure_e_2,pure_b_2,
 				     f_ell,beam1,beam2,
-				     bin,is_teb,l_toeplitz,l_exact,dl_band);
+				     bin,is_teb,l_toeplitz,l_exact,dl_band,
+				     Nw);
 }
 
 nmt_workspace_flat *comp_coupling_matrix_flat(nmt_field_flat *fl1,nmt_field_flat *fl2,

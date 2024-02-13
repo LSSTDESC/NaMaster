@@ -3407,7 +3407,8 @@ nmt_workspace *comp_coupling_matrix(int spin1,int spin2,
 				    int nell4,double *f_ell,
 				    nmt_binning_scheme *bin,
 				    int is_teb,int l_toeplitz,
-				    int l_exact,int dl_band)
+				    int l_exact,int dl_band,
+				    double Nw)
 {
   asserting(nlb1==lmax+1);
   asserting(nlb2==lmax+1);
@@ -3415,7 +3416,8 @@ nmt_workspace *comp_coupling_matrix(int spin1,int spin2,
   return nmt_compute_coupling_matrix(spin1,spin2,lmax,lmax_mask,
 				     pure_e_1,pure_b_1,pure_e_2,pure_b_2,
 				     f_ell,beam1,beam2,
-				     bin,is_teb,l_toeplitz,l_exact,dl_band);
+				     bin,is_teb,l_toeplitz,l_exact,dl_band,
+				     Nw);
 }
 
 nmt_workspace_flat *comp_coupling_matrix_flat(nmt_field_flat *fl1,nmt_field_flat *fl2,
@@ -11330,6 +11332,7 @@ SWIGINTERN PyObject *_wrap_compute_coupling_matrix(PyObject *SWIGUNUSEDPARM(self
   int arg14 ;
   int arg15 ;
   int arg16 ;
+  double arg17 ;
   int val1 ;
   int ecode1 = 0 ;
   int val2 ;
@@ -11362,10 +11365,12 @@ SWIGINTERN PyObject *_wrap_compute_coupling_matrix(PyObject *SWIGUNUSEDPARM(self
   int ecode15 = 0 ;
   int val16 ;
   int ecode16 = 0 ;
-  PyObject *swig_obj[16] ;
+  double val17 ;
+  int ecode17 = 0 ;
+  PyObject *swig_obj[17] ;
   nmt_workspace *result = 0 ;
   
-  if (!SWIG_Python_UnpackTuple(args, "compute_coupling_matrix", 16, 16, swig_obj)) SWIG_fail;
+  if (!SWIG_Python_UnpackTuple(args, "compute_coupling_matrix", 17, 17, swig_obj)) SWIG_fail;
   ecode1 = SWIG_AsVal_int(swig_obj[0], &val1);
   if (!SWIG_IsOK(ecode1)) {
     SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "compute_coupling_matrix" "', argument " "1"" of type '" "int""'");
@@ -11446,7 +11451,12 @@ SWIGINTERN PyObject *_wrap_compute_coupling_matrix(PyObject *SWIGUNUSEDPARM(self
     SWIG_exception_fail(SWIG_ArgError(ecode16), "in method '" "compute_coupling_matrix" "', argument " "16"" of type '" "int""'");
   } 
   arg16 = (int)(val16);
-  result = (nmt_workspace *)nmt_compute_coupling_matrix(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13,arg14,arg15,arg16);
+  ecode17 = SWIG_AsVal_double(swig_obj[16], &val17);
+  if (!SWIG_IsOK(ecode17)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode17), "in method '" "compute_coupling_matrix" "', argument " "17"" of type '" "double""'");
+  } 
+  arg17 = (double)(val17);
+  result = (nmt_workspace *)nmt_compute_coupling_matrix(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13,arg14,arg15,arg16,arg17);
   resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_nmt_workspace, 0 |  0 );
   return resultobj;
 fail:
@@ -15819,6 +15829,7 @@ SWIGINTERN PyObject *_wrap_comp_coupling_matrix(PyObject *SWIGUNUSEDPARM(self), 
   int arg17 ;
   int arg18 ;
   int arg19 ;
+  double arg20 ;
   int val1 ;
   int ecode1 = 0 ;
   int val2 ;
@@ -15851,10 +15862,12 @@ SWIGINTERN PyObject *_wrap_comp_coupling_matrix(PyObject *SWIGUNUSEDPARM(self), 
   int ecode18 = 0 ;
   int val19 ;
   int ecode19 = 0 ;
-  PyObject *swig_obj[16] ;
+  double val20 ;
+  int ecode20 = 0 ;
+  PyObject *swig_obj[17] ;
   nmt_workspace *result = 0 ;
   
-  if (!SWIG_Python_UnpackTuple(args, "comp_coupling_matrix", 16, 16, swig_obj)) SWIG_fail;
+  if (!SWIG_Python_UnpackTuple(args, "comp_coupling_matrix", 17, 17, swig_obj)) SWIG_fail;
   ecode1 = SWIG_AsVal_int(swig_obj[0], &val1);
   if (!SWIG_IsOK(ecode1)) {
     SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "comp_coupling_matrix" "', argument " "1"" of type '" "int""'");
@@ -15956,9 +15969,14 @@ SWIGINTERN PyObject *_wrap_comp_coupling_matrix(PyObject *SWIGUNUSEDPARM(self), 
     SWIG_exception_fail(SWIG_ArgError(ecode19), "in method '" "comp_coupling_matrix" "', argument " "19"" of type '" "int""'");
   } 
   arg19 = (int)(val19);
+  ecode20 = SWIG_AsVal_double(swig_obj[16], &val20);
+  if (!SWIG_IsOK(ecode20)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode20), "in method '" "comp_coupling_matrix" "', argument " "20"" of type '" "double""'");
+  } 
+  arg20 = (double)(val20);
   {
     try {
-      result = (nmt_workspace *)comp_coupling_matrix(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13,arg14,arg15,arg16,arg17,arg18,arg19);
+      result = (nmt_workspace *)comp_coupling_matrix(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13,arg14,arg15,arg16,arg17,arg18,arg19,arg20);
     }
     finally {
       SWIG_exception(SWIG_RuntimeError,nmt_error_message);

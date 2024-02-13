@@ -127,8 +127,10 @@ class NmtWorkspace(object):
 
         # Get mask PCL
         alm1 = fl1.get_mask_alms()
+        Nw = 0
         if fl2 is fl1:
             alm2 = alm1
+            Nw = fl1.Nw
         else:
             alm2 = fl2.get_mask_alms()
         pcl_mask = hp.alm2cl(alm1, alm2, lmax=fl1.ainfo_mask.lmax)
@@ -136,8 +138,8 @@ class NmtWorkspace(object):
             int(fl1.spin), int(fl2.spin),
             int(fl1.ainfo.lmax), int(fl1.ainfo_mask.lmax),
             int(fl1.pure_e), int(fl1.pure_b), int(fl2.pure_e), int(fl2.pure_b),
-            fl1.beam, fl2.beam, pcl_mask,
-            bins.bin, int(is_teb), l_toeplitz, l_exact, dl_band)
+            fl1.beam, fl2.beam, pcl_mask-Nw,
+            bins.bin, int(is_teb), l_toeplitz, l_exact, dl_band, Nw)
         self.has_unbinned = True
 
     def write_to(self, fname):
