@@ -29,9 +29,6 @@ AS_IF(
     [test "x$enable_fftw_pthreads" = "xyes"], [AC_SUBST([fftw_thread_type], "-lfftw3_threads -lpthread")],
     [test "x$enable_fftw_pthreads" != "xyes"], [AC_SUBST([fftw_thread_type], "-lfftw3_omp")])
 
-# Set libsharp libraries needed
-AC_SUBST([libsharp_libs], "-lsharp2")
-
 # Checks for libraries.
 AC_SEARCH_LIBS([pow],[m],[],AC_MSG_ERROR(Couldn't find libm. Required.))
 AC_SEARCH_LIBS([cblas_dgemm],[gslcblas],[],AC_MSG_ERROR(Couldn't find libgslcblas.))
@@ -39,7 +36,6 @@ AC_SEARCH_LIBS([gsl_spline2d_eval_e],[gsl],[],AC_MSG_ERROR(Couldn't find libgsl.
 AC_SEARCH_LIBS([ffopen],[cfitsio],[],AC_MSG_ERROR(Couldn't find cfitsio))
 AC_SEARCH_LIBS([ring2nest],[chealpix],[],AC_MSG_ERROR(Couldn't find libchealpix))
 AC_SEARCH_LIBS([fftw_execute],[fftw3],[],AC_MSG_ERROR(Couldn't find libfftw3))
-AC_SEARCH_LIBS([sharp_execute],[sharp2],[],AC_MSG_ERROR(Couldn't find libsharp2))
 
 # Checks for header files.
 AC_CHECK_HEADERS([stdlib.h string.h math.h stdarg.h unistd.h time.h omp.h complex.h])

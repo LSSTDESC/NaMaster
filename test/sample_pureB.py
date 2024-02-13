@@ -33,7 +33,7 @@ l, cltt, clee, clbb, clte = np.loadtxt('cls.txt', unpack=True)
 
 def get_fields():
     mp_t, mp_q, mp_u = hp.synfast([cltt, clee, clbb, clte],
-                                  nside=nside, new=True, verbose=False)
+                                  nside=nside, new=True)
     # This creates a spin-2 field without purifying either E or B
     f2_np = nmt.NmtField(msk_apo, [mp_q, mp_u])
     # This creates a spin-2 field with both pure E and B.
@@ -85,4 +85,5 @@ plt.xlabel('$\\ell$', fontsize=18)
 plt.ylabel('$\\sigma(C_\\ell)$', fontsize=18)
 plt.legend(loc='upper right', frameon=False)
 plt.loglog()
+plt.savefig("sigma_cl.png", bbox_inches='tight')
 plt.show()

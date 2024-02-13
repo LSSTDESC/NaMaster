@@ -10,12 +10,12 @@ nside = 256
 
 # # # #  Read input maps
 # a) Read and apodize mask
-mask = nmt.mask_apodization(hp.read_map("mask.fits", verbose=False),
+mask = nmt.mask_apodization(hp.read_map("mask.fits"),
                             1., apotype="C1")
 # b) Read maps
-mp_t, mp_q, mp_u = hp.read_map("maps.fits", field=[0, 1, 2], verbose=False)
+mp_t, mp_q, mp_u = hp.read_map("maps.fits", field=[0, 1, 2])
 # c) Read contaminants maps
-tm_t, tm_q, tm_u = hp.read_map("temp.fits", field=[0, 1, 2], verbose=False)
+tm_t, tm_q, tm_u = hp.read_map("temp.fits", field=[0, 1, 2])
 
 # Create fields
 # Create spin-0 field with no contaminants

@@ -1,0 +1,8 @@
+[flake8]
+exclude =
+    pymaster/nmtlib.py
+    test/
+    setup.py
+    sandbox_validation/
+    doc/
+    build/

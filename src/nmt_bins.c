@@ -127,34 +127,6 @@ nmt_binning_scheme *nmt_bins_create(int nell,int *bpws,int *ells,flouble *weight
   return bins;
 }
 
-nmt_binning_scheme *nmt_bins_read(char *fname,int lmax)
-{
-  nmt_binning_scheme *bins;
-  int *band_number,*larr;
-  flouble *warr;
-
-  FILE *fi=my_fopen(fname,"r");
-  int ii,nlines=my_linecount(fi); rewind(fi);
-  band_number=my_malloc(nlines*sizeof(int));
-  larr=my_malloc(nlines*sizeof(int));
-  warr=my_malloc(nlines*sizeof(flouble));
-  
-  for(ii=0;ii<nlines;ii++) {
-    int stat=fscanf(fi,"%d %d %lf",&(band_number[ii]),&(larr[ii]),&(warr[ii]));
-    if(stat!=3)
-      report_error(NMT_ERROR_READ,"Error reading %s, line %d\n",fname,ii+1);
-  }
-  fclose(fi);
-
-  bins=nmt_bins_create(nlines,band_number,larr,warr,NULL,lmax);
-
-  free(larr);
-  free(band_number);
-  free(warr);
-
-  return bins;
-}
-
 void nmt_bin_cls(nmt_binning_scheme *bin,flouble **cls_in,flouble **cls_out,int ncls)
 {
   int icl;

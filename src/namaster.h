@@ -203,19 +203,6 @@ nmt_binning_scheme *nmt_bins_create(int nell,int *bpws,int *ells,flouble *weight
 				    flouble *f_ell,int lmax);
 
 /**
- * @brief nmt_binning_scheme constructor from file
- *
- * Builds a nmt_binning_scheme structure from an ASCII file.
- * @param fname Path to file containing information to build bandpowers.
- *        The file should contain three columns, corresponding to:
- *        bandpower index, multipole and weight (in this order).
- *        See definition of nmt_bins_create().
- * @param lmax Maximum multipole to be considered.
- * @return Allocated binning structure.
- */
-nmt_binning_scheme *nmt_bins_read(char *fname,int lmax);
-
-/**
  * @brief nmt_binning_scheme destructor
  */
 void nmt_bins_free(nmt_binning_scheme *bin);
@@ -453,232 +440,6 @@ flouble **nmt_synfast_flat(int nx,int ny,flouble lx,flouble ly,int nfields,int *
  */
 void nmt_purify_flat(nmt_field_flat *fl,flouble *mask,fcomplex **walm0,
 		     flouble **maps_in,flouble **maps_out,fcomplex **alms);
-
-/**
- * @brief Curved-sky information.
- *
- * This structure contains all the information defining a given full-sky patch.
- * It describes either a HEALPix grid (in which case is_healpix!=0) or a CAR
- * patch (for is_healpix==0). If the latter, then the CAR pixelization must
- * conform to the Clenshaw-Curtis sampling. In this case the colatitude theta
- * must be sampled at N points going from 0 to pi (including both), separated
- * by an interval Dtheta = pi/(N-1). Not all iso-latitude rings must be stored
- * in the patch (i.e. ny!=N necessarily). See the documentation for 
- * nmt_curvedsky_info_alloc for further information on the constraints that
- * some of the members of this structure must fulfill.
- */
-typedef struct {
-  int is_healpix; //!< is this HEALPix pixelization?
-  long n_eq; //!< equivalent of nside, number of pixels in the equatorial ring
-  int lmax_sht; //!< Maximum multipole to compute spherical harmonic transform
-  int nx_short; //!< Number of grid points in the x dimension before completing the circle
-  int nx; //!< Number of grid points in the phi dimension
-  int ny; //!< Number of grid points in the theta dimension
-  long npix; //!< Total number of pixels (given by \p nx * \p ny
-  flouble Delta_theta; //!< pixel size in theta direction
-  flouble Delta_phi; //!< pixel size in phi direction
-  flouble phi0; // longitude of first pixel
-  flouble theta0; // colatitude of last ring
-} nmt_curvedsky_info;
-
-/**
- * @brief Makes a copy of a nmt_curvedsky_info structure
- *
- * @param cs_in input structure to be copied.
- * @return copy of input nmt_curvedsky_info structure.
- */
-nmt_curvedsky_info *nmt_curvedsky_info_copy(nmt_curvedsky_info *cs_in);
-
-/**
- * @brief nmt_curvedsky_info creator
- *
- * If generating a Clenshaw-Curtis grid, then Dtheta and Dphi must be (close to)
- * exact divisor of pi and 2pi respectively. Likewise, theta0 must be an integer
- * multiple of Dtheta, and the number of pixels in the theta direction must be
- * such that the map actually fits on the sphere (i.e. theta0-(ny-1)*Dtheta >=0).
- * @param is_healpix is this HEALPix pixelization.
- * @param nside if is_healpix, this should be the HEALPix Nside parameter.
- * @param lmax_sht maximum multipole up to which spherical harmonic transforms will be computed.
- * @param nx0 number of pixels in the phi direction.
- * @param ny0 number of pixels in the theta direction.
- * @param Dtheta pixel size in the theta direction. In radians. Must be positive.
- * @param Dphi pixel size in the phi direction. In radians, must be positive.
- * @param theta0 colatitude of the last ring in the map. In radians.
- * @param phi0 minimum azimuth covered by the map. In radians.
- * @return nmt_curvedsky_info struct.
- */
-nmt_curvedsky_info *nmt_curvedsky_info_alloc(int is_healpix,long nside,
-					     int lmax_sht,
-					     int nx0,int ny0,flouble Dtheta,flouble Dphi,
-					     flouble phi0,flouble theta0);
-
-
-/**
- * @brief Compare two nmt_curvedsky_info structs.
- *
- * @return true (!=0) if both structs are equivalent, and false (0) if they aren't.
- */
-int nmt_diff_curvedsky_info(nmt_curvedsky_info *c1, nmt_curvedsky_info *c2);
-
-/**
- * @brief Extend CAR map to cover the full circle.
- *
- * CAR maps only cover a particular part of the sky, but the SHT routines need as
- * input maps that are complete in the azimuth direction. This routine takes in
- * a raw CAR map with its corresponding nmt_curvedsky_info and returns the 
- * phi-complete map (with zeros in all pixels outside the original map).
- * If the input map is in HEALPix, this routine just returns a copy of it.
- * @param cs curved sky geometry info.
- * @param map_in input incomplete map.
- * @return phi-complete map.
- */
-flouble *nmt_extend_CAR_map(nmt_curvedsky_info *cs,flouble *map_in);
-
-/**
- * @brief Full-sky field
- *
- * This structure contains all the information defining a spin-s full-sky field.
- * This includes field values, masking, purification and contamination.
- */
-typedef struct {
-  nmt_curvedsky_info *cs; //!< pixelization parameters
-  long npix; //!< Number of pixels in all maps
-  long nalms; //!< Number of complex harmonic coefficients
-  int lmax; //!< Maximum multipole used
-  int pure_e; //!< >0 if E-modes have been purified
-  int pure_b; //!< >0 if B-modes have been purified
-  flouble *mask; //!< Field's mask (an array of \p npix values).
-  fcomplex **a_mask; //!< Spherical transform of the mask. Only computed if E or B are purified.
-  int spin; //!< field's spin (>=0).
-  int nmaps; //!< Number of maps in the field (2 for spin-2, 1 for spin-0).
-  flouble **maps; //!< Observed field values. When initialized, these maps are already multiplied by the mask, contaminant-deprojected and purified if requested.
-  fcomplex **alms; //!< Spherical harmonic transfoms of the maps.
-  int ntemp; //!< Number of contaminant templates
-  flouble ***temp; //!< Contaminant template maps (mask-multiplied but NOT purified).
-  fcomplex ***a_temp; //!< Spherical harmonic transfomrs of template maps (mask-multiplied AND purified if requested).
-  gsl_matrix *matrix_M; //!< Inverse contaminant covariance matrix (see scientific documentation or companion paper).
-  flouble *beam; //!< Field's beam (defined on all multipoles up to \p lmax).
-  int lite; //!< lightweight field (no maps, temp, a_temp or a_mask)
-  int mask_only; //!< this field only contains a mask, and beam. No alms, maps or anything else.
-} nmt_field;
-
-/**
- * @brief nmt_field destructor.
- */
-void nmt_field_free(nmt_field *fl);
-
-/**
- * @brief nmt_field constructor
- *
- * Builds an nmt_field structure from input maps and resolution parameters.
- * @param cs curved sky geometry info.
- * @param mask Field's mask.
- * @param spin Field's spin.
- * @param maps Observed field values BEFORE multiplying by the mask
-          (this is irrelevant for binary masks).
- * @param ntemp Number of contaminant templates affecting this field.
- * @param temp Contaminant template maps (again, NOT multiplied by the mask).
- * @param beam Harmonic coefficients of the beam (defined for all multipoles up to
- *        the maximum multipole sampled by the map). Pass a NULL pointer if you don't want any beam.
- * @param pure_e Set to >0 if you want purified E-modes.
- * @param pure_b Set to >0 if you want purified B-modes.
- * @param n_iter_mask_purify E/B purification requires a number of harmonic-space
-          operations on an appropriately apodized mask. This parameter sets the
-          number of iterations requested to compute the spherical harmonic transform
-          of the field's mask. Higher values will produce more accurate results (at
-	  the cost of computational time).
- * @param tol_pinv Contaminant deprojection requires the inversion of the template
-          covariance matrix. This could be ill-defined if some templates are linearly
-	  related. In this case we use a pseudo-inverse that accounts for this
-	  possibility in a consistent way. Effectively this is a singular-value
-	  decomposition. All eigenvalues that are smaller than \p tol_pinv the largest
-	  eigenvalue will be discarded.
- * @param niter number of iterations when computing alms (for all transforms other than the mask's).
- * @param masked_input if not 0, input maps and templates have already been masked.
-          This is not advisable if using purification.
- * @param is_lite if not 0, only the map alms and the mask will be stored. You can then
-          use this field to compute the standard pseudo-C_ell with deprojection and purification,
-          but you won't be able to compute the deprojection bias or examine any maps.
- * @param mask_only if not 0, this field will only store a mask and a beam. You will
-          be able to use it to compute the PCL and covariance mode coupling matrices, but that's
-          it (no actual power spectra, deprojection biases etc.).
- */
-nmt_field *nmt_field_alloc_sph(nmt_curvedsky_info *cs,flouble *mask,int spin,flouble **maps,
-			       int ntemp,flouble ***temp,flouble *beam,
-			       int pure_e,int pure_b,int n_iter_mask_purify,double tol_pinv,
-			       int niter,int masked_input,int is_lite,int mask_only);
-
-/**
- * @brief nmt_field constructor from file.
- *
- * Builds an nmt_field structure from data written in files.
- * @param is_healpix is the map stored in healpix format?
- * @param fname_mask Path to FITS file containing the field's mask (single HEALPix map).
- * @param spin Field's spin.
- * @param fname_maps Path to FITS file containing the field's observed maps
-          (1(2) maps if \p spin=0(!=0)).
- * @param fname_temp Path to FITS file containing the field's contaminant templates.
-          If \p spin > 0, the file should contain an even number
-          of files. Each consecutive pair of maps will be interpreted as the Q and U
-	  components of a given contaminant. Pass "none" if you don't want any contaminants.
- * @param fname_beam Path to ASCII file containing the field's beam. The file should
-          contain two columns: l (multipole) and b_l (beam SHT at that multipole).
-	  Pass "none if you don't want a beam.
- * @param pure_e >0 if you want E-mode purification.
- * @param pure_b >0 if you want B-mode purification.
- * @param n_iter_mask_purify E/B purification requires a number of harmonic-space
-          operations on an appropriately apodized mask. This parameter sets the
-          number of iterations requested to compute the spherical harmonic transform
-          of the field's mask. Higher values will produce more accurate results (at
-	  the cost of computational time).
- * @param tol_pinv Contaminant deprojection requires the inversion of the template
-          covariance matrix. This could be ill-defined if some templates are linearly
-	  related. In this case we use a pseudo-inverse that accounts for this
-	  possibility in a consistent way. Effectively this is a singular-value
-	  decomposition. All eigenvalues that are smaller than \p tol_pinv the largest
-	  eigenvalue will be discarded.
- * @param niter number of iterations when computing alms (other than the mask's).
- */
-nmt_field *nmt_field_read(int is_healpix,char *fname_mask,char *fname_maps,char *fname_temp,
-			  char *fname_beam,int spin,int pure_e,int pure_b,
-			  int n_iter_mask_purify,double tol_pinv,int niter);
-
-/**
- * @brief Gaussian realizations of full-sky fields
- *
- * Generates a Gaussian realization of an arbitrary list of possibly-correlated fields with different spins.
- * @param cs curved sky geometry info.
- * @param lmax Maximum multipole used.
- * @param nfields Number of fields to generate.
- * @param spin_arr Array (size \p nfields) containing the spins of the fields to be generated.
- * @param beam_fields Array of beams (one per field). Must be defined at all ell <= \p lmax.
- * @param cells Array of input power spectra (defined at all ell <= \p lmax). Shape
-          should be [\p n_cls][\p lmax+1], where \p n_cls is the number of power spectra
-	  needed to define all the fields. This should be \p n_cls = n_maps * (n_maps + 1) / 2,
-	  where n_maps is the total number of maps required (1 for each spin-0 field, 2 for
-	  each spin-2 field). Power spectra must be provided only for the upper-triangular part
-	  in row-major order (e.g. if n_maps is 3, there will be 6 power spectra ordered as
-	  [1-1,1-2,1-3,2-2,2-3,3-3].
- * @param seed Seed for this particular realization.
- * @return Gaussian realization.
- */
-flouble **nmt_synfast_sph(nmt_curvedsky_info *cs,int nfields,int *spin_arr,int lmax,
-			  flouble **cells,flouble **beam_fields,int seed);
-
-/**
- * @brief E- or B-mode purifies a given pair of full-sky (Q,U) maps.
- *
- * This function is mostly used internally by NaMaster, and its standalone use is discouraged.
- * @param fl nmt_field containing information about what should be purified.
- * @param mask Sky mask (should be appropriately apodized - see scientific documentation).
- * @param walm0 Spherical harmonic transform of the mask.
- * @param maps_in Maps to be purified (should NOT be mask-multiplied).
- * @param maps_out Output purified maps.
- * @param alms Spherical harmonic transform of the output purified maps.
- * @param niter number of iterations when computing alms.
- */
-void nmt_purify(nmt_field *fl,flouble *mask,fcomplex **walm0,
-		flouble **maps_in,flouble **maps_out,fcomplex **alms,int niter);
 
 /**
  * @brief Apodize full-sky mask.
@@ -937,7 +698,6 @@ typedef struct {
   int lmax_mask; //!< Mask resolution
   int is_teb; //!< Does it hold all MCM elements to compute all of spin0-spin0, 0-2 and 2-2 correlations?
   int ncls; //!< Number of power spectra (1, 2 or 4 depending of the spins of the fields being correlated.
-  nmt_curvedsky_info *cs; //!< curved sky geometry information.
   flouble *beam_prod; //!< Product of field beams.
   flouble *pcl_masks; //!< Pseudo-CL of the masks.
   flouble **coupling_matrix_unbinned; //!< Unbinned mode-coupling matrix
@@ -978,20 +738,13 @@ nmt_master_calculator *nmt_compute_master_coefficients(int lmax, int lmax_mask,
                                                        int l_exact, int dl_band);
 void nmt_master_calculator_free(nmt_master_calculator *c);
 
-/**
- * @brief Computes mode-coupling matrix.
- *
- * Computes MCM for a given pair of full-sky fields.
- * @param fl1 nmt_field structure defining the first field to correlate.
- * @param fl2 nmt_field structure defining the second field to correlate.
- * @param bin nmt_binning_scheme defining the power spectrum bandpowers.
- * @param is_teb if !=0, all mode-coupling matrices (0-0,0-2,2-2) will be computed at the same time.
- * @param niter number of iterations when computing alms.
- * @param lmax_mask maximum multipole to which the masks should be resolved. If smaller than the maximum multipole of fl1/fl2, it will be set to that.
- * @return Newly allocated nmt_workspace structure containing the mode-coupling matrix.
- */
-nmt_workspace *nmt_compute_coupling_matrix(nmt_field *fl1,nmt_field *fl2,nmt_binning_scheme *bin,
-					   int is_teb,int niter,int lmax_mask,
+nmt_workspace *nmt_compute_coupling_matrix(int spin1,int spin2,
+					   int lmax, int lmax_mask,
+					   int pure_e1,int pure_b1,
+					   int pure_e2,int pure_b2,
+					   flouble *pcl_masks,
+					   flouble *beam1,flouble *beam2,
+					   nmt_binning_scheme *bin,int is_teb,
                                            int l_toeplitz,int l_exact,int dl_band);
 
 /**
@@ -1038,39 +791,6 @@ void nmt_workspace_update_beams(nmt_workspace *w,
 void nmt_workspace_free(nmt_workspace *w);
 
 /**
- * @brief Computes deprojection bias.
- *
- * Computes contaminant deprojection bias for a pair of fields.
- * See notes about power spectrum ordering in the main page of this documentation.
- * @param fl1 nmt_field structure defining the first field to correlate.
- * @param fl2 nmt_field structure defining the second field to correlate.
- * @param cl_proposal Proposed power spectrum. Should have shape [ncls][lmax+1], where
-          \p ncls is the appropriate number of power spectra given the spins of the input
-	  fields (e.g. \p ncls = 2*2 = 4 if both fields have spin=2).
- * @param cl_bias Ouptput deprojection bias. Should be allocated to shape [ncls][lmax+1],
-          where \p ncls is defined above.
- * @param niter number of iterations when computing alms.
- */
-void nmt_compute_deprojection_bias(nmt_field *fl1,nmt_field *fl2,
-				   flouble **cl_proposal,flouble **cl_bias,int niter);
-
-/**
- * @brief Noise bias from uncorrelated noise map
- *
- * Computes deprojection bias due to an source of uncorrelated noise given an input noise variance map.
- * See companion paper for more details.
- * @param fl1 nmt_field structure defining the properties of the field for which this noise bias
-          applies.
- * @param map_var Noise variance map (should contain per-pixel noise variance).
- * @param cl_bias Ouptput noise bias. Should be allocated to shape [ncls][lmax+1],
-          where \p ncls is the appropriate number of power spectra given the spins of the input
-	  fields (e.g. \p ncls = 2*2 = 4 if both fields have spin=2).
- * @param niter number of iterations when computing alms.
- */
-void nmt_compute_uncorr_noise_deprojection_bias(nmt_field *fl1,flouble *map_var,flouble **cl_bias,
-						int niter);
-
-/**
  * @brief Mode-couples an input power spectrum
  *
  * This function applies the effects of the mode-coupling the pseudo-CL estimator for a given
@@ -1115,51 +835,6 @@ void nmt_decouple_cl_l(nmt_workspace *w,flouble **cl_in,flouble **cl_noise_in,
 void nmt_compute_bandpower_windows(nmt_workspace *w,double *bpw_win_out);
 
 /**
- * @brief Coupled pseudo-CL
- *
- * Computes the pseudo-CL power spectrum of two fields without accounting for the mode-coupling
- * matrix. This is essentially equivalent to running HEALPix's 'anafast' on the purified and
- * contaminant-deprojected input fields.
- * See notes about power spectrum ordering in the main page of this documentation.
- * @param fl1 nmt_field structure defining the first field to correlate.
- * @param fl2 nmt_field structure defining the second field to correlate.
- * @param cl_out Ouptput power spectrum. Should be allocated to shape [ncls][lmax+1], where
-          \p ncls is the appropriate number of power spectra (e.g. 4=2*2 for two spin-2 fields).
- */
-void nmt_compute_coupled_cell(nmt_field *fl1,nmt_field *fl2,flouble **cl_out);
-
-/**
- * @brief Computes pseudo-CL specrum.
- *
- * Wrapper function containing all the steps to compute a power spectrum. For performance
- * reasons, the blind use of this function is discouraged against a smarter combination of
- * nmt_workspace structures and nmt_compute_coupled_cell().
- * See notes about power spectrum ordering in the main page of this documentation.
- * @param fl1 nmt_field structure defining the first field to correlate.
- * @param fl2 nmt_field structure defining the second field to correlate.
- * @param bin nmt_binning_scheme defining the power spectrum bandpowers.
- * @param w0 nmt_workspace structure containing the mode-coupling matrix. If NULL, a new
-          computation of the MCM will be carried out and stored in the output nmt_workspace.
-	  Otherwise, \p w0 will be used and returned by this function.
- * @param cl_proposal Proposed power spectrum. Should have shape [ncls][lmax+1], where
-          \p ncls is the appropriate number of power spectra given the spins of the input
-	  fields (e.g. \p ncls = 2*2 = 4 if both fields have spin=2).
- * @param cl_noise Noise bias (same shape as \p cl_prop).
- * @param cl_out Ouptput power spectrum. Should be allocated to shape [ncls][nbpw],
-          where \p ncls is defined above and \p nbpw is the number of bandpowers defined
-	  by \p bin.
- * @param niter number of iterations when computing alms.
- * @param lmax_mask maximum multipole to which the masks should be resolved. If smaller than the maximum multipole of fl1/fl2, it will be set to that.
- * @return Newly allocated nmt_workspace structure containing the mode-coupling matrix
-           if \p w0 is NULL (will return \p w0 otherwise).
- */
-nmt_workspace *nmt_compute_power_spectra(nmt_field *fl1,nmt_field *fl2,
-					 nmt_binning_scheme *bin,nmt_workspace *w0,
-					 flouble **cl_noise,flouble **cl_proposal,flouble **cl_out,
-					 int niter,int lmax_mask,int l_toeplitz,
-                                         int l_exact,int dl_band);
-
-/**
  * @brief Flat-sky Gaussian covariance matrix
  *
  * Structure containing the information necessary to compute Gaussian covariance matrices
@@ -1188,10 +863,10 @@ void nmt_covar_workspace_flat_free(nmt_covar_workspace_flat *cw);
  *
  * Builds an nmt_covar_workspace_flat structure from two nmt_workspace_flat structures, corresponding
  * to the two sets of power spectra for which the covariance is required.
- * @param fla1 nmt_field_field for the first field going into the first (a-th) power spectrum.
- * @param fla2 nmt_field_field for the second field going into the first (a-th) power spectrum.
- * @param flb1 nmt_field_field for the first field going into the second (b-th) power spectrum.
- * @param flb2 nmt_field_field for the second field going into the second (b-th) power spectrum.
+ * @param fla1 nmt_field_flat for the first field going into the first (a-th) power spectrum.
+ * @param fla2 nmt_field_flat for the second field going into the first (a-th) power spectrum.
+ * @param flb1 nmt_field_flat for the first field going into the second (b-th) power spectrum.
+ * @param flb2 nmt_field_flat for the second field going into the second (b-th) power spectrum.
  * @param ba nmt_binning_scheme_flat used for the first power spectrum.
  * @param bb nmt_binning_scheme_flat used for the second power spectrum.
  */
@@ -1237,6 +912,7 @@ void nmt_compute_gaussian_covariance_flat(nmt_covar_workspace_flat *cw,
  */
 typedef struct {
   int lmax; //!< Maximum multipole for the first set of power spectra
+  int lmax_mask; //!< Maximum multipole for the first set of power spectra
   int spin0_only; //!< Whether this only stores the spin-0 MCMs
   flouble **xi00_1122; //!< First (a1b1-a2b2), 00, mode coupling matrix (see scientific documentation)
   flouble **xi00_1221; //!< Second (a1b2-a2b1), 00, mode coupling matrix (see scientific documentation)
@@ -1248,26 +924,11 @@ typedef struct {
   flouble **xi22m_1221; //!< Second (a1b2-a2b1), 22-, mode coupling matrix (see scientific documentation)
 } nmt_covar_workspace;
 
-/**
- * @brief nmt_covar_workspace destructor.
- */
 void nmt_covar_workspace_free(nmt_covar_workspace *cw);
 
-/**
- * @brief nmt_covar_workspace constructor
- *
- * Builds an nmt_covar_workspace structure from two pairs of nmt_field structures, corresponding
- * to the two sets of power spectra for which the covariance is required.
- * @param fla1 nmt_field for the first field going into the first (a-th) power spectrum.
- * @param fla2 nmt_field for the second field going into the first (a-th) power spectrum.
- * @param flb1 nmt_field for the first field going into the second (b-th) power spectrum.
- * @param flb2 nmt_field for the second field going into the second (b-th) power spectrum.
- * @param lmax maximum multipole up to which the coupling coefficients will be calculated.
- * @param niter number of iterations when computing alms.
- */
-nmt_covar_workspace *nmt_covar_workspace_init(nmt_field *fla1,nmt_field *fla2,
-					      nmt_field *flb1,nmt_field *flb2,
-					      int lmax,int niter,
+nmt_covar_workspace *nmt_covar_workspace_init(flouble *cl_masks_11_22,
+					      flouble *cl_masks_12_21,
+					      int lmax,int lmax_mask,
                                               int l_toeplitz,int l_exact,int dl_band,
 					      int spin0_only);
 

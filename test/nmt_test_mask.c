@@ -72,7 +72,6 @@ CTEST(nmt,mask) {
   double *mask=my_calloc(npix,sizeof(double));
   double *mask_C1=my_calloc(npix,sizeof(double));
   double *mask_C2=my_calloc(npix,sizeof(double));
-  double *mask_sm=my_calloc(npix,sizeof(double));
   double inv_x2thr=1./(1-cos(aposize*M_PI/180));
 
   //Add north pole
@@ -94,19 +93,16 @@ CTEST(nmt,mask) {
   //Compare with analytical
   nmt_apodize_mask(nside,mask,mask_C1,aposize,"C1");
   nmt_apodize_mask(nside,mask,mask_C2,aposize,"C2");
-  nmt_apodize_mask(nside,mask,mask_sm,aposize/4,"Smooth");
   for(ii=0;ii<npix;ii++) {
     double th,ph;
     pix2ang_ring(nside,ii,&th,&ph);
     if(mask[ii]==0) {
       ASSERT_DBL_NEAR_TOL(0.,mask_C1[ii],1E-10);
       ASSERT_DBL_NEAR_TOL(0.,mask_C2[ii],1E-10);
-      ASSERT_DBL_NEAR_TOL(0.,mask_sm[ii],1E-10);
     }
     if(th>th0) {
       ASSERT_DBL_NEAR_TOL(0.,mask_C1[ii],1E-10);
       ASSERT_DBL_NEAR_TOL(0.,mask_C2[ii],1E-10);
-      ASSERT_DBL_NEAR_TOL(0.,mask_sm[ii],1E-10);
     }
     else if(th<th0-aposize*M_PI/180) { //Can only check for C1 and C2
       ASSERT_DBL_NEAR_TOL(1.,mask_C1[ii],1E-10);
@@ -125,7 +121,6 @@ CTEST(nmt,mask) {
 
   free(mask_C1);
   free(mask_C2);
-  free(mask_sm);
   free(mask);
 }
 
@@ -153,10 +148,6 @@ CTEST(nmt,mask_error) {
   ASSERT_NOT_EQUAL(0,nmt_exception_status);
 
   try { nmt_apodize_mask(nside,mask,mask_apo,aposize,"C2"); }
-  catch(1) {}
-  ASSERT_NOT_EQUAL(0,nmt_exception_status);
-
-  try { nmt_apodize_mask(nside,mask,mask_apo,aposize,"Smooth"); }
   catch(1) {}
   ASSERT_NOT_EQUAL(0,nmt_exception_status);
 

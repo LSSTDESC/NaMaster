@@ -21,8 +21,8 @@ class FieldTesterCAR(object):
         self.ny, self.nx = hdul[0].data.shape
         hdul.close()
 
-        self.wt = nmt.NmtWCSTranslator(self.wcs, (self.ny, self.nx))
-        self.lmax = self.wt.get_lmax()
+        self.minfo = nmt.NmtMapInfo(self.wcs, (self.ny, self.nx))
+        self.lmax = self.minfo.get_lmax()
         self.ntemp = 5
         self.npix = self.ny*self.nx
         self.msk = np.ones([self.ny, self.nx])
@@ -82,7 +82,7 @@ def test_field_alloc():
                       beam=FT.beam, wcs=FT.wcs)
     f2p = nmt.NmtField(FT.msk, [FT.mps[1], FT.mps[2]],
                        beam=FT.beam, wcs=FT.wcs,
-                       purify_e=True, purify_b=True, n_iter_mask_purify=10)
+                       purify_e=True, purify_b=True, n_iter_mask=10)
     assert (normdiff(f0.get_maps()[0],
                      (FT.mps[0]*FT.msk).flatten()) < 1E-10)
     assert (normdiff(f2.get_maps()[0],
@@ -95,9 +95,9 @@ def test_field_alloc():
     assert (1E-5*np.mean(np.fabs(f2p.get_maps()[1])) >
             np.mean(np.fabs(f2p.get_maps()[1] -
                             (FT.mps[2]*FT.msk).flatten())))
-    assert (len(f0.get_templates()) == 0)
-    assert (len(f2.get_templates()) == 0)
-    assert (len(f2p.get_templates()) == 0)
+    for f in [f0, f2, f2p]:
+        with pytest.raises(ValueError):
+            f.get_templates()
 
     # With templates
     f0 = nmt.NmtField(FT.msk, [FT.mps[0]],
@@ -117,7 +117,59 @@ def test_field_alloc():
     assert (len(f2.get_templates()) == 5)
 
 
+def test_alminfo_eq():
+    ainfo = nmt.NmtAlmInfo(lmax=1000)
+
+    # Identity is equivalence
+    assert ainfo == ainfo
+
+    # Equivalence without identity
+    ainfob = nmt.NmtAlmInfo(lmax=1000)
+    assert ainfo == ainfob
+
+    # Wrong type
+    assert ainfo != 3
+
+    # Wrong lmax
+    ainfob = nmt.NmtAlmInfo(lmax=1001)
+    assert ainfo != ainfob
+
+
+def test_mapinfo_eq():
+    # MapInfo for CAR with wrong input
+    with pytest.raises(ValueError):
+        nmt.NmtMapInfo(FT.wcs, FT.mps[0].flatten().shape)
+
+    mi_car = nmt.NmtMapInfo(FT.wcs, FT.mps[0].shape)
+
+    # Identity is equivalence
+    assert mi_car == mi_car
+
+    # Equivalence without identity
+    mi_car2 = nmt.NmtMapInfo(FT.wcs, FT.mps[0].shape)
+    assert mi_car == mi_car2
+
+    # Wrong type
+    assert mi_car != 3
+
+    # Healpix and CAR
+    mi_hpx = nmt.NmtMapInfo(None, (12*64*64,))
+    assert mi_car != mi_hpx
+    assert mi_hpx != mi_car
+
+
 def test_field_error():
+    # SHTs using healpy for CAR maps
+    f0 = nmt.NmtField(FT.msk, [FT.mps[0]], wcs=FT.wcs)
+    mp = f0.get_maps()
+    alm = f0.get_alms()
+    nmt.set_sht_calculator('healpy')
+    with pytest.raises(ValueError):
+        nmt.utils.map2alm(mp, 0, f0.minfo, f0.ainfo, n_iter=0)
+    with pytest.raises(ValueError):
+        nmt.utils.alm2map(alm, 0, f0.minfo, f0.ainfo)
+    nmt.set_sht_calculator('ducc')
+
     with pytest.raises(ValueError):  # Not passing WCS
         nmt.NmtField(FT.msk, [FT.mps[0]], beam=FT.beam)
     with pytest.raises(ValueError):  # Passing 1D maps

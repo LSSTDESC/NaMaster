@@ -19,15 +19,12 @@ class WorkspaceTester(object):
         self.lmax = 3*self.nside-1
         self.npix = int(hp.nside2npix(self.nside))
         self.msk = hp.read_map("test/benchmarks/msk.fits",
-                               verbose=False, dtype=float)
+                               dtype=float)
         self.mps = np.array(hp.read_map("test/benchmarks/mps.fits",
-                                        verbose=False,
                                         field=[0, 1, 2], dtype=float))
         self.mps_s1 = np.array(hp.read_map("test/benchmarks/mps_sp1.fits",
-                                           verbose=False,
                                            field=[0, 1, 2], dtype=float))
         self.tmp = np.array(hp.read_map("test/benchmarks/tmp.fits",
-                                        verbose=False,
                                         field=[0, 1, 2], dtype=float))
         self.b = nmt.NmtBin.from_nside_linear(self.nside, self.nlb)
         self.f0 = nmt.NmtField(self.msk,
@@ -309,7 +306,9 @@ def test_spin1():
                                               np.fabs(tl))*1E-5).all()
 
 
-def mastest(wtemp, wpure, do_teb=False):
+def mastest(wtemp, wpure, do_teb=False, use_healpy=False):
+    if use_healpy:
+        nmt.set_sht_calculator('healpy')
     prefix = "test/benchmarks/bm"
     if wtemp:
         prefix += "_yc"
@@ -389,6 +388,8 @@ def mastest(wtemp, wpure, do_teb=False):
         assert ((np.fabs(cl-tl) <=
                  np.fmin(np.fabs(cl),
                          np.fabs(tl))*1E-5).all())
+    if use_healpy:
+        nmt.set_sht_calculator('ducc')
 
 
 @pytest.mark.parametrize("wtemp,wpure,do_teb",
@@ -400,6 +401,11 @@ def mastest(wtemp, wpure, do_teb=False):
                           (True, True, False)])
 def test_workspace_master_teb_np(wtemp, wpure, do_teb):
     mastest(wtemp, wpure, do_teb=do_teb)
+
+
+def test_workspace_master_healpy():
+    mastest(False, False, do_teb=False, use_healpy=True)
+    assert nmt.get_default_params()['sht_calculator'] == 'ducc'
 
 
 def test_workspace_shorten():
@@ -440,21 +446,41 @@ def test_workspace_rebin():
     with pytest.raises(RuntimeError):  # Wrong lmax
         w.update_bins(b4)
 
+    # Uninitialised
+    with pytest.raises(ValueError):
+        b4.bin = None
+        w.update_bins(b4)
+    with pytest.raises(ValueError):
+        w = nmt.NmtWorkspace()
+        w.update_bins(b4)
+
 
 def test_workspace_io():
-    w = nmt.NmtWorkspace()
+    with pytest.raises(RuntimeError):  # Uninitialised
+        w = nmt.NmtWorkspace()
+        w.get_coupling_matrix()
+    with pytest.raises(RuntimeError):  # Uninitialised
+        w.update_coupling_matrix(None)
     with pytest.raises(RuntimeError):  # Invalid writing
+        w = nmt.NmtWorkspace()
         w.write_to("test/wspc.fits")
+
+    w = nmt.NmtWorkspace()
     w.read_from("test/benchmarks/bm_yc_yp_w02.fits")  # OK read
-    assert w.wsp.cs.n_eq == 64
+    assert w.wsp.lmax == 3*64-1
     w.get_coupling_matrix()  # Read mode coupling matrix
     # Updating mode-coupling matrix
-    mcm_new = np.identity(3*w.wsp.cs.n_eq*2)
+    # 1. Wrong update
+    with pytest.raises(ValueError):  # Uninitialised
+        mcm_new = np.identity(3)
+        w.update_coupling_matrix(mcm_new)
+    # 2. Right update
+    mcm_new = np.identity(2*(w.wsp.lmax+1))
     w.update_coupling_matrix(mcm_new)
     # Retireve MCM and check it's correct
     mcm_back = w.get_coupling_matrix()
     assert (np.fabs(np.sum(np.diagonal(mcm_back)) -
-                    3*w.wsp.cs.n_eq*2) <= 1E-16)
+                    2*(w.wsp.lmax+1)) <= 1E-16)
     with pytest.raises(RuntimeError):  # Can't write on that file
         w.write_to("tests/wspc.fits")
     with pytest.raises(RuntimeError):  # File doesn't exist
@@ -500,25 +526,24 @@ def test_lite_errors():
                       templates=[[WT.tmp[0]]], n_iter=0,
                       lite=True)
     with pytest.raises(ValueError):  # Needs spin
-        fe = nmt.NmtField(WT.msk, None)
+        nmt.NmtField(WT.msk, None)
     fe = nmt.NmtField(WT.msk, None, spin=0)
 
-    for f in [fl, fe]:
-        with pytest.raises(RuntimeError):  # No deprojection bias
-            nmt.deprojection_bias(f0, f, np.zeros([1, 3*WT.nside]))
-        with pytest.raises(RuntimeError):  # No deprojection bias
-            nmt.uncorr_noise_deprojection_bias(fl, WT.mps[0])
-    with pytest.raises(RuntimeError):  # No C_l without maps
+    with pytest.raises(ValueError):  # No deprojection bias
+        nmt.deprojection_bias(f0, fl, np.zeros([1, 3*WT.nside]))
+    with pytest.raises(ValueError):  # No deprojection bias
+        nmt.uncorr_noise_deprojection_bias(fl, WT.mps[0])
+    with pytest.raises(ValueError):  # No C_l without maps
         nmt.compute_coupled_cell(f0, fe)
 
 
 def test_workspace_methods():
     w = nmt.NmtWorkspace()
     w.compute_coupling_matrix(WT.f0, WT.f0, WT.b)  # OK init
-    assert w.wsp.cs.n_eq == 64
-    with pytest.raises(RuntimeError):  # Incompatible bandpowers
+    assert w.wsp.lmax == 3*64-1
+    with pytest.raises(ValueError):  # Incompatible bandpowers
         w.compute_coupling_matrix(WT.f0, WT.f0, WT.b_doub)
-    with pytest.raises(RuntimeError):  # Incompatible resolutions
+    with pytest.raises(ValueError):  # Incompatible resolutions
         w.compute_coupling_matrix(WT.f0, WT.f0_half, WT.b)
     with pytest.raises(RuntimeError):  # Wrong fields for TEB
         w.compute_coupling_matrix(WT.f0, WT.f0, WT.b, is_teb=True)
@@ -566,7 +591,14 @@ def test_workspace_full_master():
 
     c = nmt.compute_full_master(WT.f0, WT.f0, WT.b)
     assert c.shape == (1, WT.b.bin.n_bands)
-    with pytest.raises(RuntimeError):  # Incompatible bandpowers
+
+    c = nmt.compute_full_master(WT.f0, WT.f0, WT.b,
+                                cl_noise=WT.n_good,
+                                cl_guess=WT.n_good)
+    assert c.shape == (1, WT.b.bin.n_bands)
+    with pytest.raises(SyntaxError):  # Incompatible bandpowers
+        nmt.compute_full_master(WT.f0, WT.f0)
+    with pytest.raises(ValueError):  # Incompatible bandpowers
         nmt.compute_full_master(WT.f0, WT.f0, WT.b_doub)
     with pytest.raises(ValueError):  # Incompatible resolutions
         nmt.compute_full_master(WT.f0, WT.f0_half, WT.b)
@@ -576,7 +608,7 @@ def test_workspace_full_master():
     c = nmt.compute_full_master(WT.f0, WT.f0, WT.b,
                                 workspace=w)
     assert c.shape == (1, WT.b.bin.n_bands)
-    with pytest.raises(RuntimeError):  # Inconsistent workspace
+    with pytest.raises(ValueError):  # Inconsistent workspace
         nmt.compute_full_master(WT.f0_half, WT.f0_half,
                                 WT.b_half, workspace=w)
     # Incorrect input spectra
@@ -586,10 +618,10 @@ def test_workspace_full_master():
     with pytest.raises(ValueError):
         nmt.compute_full_master(WT.f0, WT.f0, WT.b,
                                 cl_guess=WT.n_bad)
-    with pytest.raises(RuntimeError):
+    with pytest.raises(ValueError):
         nmt.compute_full_master(WT.f0, WT.f0, WT.b,
                                 cl_noise=WT.n_half)
-    with pytest.raises(RuntimeError):
+    with pytest.raises(ValueError):
         nmt.compute_full_master(WT.f0, WT.f0, WT.b,
                                 cl_guess=WT.n_half)
 
@@ -597,27 +629,39 @@ def test_workspace_full_master():
 def test_workspace_deprojection_bias():
     # Test deprojection_bias
     c = nmt.deprojection_bias(WT.f0, WT.f0, WT.n_good)
-    assert c.shape == (1, WT.f0.fl.lmax+1)
+    assert c.shape == (1, WT.f0.ainfo.lmax+1)
     with pytest.raises(ValueError):
         nmt.deprojection_bias(WT.f0, WT.f0, WT.n_bad)
     with pytest.raises(ValueError):
         nmt.deprojection_bias(WT.f0, WT.f0, WT.n_half)
-    with pytest.raises(RuntimeError):
+    with pytest.raises(ValueError):
         nmt.deprojection_bias(WT.f0, WT.f0_half, WT.n_good)
 
 
 def test_workspace_uncorr_noise_deprojection_bias():
     # Test uncorr_noise_deprojection_bias
+    # Smoke
     c = nmt.uncorr_noise_deprojection_bias(WT.f0, np.zeros(WT.npix))
-    assert c.shape == (1, WT.f0.fl.lmax+1)
+    assert c.shape == (1, WT.f0.ainfo.lmax+1)
+
+    # Errors
     with pytest.raises(ValueError):
         nmt.uncorr_noise_deprojection_bias(WT.f0, WT.n_good)
+
+    # Actual test
+    f = nmt.NmtField(WT.msk, [WT.mps[1], WT.mps[2]],
+                     templates=[[WT.tmp[1], WT.tmp[2]]])
+    sig2 = np.ones(WT.npix)
+    c = nmt.uncorr_noise_deprojection_bias(f, sig2)
+    b = np.loadtxt("test/benchmarks/bm_uncorr_noise_dp.txt",
+                   unpack=True)
+    assert np.all(np.fabs(c-b) <= 1E-5*np.fabs(b))
 
 
 def test_workspace_compute_coupled_cell():
     # Test compute_coupled_cell
     c = nmt.compute_coupled_cell(WT.f0, WT.f0)
-    assert c.shape == (1, WT.f0.fl.lmax+1)
+    assert c.shape == (1, WT.f0.ainfo.lmax+1)
     with pytest.raises(ValueError):  # Different resolutions
         nmt.compute_coupled_cell(WT.f0, WT.f0_half)
 

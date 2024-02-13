@@ -197,3 +197,10 @@ def test_field_flat_errors():
         f = nmt.NmtFieldFlat(FT.lx, FT.ly, FT.msk,
                              [FT.mps[1], FT.mps[2]], spin=1,
                              purify_b=True)
+
+
+def test_field_flat_ell_sampling():
+    fl = nmt.NmtFieldFlat(FT.lx, FT.ly, FT.msk, None, spin=0)
+    ells = fl.get_ell_sampling()
+    assert ells[0] == fl.fl.fs.dell*0.5
+    assert np.all(np.diff(ells) == fl.fl.fs.dell)

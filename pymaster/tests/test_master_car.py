@@ -20,10 +20,10 @@ class WorkspaceTesterCAR(object):
         self.mps = hdul[0].data
         hdul.close()
 
-        self.wt = nmt.NmtWCSTranslator(self.wcs, (self.ny, self.nx))
-        self.lmax = self.wt.get_lmax()
+        self.minfo = nmt.NmtMapInfo(self.wcs, (self.ny, self.nx))
+        self.lmax = self.minfo.get_lmax()
         self.nlb = 50
-        self.npix = self.wt.npix
+        self.npix = self.minfo.npix
         self.b = nmt.NmtBin.from_lmax_linear(self.lmax, self.nlb)
         (self.l, self.cltt, self.clte,
          self.clee, self.clbb, self.cltb,
@@ -80,19 +80,17 @@ def test_workspace_car_master():
     assert np.amax(np.fabs(cl-cl_bm)) <= 1E-10
 
 
-@pytest.mark.skipif(True, reason='slow')
+@pytest.mark.skipif(False, reason='slow')
 def test_workspace_car_methods():
     w = nmt.NmtWorkspace()
     w.compute_coupling_matrix(WT.f0, WT.f0,
                               WT.b)  # OK init
-    assert w.wsp.cs.nx_short == 1080
-    assert w.wsp.cs.nx == 4320
     # Incompatible bandpowers
-    with pytest.raises(RuntimeError):
+    with pytest.raises(ValueError):
         w.compute_coupling_matrix(WT.f0, WT.f0,
                                   WT.b_doub)
     # Incompatible resolutions
-    with pytest.raises(RuntimeError):
+    with pytest.raises(ValueError):
         w.compute_coupling_matrix(WT.f0, WT.f0_half,
                                   WT.b)
     # Wrong fields for TEB

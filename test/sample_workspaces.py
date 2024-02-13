@@ -12,12 +12,12 @@ nside = 256
 # We start by creating some synthetic masks and maps with contaminants.
 # Here we will focus on the cross-correlation of a spin-2 and a spin-1 field.
 # a) Read and apodize mask
-mask = nmt.mask_apodization(hp.read_map("mask.fits", verbose=False),
+mask = nmt.mask_apodization(hp.read_map("mask.fits"),
                             1., apotype="Smooth")
 # b) Read maps
-mp_t, mp_q, mp_u = hp.read_map("maps.fits", field=[0, 1, 2], verbose=False)
+mp_t, mp_q, mp_u = hp.read_map("maps.fits", field=[0, 1, 2])
 # c) Read contaminants maps
-tm_t, tm_q, tm_u = hp.read_map("temp.fits", field=[0, 1, 2], verbose=False)
+tm_t, tm_q, tm_u = hp.read_map("temp.fits", field=[0, 1, 2])
 # d) Create contaminated fields
 #    Spin-0
 f0 = nmt.NmtField(mask, [mp_t+tm_t], templates=[[tm_t]])
@@ -80,7 +80,7 @@ cl_mean = np.zeros_like(cl_master)
 cl_std = np.zeros_like(cl_master)
 for i in np.arange(nsim):
     print("%d-th simulation" % i)
-    t, q, u = hp.synfast([cltt, clee, clbb, clte], nside, verbose=False)
+    t, q, u = hp.synfast([cltt, clee, clbb, clte], nside)
     f0_sim = nmt.NmtField(mask, [t], templates=[[tm_t]])
     f2_sim = nmt.NmtField(mask, [q, u], templates=[[tm_q, tm_u]])
     cl = compute_master(f0_sim, f2_sim, w, cl_bias)
@@ -107,4 +107,5 @@ plt.ylim([-0.03, 0.03])
 plt.legend(loc='upper right')
 plt.xlabel('$\\ell$', fontsize=16)
 plt.ylabel('$C_\\ell$', fontsize=16)
+plt.savefig("cls_workspaces.png", bbox_inches='tight')
 plt.show()

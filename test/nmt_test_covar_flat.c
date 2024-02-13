@@ -42,7 +42,7 @@ CTEST(nmt,covar_flat) {
   double *larr=my_malloc((lmax_th+1)*sizeof(double));
   double *cell=my_malloc((lmax_th+1)*sizeof(double));
   //Read signal and noise power spectrum
-  FILE *fi=my_fopen("test/benchmarks/cls_lss.txt","r");
+  FILE *fi=fopen("test/benchmarks/cls_lss.txt","r");
   for(ii=0;ii<=lmax_th;ii++) {
     double dum,l,cl,nl;
     int stat=fscanf(fi,"%lf %lf %lf %lf %lf %lf %lf %lf %lf",&l,
@@ -56,7 +56,7 @@ CTEST(nmt,covar_flat) {
   double *covar=my_malloc(cw->bin->n_bands*cw->bin->n_bands*sizeof(double));
   nmt_compute_gaussian_covariance_flat(cw,0,0,0,0,w,w,lmax_th+1,larr,&cell,&cell,&cell,&cell,covar);
 
-  fi=my_fopen("test/benchmarks/bm_f_nc_np_cov.txt","r");
+  fi=fopen("test/benchmarks/bm_f_nc_np_cov.txt","r");
   for(ii=0;ii<cw->bin->n_bands*cw->bin->n_bands;ii++) {
     double cov;
     int stat=fscanf(fi,"%lf",&cov);

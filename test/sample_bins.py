@@ -21,7 +21,7 @@ i = 0
 while 4 * (i + 1) + 2 < 3 * nside:
     bpws[4 * i + 2:4 * (i + 1) + 2] = i
     i += 1
-bin2 = nmt.NmtBin(nside=nside, bpws=bpws, ells=ells, weights=weights)
+bin2 = nmt.NmtBin(bpws=bpws, ells=ells, weights=weights)
 
 # You can also control ell-weighting through NmtBins.
 # E.g. to compute the usual D_ell = ell * (ell + 1) * C_ell/2/pi,

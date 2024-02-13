@@ -36,7 +36,7 @@ static nmt_workspace_flat *nmt_workspace_flat_new(int ncls,nmt_flatsky_info *fs,
 						  flouble lmn_x,flouble lmx_x,
 						  flouble lmn_y,flouble lmx_y,int is_teb)
 {
-  int ii,ib=0;
+  int ii;
   nmt_workspace_flat *w=my_malloc(sizeof(nmt_workspace_flat));
   w->is_teb=is_teb;
   w->ncls=ncls;

@@ -16,10 +16,10 @@ class CovarTester(object):
         self.nside = 64
         self.nlb = 16
         self.npix = hp.nside2npix(self.nside)
-        msk = hp.read_map("test/benchmarks/msk.fits", verbose=False,
+        msk = hp.read_map("test/benchmarks/msk.fits",
                           dtype=float)
         mps = np.array(hp.read_map("test/benchmarks/mps.fits",
-                                   verbose=False, field=[0, 1, 2],
+                                   field=[0, 1, 2],
                                    dtype=float))
         self.b = nmt.NmtBin.from_nside_linear(self.nside, self.nlb)
         self.f0 = nmt.NmtField(msk, [mps[0]])
@@ -225,8 +225,8 @@ def test_covar_rectangular():
     npix = hp.nside2npix(nside)
     msk = np.ones(npix)
     f = nmt.NmtField(msk, None, spin=0)
-    b1 = nmt.NmtBin(nside, nlb=4)
-    b2 = nmt.NmtBin(nside, nlb=6)
+    b1 = nmt.NmtBin.from_nside_linear(nside, nlb=4)
+    b2 = nmt.NmtBin.from_nside_linear(nside, nlb=6)
     w1 = nmt.NmtWorkspace()
     w1.compute_coupling_matrix(f, f, b1)
     w2 = nmt.NmtWorkspace()

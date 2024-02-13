@@ -30,7 +30,7 @@ if '--disable-openmp' in sys.argv:
 else:
     USE_OPENMP = True
 
-libs = ['sharp2', 'cfitsio', 'gsl', 'gslcblas', 'm'] + FFTW_LIBS
+libs = ['cfitsio', 'gsl', 'gslcblas', 'm'] + FFTW_LIBS
 
 use_icc = False  # Set to True if you compiled libsharp with icc
 if use_icc:
@@ -44,13 +44,6 @@ else:
         libs += ['gomp']
     extra += ['-fopenmp']
 
-def _compile_libsharp():
-    if not os.path.exists('_deps/include/libsharp2/sharp.h'):
-        try:
-            sp.check_call('./scripts/install_libsharp.sh',
-                          shell=True)
-        except:
-            raise DistutilsError('Failed to install libsharp.')
 
 def _compile_libchealpix():
     if not os.path.exists('_deps/lib/libchealpix.a'):
@@ -71,7 +64,6 @@ def _compile_libnmt():
 class build(_build):
     """Specialized Python source builder."""
     def run(self):
-        _compile_libsharp()
         _compile_libchealpix()
         _compile_libnmt()
         _build.run(self)
@@ -79,7 +71,6 @@ class build(_build):
 class develop(_develop):
     """Specialized Python develop mode."""
     def run(self):
-        _compile_libsharp()
         _compile_libchealpix()
         _compile_libnmt()
         _develop.run(self)
@@ -94,26 +85,7 @@ _nmtlib = Extension("_nmtlib",
                     extra_link_args=extra
                     )
 
-with open("README.md", "r") as fh:
-    long_description = fh.read()
-
-setup(name="pymaster",
-      version="1.5.1",
-      author="David Alonso",
-      author_email="david.alonso@physics.ox.ac.uk",
-      description="Library for pseudo-Cl computation",
-      long_description=long_description,
-      long_description_content_type="text/markdown",
-      url="https://github.com/LSSTDESC/NaMaster",
+setup(
       cmdclass={'build_py': build, 'develop': develop},
-      classifiers=[
-          'License :: OSI Approved :: BSD License',
-          'Programming Language :: Python :: 2',
-          'Programming Language :: Python :: 2.7',
-          'Programming Language :: Python :: 3',
-          'Programming Language :: Python :: 3.6',
-          'Operating System :: Unix',
-          'Operating System :: MacOS'],
-      packages=['pymaster'],
       ext_modules=[_nmtlib],
       )

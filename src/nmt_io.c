@@ -2,52 +2,6 @@
 #include "utils.h"
 #include <fitsio.h>
 
-static void nmt_curvedsky_info_tohdus(fitsfile *fptr,
-				      nmt_curvedsky_info *cs,
-				      int *status)
-{
-  fits_create_img(fptr,BYTE_IMG,0,NULL,status);
-  fits_write_key(fptr,TSTRING,"EXTNAME","CS_INFO",NULL,status);
-  fits_write_key(fptr,TINT   ,"IS_HEALPIX",&(cs->is_healpix),NULL,status);
-  fits_write_key(fptr,TLONG  ,"N_EQ",&(cs->n_eq),NULL,status);
-  fits_write_key(fptr,TINT   ,"LMAX_SHT",&(cs->lmax_sht),NULL,status);
-  fits_write_key(fptr,TINT   ,"NX_SHORT",&(cs->nx_short),NULL,status);
-  fits_write_key(fptr,TINT   ,"NX",&(cs->nx),NULL,status);
-  fits_write_key(fptr,TINT   ,"NY",&(cs->ny),NULL,status);
-  fits_write_key(fptr,TLONG  ,"NPIX",&(cs->npix),NULL,status);
-  fits_write_key(fptr,TDOUBLE,"DELTA_THETA",&(cs->Delta_theta),NULL,status);
-  fits_write_key(fptr,TDOUBLE,"DELTA_PHI",&(cs->Delta_phi),NULL,status);
-  fits_write_key(fptr,TDOUBLE,"PHI0",&(cs->phi0),NULL,status);
-  fits_write_key(fptr,TDOUBLE,"THETA0",&(cs->theta0),NULL,status);
-}
-
-static nmt_curvedsky_info *nmt_curvedsky_info_fromhdus(fitsfile *fptr,
-						       int *status)
-{
-  nmt_curvedsky_info *cs=my_malloc(sizeof(nmt_curvedsky_info));
-
-  fits_movnam_hdu(fptr,IMAGE_HDU,"CS_INFO",0,status);
-  fits_read_key(fptr,TINT   ,"IS_HEALPIX",&(cs->is_healpix),NULL,status);
-  fits_read_key(fptr,TLONG  ,"N_EQ",&(cs->n_eq),NULL,status);
-  fits_read_key(fptr,TINT   ,"LMAX_SHT",&(cs->lmax_sht),NULL,status);
-  fits_read_key(fptr,TINT   ,"NX_SHORT",&(cs->nx_short),NULL,status);
-  fits_read_key(fptr,TINT   ,"NX",&(cs->nx),NULL,status);
-  fits_read_key(fptr,TINT   ,"NY",&(cs->ny),NULL,status);
-  fits_read_key(fptr,TLONG  ,"NPIX",&(cs->npix),NULL,status);
-  fits_read_key(fptr,TDOUBLE,"DELTA_THETA",&(cs->Delta_theta),NULL,status);
-  fits_read_key(fptr,TDOUBLE,"DELTA_PHI",&(cs->Delta_phi),NULL,status);
-  fits_read_key(fptr,TDOUBLE,"PHI0",&(cs->phi0),NULL,status);
-  fits_read_key(fptr,TDOUBLE,"THETA0",&(cs->theta0),NULL,status);
-
-  //This only means that it had some trouble converting into double precision
-  //It can happen if some of these quantities were rubbish to begin with, so
-  //we just ignore this one.
-  if(*status == 412)
-    *status=0;
-
-  return cs;
-}
-
 static void nmt_workspace_info_tohdus(fitsfile *fptr,
 				      nmt_workspace *w,
 				      int *status)
@@ -156,7 +110,7 @@ static nmt_binning_scheme *nmt_binning_scheme_fromhdus(fitsfile *fptr,
   nmt_binning_scheme *b;
   int *bpws,*ells;
   flouble *weights,*f_ell;
-  int ii,anynul,n_bands,ell_max;
+  int anynul,n_bands,ell_max;
   long nrows;
   double nulval;
   fits_movnam_hdu(fptr,BINARY_TBL,"BANDPOWERS",0,status);
@@ -386,9 +340,6 @@ void nmt_workspace_write_fits(nmt_workspace *w,char *fname)
   // Workspace info HDU
   nmt_workspace_info_tohdus(fptr,w,&status);
   check_fits(status,fname,0);
-  // CS info HDU
-  nmt_curvedsky_info_tohdus(fptr,w->cs,&status);
-  check_fits(status,fname,0);
   // beam_prod HDU
   nmt_l_arr_tohdus(fptr,w->lmax_fields,w->beam_prod,"BEAMS",&status);
   check_fits(status,fname,0);
@@ -414,9 +365,6 @@ nmt_workspace *nmt_workspace_read_fits(char *fname, int w_unbinned)
   check_fits(status,fname,1);
   // Workspace info HDU
   nmt_workspace_info_fromhdus(fptr,w,w_unbinned,&status);
-  check_fits(status,fname,1);
-  // CS info HDU
-  w->cs=nmt_curvedsky_info_fromhdus(fptr,&status);
   check_fits(status,fname,1);
   // beam_prod HDU
   w->beam_prod=nmt_l_arr_fromhdus(fptr,w->lmax_fields,"BEAMS",&status);
@@ -682,7 +630,6 @@ static void nmt_binning_scheme_flat_tohdus(fitsfile *fptr,
 					   int *status)
 {
   int ii;
-  char title[256];
   char **ttype,**tform,**tunit;
   ttype=my_malloc(2*sizeof(char *));
   tform=my_malloc(2*sizeof(char *));
@@ -714,7 +661,7 @@ static void nmt_binning_scheme_flat_tohdus(fitsfile *fptr,
 static nmt_binning_scheme_flat *nmt_binning_scheme_flat_fromhdus(fitsfile *fptr,
 								 int *status)
 {
-  int ii,anynul;
+  int anynul;
   long nrows;
   double nulval;
   nmt_binning_scheme_flat *b=my_malloc(sizeof(nmt_binning_scheme_flat));
@@ -836,6 +783,7 @@ void nmt_covar_workspace_write_fits(nmt_covar_workspace *cw,char *fname)
   fits_create_img(fptr,BYTE_IMG,0,NULL,&status);
   fits_write_key(fptr,TSTRING,"EXTNAME","CWSP_PRIMARY",NULL,&status);
   fits_write_key(fptr,TINT,"LMAX",&(cw->lmax),NULL,&status);
+  cw->lmax_mask=cw->lmax;
   fits_write_key(fptr,TINT,"SPIN0_ONLY",&(cw->spin0_only),NULL,&status);
   check_fits(status,fname,0);
 

@@ -1,0 +1,39 @@
+[build-system]
+requires = [
+	"setuptools >= 61.0",
+	"numpy"
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pymaster"
+version = "1.6.1"
+authors = [
+  {name="David Alonso", email="david.alonso@physics.ox.ac.uk"}
+]
+description = "Library for pseudo-Cl computation"
+readme = {file = "README.md", content-type = "text/markdown"}
+license = {file = "LICENSE"}
+requires-python = ">=2.7"
+dependencies = [
+	"healpy",
+	"ducc0"
+]
+classifiers=[
+	'License :: OSI Approved :: BSD License',
+	'Programming Language :: Python :: 2',
+	'Programming Language :: Python :: 2.7',
+	'Programming Language :: Python :: 3',
+	'Programming Language :: Python :: 3.6',
+	'Operating System :: Unix',
+	'Operating System :: MacOS'
+]
+
+[project.urls]
+Repository = "https://github.com/LSSTDESC/NaMaster.git"
+Documentation = "https://namaster.readthedocs.io/en/latest/"
+Changelog = "https://github.com/LSSTDESC/NaMaster/blob/master/CHANGELOG.md"
+Issues = "https://github.com/LSSTDESC/NaMaster/issues"
+
+[tool.setuptools]
+packages = ["pymaster"]

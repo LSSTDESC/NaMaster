@@ -6,8 +6,7 @@ import matplotlib.pyplot as plt
 nside = 256
 
 mp_t, mp_q, mp_u = hp.read_map("maps.fits",
-                               field=[0, 1, 2],
-                               verbose=False)
+                               field=[0, 1, 2])
 mask = np.ones(hp.nside2npix(nside))
 cls = hp.anafast([mp_t, mp_q, mp_u], pol=True)
 aft_tt, aft_ee, aft_bb, aft_te, aft_eb, aft_tb = cls

@@ -1,51 +1,36 @@
 #include "config.h"
 #include "utils.h"
 
-nmt_covar_workspace *nmt_covar_workspace_init(nmt_field *fla1,nmt_field *fla2,
-					      nmt_field *flb1,nmt_field *flb2,
-					      int lmax,int niter,
-                                              int l_toeplitz,int l_exact,int dl_band,
+nmt_covar_workspace *nmt_covar_workspace_init(flouble *cl_masks_11_22,
+					      flouble *cl_masks_12_21,
+					      int lmax, int lmax_mask,
+					      int l_toeplitz,
+					      int l_exact,int dl_band,
 					      int spin0_only)
 {
-  if(!(nmt_diff_curvedsky_info(fla1->cs,fla2->cs)) || !(nmt_diff_curvedsky_info(fla1->cs,flb1->cs)) ||
-     !(nmt_diff_curvedsky_info(fla1->cs,flb2->cs)))
-    report_error(NMT_ERROR_COVAR,"Can't compute covariance for fields with different resolutions\n");
-  
-  nmt_covar_workspace *cw=my_malloc(sizeof(nmt_covar_workspace));
   int ii;
-  int npix=fla1->cs->npix;
-  flouble *mask_a1b1=my_malloc(npix*sizeof(flouble));
-  flouble *mask_a1b2=my_malloc(npix*sizeof(flouble));
-  flouble *mask_a2b1=my_malloc(npix*sizeof(flouble));
-  flouble *mask_a2b2=my_malloc(npix*sizeof(flouble));
-
+  nmt_covar_workspace *cw=my_malloc(sizeof(nmt_covar_workspace));
   cw->lmax=lmax;
+  cw->lmax_mask=lmax_mask;
   cw->spin0_only=spin0_only;
+
   flouble **cl_masks=my_malloc(2*sizeof(flouble));
-  cl_masks[0]=my_malloc((cw->lmax+1)*sizeof(flouble));
-  cl_masks[1]=my_malloc((cw->lmax+1)*sizeof(flouble));
-  
-  he_map_product(fla1->cs,fla1->mask,flb1->mask,mask_a1b1);
-  he_map_product(fla1->cs,fla1->mask,flb2->mask,mask_a1b2);
-  he_map_product(fla1->cs,fla2->mask,flb1->mask,mask_a2b1);
-  he_map_product(fla1->cs,fla2->mask,flb2->mask,mask_a2b2);
-  he_anafast(&mask_a1b1,&mask_a2b2,0,0,&(cl_masks[0]),fla1->cs,cw->lmax,niter);
-  he_anafast(&mask_a1b2,&mask_a2b1,0,0,&(cl_masks[1]),fla1->cs,cw->lmax,niter);
-  free(mask_a1b1); free(mask_a1b2); free(mask_a2b1); free(mask_a2b2);
-  for(ii=0;ii<=cw->lmax;ii++) {
-    cl_masks[0][ii]*=(ii+0.5)/(2*M_PI);
-    cl_masks[1][ii]*=(ii+0.5)/(2*M_PI);
+  cl_masks[0]=my_malloc((cw->lmax_mask+1)*sizeof(flouble));
+  cl_masks[1]=my_malloc((cw->lmax_mask+1)*sizeof(flouble));
+  for(ii=0;ii<=cw->lmax_mask;ii++) {
+    cl_masks[0][ii]=cl_masks_11_22[ii]*(ii+0.5)/(2*M_PI);
+    cl_masks[1][ii]=cl_masks_12_21[ii]*(ii+0.5)/(2*M_PI);
   }
 
   nmt_master_calculator *c;
   if(cw->spin0_only) {
-    c=nmt_compute_master_coefficients(cw->lmax, cw->lmax,
+    c=nmt_compute_master_coefficients(cw->lmax, cw->lmax_mask,
 				      2, cl_masks,
 				      0, 0, 0, 0, 0, 0, 0,
 				      l_toeplitz,l_exact,dl_band);
   }
   else {
-    c=nmt_compute_master_coefficients(cw->lmax, cw->lmax,
+    c=nmt_compute_master_coefficients(cw->lmax, cw->lmax_mask,
 				      2, cl_masks,
 				      0, 2, 0, 0, 0, 0, 1,
 				      l_toeplitz,l_exact,dl_band);
@@ -145,7 +130,6 @@ void  nmt_compute_gaussian_covariance_coupled(nmt_covar_workspace *cw,
 	      for(id=0;id<nmaps_d;id++) {
 		int ila;
 		int icl_b=id+nmaps_d*ic;
-		double cbinned=0;
 		for(ila=0;ila<wa->bin->nell_list[band_a];ila++) {
 		  int ilb;
 		  int la=wa->bin->ell_list[band_a][ila];

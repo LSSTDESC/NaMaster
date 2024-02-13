@@ -7,7 +7,7 @@ import pymaster as nmt
 
 
 # Read input binary mask
-mask_raw = hp.read_map("mask.fits", verbose=False)
+mask_raw = hp.read_map("mask.fits")
 
 # The following function calls create apodized versions of the raw mask
 # with an apodization scale of 2.5 degrees using three different methods
