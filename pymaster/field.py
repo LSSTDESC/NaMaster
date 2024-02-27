@@ -659,3 +659,226 @@ class NmtFieldFlat(object):
         """
         ells = lib.get_ell_sampling_flat(self.fl, int(self.fl.fs.n_ell))
         return ells
+
+
+class NmtFieldCatalog(NmtField):
+    """
+    """
+    def __init__(self, positions, weights, field, spin=None, beam=None,
+                 field_is_weighted=False, lmax=-1, lmax_mask=-1):
+        # 0. Preliminary initializations
+        if ut.HAVE_DUCC:
+            self.sht_calculator = 'ducc'
+        else:
+            raise ValueError("DUCC is needed, but currently not installed.")
+
+        # These first attributes are compulsory for all fields
+        self.lite = True
+        self.mask = None
+        self.beam = None
+        self.n_iter = None
+        self.n_iter_mask = None
+        self.pure_e = False
+        self.pure_b = False
+
+        # The remaining attributes are only required for non-lite maps
+        self.maps = None
+        self.temp = None
+        self.alm_temp = None
+        self.n_temp = 0
+        self.Nw = 0.
+        self.Ngamma = 0.
+
+        # Sanity checks on input quantities
+        self.positions = np.array(positions, dtype=np.float64)
+        self.weights = np.array(weights, dtype=np.float64)
+        self.field = np.array(field, dtype=np.float64)
+        if np.shape(self.positions) != (2, len(self.weights)):
+            raise ValueError("Weights must be 2D array of shape"
+                             " (2, len(weights)).")
+        if spin is None:
+            spin = 0 if self.field.ndim == 0 else 2
+        if spin == 2 and np.shape(self.field) != (2, len(self.weights)):
+            raise ValueError("Field has wrong shape.")
+        if spin == 0 and (self.field.ndim != 1
+                          or len(self.field) != len(self.weights)):
+            raise ValueError("Field has wrong shape.")
+
+        if not (np.logical_and(self.positions[0] > 0.,
+                               self.positions[0] < np.pi)).all():
+            raise ValueError("First dimension of positions must be colatitude"
+                             " in radians, between 0 and pi.")
+        if not (np.logical_and(self.positions[1] > 0.,
+                               self.positions[1] < 2.*np.pi)).all():
+            raise ValueError("Second dimension of positions must be longitude"
+                             " in radians, between 0 and 2*pi.")
+        self.spin = spin
+        self.nalms = 2 if spin else 1
+
+        # 1. Compute mask alms, noise and beam
+        if not field_is_weighted:
+            self.field *= self.weights
+        self.minfo = None
+        if lmax <= 0:
+            lmax = hp.Alm.getlmax(np.shape(self.alm)[-1])
+        if lmax_mask <= 0:
+            lmax_mask = hp.Alm.getlmax(np.shape(self.alm_mask)[-1])
+        self.ainfo = ut.NmtAlmInfo(lmax)
+        self.ainfo_mask = ut.NmtAlmInfo(lmax_mask)
+
+        self.alm_mask = ut._catalog2alm_ducc0(self.weights, self.positions,
+                                              spin=0, lmax=lmax_mask)
+        self.alm = ut._catalog2alm_ducc0(self.field, self.positions,
+                                         spin=spin, lmax=lmax)
+        # Beam
+        if isinstance(beam, (list, tuple, np.ndarray)):
+            if len(beam) <= lmax:
+                raise ValueError("Input beam must have at least %d elements "
+                                 "given the input map resolution" % (lmax+1))
+            beam_use = beam
+        else:
+            if beam is None:
+                beam_use = np.ones(lmax+1)
+            else:
+                raise ValueError("Input beam can only be an array or None\n")
+        self.beam = beam_use
+
+        # 2. Compute Poisson and shear noise bias on mask pseudo-C_ell
+        self.Nw = np.sum(self.weights**2.)/(4.*np.pi)
+        if spin == 2:
+            self.Ngamma = np.sum(
+                (self.field[0]**2. + self.field[1]**2)/(8.*np.pi)
+            )
+
+    def is_compatible(self, other):
+        """ Returns ``True`` if the  of this :obj:`NmtField`
+        is compatible with that of another one (``other``).
+        """
+        if self.minfo != other.minfo:
+            return False
+        if self.ainfo != other.ainfo:
+            return False
+        if self.ainfo_mask != other.ainfo_mask:
+            return False
+        return True
+
+    def get_mask(self):
+        """ Get this field's mask.
+
+        Returns:
+            (`array`): 1D array containing the field's mask.
+        """
+        return self.mask
+
+    def get_maps(self):
+        """ Get this field's set of maps. The returned maps will be
+        masked, contaminant-deprojected, and purified (if so required
+        when generating this :obj:`NmtField`).
+
+        Returns:
+            (`array`): 2D array containing the field's maps.
+        """
+        if self.maps is None:
+            raise ValueError("Input maps unavailable for this field")
+        return self.maps
+
+    def get_alms(self):
+        """ Get the :math:`a_{\\ell m}` coefficients of this field. They
+        include the effects of masking, as well as contaminant deprojection
+        and purification (if required when generating this
+        :obj:`NmtField`).
+
+        Returns:
+            (`array`): 2D array containing the field's :math:`a_{\\ell m}` s.
+        """
+        if self.alm is None:
+            raise ValueError("Mask-only fields have no alms")
+        return self.alm
+
+    def get_mask_alms(self):
+        """ Get the :math:`a_{\\ell m}` coefficients of this field's mask.
+
+        Returns:
+            (`array`): 1D array containing the mask :math:`a_{\\ell m}` s.
+        """
+        return self.alm_mask
+
+    def get_shear_noise_bias(self):
+        """
+        """
+        return self.Ngamma
+
+    def get_templates(self):
+        """ Get this field's set of contaminant templates maps. The
+        returned maps will have the mask applied to them.
+
+        Returns:
+            (`array`): 3D array containing the field's contaminant maps.
+        """
+        if self.temp is None:
+            raise ValueError("Input templates unavailable for this field")
+        return self.temp
+
+    def _purify(self, mask, alm_mask, maps_u, n_iter, task=[False, True],
+                return_maps=True):
+        # 1. Spin-0 mask bit
+        # Multiply by mask
+        maps = maps_u*mask[None, :]
+        # Compute alms
+        alms = ut.map2alm(maps, 2, self.minfo,
+                          self.ainfo_mask, n_iter=n_iter)
+
+        # 2. Spin-1 mask bit
+        # Compute spin-1 mask
+        ls = np.arange(self.ainfo_mask.lmax+1)
+        # The minus sign is because of the definition of E-modes
+        fl = -np.sqrt((ls+1.0)*ls)
+        walm = hp.almxfl(alm_mask, fl,
+                         mmax=self.ainfo_mask.mmax)
+        walm = np.array([walm, walm*0])
+        wmap = ut.alm2map(walm, 1, self.minfo, self.ainfo_mask)
+        # Product with spin-1 mask
+        maps = np.array([wmap[0]*maps_u[0]+wmap[1]*maps_u[1],
+                         wmap[0]*maps_u[1]-wmap[1]*maps_u[0]])
+        # Compute SHT, multiply by
+        # 2*sqrt((l+1)!(l-2)!/((l-1)!(l+2)!)) and add to alms
+        palm = ut.map2alm(maps, 1, self.minfo,
+                          self.ainfo, n_iter=n_iter)
+        fl[2:] = 2/np.sqrt((ls[2:]+2.0)*(ls[2:]-1.0))
+        fl[:2] = 0
+        for ipol, purify in enumerate(task):
+            if purify:
+                alms[ipol] += hp.almxfl(palm[ipol],
+                                        fl[:self.ainfo.lmax+1],
+                                        mmax=self.ainfo.mmax)
+
+        # 3. Spin-2 mask bit
+        # Compute spin-0 mask
+        # The extra minus sign is because of the scalar SHT below
+        # (E-mode definition for spin=0).
+        fl[2:] = -np.sqrt((ls[2:]+2.0)*(ls[2:]-1.0))
+        fl[:2] = 0
+        walm[0] = hp.almxfl(walm[0], fl, mmax=self.ainfo_mask.mmax)
+        wmap = ut.alm2map(walm, 2, self.minfo, self.ainfo_mask)
+        # Product with spin-2 mask
+        maps = np.array([wmap[0]*maps_u[0]+wmap[1]*maps_u[1],
+                         wmap[0]*maps_u[1]-wmap[1]*maps_u[0]])
+        # Compute SHT, multiply by
+        # sqrt((l-2)!/(l+2)!) and add to alms
+        palm = np.array([ut.map2alm(np.array([m]), 0, self.minfo,
+                                    self.ainfo, n_iter=n_iter)[0]
+                         for m in maps])
+        fl[2:] = 1/np.sqrt((ls[2:]+2.0)*(ls[2:]+1.0) *
+                           ls[2:]*(ls[2:]-1))
+        fl[:2] = 0
+        for ipol, purify in enumerate(task):
+            if purify:
+                alms[ipol] += hp.almxfl(palm[ipol],
+                                        fl[:self.ainfo.lmax+1],
+                                        mmax=self.ainfo.mmax)
+
+        if return_maps:
+            # 4. Compute purified map if needed
+            maps = ut.alm2map(alms, 2, self.minfo, self.ainfo)
+            return alms, maps
+        return alms

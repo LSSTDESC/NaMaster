@@ -92,9 +92,11 @@ class NmtWorkspace(object):
         match the :math:`\\ell_{\\rm max}` of the fields as well.
 
         Args:
-            fl1 (:class:`~pymaster.field.NmtField`): First field to
+            fl1 (:class:`~pymaster.field.NmtField` or
+                 :class:`~pymaster.field.NmtFieldCatalog`): First field to
                 correlate.
-            fl2 (:class:`~pymaster.field.NmtField`): Second field to
+            fl2 (:class:`~pymaster.field.NmtField` or
+                 :class:`~pymaster.field.NmtFieldCatalog`): Second field to
                 correlate.
             bin (:class:`~pymaster.bins.NmtBin`): Binning scheme.
             is_teb (:obj:`bool`): If ``True``, all mode-coupling matrices
@@ -138,7 +140,7 @@ class NmtWorkspace(object):
             int(fl1.spin), int(fl2.spin),
             int(fl1.ainfo.lmax), int(fl1.ainfo_mask.lmax),
             int(fl1.pure_e), int(fl1.pure_b), int(fl2.pure_e), int(fl2.pure_b),
-            fl1.beam, fl2.beam, pcl_mask-Nw,
+            fl1.beam, fl2.beam, pcl_mask.flatten()-Nw,
             bins.bin, int(is_teb), l_toeplitz, l_exact, dl_band, Nw)
         self.has_unbinned = True
 
