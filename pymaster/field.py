@@ -680,30 +680,22 @@ class NmtFieldCatalog(NmtField):
         self.n_iter_mask = None
         self.pure_e = False
         self.pure_b = False
+        self.Nw = 0.
+        self.Ngamma = 0.
 
         # The remaining attributes are only required for non-lite maps
         self.maps = None
         self.temp = None
         self.alm_temp = None
+        self.minfo = None
         self.n_temp = 0
-        self.Nw = 0.
-        self.Ngamma = 0.
 
-        # Sanity checks on input quantities
+        # Sanity checks on positions and weights
         self.positions = np.array(positions, dtype=np.float64)
         self.weights = np.array(weights, dtype=np.float64)
-        self.field = np.array(field, dtype=np.float64)
         if np.shape(self.positions) != (2, len(self.weights)):
             raise ValueError("Weights must be 2D array of shape"
                              " (2, len(weights)).")
-        if spin is None:
-            spin = 0 if self.field.ndim == 0 else 2
-        if spin == 2 and np.shape(self.field) != (2, len(self.weights)):
-            raise ValueError("Field has wrong shape.")
-        if spin == 0 and (self.field.ndim != 1
-                          or len(self.field) != len(self.weights)):
-            raise ValueError("Field has wrong shape.")
-
         if not (np.logical_and(self.positions[0] > 0.,
                                self.positions[0] < np.pi)).all():
             raise ValueError("First dimension of positions must be colatitude"
@@ -712,24 +704,15 @@ class NmtFieldCatalog(NmtField):
                                self.positions[1] < 2.*np.pi)).all():
             raise ValueError("Second dimension of positions must be longitude"
                              " in radians, between 0 and 2*pi.")
-        self.spin = spin
-        self.nalms = 2 if spin else 1
 
-        # 1. Compute mask alms, noise and beam
-        if not field_is_weighted:
-            self.field *= self.weights
-        self.minfo = None
-        if lmax <= 0:
-            lmax = hp.Alm.getlmax(np.shape(self.alm)[-1])
+        # 1. Compute mask alms and beam
+        # Sanity checks
         if lmax_mask <= 0:
             lmax_mask = hp.Alm.getlmax(np.shape(self.alm_mask)[-1])
-        self.ainfo = ut.NmtAlmInfo(lmax)
         self.ainfo_mask = ut.NmtAlmInfo(lmax_mask)
-
+        # Mask alms
         self.alm_mask = ut._catalog2alm_ducc0(self.weights, self.positions,
-                                              spin=0, lmax=lmax_mask)
-        self.alm = ut._catalog2alm_ducc0(self.field, self.positions,
-                                         spin=spin, lmax=lmax)
+                                              spin=0, lmax=lmax_mask)[0]
         # Beam
         if isinstance(beam, (list, tuple, np.ndarray)):
             if len(beam) <= lmax:
@@ -743,7 +726,38 @@ class NmtFieldCatalog(NmtField):
                 raise ValueError("Input beam can only be an array or None\n")
         self.beam = beam_use
 
-        # 2. Compute Poisson and shear noise bias on mask pseudo-C_ell
+        # 2. Compute field alms
+        # If only positions and weights, just return here
+        if field is None:
+            if lmax <= 0:
+                raise ValueError("If field is None, lmax needs to be "
+                                 "provided.")
+            if spin is None:
+                raise ValueError("If field is None, spin needs to be "
+                                 "provided.")
+            self.ainfo = ut.NmtAlmInfo(lmax)
+            self.spin = spin
+            return
+        self.ainfo = ut.NmtAlmInfo(lmax)
+        self.field = np.array(field, dtype=np.float64)
+        # Sanity checks
+        if spin is None:
+            spin = 0 if field.ndim == 0 else 2
+        if spin == 2 and np.shape(self.field) != (2, len(self.weights)):
+            raise ValueError("Field has wrong shape.")
+        if spin == 0 and (self.field.ndim != 1
+                          or len(self.field) != len(self.weights)):
+            raise ValueError("Field has wrong shape.")
+        self.spin = spin
+        self.nalms = 2 if spin else 1
+        if not field_is_weighted:
+            self.field *= self.weights
+        if lmax <= 0:
+            lmax = hp.Alm.getlmax(np.shape(self.alm)[-1])
+        self.alm = ut._catalog2alm_ducc0(self.field, self.positions,
+                                         spin=spin, lmax=lmax)
+
+        # 3. Compute Poisson and shear noise bias on mask pseudo-C_ell
         self.Nw = np.sum(self.weights**2.)/(4.*np.pi)
         if spin == 2:
             self.Ngamma = np.sum(
