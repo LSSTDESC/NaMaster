@@ -858,17 +858,22 @@ nmt_workspace *nmt_compute_coupling_matrix(int spin1,int spin2,
     for(ll2=0;ll2<=w->lmax;ll2++) {
       for(ll3=0;ll3<=w->lmax;ll3++) {
         double fac=(2*ll3+1.)*sign_overall;
-	double Nw_term = Nw*(2*ll3+1)/(4*M_PI);
+	double Nw_term = 0;
+	if((spin1 == spin2) && (ll3 >= spin1) && (ll2 >= spin1)) {
+	  Nw_term = Nw*fac/(4*M_PI);
+	  if(spin1 > 0)
+	    Nw_term *= 0.5;
+	}
         if(w->ncls==1)
           w->coupling_matrix_unbinned[1*ll2+0][1*ll3+0]=fac*c->xi_00[0][ll2][ll3]+Nw_term; //TT,TT
         if(w->ncls==2) {
-          w->coupling_matrix_unbinned[2*ll2+0][2*ll3+0]=fac*c->xi_0s[0][pe1+pe2][ll2][ll3]+Nw_term; //TE,TE
-          w->coupling_matrix_unbinned[2*ll2+1][2*ll3+1]=fac*c->xi_0s[0][pb1+pb2][ll2][ll3]+Nw_term; //TB,TB
+          w->coupling_matrix_unbinned[2*ll2+0][2*ll3+0]=fac*c->xi_0s[0][pe1+pe2][ll2][ll3]; //TE,TE
+          w->coupling_matrix_unbinned[2*ll2+1][2*ll3+1]=fac*c->xi_0s[0][pb1+pb2][ll2][ll3]; //TB,TB
         }
         if(w->ncls==4) {
           w->coupling_matrix_unbinned[4*ll2+0][4*ll3+3]=fac*c->xi_mm[0][pe1+pe2][ll2][ll3]+Nw_term; //EE,BB
-          w->coupling_matrix_unbinned[4*ll2+1][4*ll3+2]=-fac*c->xi_mm[0][pe1+pb2][ll2][ll3]+Nw_term; //EB,BE
-          w->coupling_matrix_unbinned[4*ll2+2][4*ll3+1]=-fac*c->xi_mm[0][pb1+pe2][ll2][ll3]+Nw_term; //BE,EB
+          w->coupling_matrix_unbinned[4*ll2+1][4*ll3+2]=-fac*c->xi_mm[0][pe1+pb2][ll2][ll3]-Nw_term; //EB,BE
+          w->coupling_matrix_unbinned[4*ll2+2][4*ll3+1]=-fac*c->xi_mm[0][pb1+pe2][ll2][ll3]-Nw_term; //BE,EB
           w->coupling_matrix_unbinned[4*ll2+3][4*ll3+0]=fac*c->xi_mm[0][pb1+pb2][ll2][ll3]+Nw_term; //BB,EE
           w->coupling_matrix_unbinned[4*ll2+0][4*ll3+0]=fac*c->xi_pp[0][pe1+pe2][ll2][ll3]+Nw_term; //EE,EE
           w->coupling_matrix_unbinned[4*ll2+1][4*ll3+1]=fac*c->xi_pp[0][pe1+pb2][ll2][ll3]+Nw_term; //EB,EB
@@ -877,8 +882,8 @@ nmt_workspace *nmt_compute_coupling_matrix(int spin1,int spin2,
         }
         if(w->ncls==7) {
           w->coupling_matrix_unbinned[7*ll2+0][7*ll3+0]=fac*c->xi_00[0][ll2][ll3]+Nw_term; //TT,TT
-          w->coupling_matrix_unbinned[7*ll2+1][7*ll3+1]=fac*c->xi_0s[0][pe2][ll2][ll3]+Nw_term; //TE,TE
-          w->coupling_matrix_unbinned[7*ll2+2][7*ll3+2]=fac*c->xi_0s[0][pb2][ll2][ll3]+Nw_term; //TB,TB
+          w->coupling_matrix_unbinned[7*ll2+1][7*ll3+1]=fac*c->xi_0s[0][pe2][ll2][ll3]; //TE,TE
+          w->coupling_matrix_unbinned[7*ll2+2][7*ll3+2]=fac*c->xi_0s[0][pb2][ll2][ll3]; //TB,TB
           w->coupling_matrix_unbinned[7*ll2+3][7*ll3+6]=fac*c->xi_mm[0][pe2+pe2][ll2][ll3]+Nw_term; //EE,BB
           w->coupling_matrix_unbinned[7*ll2+4][7*ll3+5]=-fac*c->xi_mm[0][pe2+pb2][ll2][ll3]+Nw_term; //EB,BE
           w->coupling_matrix_unbinned[7*ll2+5][7*ll3+4]=-fac*c->xi_mm[0][pb2+pe2][ll2][ll3]+Nw_term; //BE,EB
