@@ -124,6 +124,7 @@ class NmtField(object):
         self.alm_mask = None
         self.n_temp = 0
         self.Nw = 0
+        self.field_noise = 0
 
         # 1. Store mask and beam
         # This ensures the mask will have the right type
@@ -719,7 +720,7 @@ class NmtFieldCatalog(NmtField):
         # 1. Compute mask alms and beam
         # Sanity checks
         if lmax_mask <= 0:
-            lmax_mask = lmax
+            lmax_mask = 2*lmax
         self.ainfo_mask = ut.NmtAlmInfo(lmax_mask)
         # Mask alms
         self.alm_mask = ut._catalog2alm_ducc0(self.weights, self.positions,
