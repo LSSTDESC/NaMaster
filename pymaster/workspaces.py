@@ -711,7 +711,9 @@ def compute_coupled_cell(f1, f2):
         field_noise = f1.field_noise
 
     cls = np.array([[hp.alm2cl(a1, a2, lmax=lmax)
-                     for a2 in alm2] for a1 in alm1]) - field_noise
+                     for a2 in alm2] for a1 in alm1])
+    for i in range(len(alm1)):
+        cls[i, i, :] -= field_noise
     cls = cls.reshape([ncl, lmax+1])
     return cls
 
