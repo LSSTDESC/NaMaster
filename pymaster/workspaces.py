@@ -137,7 +137,7 @@ class NmtWorkspace(object):
             int(fl1.ainfo.lmax), int(fl1.ainfo_mask.lmax),
             int(fl1.pure_e), int(fl1.pure_b), int(fl2.pure_e), int(fl2.pure_b),
             fl1.beam, fl2.beam, pcl_mask.flatten()-Nw,
-            bins.bin, int(is_teb), l_toeplitz, l_exact, dl_band, Nw)
+            bins.bin, int(is_teb), l_toeplitz, l_exact, dl_band)
         self.has_unbinned = True
 
     def write_to(self, fname):
