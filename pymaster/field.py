@@ -124,7 +124,7 @@ class NmtField(object):
         self.alm_mask = None
         self.n_temp = 0
         self.Nw = 0
-        self.field_noise = 0
+        self.Nf = 0
 
         # 1. Store mask and beam
         # This ensures the mask will have the right type
@@ -682,7 +682,8 @@ class NmtFieldCatalog(NmtField):
         self.pure_e = False
         self.pure_b = False
         self.Nw = 0.
-        self.field_noise = 0.
+        self.Nf = 0.
+        self.ainfo = ut.NmtAlmInfo(lmax)
 
         # The remaining attributes are only required for non-lite maps
         self.maps = None
@@ -697,25 +698,19 @@ class NmtFieldCatalog(NmtField):
         if np.shape(self.positions) != (2, len(self.weights)):
             raise ValueError("Positions must be 2D array of shape"
                              " (2, len(weights)).")
-        if not lonlat and not (np.logical_and(self.positions[0] > 0.,
+        if lonlat:
+            self.positions[0] = np.radians(90. - self.positions[1])
+            self.positions[1] = np.radians(self.positions[0])
+        if not (np.logical_and(self.positions[0] > 0.,
                                self.positions[0] < np.pi)).all():
             raise ValueError("First dimension of positions must be colatitude"
-                             " in radians, between 0 and pi.")
-        if not lonlat and not (np.logical_and(self.positions[1] > 0.,
+                             " in radians, between 0 and pi., or longitude"
+                             " in degrees, between 0 and 360.")
+        if not (np.logical_and(self.positions[1] > 0.,
                                self.positions[1] < 2.*np.pi)).all():
             raise ValueError("Second dimension of positions must be longitude"
-                             " in radians, between 0 and 2*pi.")
-        if lonlat and not (np.logical_and(self.positions[0] > 0.,
-                                          self.positions[0] < 360.)).all():
-            raise ValueError("First dimension of positions must be longitude"
-                             " in degrees, between 0 and 360.")
-        if lonlat and not (np.logical_and(self.positions[1] > -90.,
-                                          self.positions[1] < 90.)).all():
-            raise ValueError("Second dimension of positions must be latitude"
-                             " in degree, between -90 and 90.")
-        if lonlat:
-            self.positions[0] = np.radians(self.positions[1] + 90.)
-            self.positions[1] = np.radians(self.positions[0])
+                             " in radians, between 0 and 2*pi., or latitude"
+                             " in degrees, between -90 and 90.")
 
         # 1. Compute mask alms and beam
         # Sanity checks
@@ -742,21 +737,16 @@ class NmtFieldCatalog(NmtField):
         # 2. Compute field alms
         # If only positions and weights, just return here
         if field is None:
-            if lmax <= 0:
-                raise ValueError("If field is None, lmax needs to be "
-                                 "provided.")
             if spin is None:
                 raise ValueError("If field is None, spin needs to be "
                                  "provided.")
-            self.ainfo = ut.NmtAlmInfo(lmax)
             self.spin = spin
             return
-        self.ainfo = ut.NmtAlmInfo(lmax)
         self.field = np.array(field, dtype=np.float64)
         # Sanity checks
         if spin is None:
             spin = 0 if field.ndim == 1 else 2
-        if spin == 2 and np.shape(self.field) != (2, len(self.weights)):
+        if spin and np.shape(self.field) != (2, len(self.weights)):
             raise ValueError("Field has wrong shape.")
         if spin == 0 and (self.field.ndim != 1
                           or len(self.field) != len(self.weights)):
@@ -770,10 +760,4 @@ class NmtFieldCatalog(NmtField):
 
         # 3. Compute Poisson and field noise bias on mask pseudo-C_ell
         self.Nw = np.sum(self.weights**2.)/(4.*np.pi)
-        self.field_noise = np.sum(self.field**2)/(4*np.pi*self.nmaps)
-
-    def get_field_noise(self):
-        """ Get the field's total estimated noise variance, assuming the
-        expected variance at every position is given by the mean square.
-        """
-        return self.field_noise
+        self.Nf = np.sum(self.field**2)/(4*np.pi*self.nmaps)

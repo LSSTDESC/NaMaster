@@ -706,14 +706,14 @@ def compute_coupled_cell(f1, f2):
     ncl = len(alm1) * len(alm2)
     lmax = min(f1.ainfo.lmax, f2.ainfo.lmax)
 
-    field_noise = 0
+    Nf = 0
     if f2 is f1:
-        field_noise = f1.field_noise
+        Nf = f1.Nf
 
     cls = np.array([[hp.alm2cl(a1, a2, lmax=lmax)
                      for a2 in alm2] for a1 in alm1])
     for i in range(len(alm1)):
-        cls[i, i, :] -= field_noise
+        cls[i, i, :] -= Nf
     cls = cls.reshape([ncl, lmax+1])
     return cls
 
