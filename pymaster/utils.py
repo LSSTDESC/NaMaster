@@ -840,6 +840,14 @@ _a2m_d = {'ducc': _alm2map_ducc0,
           'healpy': _alm2map_healpy}
 
 
+def _catalog2alm_ducc0(values, positions, spin, lmax):
+    if values.ndim == 1:
+        values = values.reshape((1, -1))
+    alm = ducc0.sht.adjoint_synthesis_general(lmax=lmax, map=values,
+                                              loc=positions.T, spin=int(spin))
+    return alm
+
+
 def map2alm(map, spin, map_info, alm_info, *, n_iter):
     """ Computes the spherical harmonic transform (SHT)
     for a set of input maps. The SHT implementation to

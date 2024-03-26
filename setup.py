@@ -32,7 +32,7 @@ else:
 
 libs = ['cfitsio', 'gsl', 'gslcblas', 'm'] + FFTW_LIBS
 
-use_icc = False  # Set to True if you compiled libsharp with icc
+use_icc = False
 if use_icc:
     extra = []
     if USE_OPENMP:

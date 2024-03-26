@@ -64,7 +64,7 @@ from pymaster.utils import (  # noqa
     moore_penrose_pinvh,
     map2alm, alm2map,
 )
-from pymaster.field import NmtField, NmtFieldFlat  # noqa
+from pymaster.field import NmtField, NmtFieldFlat, NmtFieldCatalog  # noqa
 from pymaster.bins import NmtBin, NmtBinFlat  # noqa
 from pymaster.workspaces import (  # noqa
     NmtWorkspace,
