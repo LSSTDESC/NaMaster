@@ -123,8 +123,9 @@ class NmtField(object):
         # The mask alms are only stored if computed for non-lite maps
         self.alm_mask = None
         self.n_temp = 0
-        self.Nw = 0
-        self.Nf = 0
+        # The Nw and Nf are protected and made available as @property below
+        self._Nw = 0
+        self._Nf = 0
 
         # 1. Store mask and beam
         # This ensures the mask will have the right type
@@ -416,6 +417,14 @@ class NmtField(object):
             return alms, maps
         return alms
 
+    @property
+    def Nw(self):
+        return self._Nw
+
+    @property
+    def Nf(self):
+        return self._Nf
+
 
 class NmtFieldFlat(object):
     """ An :obj:`NmtFieldFlat` object contains all the information
@@ -681,8 +690,6 @@ class NmtFieldCatalog(NmtField):
         self.n_iter_mask = None
         self.pure_e = False
         self.pure_b = False
-        self.Nw = 0.
-        self.Nf = 0.
         self.ainfo = ut.NmtAlmInfo(lmax)
 
         # The remaining attributes are only required for non-lite maps
@@ -693,21 +700,21 @@ class NmtFieldCatalog(NmtField):
         self.n_temp = 0
 
         # Sanity checks on positions and weights
-        self.positions = np.array(positions, dtype=np.float64)
-        self.weights = np.array(weights, dtype=np.float64)
-        if np.shape(self.positions) != (2, len(self.weights)):
+        positions = np.array(positions, dtype=np.float64)
+        weights = np.array(weights, dtype=np.float64)
+        if np.shape(positions) != (2, len(weights)):
             raise ValueError("Positions must be 2D array of shape"
                              " (2, len(weights)).")
         if lonlat:
-            self.positions[0] = np.radians(90. - self.positions[1])
-            self.positions[1] = np.radians(self.positions[0])
-        if not (np.logical_and(self.positions[0] > 0.,
-                               self.positions[0] < np.pi)).all():
+            positions[0] = np.radians(90. - positions[1])
+            positions[1] = np.radians(positions[0])
+        if not (np.logical_and(positions[0] >= 0.,
+                               positions[0] <= np.pi)).all():
             raise ValueError("First dimension of positions must be colatitude"
                              " in radians, between 0 and pi., or longitude"
                              " in degrees, between 0 and 360.")
-        if not (np.logical_and(self.positions[1] > 0.,
-                               self.positions[1] < 2.*np.pi)).all():
+        if not (np.logical_and(positions[1] >= 0.,
+                               positions[1] <= 2.*np.pi)).all():
             raise ValueError("Second dimension of positions must be longitude"
                              " in radians, between 0 and 2*pi., or latitude"
                              " in degrees, between -90 and 90.")
@@ -718,7 +725,7 @@ class NmtFieldCatalog(NmtField):
             lmax_mask = 2*lmax
         self.ainfo_mask = ut.NmtAlmInfo(lmax_mask)
         # Mask alms
-        self.alm_mask = ut._catalog2alm_ducc0(self.weights, self.positions,
+        self.alm_mask = ut._catalog2alm_ducc0(weights, positions,
                                               spin=0, lmax=lmax_mask)[0]
         # Beam
         if isinstance(beam, (list, tuple, np.ndarray)):
@@ -746,18 +753,18 @@ class NmtFieldCatalog(NmtField):
         # Sanity checks
         if spin is None:
             spin = 0 if field.ndim == 1 else 2
-        if spin and np.shape(self.field) != (2, len(self.weights)):
+        if spin and np.shape(self.field) != (2, len(weights)):
             raise ValueError("Field has wrong shape.")
         if spin == 0 and (self.field.ndim != 1
-                          or len(self.field) != len(self.weights)):
+                          or len(self.field) != len(weights)):
             raise ValueError("Field has wrong shape.")
         self.spin = spin
         self.nmaps = 2 if spin else 1
         if not field_is_weighted:
-            self.field *= self.weights
-        self.alm = ut._catalog2alm_ducc0(self.field, self.positions,
+            self.field *= weights
+        self.alm = ut._catalog2alm_ducc0(self.field, positions,
                                          spin=spin, lmax=lmax)
 
         # 3. Compute Poisson and field noise bias on mask pseudo-C_ell
-        self.Nw = np.sum(self.weights**2.)/(4.*np.pi)
-        self.Nf = np.sum(self.field**2)/(4*np.pi*self.nmaps)
+        self._Nw = np.sum(weights**2.)/(4.*np.pi)
+        self._Nf = np.sum(self.field**2)/(4*np.pi*self.nmaps)
