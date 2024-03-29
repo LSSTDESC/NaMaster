@@ -690,6 +690,8 @@ class NmtFieldCatalog(NmtField):
         self.n_iter_mask = None
         self.pure_e = False
         self.pure_b = False
+        self._Nw = 0.
+        self._Nf = 0.
         self.ainfo = ut.NmtAlmInfo(lmax)
 
         # The remaining attributes are only required for non-lite maps
