@@ -718,6 +718,9 @@ class NmtFieldCatalog(NmtField):
             raise ValueError("Second dimension of positions must be longitude"
                              " in radians, between 0 and 2*pi., or latitude"
                              " in degrees, between -90 and 90.")
+        
+        # Compute mask shot noise
+        self._Nw = np.sum(weights**2.)/(4.*np.pi)
 
         # 1. Compute mask alms and beam
         # Sanity checks
@@ -765,6 +768,5 @@ class NmtFieldCatalog(NmtField):
         self.alm = ut._catalog2alm_ducc0(self.field, positions,
                                          spin=spin, lmax=lmax)
 
-        # 3. Compute Poisson and field noise bias on mask pseudo-C_ell
-        self._Nw = np.sum(weights**2.)/(4.*np.pi)
+        # 3. Compute field noise bias on mask pseudo-C_ell
         self._Nf = np.sum(self.field**2)/(4*np.pi*self.nmaps)
