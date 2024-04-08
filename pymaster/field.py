@@ -725,7 +725,7 @@ class NmtFieldCatalog(NmtField):
         # 1. Compute mask alms and beam
         # Sanity checks
         if lmax_mask <= 0:
-            lmax_mask = 2*lmax
+            lmax_mask = 4*lmax
         self.ainfo_mask = ut.NmtAlmInfo(lmax_mask)
         # Mask alms
         self.alm_mask = ut._catalog2alm_ducc0(weights, positions,
