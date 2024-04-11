@@ -720,7 +720,7 @@ class NmtFieldCatalog(NmtField):
             raise ValueError("Second dimension of positions must be longitude"
                              " in radians, between 0 and 2*pi., or latitude"
                              " in degrees, between -90 and 90.")
-        
+
         # Compute mask shot noise
         self._Nw = np.sum(weights**2.)/(4.*np.pi)
 
