@@ -47,6 +47,9 @@ the ordering is as follows:
 All sky maps accepted and returned by these functions are \
 in the form of HEALPix maps exclusively with RING ordering.
 """
+from importlib.metadata import version
+__version__ = version(__name__)
+
 from pymaster import nmtlib as lib  # noqa
 import numpy as np  # noqa
 from pymaster.utils import (  # noqa
