@@ -1,3 +1,13 @@
+# v2.0-beta
+  Improved error messages (#187)
+  Migrated to ducc from libsharp (#183)
+
+# v1.6
+  Bugfix: sign of Wigner 3j symbols (#180)
+  Faster method for spin-0 Wigner 3j symbols (#178)
+  No deprojection bias for lite fields (#177)
+  Bugfix for rectangular covariances (#175)
+
 # v1.5.1
 - Bugfix in Toeplitz calculation (#169)
 - Bugfix for rectangular covariances (#175)
