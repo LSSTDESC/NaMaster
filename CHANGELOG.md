@@ -1,4 +1,4 @@
-# v2.0-beta
+# v2.0b
   Improved error messages (#187)
   Migrated to ducc from libsharp (#183)
 
