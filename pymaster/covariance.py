@@ -302,7 +302,10 @@ def gaussian_covariance(cw, spin_a1, spin_a2, spin_b1, spin_b2,
        (len(cla1b2[0]) < cw.wsp.lmax + 1) or \
        (len(cla2b1[0]) < cw.wsp.lmax + 1) or \
        (len(cla2b2[0]) < cw.wsp.lmax + 1):
-        raise ValueError("Input C_ls have a weird length")
+        raise ValueError("Input C_ls have a weird length. "
+                         f"Expected {cw.wsp.lmax+1}, but got "
+                         f"({len(cla1b1[0])}, {len(cla1b2[0])}, "
+                         f"{len(cla2b1[0])}, {len(cla2b2[0])}).")
 
     if coupled:
         len_a = wa.wsp.ncls * (cw.wsp.lmax+1)
@@ -357,7 +360,10 @@ def gaussian_covariance_flat(cw, spin_a1, spin_a2, spin_b1, spin_b2, larr,
         or (len(cla2b1[0]) != len(larr))
         or (len(cla2b2[0]) != len(larr))
     ):
-        raise ValueError("Input C_ls have a weird length")
+        raise ValueError("Input C_ls have a weird length. "
+                         f"Expected {len(larr)}, but got "
+                         f"({len(cla1b1[0])}, {len(cla1b2[0])}, "
+                         f"{len(cla2b1[0])}, {len(cla2b2[0])}).")
     len_a = wa.wsp.ncls * cw.wsp.bin.n_bands
     len_b = wb.wsp.ncls * cw.wsp.bin.n_bands
 

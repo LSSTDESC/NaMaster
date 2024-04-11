@@ -116,7 +116,8 @@ class NmtWorkspace(object):
         if not fl1.is_compatible(fl2):
             raise ValueError("Fields have incompatible pixelizations.")
         if fl1.ainfo.lmax != bins.lmax:
-            raise ValueError("Maximum multipoles in bins and fields "
+            raise ValueError(f"Maximum multipoles in bins ({bins.lmax}) "
+                             f"and fields ({fl1.ainfo.lmax}) "
                              "are not the same.")
         if self.wsp is not None:
             lib.workspace_free(self.wsp)
@@ -187,7 +188,9 @@ class NmtWorkspace(object):
             raise RuntimeError("Must initialize workspace before updating MCM")
         self.check_unbinned()
         if len(new_matrix) != (self.wsp.lmax + 1) * self.wsp.ncls:
-            raise ValueError("Input matrix has an inconsistent size")
+            raise ValueError("Input matrix has an inconsistent size. "
+                             f"Expected {(self.wsp.lmax+1)*self.wsp.ncls}, "
+                             f"but got {len(new_matrix)}.")
         lib.update_mcm(self.wsp, len(new_matrix), new_matrix.flatten())
 
     def couple_cell(self, cl_in):
@@ -206,7 +209,9 @@ class NmtWorkspace(object):
         """
         if (len(cl_in) != self.wsp.ncls) or \
            (len(cl_in[0]) < self.wsp.lmax + 1):
-            raise ValueError("Input power spectrum has wrong shape")
+            raise ValueError("Input power spectrum has wrong shape. "
+                             f"Expected ({self.wsp.ncls}, {self.wsp.lmax+1}), "
+                             f"bu got {cl_in.shape}.")
         self.check_unbinned()
 
         # Shorten C_ells if they're too long
@@ -239,19 +244,26 @@ class NmtWorkspace(object):
         """
         if (len(cl_in) != self.wsp.ncls) or \
            (len(cl_in[0]) < self.wsp.lmax + 1):
-            raise ValueError("Input power spectrum has wrong shape")
+            raise ValueError("Input power spectrum has wrong shape. "
+                             f"Expected ({self.wsp.ncls}, {self.wsp.lmax+1}), "
+                             f"but got {cl_in.shape}")
         if cl_bias is not None:
             if (len(cl_bias) != self.wsp.ncls) or \
                (len(cl_bias[0]) < self.wsp.lmax + 1):
-                raise ValueError("Input bias power spectrum has wrong shape")
+                raise ValueError(
+                    "Input bias power spectrum has wrong shape. "
+                    f"Expected ({self.wsp.ncls}, {self.wsp.lmax+1}), "
+                    f"but got {cl_bias.shape}")
             clb = cl_bias.copy()
         else:
             clb = np.zeros_like(cl_in)
         if cl_noise is not None:
-            if (len(cl_noise) != self.wsp.ncls) or (
-                len(cl_noise[0]) < self.wsp.lmax + 1
-            ):
-                raise ValueError("Input noise power spectrum has wrong shape")
+            if (len(cl_noise) != self.wsp.ncls) or \
+               (len(cl_noise[0]) < self.wsp.lmax + 1):
+                raise ValueError(
+                    "Input noise power spectrum has wrong shape. "
+                    f"Expected ({self.wsp.ncls}, {self.wsp.lmax+1}), "
+                    f"but got {cl_noise.shape}")
             cln = cl_noise.copy()
         else:
             cln = np.zeros_like(cl_in)
@@ -383,7 +395,9 @@ class NmtWorkspaceFlat(object):
                 any of the fields that were used to generate the workspace.
         """
         if (len(cl_in) != self.wsp.ncls) or (len(cl_in[0]) != len(ells)):
-            raise ValueError("Input power spectrum has wrong shape")
+            raise ValueError("Input power spectrum has wrong shape. "
+                             f"Expected ({self.wsp.ncls}, {len(ells)}, "
+                             f"but got {cl_in.shape}.")
         cl1d = lib.couple_cell_py_flat(
             self.wsp, ells, cl_in, self.wsp.ncls * self.wsp.bin.n_bands
         )
@@ -416,19 +430,27 @@ class NmtWorkspaceFlat(object):
         """
         if (len(cl_in) != self.wsp.ncls) or \
            (len(cl_in[0]) != self.wsp.bin.n_bands):
-            raise ValueError("Input power spectrum has wrong shape")
+            raise ValueError(
+                "Input power spectrum has wrong shape. "
+                f"Expected ({self.wsp.ncls}, {self.wsp.bin.n_bands}), "
+                f"but got {cl_in.shape}")
         if cl_bias is not None:
             if (len(cl_bias) != self.wsp.ncls) or \
                (len(cl_bias[0]) != self.wsp.bin.n_bands):
-                raise ValueError("Input bias power spectrum has wrong shape")
+                raise ValueError(
+                    "Input bias power spectrum has wrong shape. "
+                    f"Expected ({self.wsp.ncls}, {self.wsp.bin.n_bands}), "
+                    f"but got {cl_bias.shape}.")
             clb = cl_bias.copy()
         else:
             clb = np.zeros_like(cl_in)
         if cl_noise is not None:
-            if (len(cl_noise) != self.wsp.ncls) or (
-                len(cl_noise[0]) != self.wsp.bin.n_bands
-            ):
-                raise ValueError("Input noise power spectrum has wrong shape")
+            if (len(cl_noise) != self.wsp.ncls) or \
+               (len(cl_noise[0]) != self.wsp.bin.n_bands):
+                raise ValueError(
+                    "Input noise power spectrum has wrong shape. "
+                    f"Expected ({self.wsp.ncls}, {self.wsp.bin.n_bands}), "
+                    f"but got {cl_noise.shape}.")
             cln = cl_noise.copy()
         else:
             cln = np.zeros_like(cl_in)
