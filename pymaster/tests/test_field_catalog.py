@@ -215,12 +215,25 @@ def test_field_catalog_errors():
     with pytest.raises(ValueError):  # Trash lonlat latitude
         nmt.NmtFieldCatalog([[0., 0.], [-30., 120.]], [1., 1.], [1., 1.], 10,
                             lonlat=True)
+
+    f = nmt.NmtFieldCatalog(  # Check beam
+        [[0., 0.], [1., 1.]], [1., 1.], [1., 1.], 10, beam=np.ones(20)
+    )
+    assert np.array_equal(f.beam, np.ones(20))
     with pytest.raises(ValueError):  # Passing crap beam
         nmt.NmtFieldCatalog([[0., 0.], [1., 1.]], [1., 1.], [1., 1.], 10,
                             beam=1)
     with pytest.raises(ValueError):  # Passing mismatching beam
         nmt.NmtFieldCatalog([[0., 0.], [1., 1.]], [1., 1.], [1., 1.], 10,
-                            beam=[1.])
+                            beam=np.ones(10))
+
+    f = nmt.NmtFieldCatalog(  # Check spin
+        [[0., 0.], [1., 1.]], [1., 1.], [[1., 1.], [1., 1.]], 10, spin=2
+    )
+    assert (f.spin == 2)
+    with pytest.raises(ValueError):  # Spin = 2 but single map
+        nmt.NmtFieldCatalog([[0., 0.], [1., 1.]], [1., 1.], [1., 1.], 10,
+                            spin=2)
     # Automatically assign spin = 0 for a single field
     f = nmt.NmtFieldCatalog([[0., 0.], [1., 1.]], [1., 1.], [1., 1.], 10)
     assert (f.spin == 0)
