@@ -209,11 +209,8 @@ def test_field_catalog_errors():
         nmt.NmtFieldCatalog([[0., 0.]], [1., 1.], [1., 1.], 10)
     with pytest.raises(ValueError):  # Trash angles (th, phi)
         nmt.NmtFieldCatalog([[-1., 0.], [1., 1.]], [1., 1.], [1., 1.], 10)
-    with pytest.raises(ValueError):  # Trash lonlat longitude
-        nmt.NmtFieldCatalog([[-45., 0.], [30., 120.]], [1., 1.], [1., 1.], 10,
-                            lonlat=True)
-    with pytest.raises(ValueError):  # Trash lonlat latitude
-        nmt.NmtFieldCatalog([[0., 0.], [-30., 120.]], [1., 1.], [1., 1.], 10,
+    with pytest.raises(ValueError):  # Trash latitude (lonlat=True)
+        nmt.NmtFieldCatalog([[0., 0.], [930., 420.]], [1., 1.], [1., 1.], 10,
                             lonlat=True)
 
     f = nmt.NmtFieldCatalog(  # Check beam
@@ -229,6 +226,10 @@ def test_field_catalog_errors():
 
     f = nmt.NmtFieldCatalog(  # Check spin
         [[0., 0.], [1., 1.]], [1., 1.], [[1., 1.], [1., 1.]], 10, spin=2
+    )
+    assert (f.spin == 2)
+    f = nmt.NmtFieldCatalog(  # Spin provided if field is None
+        [[0., 0.], [1., 1.]], [1., 1.], None, 10, spin=2
     )
     assert (f.spin == 2)
     with pytest.raises(ValueError):  # Spin = 2 but single map

@@ -712,14 +712,12 @@ class NmtFieldCatalog(NmtField):
             positions[1] = np.radians(positions[0])
         if not (np.logical_and(positions[0] >= 0.,
                                positions[0] <= np.pi)).all():
-            raise ValueError("First dimension of positions must be colatitude"
-                             " in radians, between 0 and pi., or longitude"
-                             " in degrees, between 0 and 360.")
-        if not (np.logical_and(positions[1] >= 0.,
-                               positions[1] <= 2.*np.pi)).all():
-            raise ValueError("Second dimension of positions must be longitude"
-                             " in radians, between 0 and 2*pi., or latitude"
-                             " in degrees, between -90 and 90.")
+            if lonlat:
+                raise ValueError("Second dimension of positions must be "
+                                 "latitude in degrees, between -90 and 90.")
+            else:
+                raise ValueError("First dimension of positions must be "
+                                 "colatitude in radians, between 0 and pi.")
 
         # Compute mask shot noise
         self._Nw = np.sum(weights**2.)/(4.*np.pi)
