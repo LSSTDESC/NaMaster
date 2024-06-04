@@ -757,7 +757,7 @@ class NmtFieldCatalog(NmtField):
         self.field = np.array(field, dtype=np.float64)
         # Sanity checks
         if spin is None:
-            spin = 0 if field.ndim == 1 else 2
+            spin = 0 if self.field.ndim == 1 else 2
         if spin and np.shape(self.field) != (2, len(weights)):
             raise ValueError("Field has wrong shape.")
         if spin == 0 and (self.field.ndim != 1
