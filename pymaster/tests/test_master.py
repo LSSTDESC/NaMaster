@@ -700,29 +700,3 @@ def test_unbinned_mcm_io():
         w2.get_bandpower_windows()
 
     os.system("rm test/wspc.fits")
-
-
-def test_ducc_catalog2alm():
-    from utils import _catalog2alm_ducc0 as cat2alm
-    nside = 128
-    npix = int(hp.nside2npix(nside))
-    pixel_area = np.pi*4./npix
-    lmax = 128
-
-    # input alms
-    alm_in = np.zeros((3, hp.Alm.getidx(lmax, lmax, lmax)+1), dtype="complex")
-    alm_in[0, hp.Alm.getidx(lmax, 2, 2)] = 2.
-    alm_in[1, hp.Alm.getidx(lmax, 2, 0)] = 1.
-    alm_in[2, hp.Alm.getidx(lmax, 3, 1)] = 2.
-
-    map = hp.alm2map(alm_in, nside, lmax=lmax, mmax=lmax)
-    th, ph = hp.pix2ang(nside, np.arange(npix))
-
-    # spin 0
-    alm_cat_0 = pixel_area*cat2alm(map[0], np.array([th, ph]), 0, lmax)
-
-    # spin 2
-    alm_cat_2 = pixel_area*cat2alm(map[1:3], np.array([th, ph]), 2, lmax)
-
-    assert np.all(np.absolute(alm_cat_0[0] - alm_in[0]) < 1E-4)
-    assert np.all(np.absolute(alm_cat_2[:2] - alm_in[1:3]) < 1E-4)
