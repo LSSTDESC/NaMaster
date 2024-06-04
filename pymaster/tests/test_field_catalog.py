@@ -209,12 +209,18 @@ def test_field_catalog_errors():
         nmt.NmtFieldCatalog([[0., 0.]], [1., 1.], [1., 1.], 10)
     with pytest.raises(ValueError):  # Trash angles (th, phi)
         nmt.NmtFieldCatalog([[-1., 0.], [1., 1.]], [1., 1.], [1., 1.], 10)
-    with pytest.raises(ValueError):  # Trash angles (lon, lat)
+    with pytest.raises(ValueError):  # Trash lonlat longitude
         nmt.NmtFieldCatalog([[-45., 0.], [30., 120.]], [1., 1.], [1., 1.], 10,
+                            lonlat=True)
+    with pytest.raises(ValueError):  # Trash lonlat latitude
+        nmt.NmtFieldCatalog([[0., 0.], [-30., 120.]], [1., 1.], [1., 1.], 10,
                             lonlat=True)
     with pytest.raises(ValueError):  # Passing crap beam
         nmt.NmtFieldCatalog([[0., 0.], [1., 1.]], [1., 1.], [1., 1.], 10,
                             beam=1)
+    with pytest.raises(ValueError):  # Passing mismatching beam
+        nmt.NmtFieldCatalog([[0., 0.], [1., 1.]], [1., 1.], [1., 1.], 10,
+                            beam=[1.])
     # Automatically assign spin = 0 for a single field
     f = nmt.NmtFieldCatalog([[0., 0.], [1., 1.]], [1., 1.], [1., 1.], 10)
     assert (f.spin == 0)
@@ -228,3 +234,11 @@ def test_field_catalog_errors():
     with pytest.raises(ValueError):  # Spin = 2 but single map
         f = nmt.NmtFieldCatalog([[0., 0.], [1., 1.]], [1., 1.],
                                 [1., 1.], 10, spin=2)
+    with pytest.raises(ValueError):  # Field is none but spin is not provided
+        f = nmt.NmtFieldCatalog([[0., 0.], [1., 1.]], [1., 1.], None, 10)
+
+    nmt.utils.HAVE_DUCC = False  # Fake us not having ducc
+    with pytest.raises(ValueError):
+        nmt.NmtFieldCatalog([[0., 0.], [1., 1.]], [1., 1.],
+                            [[1., 1.], [1., 1.]], 10)
+    nmt.utils.HAVE_DUCC = True
