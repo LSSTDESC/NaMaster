@@ -104,6 +104,43 @@ def test_field_get_alms():
     assert (np.all(np.fabs(cl_bb_nmt[2:]/cl_bb[2:]-1) < 1E-10))
 
 
+def test_field_map_alm():
+    # Compare map-based alms with analytical input and make sure they
+    # are equal up to numerical accuracy.
+    nside = 32
+    npix = int(hp.nside2npix(nside))
+    lmax = 20
+
+    msk = np.ones(npix)
+    mps = np.zeros([3, npix])
+    th, ph = hp.pix2ang(nside, np.arange(npix))
+    sth = np.sin(th)
+    cth = np.cos(th)
+    # Re(Y_22)
+    mps[0] = np.sqrt(15./2./np.pi)*sth**2*np.cos(2*ph)
+    # _2Y^E_20 + _2Y^B_30
+    mps[1] = -np.sqrt(15./2./np.pi)*sth**2/4.
+    mps[2] = -np.sqrt(105./2./np.pi)*cth*sth**2/2.
+
+    # spin 0
+    f0_map = nmt.NmtField(msk, [mps[0]], lmax=lmax)
+
+    # spin 2
+    f2_map = nmt.NmtField(msk, [mps[1], mps[2]], lmax=lmax)
+
+    alms_map = np.array([f0_map.get_alms()[0],
+                         f2_map.get_alms()[0],
+                         f2_map.get_alms()[1]])
+
+    alms_in = np.zeros_like(alms_map)
+    alms_in[0, hp.Alm.getidx(lmax, 2, 2)] = 2.
+    alms_in[1, hp.Alm.getidx(lmax, 2, 0)] = 1.
+    alms_in[2, hp.Alm.getidx(lmax, 3, 0)] = 2.
+
+    for f_idx in range(3):
+        assert np.all(np.absolute(alms_map - alms_in)[f_idx] < 1.e-12)
+
+
 def test_field_masked():
     nside = 64
     b = nmt.NmtBin.from_nside_linear(nside, 16)
