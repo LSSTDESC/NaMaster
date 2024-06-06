@@ -37,7 +37,7 @@ If all the above fail, try to install NaMaster from its source. You should first
 1. Install dependencies.
 ------------------------
 
-Install the dependencies listed :ref:`here <dependencies>`. Note that some of them (libsharp and HEALPix) may not be necessary, as pymaster will attempt to install them automatically.
+Install the dependencies listed :ref:`here <dependencies>`. Note that some of them (HEALPix) may not be necessary, as pymaster will attempt to install them automatically.
 
 2. Install the python module
 ----------------------------
@@ -108,7 +108,6 @@ NaMaster has the following dependencies, which should be present in your system 
 * `FFTW <http://www.fftw.org/>`_. Version 3 required. Install with ``--enable-openmp`` and potentially also ``--enable-shared``.
 * `cfitsio <https://heasarc.gsfc.nasa.gov/fitsio/>`_. Any version >3 should work.
 
-Besides these, NaMaster will attempt to install the following two dependencies. If this fails, or if you'd like to use your own preinstalled versions, follow these instructions:
+Besides these, NaMaster will attempt to install the following additional dependency. If this fails, or if you'd like to use your own preinstalled versions, follow these instructions:
 
-* `libsharp <https://github.com/Libsharp/libsharp>`_. Libsharp is automatically installed with NaMaster. ``setup.py`` attempts to download and install libsharp automatically. This is done by running the script ``scripts/install_libsharp.sh``. If you encounter any trouble during this step, inspect the contents of that file. Libsharp gets installed in ``_deps/lib`` and ``_deps/include``. However, if you want to use your own preinstalled version of libsharp, you should simlink it into the directory ``_deps``, such that ``_deps/lib/libsharp.a`` can be seen. See instructions in ``NERSC_installation.md`` for more details on libsharp. 
-* `HEALPix <https://sourceforge.net/projects/healpix/>`_. Like libsharp, HEALPix is automatically installed by ``setup.py`` by running the script ``scripts/install_libchealpix.sh`` (have a look there if you run into trouble). HEALPix gets installed in ``_deps/lib`` and ``_deps/include``. However, if you want to use your own preinstalled version , you should simlink it into the directory ``_deps``, such that ``_deps/lib/libchealpix.a`` can be seen. Any version >2 should work. Only the C libraries are needed.
+* `HEALPix <https://sourceforge.net/projects/healpix/>`_. HEALPix is automatically installed by ``setup.py`` by running the script ``scripts/install_libchealpix.sh`` (have a look there if you run into trouble). HEALPix gets installed in ``_deps/lib`` and ``_deps/include``. However, if you want to use your own preinstalled version , you should simlink it into the directory ``_deps``, such that ``_deps/lib/libchealpix.a`` can be seen. Any version >2 should work. Only the C libraries are needed.

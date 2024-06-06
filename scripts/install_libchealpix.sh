@@ -30,7 +30,7 @@ make
 if [ $? -eq 0 ]; then
     echo "Successful make."
 else
-    echo "ERROR: couldn't compile libsharp. Make sure CFITSIO is installed."
+    echo "ERROR: couldn't compile HEALPix. Make sure CFITSIO is installed."
     echo "       You may need to add the correct path to CPPFLAGS, LDFLAGS and LD_LIBRARY_PATHS."
     echo "       E.g.:"
     echo "         >$ export CPPFLAGS+=\" -I/path/to/cfitsio/include\""

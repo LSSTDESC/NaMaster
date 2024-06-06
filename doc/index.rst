@@ -3,14 +3,12 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to pymaster's documentation!
+Welcome to NaMaster's documentation!
 ====================================
 
-pymaster is the python implementation of the NaMaster library. The main purpose of this library is to provide support to compute the angular power spectrum of fields defined on a limited region of the sphere using the so-called pseudo-CL formalism.
+NaMaster is a python package that provides support to compute tha angular power spectrum of masked fields with arbitrary spin pymaster using the so-called pseudo-Cl formalism. ``pymaster`` is the python implementation of the NaMaster library. Below you can find links to NaMaster's full documentation and various example scripts showcasing its usage. Understanding these scripts will allow you to make the most efficient use of this package.
 
-Below you can find links to pymaster's full documentation and 8 different example scripts showcasing its usage. Understanding the last script in particular will allow you to make the most efficient use of this module.
-
-We recommend that users read NaMaster's :download:`scientific documentation <doc_scientific.pdf>` to have a good understanding of the methods implemented in it.
+We recommend that users read NaMaster's :download:`scientific documentation <doc_scientific.pdf>`, as well as the original paper `Alonso et al. 2019 <https://arxiv.org/abs/1809.09603>`_ to have a good understanding of the methods implemented in the library. Additional useful information, particularly regarding the calculation of covariance matrices, can be found in `Garcia-Garcia et al. 2019 <https://arxiv.org/abs/1906.11765>`_, and `Nicola et al. 2021 <https://arxiv.org/abs/2010.09717>`_. We kindly request that you cite these papers where relevant.
 
 .. toctree::
    :maxdepth: 1
