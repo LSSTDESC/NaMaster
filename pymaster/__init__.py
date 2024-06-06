@@ -49,8 +49,13 @@ functions are in the form of HEALPix maps exclusively with RING \
 ordering. Note that NaMaster also supports CAR (Plate Carree) \
 pixelization (see Example 9 in documentation).
 """
-from importlib.metadata import version
-__version__ = version(__name__)
+try:
+    from importlib.metadata import version
+    __version__ = version(__name__)
+except:  # noqa
+    # This will happen on RTD, but that's fine
+    __version__ = 'RTD'
+    pass
 
 from pymaster import nmtlib as lib  # noqa
 import numpy as np  # noqa

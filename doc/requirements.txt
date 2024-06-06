@@ -4,4 +4,3 @@ numpy
 scipy
 docutils
 sphinx_rtd_theme
--e .
