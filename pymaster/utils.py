@@ -57,7 +57,7 @@ class NmtParams(object):
     All variables can be changed using the ``set_`` methods described below,
     and their current values can be checked with :meth:`get_default_params`.
     Note that, except for ``sht_calculator``, all of these variables can
-    be tweaked when calling different various NaMaster functions. The
+    be tweaked when calling various NaMaster functions. The
     values stored in this object only hold the values they default to if
     they are not set in those function calls.
     """

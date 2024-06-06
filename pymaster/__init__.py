@@ -1,5 +1,5 @@
 """
-:mod:`pymaster` contains three basic classes:
+:mod:`pymaster` contains four basic classes:
 
 - :class:`pymaster.field.NmtField`
 - :class:`pymaster.bins.NmtBin`
@@ -34,21 +34,28 @@ Many of these function accept or return sets of power \
 spectra (arrays with one element per angular multipole) \
 or bandpowers (binned versions of power spectra). In \
 all cases, these are returned and provided as 2D arrays \
-with shape [n_cls][nl], where n_cls is the number of \
-power spectra and nl is either the number of multipoles \
-or bandpowers. In all cases, n_cls should correspond \
+with shape ``[n_cls][nl]``, where ``n_cls`` is the number of \
+power spectra and ``nl`` is either the number of multipoles \
+or bandpowers. In all cases, ``n_cls`` should correspond \
 with the spins of the two fields being correlated, and \
 the ordering is as follows:
 
-- Two spin-0 fields: n_cls=1, [C_T1T2]
-- One spin-0 field and one spin>0 field: n_cls=2, [C_TE,C_TB]
-- Two spin>0 fields: n_cls=4, [C_E1E2,C_E1B2,C_E2B1,C_B1B2]
+- Two spin-0 fields: ``n_cls`` = 1, [C_T1T2]
+- One spin-0 field and one spin>0 field: ``n_cls`` = 2, [C_TE,C_TB]
+- Two spin>0 fields: ``n_cls`` = 4, [C_E1E2,C_E1B2,C_E2B1,C_B1B2]
 
-All sky maps accepted and returned by these functions are \
-in the form of HEALPix maps exclusively with RING ordering.
+By defaut, all sky maps accepted and returned by the curved-sky \
+functions are in the form of HEALPix maps exclusively with RING \
+ordering. Note that NaMaster also supports CAR (Plate Carree) \
+pixelization (see Example 9 in documentation).
 """
-from importlib.metadata import version
-__version__ = version(__name__)
+try:
+    from importlib.metadata import version
+    __version__ = version(__name__)
+except:  # noqa
+    # This will happen on RTD, but that's fine
+    __version__ = 'RTD'
+    pass
 
 from pymaster import nmtlib as lib  # noqa
 import numpy as np  # noqa
