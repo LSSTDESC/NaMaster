@@ -2,7 +2,7 @@ CC = icc
 OPTIONS = -Wall -openmp -O3
 INC=-I/users/damonge/include -I../../src -I./src
 LIB=-L/users/damonge/lib -L/usr/local/lib64
-LIBALL=-lnmt -lfftw3 -lfftw3_omp -lgsl -lgslcblas -lcfitsio -lsharp -lfftpack -lc_utils -lm
+LIBALL=-lnmt -lfftw3 -lfftw3_omp -lgsl -lgslcblas -lcfitsio -lfftpack -lc_utils -lm
 
 UTILS = src/timing_utils.o
 FIELD = src/timing_field.o

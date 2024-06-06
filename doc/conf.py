@@ -25,7 +25,8 @@ root_path = abspath(pjoin(this_dir, '../'))
 if os.path.isdir(root_path):
     sys.path.insert(0, root_path)
 
-on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
+on_rtd = True
+#os.environ.get('READTHEDOCS', None) == 'True'
 if on_rtd:
     try:
         from unittest.mock import MagicMock
@@ -79,7 +80,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'pymaster'
-copyright = u'2023 David Alonso'
+copyright = u'2024 David Alonso'
 author = u'David Alonso'
 
 # The version info for the project you're documenting, acts as replacement for

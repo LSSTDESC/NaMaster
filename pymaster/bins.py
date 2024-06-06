@@ -17,8 +17,8 @@ class NmtBin(object):
     """:obj:`NmtBin` objects define the set of bandpowers used in the
     computation of the pseudo-:math:`C_\\ell` estimator. The
     definition of bandpowers is described in Section 2.1.3 of the
-    NaMaster paper, and Section 3.6 of the
-    scientific documentation. We provide several convenience
+    `NaMaster paper <https://arxiv.org/abs/1809.09603>`_, and Section
+    3.6 of the scientific documentation. We provide several convenience
     constructors that cover a range of common use cases requiring
     fewer parameters (see :meth:`NmtBin.from_nside_linear`,
     :meth:`NmtBin.from_lmax_linear` and :meth:`NmtBin.from_edges`).
@@ -62,7 +62,7 @@ class NmtBin(object):
     def from_nside_linear(cls, nside, nlb, is_Dell=False, f_ell=None):
         """ Convenience constructor for HEALPix maps with linear
         binning, starting at :math:`\\ell=2`, and up to
-        :math:`\\ell=3 N_{\\rm side}`. Although this will also be the
+        :math:`\\ell=3 N_{\\rm side}-1`. Although this will also be the
         maximum multipole associated with this :obj:`NmtBin` object,
         only bandpowers containing a total of ``nlb`` multipoles within
         this range will be used (i.e. the last bin will be discarded
@@ -87,7 +87,7 @@ class NmtBin(object):
                 this bandpower scheme. If not ``None``, the value of
                 ``is_Dell`` is ignored. If provided, it must be sampled at
                 all :math:`\\ell` s up to (and including)
-                :math:`3 N_{\\rm side}`.
+                :math:`3 N_{\\rm side}-1`.
         """
         ells, bpws = _get_bpw_arrays_linear(3*nside-1, nlb)
         weights = np.ones(len(ells))
@@ -309,7 +309,8 @@ class NmtBin(object):
 class NmtBinFlat(object):
     """ An :obj:`NmtBinFlat` object defines the set of bandpowers used in
     the computation of the pseudo-:math:`C_\\ell` estimator. The definition
-    of bandpowers is described in Section 2.5.1 of the NaMaster paper, or
+    of bandpowers is described in Section 2.5.1 of the
+    `NaMaster paper <https://arxiv.org/abs/1809.09603>`_, or
     Section 3.6 of the scientific documentation. Note that NaMaster only
     supports top-hat bandpowers for flat-sky power spectra.
 
