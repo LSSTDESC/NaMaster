@@ -66,7 +66,7 @@ def test_field_catalog_init():
                                  lmax, lonlat=False)
         f2 = nmt.NmtFieldCatalog([lon_deg, lat_deg], w1, vals,
                                  lmax, lonlat=True)
-        # Observation: after index 4*lmax, the difference starts to become O(1).
+        # Observation: after index 4lmax, the difference starts to become O(1).
         assert np.all(np.absolute(f1.alm_mask - f2.alm_mask)[:4*lmax] < 1E-7)
 
 
