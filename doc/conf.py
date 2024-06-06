@@ -20,16 +20,10 @@ import os
 from os.path import abspath, dirname, join as pjoin
 import sys
 
-sys.path.insert(0, os.path.abspath('../'))
-print(os.path.abspath('.'))
-print(os.path.abspath('..'))
-print(os.listdir(os.path.abspath('.')))
-print(os.listdir(os.path.abspath('..')))
-#sys.path.insert(0, os.path.abspath(".."))
-#this_dir = dirname(abspath(__file__))
-#root_path = abspath(pjoin(this_dir, '../'))
-#if os.path.isdir(root_path):
-#    sys.path.insert(0, root_path)
+this_dir = dirname(abspath(__file__))
+root_path = abspath(pjoin(this_dir, '../'))
+if os.path.isdir(root_path):
+    sys.path.insert(0, root_path)
 
 on_rtd = True
 #os.environ.get('READTHEDOCS', None) == 'True'
@@ -49,12 +43,6 @@ if on_rtd:
         "pymaster._nmtlib"]
 
     sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
-
-try:
-    import pymaster
-except ImportError:
-    print("Can't find pymaster")
-import pymaster
 
 # -- General configuration ------------------------------------------------
 
