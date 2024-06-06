@@ -419,10 +419,17 @@ class NmtField(object):
 
     @property
     def Nw(self):
+        """ Shot noise contribution associated with the mask for
+        catalog-based fields (``None`` for standard fields).
+        """
         return self._Nw
 
     @property
     def Nf(self):
+        """ Shot noise contribution to the weighted field power
+        spectrum for catalog-based fields (``None`` for standard
+        fields).
+        """
         return self._Nf
 
 
@@ -672,7 +679,42 @@ class NmtFieldFlat(object):
 
 
 class NmtFieldCatalog(NmtField):
-    """
+    """ An :obj:`NmtFieldCatalog` object contains all the information
+    describing the a given field sampled at the discrete positions of
+    a given catalog of sources.
+
+    Args:
+        positions (`array`): Source positions, provided as a list or array
+            2 arrays. If ``lonlat`` is True, the arrays should contain the
+            longitude and latitude of the sources, in this order, and in
+            degrees (e.g. R.A. and Dec. if using Equatorial coordinates).
+            Otherwise, the arrays should contain the colatitude and
+            longitude of each source in radians (i.e. the spherical
+            coordinates :math:`(\\theta,\\phi)`).
+        weights (`array`): An array containing the weight assigned to
+            each source.
+        field (`array`): A list of 1 or 2 arrays (for spin-0 and spin-s
+            fields, respectively), containing the value of the field
+            whose power spectra we aim to calculate at the positions of
+            each source.
+        lmax (:obj:`int`): Maximum multipole up to which the spherical
+            harmonics of this field will be computed.
+        lmax_mask (:obj:`int`): Maximum multipole up to which the spherical
+            harmonics of this field's mask will be computed. If negative,
+            it will default to ``4*lmax``.
+        spin (:obj:`int`): Spin of this field. If ``None`` it will
+            default to 0 or 2 if ``field`` contains 1 or 2 arrays,
+            respectively.
+        beam (`array`): Spherical harmonic transform of the instrumental beam
+            (assumed to be rotationally symmetric - i.e. no :math:`m`
+            dependence) associated with this field. If ``None``, no beam will
+            be corrected for. Otherwise, this array should have at least of
+            size ``lmax+1``.
+        field_is_weighted (:obj:`bool`): Set to ``True`` if the input field has
+            already been multiplied by the source weights.
+        lonlat (:obj:`bool`): If ``True``, longitude and latitude in degrees
+            are provided as input. If ``False``, colatitude and longitude in
+            radians are provided instead.
     """
     def __init__(self, positions, weights, field, lmax, lmax_mask=-1,
                  spin=None, beam=None, field_is_weighted=False, lonlat=False):
