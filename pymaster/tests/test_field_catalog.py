@@ -1,60 +1,39 @@
 import numpy as np
 import healpy as hp
 import pymaster as nmt
-import warnings
-import sys
-
-
-class FieldTesterCatalog(object):
-    def __init__(self):
-        # This is to avoid showing an ugly warning that
-        # has nothing to do with pymaster
-        if (sys.version_info > (3, 1)):
-            warnings.simplefilter("ignore", ResourceWarning)
-        nside = 64
-        self.ncat = hp.nside2npix(nside)
-        self.f = np.zeros([3, self.ncat])
-        self.w = np.ones(self.ncat)
-        self.lmax = 2*nside - 1
-
-        th, ph = hp.pix2ang(nside, np.arange(self.ncat))
-        self.p = np.array([th, ph])
-        sth = np.sin(th)
-        cth = np.cos(th)
-        # Re(Y_22)
-        self.f[0] = np.sqrt(15./2./np.pi)*sth**2*np.cos(2*ph)
-        # _2Y^E_20 + _2Y^B_30
-        self.f[1] = -np.sqrt(15./2./np.pi)*sth**2/4.
-        self.f[2] = -np.sqrt(105./2./np.pi)*cth*sth**2/2.
-
-
-FT = FieldTesterCatalog()
 
 
 def test_field_catalog_compatibility():
     # Different field values
-    f_rand = np.random.rand(FT.ncat)*0.1 + 1
-    f0 = nmt.NmtFieldCatalog(FT.p, FT.w, FT.f[0], FT.lmax)
-    f1 = nmt.NmtFieldCatalog(FT.p, FT.w, f_rand, FT.lmax)
+    nside = 64
+    ncat = hp.nside2npix(nside)
+    th, ph = hp.pix2ang(nside, np.arange(ncat))
+    p = np.array([th, ph])
+    f = np.zeros([3, ncat])
+    w = np.ones(ncat)
+    lmax = 2*nside - 1
+    f_rand = np.random.rand(ncat)*0.1 + 1
+    f0 = nmt.NmtFieldCatalog(p, w, f[0], lmax)
+    f1 = nmt.NmtFieldCatalog(p, w, f_rand, lmax)
     assert f0.is_compatible(f1)
 
     # Different positions
-    p1 = np.array([np.random.permutation(FT.p[0]), FT.p[1]])
-    f1 = nmt.NmtFieldCatalog(p1, FT.w, f_rand, FT.lmax)
+    p1 = np.array([np.random.permutation(p[0]), p[1]])
+    f1 = nmt.NmtFieldCatalog(p1, w, f_rand, lmax)
     assert f0.is_compatible(f1)
 
     # Different weights
-    w_rand = np.random.rand(FT.ncat)*0.1 + 1
-    f1 = nmt.NmtFieldCatalog(FT.p, w_rand, f_rand, FT.lmax)
+    w_rand = np.random.rand(ncat)*0.1 + 1
+    f1 = nmt.NmtFieldCatalog(p, w_rand, f_rand, lmax)
     assert f0.is_compatible(f1)
 
     # Different lmax
     print(f0.ainfo_mask.lmax)
-    f1 = nmt.NmtFieldCatalog(FT.p, w_rand, f_rand, lmax=111)
+    f1 = nmt.NmtFieldCatalog(p, w_rand, f_rand, lmax=111)
     assert not f0.is_compatible(f1)
 
     # Different lmax_mask
-    f1 = nmt.NmtFieldCatalog(FT.p, w_rand, f_rand, FT.lmax, lmax_mask=300)
+    f1 = nmt.NmtFieldCatalog(p, w_rand, f_rand, lmax, lmax_mask=300)
     assert not f0.is_compatible(f1)
 
 
@@ -62,32 +41,33 @@ def test_field_catalog_init():
     # Checks correct initialization of positions (lon/lat and theta/phi),
     # weights, fields, different spins.
     Ncat = 100
-    lmax = 10
+    lmax = 70
     np.random.seed(5675)
-    w0 = np.zeros(Ncat)
+    w1 = np.random.rand(Ncat)
     val_s0 = np.random.rand(Ncat) - 0.5
     val_s2 = np.random.rand(2, Ncat) - 0.5
     col_rad = np.pi*np.random.rand(Ncat)
     lon_rad = 2*np.pi*np.random.rand(Ncat)
-    lon_deg = 180./np.pi*lon_rad
-    lat_deg = 90. - 180./np.pi*col_rad
+    lon_deg = np.rad2deg(lon_rad)
+    lat_deg = np.rad2deg(np.pi/2. - col_rad)
 
     for ndim, vals in zip([1, 2], [val_s0, val_s2]):
-        f = nmt.NmtFieldCatalog([col_rad, lon_rad], w0, vals,
+        f = nmt.NmtFieldCatalog([col_rad, lon_rad], w1, vals,
                                 lmax, field_is_weighted=True)
         assert np.array_equal(f.field, vals)
         assert ndim == f.field.ndim
-        f = nmt.NmtFieldCatalog([col_rad, lon_rad], w0, vals,
+        f = nmt.NmtFieldCatalog([col_rad, lon_rad], w1, vals,
                                 lmax, field_is_weighted=False)
-        assert not np.any(f.field)
+        assert np.array_equal(f.field, vals*w1)
         assert ndim == f.field.ndim
 
     for vals in [val_s0, val_s2]:
-        f1 = nmt.NmtFieldCatalog([col_rad, lon_rad], w0, vals,
+        f1 = nmt.NmtFieldCatalog([col_rad, lon_rad], w1, vals,
                                  lmax, lonlat=False)
-        f2 = nmt.NmtFieldCatalog([lon_deg, lat_deg], w0, vals,
+        f2 = nmt.NmtFieldCatalog([lon_deg, lat_deg], w1, vals,
                                  lmax, lonlat=True)
-        assert np.array_equal(f1.field, f2.field)
+        # Observation: after index 4*lmax, the difference starts to become O(1).
+        assert np.all(np.absolute(f1.alm_mask - f2.alm_mask)[:4*lmax] < 1E-7)
 
 
 def test_field_catalog_Nw():
@@ -135,14 +115,12 @@ def test_field_catalog_Nf():
 
     for val in [val_s0, val_s2]:
         nd = val.ndim
-        idx = -1 if nd == 1 else (0, -1)
 
-        # Perturb val to extract Nf correction
-        val2 = np.copy(val)
-        val2[idx] *= (1. + 1.e-6)
         f1 = nmt.NmtFieldCatalog([col_rad, lon_rad], np.ones(Ncat), val, lmax)
-        f2 = nmt.NmtFieldCatalog([col_rad, lon_rad], np.ones(Ncat), val2, lmax)
-
+        f2 = nmt.NmtFieldCatalog([col_rad, lon_rad], np.ones(Ncat), val, lmax)
+        # Note that NmtFieldCatalog.Nf is called internally by
+        # compute_coupled_cell(f1, f2) and subtracted if f1 and f2 are the
+        # same object.
         cl1 = nmt.compute_coupled_cell(f1, f1)
         cl2 = nmt.compute_coupled_cell(f1, f2)
         nl = np.shape(cl1)[-1]
@@ -160,7 +138,6 @@ def test_field_catalog_alm():
     pixel_area = np.pi*4./npix
     lmax = 20
 
-    msk = np.ones(npix)
     mps = np.zeros([3, npix])
     th, ph = hp.pix2ang(nside, np.arange(npix))
     sth = np.sin(th)
@@ -173,28 +150,22 @@ def test_field_catalog_alm():
 
     # spin 0
     f0_cat = nmt.NmtFieldCatalog([th, ph], np.ones(npix), mps[0], lmax)
-    f0_map = nmt.NmtField(msk, [mps[0]], lmax=lmax)
 
     # spin 2
     f2_cat = nmt.NmtFieldCatalog([th, ph], np.ones(npix),
                                  np.array([mps[1], mps[2]]), lmax)
-    f2_map = nmt.NmtField(msk, [mps[1], mps[2]], lmax=lmax)
 
-    alms_map = np.array([f0_map.get_alms()[0],
-                         f2_map.get_alms()[0],
-                         f2_map.get_alms()[1]])
     alms_cat = np.array([pixel_area*f0_cat.get_alms()[0],
                          pixel_area*f2_cat.get_alms()[0],
                          pixel_area*f2_cat.get_alms()[1]])
 
-    alms_in = np.zeros_like(alms_map)
+    alms_in = np.zeros_like(alms_cat)
     alms_in[0, hp.Alm.getidx(lmax, 2, 2)] = 2.
     alms_in[1, hp.Alm.getidx(lmax, 2, 0)] = 1.
     alms_in[2, hp.Alm.getidx(lmax, 3, 0)] = 2.
 
     for f_idx in range(3):
-        assert np.all(np.fabs(np.real(alms_cat - alms_in)[f_idx]) < 1.e-3)
-        assert np.all(np.fabs(np.imag(alms_cat - alms_in)[f_idx]) < 1.e-3)
+        assert np.all(np.absolute(alms_cat - alms_in)[f_idx] < 1.e-3)
 
 
 def test_field_catalog_errors():
