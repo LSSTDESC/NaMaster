@@ -21,6 +21,10 @@ from os.path import abspath, dirname, join as pjoin
 import sys
 
 sys.path.insert(0, os.path.abspath('../'))
+print(os.path.abspath('.'))
+print(os.path.abspath('..'))
+print(os.listdir(os.path.abspath('.')))
+print(os.listdir(os.path.abspath('..')))
 #sys.path.insert(0, os.path.abspath(".."))
 #this_dir = dirname(abspath(__file__))
 #root_path = abspath(pjoin(this_dir, '../'))
