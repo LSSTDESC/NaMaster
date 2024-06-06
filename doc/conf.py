@@ -54,6 +54,7 @@ try:
     import pymaster
 except ImportError:
     print("Can't find pymaster")
+import pymaster
 
 # -- General configuration ------------------------------------------------
 
