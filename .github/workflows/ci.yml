@@ -28,7 +28,8 @@ jobs:
           - gcc
 
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout NaMaster repository
+        uses: actions/checkout@v4
 
       - name: Set up Python ${{ matrix.py }}
         uses: actions/setup-python@v2
