@@ -13,9 +13,15 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: 
-          - ubuntu-latest
-	  - macos-latest
+        os: [macos-latest, ubuntu-latest]
+        include:
+          - os: macos-latest
+            label: osx-64
+            prefix: /Users/runner/miniconda3
+
+          - os: ubuntu-latest
+            label: linux-64
+            prefix: /usr/share/miniconda3
         py:
           - 3.11
         CC:
