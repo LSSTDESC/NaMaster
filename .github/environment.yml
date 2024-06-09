@@ -1,0 +1,14 @@
+name: test  # default testing environment name from conda-incubator
+dependencies:
+  - python=3.11
+  - pip
+  - setuptools_scm
+  - gsl
+  - fftw
+  - cfitsio
+  - swig
+  - healpy
+  - numpy
+  - scipy
+  - pytest
+  - pytest-cov

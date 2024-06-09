@@ -13,7 +13,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: 
+        os:
+          - macos-latest
           - ubuntu-latest
         py:
           - 3.11
@@ -21,28 +22,78 @@ jobs:
           - gcc
 
     steps:
-      - uses: actions/checkout@v2
-
-      - name: Set up Python ${{ matrix.py }}
-        uses: actions/setup-python@v2
+      - name: Cancel previous runs
+      	uses: styfle/cancel-workflow-action@0.12.1
         with:
-          python-version: ${{ matrix.py }}
+          access_token: ${{ github.token }}
 
-      - name: Install GSL, FFTW, fitsio
-        run: |
-          sudo -H apt-get install libgsl-dev libfftw3-dev libcfitsio-dev
+      - name: Checkout NaMaster repository
+        uses: actions/checkout@v4
 
-      - name: Install python dependencies
+      - name: Set up conda
+        uses: conda-incubator/setup-miniconda@v3
+        with:
+          channels: conda-forge, defaults
+          channel-priority: strict
+          show-channel-urls: true
+          miniforge-version: latest
+          miniforge-variant: Mambaforge
+
+      #- name: Set up Python ${{ matrix.py }}
+      #  uses: actions/setup-python@v2
+      #  with:
+      #    python-version: ${{ matrix.py }}
+
+      #- name: Install GSL, FFTW, fitsio
+      #  run: |
+      #    sudo -H apt-get install libgsl-dev libfftw3-dev libcfitsio-dev
+
+      - name: "macOS: set env variables"
+        if: matrix.label == 'osx-64'
         run: |
-          python -m pip install -U pip
-          pip install -U numpy
-          pip install -U scipy
-          pip install -U healpy
-          pip install -U ducc0
-          pip install -U flake8
-          pip install -U pytest
-          pip install -U pytest-cov
-          pip install -U coveralls
+          #mamba install llvm-openmp
+          echo "DYLD_FALLBACK_LIBRARY_PATH=${CONDA_PREFIX}/lib" >> $GITHUB_ENV
+          SDKROOT=$(xcrun --sdk macosx --show-sdk-path)
+          echo "SDKROOT: ${SDKROOT}"
+          echo "SDKROOT=${SDKROOT}" >> $GITHUB_ENV
+          echo "CONDA_BUILD_SYSROOT=${SDKROOT}" >> $GITHUB_ENV
+
+          export CFLAGS="-I/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include"
+          export LDFLAGS="-L/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib"
+
+      - name: Set current date as environment variable
+        run: echo "TODAY=$(date +'%Y.%m.%d')" >> $GITHUB_ENV
+
+      - name: Get cached environment
+        uses: actions/cache@v3
+        id: cache
+        with:
+          path: ${{ matrix.prefix }}
+          key:
+            conda-py${{ matrix.py }}--${{
+            matrix.os }}--${{
+            hashFiles(env.CONDA_ENV) }}-${{
+            hashFiles('setup.py') }}--${{
+            env.TODAY }}-${{
+            env.CACHE_NUMBER }}
+
+      - name: Install environment packages
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          export MAMBA_NO_BANNER=1  # hide mamba banner from output
+          mamba env update --file ${{ env.CONDA_ENV }} --prune
+
+      #- name: Install python dependencies
+      #  run: |
+      #    python -m pip install -U pip
+      #    pip install -U numpy
+      #    pip install -U scipy
+      #    pip install -U healpy
+      #    pip install -U ducc0
+      #    pip install -U flake8
+      #    pip install -U pytest
+      #    pip install -U pytest-cov
+      #    pip install -U coveralls
 
       - name: Flake
         run: |
