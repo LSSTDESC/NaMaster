@@ -15,6 +15,7 @@ jobs:
       matrix:
         os: 
           - ubuntu-latest
+	  - macos-latest
         py:
           - 3.11
         CC:
