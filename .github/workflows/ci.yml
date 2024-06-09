@@ -14,7 +14,6 @@ jobs:
       fail-fast: false
       matrix:
         os:
-          - macos-latest
           - ubuntu-latest
         py:
           - 3.11
