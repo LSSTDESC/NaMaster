@@ -12,3 +12,6 @@ dependencies:
   - scipy
   - pytest
   - pytest-cov
+  - flake8
+  - pip:
+    - ducc0
