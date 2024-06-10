@@ -50,9 +50,10 @@ jobs:
           miniforge-version: latest
           miniforge-variant: Mambaforge
 
-#      - name: conda libraries in path
-#        run: |
-#          export CFLAGS+=" -I${CONDA_PREFIX}/include"
+      - name: conda libraries in path
+        run: |
+          ls ${CONDA_PREFIX}/lib
+          ls ${CONDA_PREFIX}/include
 #          export CPPFLAGS+=" -I${CONDA_PREFIX}/include"
 #          export LDFLAGS+=" -I${CONDA_PREFIX}/lib"
 #          export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${CONDA_PREFIX}/lib
