@@ -64,7 +64,7 @@ def _compile_libnmt():
 class build(_build):
     """Specialized Python source builder."""
     def run(self):
-        _compile_libchealpix()
+        #_compile_libchealpix()
         _compile_libnmt()
         _build.run(self)
 
