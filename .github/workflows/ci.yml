@@ -91,6 +91,7 @@ jobs:
         run: |
           export MAMBA_NO_BANNER=1  # hide mamba banner from output
           mamba env update --file ${{ env.CONDA_ENV }} --prune
+	  conda activate test
 
       #- name: Flake
       #  run: |
@@ -98,7 +99,8 @@ jobs:
       #    flake8 test --exclude=benchmarks
 
       - name: Build NaMaster
-        run: pip install -v -e .
+        run: |
+          python setup.py install
 
       - name: C tests
         run: |
