@@ -1,0 +1,12 @@
+name: test  # default testing environment name from conda-incubator
+dependencies:
+  - python=3.11
+  - pip
+  - setuptools_scm
+  - numpy
+  - scipy
+  - pytest
+  - pytest-cov
+  - coveralls
+  - pip:
+    - ducc0

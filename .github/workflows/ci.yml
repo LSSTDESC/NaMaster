@@ -1,4 +1,5 @@
 name: continuous-integration
+
 on:
   push:
     branches:
@@ -7,51 +8,111 @@ on:
       - releases/*
   pull_request: null
 
+env:
+  CACHE_NUMBER: 0  # increase to reset cache manually
+  CONDA_ENV: .github/environment.yml
+
 jobs:
   build:
     runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash -l {0}
+
     strategy:
       fail-fast: false
       matrix:
-        os: 
-          - ubuntu-latest
-        py:
-          - 3.11
-        CC:
-          - gcc
+        os: [macos-latest, ubuntu-latest]
+        include:
+          - os: macos-latest
+            label: osx-64
+            prefix: /Users/runner/miniconda3
+
+          - os: ubuntu-latest
+            label: linux-64
+            prefix: /usr/share/miniconda3
 
     steps:
-      - uses: actions/checkout@v2
-
-      - name: Set up Python ${{ matrix.py }}
-        uses: actions/setup-python@v2
+      - name: Cancel previous runs
+        uses: styfle/cancel-workflow-action@0.12.1
         with:
-          python-version: ${{ matrix.py }}
+          access_token: ${{ github.token }}
 
-      - name: Install GSL, FFTW, fitsio
+      - name: Checkout NaMaster repository
+        uses: actions/checkout@v4
+
+      - name: Set up conda
+        uses: conda-incubator/setup-miniconda@v3
+        with:
+          channels: conda-forge, defaults
+          channel-priority: strict
+          show-channel-urls: true
+          miniforge-version: latest
+          miniforge-variant: Mambaforge
+
+      - name: Set current date as environment variable
+        run: echo "TODAY=$(date +'%Y.%m.%d')" >> $GITHUB_ENV
+
+      - name: Get cached environment
+        uses: actions/cache@v3
+        id: cache
+        with:
+          path: ${{ matrix.prefix }}
+          key:
+            conda-py${{ matrix.py }}--${{
+            matrix.os }}--${{
+            hashFiles(env.CONDA_ENV) }}-${{
+            hashFiles('setup.py') }}--${{
+            env.TODAY }}-${{
+            env.CACHE_NUMBER }}
+
+      - name: Install environment packages
+        if: steps.cache.outputs.cache-hit != 'true'
         run: |
-          sudo -H apt-get install libgsl-dev libfftw3-dev libcfitsio-dev
+          export MAMBA_NO_BANNER=1  # hide mamba banner from output
+          mamba env update --file ${{ env.CONDA_ENV }} --prune
 
-      - name: Install python dependencies
+      - name: Show installed
+        run: conda list
+
+      - name: conda libraries in path
         run: |
-          python -m pip install -U pip
-          pip install -U numpy
-          pip install -U scipy
-          pip install -U healpy
-          pip install -U ducc0
-          pip install -U flake8
-          pip install -U pytest
-          pip install -U pytest-cov
-          pip install -U coveralls
+          ls ${CONDA_PREFIX}/lib
+          ls ${CONDA_PREFIX}/include
 
-      - name: Flake
+      - name: Install fitsio, fftw (ubuntu)
+        if: matrix.label == 'linux-64'
         run: |
-          flake8 pymaster --exclude=nmtlib.py
-          flake8 test --exclude=benchmarks
+          sudo -H apt-get install libcfitsio-dev libfftw3-dev
 
-      - name: Build NaMaster
+      - name: Install other dependencies (mac)
+        if: matrix.label == 'osx-64'
+        run: |
+          brew install fftw
+          # Unclear why, but we don't seem to have to install gsl
+          # for linux, only mac...
+          brew install gsl
+          brew install openblas
+          brew install libomp
+          brew install cfitsio
+          brew install autoconf
+          brew install automake
+          brew install libtool
+          # Annoyingly, the version of healpy that gets
+          # installed by pip when installing namaster seems
+          # to crash on mac, so we install it here instead
+          conda install healpy
+
+      - name: Build NaMaster (ubuntu)
+        if: matrix.label == 'linux-64'
         run: |
           python setup.py install
+
+      - name: Build NaMaster (mac)
+        if: matrix.label == 'osx-64'
+        run: |
+          # Without the prefixes, it won't compile on mac
+          CC=gcc-13 LDFLAGS=-L/opt/homebrew/lib CPPFLAGS=-I/opt/homebrew/include python -m pip install .
 
       - name: C tests
         run: |
@@ -61,22 +122,19 @@ jobs:
         run: |
           pytest -vv pymaster --cov=pymaster
 
-#      - name: Clean install with threads
-#        run: |
-#          pip uninstall pymaster -y
-#          rm _deps/lib/libnmt.a
-#          python setup.py install --enable-fftw-pthreads --disable-openmp
-#
-#      - name: C tests with threads
-#        run: |
-#          make check
-#
-#      - name: Python tests with threads
-#        run: |
-#          pytest -vv pymaster
-#
       - name: coveralls
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           coveralls --service=github
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout CCL repository
+        uses: actions/checkout@v3
+
+      - name: Lint
+        uses: py-actions/flake8@v2
+        with:
+          args: "--config .flake8"
