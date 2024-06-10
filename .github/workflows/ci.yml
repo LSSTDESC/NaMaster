@@ -33,10 +33,10 @@ jobs:
             prefix: /usr/share/miniconda3
 
     steps:
-      - name: Cancel previous runs
-        uses: styfle/cancel-workflow-action@0.12.1
-        with:
-	  access_token: ${{ github.token }}
+#      - name: Cancel previous runs
+#        uses: styfle/cancel-workflow-action@0.12.1
+#        with:
+#	  access_token: ${{ github.token }}
 
       - name: Checkout NaMaster repository
         uses: actions/checkout@v4
