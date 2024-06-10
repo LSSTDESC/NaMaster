@@ -7,7 +7,6 @@ dependencies:
   - scipy
   - pytest
   - pytest-cov
-  - flake8
   - coveralls
   - pip:
     - ducc0
