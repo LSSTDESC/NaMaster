@@ -85,6 +85,8 @@ jobs:
           export MAMBA_NO_BANNER=1  # hide mamba banner from output
           mamba env update --file ${{ env.CONDA_ENV }} --prune
 
+      - name: Show installed
+        run: conda list
       #- name: Flake
       #  run: |
       #    flake8 pymaster --exclude=nmtlib.py
