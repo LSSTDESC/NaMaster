@@ -56,7 +56,7 @@ plt.legend()
 plt.axhline(f.Nw, color="k", linestyle="--")
 plt.show()
 
-# We then compute the coupled spin-2 pseudo power spectrum 
+# We then compute the coupled spin-2 pseudo power spectrum.
 f = nmt.NmtFieldCatalog(positions, weights, [catalog_Q, catalog_U],
                         lmax=3*nside-1, spin=2)
 pcl = nmt.compute_coupled_cell(f, f)
