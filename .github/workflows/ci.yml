@@ -102,6 +102,7 @@ jobs:
         if: matrix.label == 'osx-64'
         run: |
           brew install fftw
+          brew install gsl
           brew install cfitsio
           brew install autoconf
           brew install automake
