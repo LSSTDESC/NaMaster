@@ -126,7 +126,8 @@ jobs:
 
       - name: Build NaMaster
         run: |
-          python setup.py install
+          python setup.py install || true
+	  cat config.log
 
       - name: C tests
         run: |
