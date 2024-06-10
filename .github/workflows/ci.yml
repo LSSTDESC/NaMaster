@@ -123,7 +123,7 @@ jobs:
       - name: Build NaMaster (mac)
         if: matrix.label == 'osx-64'
         run: |
-          CC=gcc-13 python -m pip install .
+          CC=gcc-13 LDFLAGS=-L/opt/homebrew/lib CPPFLAGS=-I/opt/homebrew/include python -m pip install .
 
       - name: C tests
         run: |
