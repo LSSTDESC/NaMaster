@@ -4,8 +4,6 @@ dependencies:
   - pip
   - setuptools_scm
   - gsl
-  - fftw
-  - cfitsio
   - swig
   - healpy
   - numpy
