@@ -33,10 +33,10 @@ jobs:
             prefix: /usr/share/miniconda3
 
     steps:
-#      - name: Cancel previous runs
-#        uses: styfle/cancel-workflow-action@0.12.1
-#        with:
-#	  access_token: ${{ github.token }}
+      - name: Cancel previous runs
+        uses: styfle/cancel-workflow-action@0.12.1
+        with:
+          access_token: ${{ github.token }}
 
       - name: Checkout NaMaster repository
         uses: actions/checkout@v4
@@ -80,28 +80,17 @@ jobs:
           ls ${CONDA_PREFIX}/lib
           ls ${CONDA_PREFIX}/include
 
-#      - name: "macOS: set env variables"
-#        if: matrix.label == 'osx-64'
-#	run: |
-#          #mamba install llvm-openmp
-#          echo "DYLD_FALLBACK_LIBRARY_PATH=${CONDA_PREFIX}/lib" >> $GITHUB_ENV
-#          SDKROOT=$(xcrun --sdk macosx --show-sdk-path)
-#          echo "SDKROOT: ${SDKROOT}"
-#          echo "SDKROOT=${SDKROOT}" >> $GITHUB_ENV
-#          echo "CONDA_BUILD_SYSROOT=${SDKROOT}" >> $GITHUB_ENV
-#
-#          export CFLAGS="-I/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include"
-#          export LDFLAGS="-L/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib"
-
       - name: Install fitsio, fftw (ubuntu)
         if: matrix.label == 'linux-64'
         run: |
           sudo -H apt-get install libcfitsio-dev libfftw3-dev
 
-      - name: Install fitsio, fftw (mac)
+      - name: Install other dependencies (mac)
         if: matrix.label == 'osx-64'
         run: |
           brew install fftw
+          # Unclear why, but we don't seem to have to install gsl
+          # for linux, only mac...
           brew install gsl
           brew install openblas
           brew install libomp
@@ -109,6 +98,9 @@ jobs:
           brew install autoconf
           brew install automake
           brew install libtool
+          # Annoyingly, the version of healpy that gets
+          # installed by pip when installing namaster seems
+          # to crash on mac, so we install it here instead
           conda install healpy
 
       - name: Flake
@@ -124,6 +116,7 @@ jobs:
       - name: Build NaMaster (mac)
         if: matrix.label == 'osx-64'
         run: |
+          # Without the prefixes, it won't compile on mac
           CC=gcc-13 LDFLAGS=-L/opt/homebrew/lib CPPFLAGS=-I/opt/homebrew/include python -m pip install .
 
       - name: C tests
@@ -134,22 +127,19 @@ jobs:
         run: |
           pytest -vv pymaster --cov=pymaster
 
-#      - name: Clean install with threads
-#        run: |
-#          pip uninstall pymaster -y
-#          rm _deps/lib/libnmt.a
-#          python setup.py install --enable-fftw-pthreads --disable-openmp
-#
-#      - name: C tests with threads
-#        run: |
-#          make check
-#
-#      - name: Python tests with threads
-#        run: |
-#          pytest -vv pymaster
-#
       - name: coveralls
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           coveralls --service=github
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout CCL repository
+        uses: actions/checkout@v3
+
+      - name: Lint
+        uses: py-actions/flake8@v2
+        with:
+          args: "--config .flake8"
