@@ -105,7 +105,7 @@ jobs:
           brew install cfitsio
           brew install autoconf
           brew install automake
-	  brew install libtool
+          brew install libtool
 
       - name: Flake
         run: |
