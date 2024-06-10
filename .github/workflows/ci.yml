@@ -93,9 +93,29 @@ jobs:
           ls ${CONDA_PREFIX}/lib
           ls ${CONDA_PREFIX}/include
 
-      - name: Install fitsio
+#      - name: "macOS: set env variables"
+#        if: matrix.label == 'osx-64'
+#	run: |
+#          #mamba install llvm-openmp
+#          echo "DYLD_FALLBACK_LIBRARY_PATH=${CONDA_PREFIX}/lib" >> $GITHUB_ENV
+#          SDKROOT=$(xcrun --sdk macosx --show-sdk-path)
+#          echo "SDKROOT: ${SDKROOT}"
+#          echo "SDKROOT=${SDKROOT}" >> $GITHUB_ENV
+#          echo "CONDA_BUILD_SYSROOT=${SDKROOT}" >> $GITHUB_ENV
+#
+#          export CFLAGS="-I/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include"
+#          export LDFLAGS="-L/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib"
+
+      - name: Install fitsio, fftw (ubuntu)
+        if: matrix.label == 'linux-64'
         run: |
           sudo -H apt-get install libcfitsio-dev libfftw3-dev
+
+      - name: Install fitsio, fftw (mac)
+        if: matrix.label == 'osx-64'
+        run: |
+          brew install fftw
+          brew install cfitsio
 
       - name: Flake
         run: |
