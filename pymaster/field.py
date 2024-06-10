@@ -96,7 +96,7 @@ class NmtField(object):
     """
     def __init__(self, mask, maps, *, spin=None, templates=None, beam=None,
                  purify_e=False, purify_b=False, n_iter=None, n_iter_mask=None,
-                 tol_pinv=None, wcs=None, lmax=-1, lmax_mask=-1,
+                 tol_pinv=None, wcs=None, lmax=None, lmax_mask=None,
                  masked_on_input=False, lite=False):
         if n_iter_mask is None:
             n_iter_mask = ut.nmt_params.n_iter_mask_default
@@ -123,9 +123,10 @@ class NmtField(object):
         # The mask alms are only stored if computed for non-lite maps
         self.alm_mask = None
         self.n_temp = 0
-        # The Nw and Nf are protected and made available as @property below
+        # Nw, Nf, and alpha are protected and made available as @property below
         self._Nw = 0
         self._Nf = 0
+        self._alpha = None
 
         # 1. Store mask and beam
         # This ensures the mask will have the right type
@@ -136,7 +137,7 @@ class NmtField(object):
         self.mask = self.minfo.reform_map(mask)
         if lmax <= 0:
             lmax = self.minfo.get_lmax()
-        if lmax_mask <= 0:
+        if lmax_mask is None:
             lmax_mask = self.minfo.get_lmax()
         self.ainfo = ut.NmtAlmInfo(lmax)
         self.ainfo_mask = ut.NmtAlmInfo(lmax_mask)
@@ -432,6 +433,10 @@ class NmtField(object):
         """
         return self._Nf
 
+    @property
+    def alpha(self):
+        return self._alpha
+
 
 class NmtFieldFlat(object):
     """ An :obj:`NmtFieldFlat` object contains all the information
@@ -716,8 +721,9 @@ class NmtFieldCatalog(NmtField):
             are provided as input. If ``False``, colatitude and longitude in
             radians are provided instead.
     """
-    def __init__(self, positions, weights, field, lmax, lmax_mask=-1,
-                 spin=None, beam=None, field_is_weighted=False, lonlat=False):
+    def __init__(self, positions, weights, field, lmax, lmax_mask=None,
+                 spin=None, positions_rand=None, weights_rand=None, beam=None,
+                 field_is_weighted=False, lonlat=False):
         # 0. Preliminary initializations
         if ut.HAVE_DUCC:
             self.sht_calculator = 'ducc'
@@ -734,6 +740,7 @@ class NmtFieldCatalog(NmtField):
         self.pure_b = False
         self._Nw = 0.
         self._Nf = 0.
+        self._alpha = None
         self.ainfo = ut.NmtAlmInfo(lmax)
 
         # The remaining attributes are only required for non-lite maps
@@ -742,36 +749,50 @@ class NmtFieldCatalog(NmtField):
         self.alm_temp = None
         self.minfo = None
         self.n_temp = 0
+        do_clustering = positions_rand is not None and weights_rand is not None
+
+        # Can only have field or do clustering
+        if field is not None and do_clustering:
+            raise ValueError("If positions_rand and weights_rand are "
+                             "provided, field must be None.")
 
         # Sanity checks on positions and weights
-        positions = np.array(positions, dtype=np.float64)
-        weights = np.array(weights, dtype=np.float64)
-        if np.shape(positions) != (2, len(weights)):
-            raise ValueError("Positions must be 2D array of shape"
-                             " (2, len(weights)).")
-        if lonlat:
-            positions[0] = np.radians(90. - positions[1])
-            positions[1] = np.radians(positions[0])
-        if not (np.logical_and(positions[0] >= 0.,
-                               positions[0] <= np.pi)).all():
+        pw_list = [(positions, weights)]
+        if positions_rand is not None or weights_rand is not None:
+            pw_list += [(positions_rand, weights_rand)]
+        for p, w in pw_list:
+            p = np.array(p, dtype=np.float64)
+            w = np.array(w, dtype=np.float64)
+            if np.shape(p) != (2, len(w)):
+                raise ValueError("Positions must be 2D array of shape"
+                                 " (2, len(weights)).")
             if lonlat:
-                raise ValueError("Second dimension of positions must be "
-                                 "latitude in degrees, between -90 and 90.")
-            else:
-                raise ValueError("First dimension of positions must be "
-                                 "colatitude in radians, between 0 and pi.")
+                p[0] = np.radians(90. - p[1])
+                p[1] = np.radians(p[0])
+            if not (np.logical_and(p[0] >= 0., p[0] <= np.pi)).all():
+                if lonlat:
+                    raise ValueError(
+                        "Second dimension of positions must be latitude in "
+                        "degrees, between -90 and 90."
+                    )
+                else:
+                    raise ValueError(
+                        "First dimension of positions must be colatitude in "
+                        "radians, between 0 and pi."
+                    )
 
         # Compute mask shot noise
         self._Nw = np.sum(weights**2.)/(4.*np.pi)
 
         # 1. Compute mask alms and beam
         # Sanity checks
-        if lmax_mask <= 0:
+        if lmax_mask is None:
             lmax_mask = 4*lmax
         self.ainfo_mask = ut.NmtAlmInfo(lmax_mask)
         # Mask alms
+        lmax_alm = lmax if do_clustering else lmax_mask
         self.alm_mask = ut._catalog2alm_ducc0(weights, positions,
-                                              spin=0, lmax=lmax_mask)[0]
+                                              spin=0, lmax=lmax_alm)[0]
         # Beam
         if isinstance(beam, (list, tuple, np.ndarray)):
             if len(beam) <= lmax:
@@ -790,10 +811,29 @@ class NmtFieldCatalog(NmtField):
         # If only positions and weights, just return here
         if field is None:
             if spin is None:
-                raise ValueError("If field is None, spin needs to be "
-                                 "provided.")
+                raise ValueError("If field, positions_rand, and weights_rand "
+                                 "are None, spin needs to be provided.")
+            if do_clustering and spin is None:
+                self.spin = 0
             self.spin = spin
+
+            # 3. Compute clustering-related quantities and return
+            if do_clustering:
+                if np.sum(weights_rand) == 0.:
+                    raise ValueError("Sum of weights_rand cannot be zero.")
+                self._alpha = np.sum(weights)/np.sum(weights_rand)
+                if self._alpha >= 1.:
+                    raise ValueError("Sum of weights_rand is <= "
+                                     " sum of weights.")
+                Nw_rand = np.sum(weights_rand**2)/(4.*np.pi)
+                self._Nf = self._Nw + self._alpha**2*Nw_rand
+                alm_rand = ut._catalog2alm_ducc0(
+                    weights_rand, positions_rand, spin=0, lmax=lmax
+                )[0]
+                alm = (self.alm_mask - self._alpha*alm_rand).reshape(1, -1)
+                self.alm = alm
             return
+
         self.field = np.array(field, dtype=np.float64)
         # Sanity checks
         if spin is None:
@@ -810,5 +850,5 @@ class NmtFieldCatalog(NmtField):
         self.alm = ut._catalog2alm_ducc0(self.field, positions,
                                          spin=spin, lmax=lmax)
 
-        # 3. Compute field noise bias on mask pseudo-C_ell
+        # 4. Compute field noise bias on mask pseudo-C_ell
         self._Nf = np.sum(self.field**2)/(4*np.pi*self.nmaps)
