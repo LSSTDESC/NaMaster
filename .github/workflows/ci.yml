@@ -91,7 +91,8 @@ jobs:
         run: |
           export MAMBA_NO_BANNER=1  # hide mamba banner from output
           mamba env update --file ${{ env.CONDA_ENV }} --prune
-          mamba activate test
+	  conda init
+          conda activate test
 
       #- name: Flake
       #  run: |
