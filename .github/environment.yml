@@ -3,13 +3,11 @@ dependencies:
   - python=3.11
   - pip
   - setuptools_scm
-#  - gsl
-#  - swig
-#  - healpy
   - numpy
   - scipy
   - pytest
   - pytest-cov
   - flake8
+  - coveralls
   - pip:
     - ducc0

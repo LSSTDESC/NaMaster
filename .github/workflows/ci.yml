@@ -104,12 +104,6 @@ jobs:
 
       - name: Build NaMaster
         run: |
-          #export CPPFLAGS+=" -I${CONDA_PREFIX}/include"
-          #export LDFLAGS+=" -I${CONDA_PREFIX}/lib"
-          #export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${CONDA_PREFIX}/lib
-          #echo $CPPFLAGS
-          #echo $LDFLAGS
-          #echo $LD_LIBRARY_PATH
           python setup.py install
 
       - name: C tests
