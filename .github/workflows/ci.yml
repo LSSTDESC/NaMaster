@@ -98,8 +98,7 @@ jobs:
       #    flake8 test --exclude=benchmarks
 
       - name: Build NaMaster
-        run: |
-          python setup.py install
+        run: pip install -v -e .
 
       - name: C tests
         run: |
