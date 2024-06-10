@@ -28,29 +28,65 @@ jobs:
           - gcc
 
     steps:
+      #- name: Cancel previous runs
+      #	uses: styfle/cancel-workflow-action@0.12.1
+      #  with:
+      #    access_token: ${{ github.token }}
+
       - name: Checkout NaMaster repository
         uses: actions/checkout@v4
 
-      - name: Set up Python ${{ matrix.py }}
-        uses: actions/setup-python@v2
+      - name: Set up conda
+        uses: conda-incubator/setup-miniconda@v3
         with:
-          python-version: ${{ matrix.py }}
+          channels: conda-forge, defaults
+          channel-priority: strict
+          show-channel-urls: true
+          miniforge-version: latest
+          miniforge-variant: Mambaforge
 
-      - name: Install GSL, FFTW, fitsio
-        run: |
-          sudo -H apt-get install libgsl-dev libfftw3-dev libcfitsio-dev
+      #- name: Set up Python ${{ matrix.py }}
+      #  uses: actions/setup-python@v2
+      #  with:
+      #    python-version: ${{ matrix.py }}
 
-      - name: Install python dependencies
+      #- name: Install GSL, FFTW, fitsio
+      #  run: |
+      #    sudo -H apt-get install libgsl-dev libfftw3-dev libcfitsio-dev
+
+      #- name: Install python dependencies
+      #  run: |
+      #    python -m pip install -U pip
+      #    pip install -U numpy
+      #    pip install -U scipy
+      #    pip install -U healpy
+      #    pip install -U ducc0
+      #    pip install -U flake8
+      #    pip install -U pytest
+      #    pip install -U pytest-cov
+      #    pip install -U coveralls
+
+      - name: Set current date as environment variable
+        run: echo "TODAY=$(date +'%Y.%m.%d')" >> $GITHUB_ENV
+
+      - name: Get cached environment
+        uses: actions/cache@v3
+        id: cache
+        with:
+          path: ${{ matrix.prefix }}
+          key:
+            conda-py${{ matrix.py }}--${{
+            matrix.os }}--${{
+            hashFiles(env.CONDA_ENV) }}-${{
+            hashFiles('setup.py') }}--${{
+            env.TODAY }}-${{
+            env.CACHE_NUMBER }}
+
+      - name: Install environment packages
+        if: steps.cache.outputs.cache-hit != 'true'
         run: |
-          python -m pip install -U pip
-          pip install -U numpy
-          pip install -U scipy
-          pip install -U healpy
-          pip install -U ducc0
-          pip install -U flake8
-          pip install -U pytest
-          pip install -U pytest-cov
-          pip install -U coveralls
+          export MAMBA_NO_BANNER=1  # hide mamba banner from output
+          mamba env update --file ${{ env.CONDA_ENV }} --prune
 
       - name: Flake
         run: |
