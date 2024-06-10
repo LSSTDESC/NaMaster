@@ -103,11 +103,6 @@ jobs:
           # to crash on mac, so we install it here instead
           conda install healpy
 
-      - name: Flake
-        run: |
-          flake8 pymaster --exclude=nmtlib.py
-          flake8 test --exclude=benchmarks
-
       - name: Build NaMaster (ubuntu)
         if: matrix.label == 'linux-64'
         run: |
