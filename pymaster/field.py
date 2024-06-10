@@ -135,7 +135,7 @@ class NmtField(object):
         mask = mask.astype(np.float64)
         self.minfo = ut.NmtMapInfo(wcs, mask.shape)
         self.mask = self.minfo.reform_map(mask)
-        if lmax <= 0:
+        if lmax is None:
             lmax = self.minfo.get_lmax()
         if lmax_mask is None:
             lmax_mask = self.minfo.get_lmax()
@@ -757,12 +757,14 @@ class NmtFieldCatalog(NmtField):
                              "provided, field must be None.")
 
         # Sanity checks on positions and weights
+        positions = np.array(positions, dtype=np.float64)
+        weights = np.array(weights, dtype=np.float64)
         pw_list = [(positions, weights)]
-        if positions_rand is not None or weights_rand is not None:
+        if do_clustering:
+            positions_rand = np.array(positions_rand, dtype=np.float64)
+            weights_rand = np.array(weights_rand, dtype=np.float64)
             pw_list += [(positions_rand, weights_rand)]
         for p, w in pw_list:
-            p = np.array(p, dtype=np.float64)
-            w = np.array(w, dtype=np.float64)
             if np.shape(p) != (2, len(w)):
                 raise ValueError("Positions must be 2D array of shape"
                                  " (2, len(weights)).")
