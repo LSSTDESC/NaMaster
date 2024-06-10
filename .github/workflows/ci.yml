@@ -50,19 +50,6 @@ jobs:
           miniforge-version: latest
           miniforge-variant: Mambaforge
 
-#      - name: "macOS: set env variables"
-#        if: matrix.label == 'osx-64'
-#	run: |
-#          #mamba install llvm-openmp
-#          echo "DYLD_FALLBACK_LIBRARY_PATH=${CONDA_PREFIX}/lib" >> $GITHUB_ENV
-#          SDKROOT=$(xcrun --sdk macosx --show-sdk-path)
-#          echo "SDKROOT: ${SDKROOT}"
-#          echo "SDKROOT=${SDKROOT}" >> $GITHUB_ENV
-#          echo "CONDA_BUILD_SYSROOT=${SDKROOT}" >> $GITHUB_ENV
-#
-#          export CFLAGS="-I/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include"
-#          export LDFLAGS="-L/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib"
-
       - name: Set current date as environment variable
         run: echo "TODAY=$(date +'%Y.%m.%d')" >> $GITHUB_ENV
 
@@ -124,10 +111,15 @@ jobs:
           flake8 pymaster --exclude=nmtlib.py
           flake8 test --exclude=benchmarks
 
-      - name: Build NaMaster
+      - name: Build NaMaster (ubuntu)
+        if: matrix.label == 'linux-64'
         run: |
-          python setup.py install || true
-          cat config.log
+          python setup.py install
+
+      - name: Build NaMaster (mac)
+        if: matrix.label == 'osx-64'
+        run: |
+          CC=gcc-13 python -m pip install .
 
       - name: C tests
         run: |
