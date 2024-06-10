@@ -3,6 +3,7 @@ import pymaster.utils as ut
 import numpy as np
 import healpy as hp
 
+
 class NmtWorkspace(object):
     """ :obj:`NmtWorkspace` objects are used to compute and store the
     mode-coupling matrix associated with an incomplete sky coverage,
