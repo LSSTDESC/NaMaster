@@ -35,7 +35,7 @@ jobs:
     steps:
       - name: Cancel previous runs
         uses: styfle/cancel-workflow-action@0.12.1
-	with:
+        with:
 	  access_token: ${{ github.token }}
 
       - name: Checkout NaMaster repository
@@ -51,8 +51,8 @@ jobs:
           miniforge-variant: Mambaforge
 
       - name: "macOS: set env variables"
-	if: matrix.label == 'osx-64'
-        run: |
+        if: matrix.label == 'osx-64'
+	run: |
           #mamba install llvm-openmp
           echo "DYLD_FALLBACK_LIBRARY_PATH=${CONDA_PREFIX}/lib" >> $GITHUB_ENV
           SDKROOT=$(xcrun --sdk macosx --show-sdk-path)
