@@ -108,9 +108,9 @@ jobs:
 
       - name: Build NaMaster
         run: |
-	  echo $CPPFLAGS
-	  echo $LDFLAGS
-	  echo $LD_LIBRARY_PATH
+          echo $CPPFLAGS
+          echo $LDFLAGS
+          echo $LD_LIBRARY_PATH
           python setup.py install
 
       - name: C tests
