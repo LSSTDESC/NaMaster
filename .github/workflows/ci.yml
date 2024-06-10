@@ -94,10 +94,15 @@ jobs:
 
       - name: Show installed
         run: conda list
-      #- name: Flake
-      #  run: |
-      #    flake8 pymaster --exclude=nmtlib.py
-      #    flake8 test --exclude=benchmarks
+
+      - name: Install fitsio
+        run: |
+          sudo -H apt-get install libcfitsio-dev
+
+      - name: Flake
+        run: |
+          flake8 pymaster --exclude=nmtlib.py
+          flake8 test --exclude=benchmarks
 
       - name: Build NaMaster
         run: |
