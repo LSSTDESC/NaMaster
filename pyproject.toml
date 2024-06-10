@@ -14,7 +14,7 @@ authors = [
 description = "Library for pseudo-Cl computation"
 readme = {file = "README.md", content-type = "text/markdown"}
 license = {file = "LICENSE"}
-requires-python = ">=2.7"
+requires-python = ">=3.8"
 dependencies = [
 	"healpy",
 	"ducc0"
