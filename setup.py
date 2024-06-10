@@ -64,14 +64,14 @@ def _compile_libnmt():
 class build(_build):
     """Specialized Python source builder."""
     def run(self):
-        #_compile_libchealpix()
+        _compile_libchealpix()
         _compile_libnmt()
         _build.run(self)
 
 class develop(_develop):
     """Specialized Python develop mode."""
     def run(self):
-        #_compile_libchealpix()
+        _compile_libchealpix()
         _compile_libnmt()
         _develop.run(self)
 
