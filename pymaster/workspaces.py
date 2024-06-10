@@ -728,15 +728,18 @@ def compute_coupled_cell(f1, f2):
     ncl = len(alm1) * len(alm2)
     lmax = min(f1.ainfo.lmax, f2.ainfo.lmax)
 
+    alpha = 1.
     Nf = 0
     if f2 is f1:
         Nf = f1.Nf
+        if f1.alpha is not None and f1.spin == 0:
+            alpha = f1.alpha
 
     cls = np.array([[hp.alm2cl(a1, a2, lmax=lmax)
                      for a2 in alm2] for a1 in alm1])
     for i in range(len(alm1)):
         cls[i, i, :] -= Nf
-    cls = cls.reshape([ncl, lmax+1])
+    cls = cls.reshape([ncl, lmax+1]) / alpha**2
     return cls
 
 
