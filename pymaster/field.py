@@ -764,7 +764,7 @@ class NmtFieldCatalog(NmtField):
                              f" {(2, len(weights))}.")
         if lonlat:
             # Put in radians and swap order
-            positions = np.radians(positions[::-1])
+            positions = np.pi/180.*positions[::-1]
             # Go from latitude to colatitude
             positions[0] = np.pi/2 - positions[0]
         if not (np.logical_and(positions[0] >= 0.,
@@ -778,6 +778,18 @@ class NmtFieldCatalog(NmtField):
                 raise ValueError(
                     "First dimension of positions must be colatitude in "
                     "radians, between 0 and pi."
+                )
+        if not (np.logical_and(positions[1] >= 0.,
+                               positions[1] <= 2*np.pi)).all():
+            if lonlat:
+                raise ValueError(
+                    "First dimension of positions must be longitude in "
+                    "degrees, between 0 and 360."
+                )
+            else:
+                raise ValueError(
+                    "Second dimension of positions must be longitude in "
+                    "radians, between 0 and 2*pi."
                 )
 
         # Compute mask shot noise
@@ -897,11 +909,10 @@ class NmtFieldCatalogClustering(NmtField):
                                  f" shape {(2, len(w))}.")
             if lonlat:
                 # Put in radians and swap order
-                pos = np.radians(pos[::-1])
+                pos = np.pi/180.*pos[::-1]
                 # Go from latitude to colatitude
                 pos[0] = np.pi/2 - pos[0]
-            if not (np.logical_and(pos[0] >= 0.,
-                                   pos[0] <= np.pi)).all():
+            if not (np.logical_and(pos[0] >= 0., pos[0] <= np.pi)).all():
                 if lonlat:
                     raise ValueError(
                         "Second dimension of positions must be "
@@ -911,6 +922,17 @@ class NmtFieldCatalogClustering(NmtField):
                     raise ValueError(
                         "First dimension of positions must be "
                         "colatitude in radians, between 0 and pi."
+                    )
+            if not (np.logical_and(pos[1] >= 0., pos[1] <= 2*np.pi)).all():
+                if lonlat:
+                    raise ValueError(
+                        "First dimension of positions must be longitude in "
+                        "degrees, between 0 and 360."
+                    )
+                else:
+                    raise ValueError(
+                        "Second dimension of positions must be longitude in "
+                        "radians, between 0 and 2*pi."
                     )
             return pos, w
 
