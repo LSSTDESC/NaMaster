@@ -825,7 +825,6 @@ class NmtFieldCatalog(NmtField):
         if self.field.shape != (self.nmaps, nsrcs):
             raise ValueError(f"Field should have shape {(self.nmaps, nsrcs)}.")
         if not field_is_weighted:
-            print("HII")
             self.field *= weights
         self.alm = ut._catalog2alm_ducc0(self.field, positions,
                                          spin=spin, lmax=lmax)
