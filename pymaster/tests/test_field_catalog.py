@@ -54,12 +54,12 @@ def test_field_catalog_init():
     for ndim, vals in zip([1, 2], [val_s0, val_s2]):
         f = nmt.NmtFieldCatalog([col_rad, lon_rad], w1, vals,
                                 lmax, field_is_weighted=True)
-        assert np.array_equal(f.field, vals)
-        assert ndim == f.field.ndim
+        assert np.array_equal(f.field.squeeze(), vals)
+        assert ndim == len(f.field)
         f = nmt.NmtFieldCatalog([col_rad, lon_rad], w1, vals,
                                 lmax, field_is_weighted=False)
-        assert np.array_equal(f.field, vals*w1)
-        assert ndim == f.field.ndim
+        assert np.array_equal(f.field.squeeze(), vals*w1)
+        assert ndim == len(f.field)
 
     for vals in [val_s0, val_s2]:
         f1 = nmt.NmtFieldCatalog([col_rad, lon_rad], w1, vals,

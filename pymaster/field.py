@@ -742,9 +742,12 @@ class NmtFieldCatalog(NmtField):
         self.n_iter_mask = None
         self.pure_e = False
         self.pure_b = False
+        self.alm = None
+        self.alm_mask = None
         self._Nw = 0.
         self._Nf = 0.
         self.ainfo = ut.NmtAlmInfo(lmax)
+        self._alpha = None
 
         # The remaining attributes are only required for non-lite maps
         self.maps = None
@@ -752,31 +755,30 @@ class NmtFieldCatalog(NmtField):
         self.alm_temp = None
         self.minfo = None
         self.n_temp = 0
-        self._alpha = None
 
         # Sanity checks on positions and weights
         positions = np.array(positions, dtype=np.float64)
         weights = np.array(weights, dtype=np.float64)
         if np.shape(positions) != (2, len(weights)):
             raise ValueError("Positions must be 2D array of shape"
-                             " (2, len(weights)).")
+                             f" {(2, len(weights))}.")
         if lonlat:
             # Put in radians and swap order
             positions = np.radians(positions[::-1])
             # Go from latitude to colatitude
             positions[0] = np.pi/2 - positions[0]
-            if not (np.logical_and(positions[0] >= 0.,
-                                   positions[0] <= np.pi)).all():
-                if lonlat:
-                    raise ValueError(
-                        "Second dimension of positions must be latitude in "
-                        "degrees, between -90 and 90."
-                    )
-                else:
-                    raise ValueError(
-                        "First dimension of positions must be colatitude in "
-                        "radians, between 0 and pi."
-                    )
+        if not (np.logical_and(positions[0] >= 0.,
+                               positions[0] <= np.pi)).all():
+            if lonlat:
+                raise ValueError(
+                    "Second dimension of positions must be latitude in "
+                    "degrees, between -90 and 90."
+                )
+            else:
+                raise ValueError(
+                    "First dimension of positions must be colatitude in "
+                    "radians, between 0 and pi."
+                )
 
         # Compute mask shot noise
         self._Nw = np.sum(weights**2.)/(4.*np.pi)
@@ -823,9 +825,118 @@ class NmtFieldCatalog(NmtField):
         if self.field.shape != (self.nmaps, nsrcs):
             raise ValueError(f"Field should have shape {(self.nmaps, nsrcs)}.")
         if not field_is_weighted:
+            print("HII")
             self.field *= weights
         self.alm = ut._catalog2alm_ducc0(self.field, positions,
                                          spin=spin, lmax=lmax)
 
         # 3. Compute field noise bias on mask pseudo-C_ell
         self._Nf = np.sum(self.field**2)/(4*np.pi*self.nmaps)
+
+
+class NmtFieldCatalogClustering(NmtField):
+    """ An :obj:`NmtFieldCatalogClustering` object contains all the
+    information describing a field represented by the position and density
+    of discrete sources, with a survey footprint characterised by a set of
+    random points or through a standard mask.
+
+    Args:
+        positions (`array`): Source positions, provided as a list or array
+            of 2 arrays. If ``lonlat`` is True, the arrays should contain the
+            longitude and latitude of the sources, in this order, and in
+            degrees (e.g. R.A. and Dec. if using Equatorial coordinates).
+            Otherwise, the arrays should contain the colatitude and
+            longitude of each source in radians (i.e. the spherical
+            coordinates :math:`(\\theta,\\phi)`).
+        weights (`array`): An array containing the weight assigned to
+            each source.
+        positions_rand (`array`): As `positions` for the random catalog.
+        weights_rand (`array`): As `weights` for the random catalog.
+        lmax (:obj:`int`): Maximum multipole up to which the spherical
+            harmonics of this field will be computed.
+        lonlat (:obj:`bool`): If ``True``, longitude and latitude in degrees
+            are provided as input. If ``False``, colatitude and longitude in
+            radians are provided instead.
+    """
+    def __init__(self, positions, weights, positions_rand, weights_rand,
+                 lmax, lonlat=False):
+        # Preliminary initializations
+        if ut.HAVE_DUCC:
+            self.sht_calculator = 'ducc'
+        else:
+            raise ValueError("DUCC is needed, but currently not installed.")
+
+        # These first attributes are compulsory for all fields
+        self.lite = True
+        self.mask = None
+        self.beam = None
+        self.n_iter = None
+        self.n_iter_mask = None
+        self.pure_e = False
+        self.pure_b = False
+        self.alm = None
+        self.alm_mask = None
+        self._Nw = 0.
+        self._Nf = 0.
+        self.ainfo = ut.NmtAlmInfo(lmax)
+        self._alpha = 0
+        self.spin = 0
+
+        # The remaining attributes are only required for non-lite maps
+        self.maps = None
+        self.temp = None
+        self.alm_temp = None
+        self.minfo = None
+        self.n_temp = 0
+
+        # Sanity checks on positions and weights
+        def process_pos_w(pos, w, kind):
+            pos = np.array(pos, dtype=np.float64)
+            w = np.array(w, dtype=np.float64)
+            if np.shape(pos) != (2, len(w)):
+                raise ValueError(f"{kind} positions must be 2D array of"
+                                 f" shape {(2, len(w))}.")
+            if lonlat:
+                # Put in radians and swap order
+                pos = np.radians(pos[::-1])
+                # Go from latitude to colatitude
+                pos[0] = np.pi/2 - pos[0]
+            if not (np.logical_and(pos[0] >= 0.,
+                                   pos[0] <= np.pi)).all():
+                if lonlat:
+                    raise ValueError(
+                        "Second dimension of positions must be "
+                        "latitude in degrees, between -90 and 90."
+                    )
+                else:
+                    raise ValueError(
+                        "First dimension of positions must be "
+                        "colatitude in radians, between 0 and pi."
+                    )
+            return pos, w
+
+        positions, weights = process_pos_w(positions, weights, "data")
+        positions_rand, weights_rand = process_pos_w(positions_rand,
+                                                     weights_rand, "random")
+
+        # Compute alpha
+        self._alpha = np.sum(weights)/np.sum(weights_rand)
+
+        # Compute mask shot noise
+        self._Nw = self._alpha**2*np.sum(weights_rand**2.)/(4.*np.pi)
+
+        # Compute mask alms
+        # Sanity checks
+        self.ainfo_mask = ut.NmtAlmInfo(lmax)
+        # Mask alms
+        self.alm_mask = ut._catalog2alm_ducc0(weights_rand*self._alpha,
+                                              positions_rand,
+                                              spin=0, lmax=lmax)
+
+        # Compute field alms
+        self.alm = ut._catalog2alm_ducc0(weights, positions,
+                                         spin=0, lmax=lmax)-self.alm_mask
+        self.alm_mask = self.alm_mask[0]
+
+        # Compute field shot noise
+        self._Nf = np.sum(weights**2)/(4*np.pi)+self._Nw
