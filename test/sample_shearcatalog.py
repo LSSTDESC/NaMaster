@@ -13,7 +13,9 @@ mask = hp.ud_grade(
     nside_out=nside
 )
 plt.clf()
-hp.mollview(mask)
+hp.mollview(mask, title="Survey mask")
+plt.savefig("sample_shearcatalog_mask.png")
+plt.tight_layout()
 plt.show()
 
 # We then draw 1e7 random sources uniformly distributed across the masked sky
@@ -41,7 +43,8 @@ catalog_U = map_U[ipix][good]
 # Now, we compute the mode coupling matrix of the source catalog.
 nmt_bin = nmt.NmtBin.from_nside_linear(nside, nlb=10)
 lb = nmt_bin.get_effective_ells()
-f = nmt.NmtFieldCatalog(positions, weights, None, lmax=nmt_bin.lmax, spin=2)
+f = nmt.NmtFieldCatalog(positions, weights, None, lmax=nmt_bin.lmax,
+                        lmax_mask=nmt_bin.lmax, spin=2)
 wsp = nmt.NmtWorkspace()
 wsp.compute_coupling_matrix(f, f, nmt_bin)
 
@@ -52,11 +55,14 @@ plt.clf()
 plt.plot(pcl_mask - f.Nw, label="Catalog-based", color="darkorange", ls="-")
 plt.plot(pcl_mask, color="darkorange", alpha=0.5, ls=":", label="Uncorrected")
 plt.loglog()
-plt.legend()
-plt.axhline(f.Nw, color="k", linestyle="--")
+plt.axhline(f.Nw, color="k", linestyle="--", label=r"$N_w$")
+plt.ylabel(r"$C_\ell^w$", fontsize=16)
+plt.xlabel(r"$\ell$", fontsize=16)
+plt.legend(fontsize=13)
+plt.savefig("sample_shearcatalog_mask_pcl.png", bbox_inches="tight")
 plt.show()
 
-# We then compute the coupled spin-2 pseudo power spectrum.
+# We then compute the coupled spin-2 pseudo power spectrum 
 f = nmt.NmtFieldCatalog(positions, weights, [catalog_Q, catalog_U],
                         lmax=3*nside-1, spin=2)
 pcl = nmt.compute_coupled_cell(f, f)
@@ -66,15 +72,17 @@ pcl = nmt.compute_coupled_cell(f, f)
 pcl /= hp.pixwin(nside)**2
 
 # Finally, we compute the decoupled power spectra, the binned theory
-# expactation, and plot them.
+# expectation, and plot them.
 clb = wsp.decouple_cell(pcl)
 clb_theory = wsp.decouple_cell(wsp.couple_cell([cl, cl0, cl0, cl0]))
 
 plt.clf()
-plt.plot(lb, clb[0], "ro", label="EE")
-plt.plot(lb, clb[3], "bo", label="BB")
-plt.plot(lb, clb_theory[0], "k-", label="Theory EE")
-
+plt.plot(lb, clb[0], "bo", label="EE")
+plt.plot(lb, clb[3], "ro", label="BB")
+plt.plot(lb, clb_theory[0], "k-", label="Expected EE")
 plt.loglog()
-plt.legend()
+plt.ylabel(r"$C_\ell^{\rm decoupled}$", fontsize=16)
+plt.xlabel(r"$\ell$", fontsize=16)
+plt.legend(fontsize=13)
+plt.savefig("sample_shearcatalog_decoupled.png", bbox_inches="tight")
 plt.show()

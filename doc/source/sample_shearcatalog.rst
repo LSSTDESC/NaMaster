@@ -1,5 +1,5 @@
-Example 11: Catalog-based power spectra
-=============================
+Example 11: Catalog-based power spectra for spin-s fields
+=========================================================
 
 This sample script showcases the use of the NmtFieldCatalog class for spin-2 source catalogs.
 

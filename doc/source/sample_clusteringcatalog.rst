@@ -1,5 +1,5 @@
 Example 12: Source clustering power spectra
-=============================
+===========================================
 
 This sample script showcases the use of the NmtFieldCatalog class for source clustering.
 

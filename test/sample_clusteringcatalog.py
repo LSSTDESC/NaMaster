@@ -27,12 +27,12 @@ nmap_src = source_density*pix_area_arcmin*np.exp(deltaG
 # measure (i.e., a Poisson-sampled source catalog whose intensity is also
 # stochastic).
 num_src_mean = source_density * pix_area_arcmin
-num_sources = int(np.amax(nmap_src)*len(nmap_src))
+num_sources = int(np.amax(nmap_src*mask)*len(nmap_src))
 
-# - probability map for a random source to be sampled at a given pixel
-pmap_src = nmap_src/np.amax(nmap_src)
+# probability map for a random source to be sampled at a given pixel
+pmap_src = mask*nmap_src/np.amax(mask*nmap_src)
 
-# - draw random source positions with continous random angles
+# draw random source positions with continous random angles
 cth = -1 + 2*np.random.rand(int(num_sources))
 phi = 2*np.pi*np.random.rand(int(num_sources))
 sth = np.sqrt(1 - cth**2)
@@ -66,19 +66,14 @@ weights_rand = np.ones(len(positions_rand[0])).astype(np.float64)
 # random catalog.
 nmt_bin = nmt.NmtBin.from_nside_linear(nside, nlb=10)
 lb = nmt_bin.get_effective_ells()
-f = nmt.NmtFieldCatalog(
-        positions_rand, weights_rand, None, lmax=nmt_bin.lmax, spin=0
-    )
+f = nmt.NmtFieldCatalogClustering(
+    positions, weights, positions_rand, weights_rand, 3*nside-1
+)
 wsp = nmt.NmtWorkspace()
 wsp.compute_coupling_matrix(f, f, nmt_bin)
 
 # We compute the clustering field by passing both the source catalog and the
 # random catalog.
-f = nmt.NmtFieldCatalog(
-        positions, weights, None, spin=0,
-        positions_rand=positions_rand, weights_rand=weights_rand,
-        lmax=3*nside-1,
-    )
 pcl_uncorrected = hp.alm2cl(f.alm)
 pcl = nmt.compute_coupled_cell(f, f)
 
@@ -89,8 +84,12 @@ plt.plot(pcl.flatten(), label="Catalog-based", color="darkorange", ls="-")
 plt.plot(pcl_uncorrected.flatten(), color="darkorange", alpha=0.5, ls=":",
          label="Uncorrected")
 plt.loglog()
-plt.legend()
-plt.axhline(f.Nw, color="k", linestyle="--")
+plt.xlabel(r"$\ell$", fontsize=16)
+plt.ylabel(r"$C_\ell^{\delta\delta,\, {\rm coupled}}$", fontsize=16)
+plt.axhline(f.Nf, color="k", linestyle="--", label=r"$N_f$")
+plt.ylim((f.Nf/1000, None))
+plt.legend(fontsize=13)
+plt.savefig("sample_clusteringcatalog_coupled.png", bbox_inches="tight")
 plt.show()
 
 # We need to divide it by the pixel window function imprinted on the source
@@ -108,9 +107,12 @@ pcl_clean = wsp.couple_cell(cl_clean.reshape((1, -1)))
 cl_clean = wsp.decouple_cell(pcl_clean).flatten()
 
 plt.clf()
-plt.plot(lb, cl_clean, "k-", label="Expectation")
 plt.plot(lb, clb, "bo", label="Catalog-based")
-plt.plot(lb, clb_uncorrected, "ro", mfc="r", alpha=0.5, label="Uncorrected")
+plt.plot(lb, clb_uncorrected, "bo", mfc="w", label="Uncorrected")
+plt.plot(lb, cl_clean, "k-", label="Expectation")
 plt.loglog()
-plt.legend()
+plt.legend(fontsize=13)
+plt.xlabel(r"$\ell$", fontsize=16)
+plt.ylabel(r"$C_\ell^{\delta\delta,\, {\rm decoupled}}$", fontsize=16)
+plt.savefig("sample_clusteringcatalog_decoupled.png", bbox_inches="tight")
 plt.show()
