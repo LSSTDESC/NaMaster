@@ -711,7 +711,9 @@ class NmtFieldCatalog(NmtField):
             harmonics of this field will be computed.
         lmax_mask (:obj:`int`): Maximum multipole up to which the spherical
             harmonics of this field's mask will be computed. If negative,
-            it will default to ``4*lmax``.
+            it will default to ``lmax``. Note that you should explore the
+            sensitivity of the recovered :math:`C_\\ell` to the choice of
+            ``lmax_mask``, and enlarge it if necessary.
         spin (:obj:`int`): Spin of this field. If ``None`` it will
             default to 0 or 2 if ``field`` contains 1 or 2 arrays,
             respectively.

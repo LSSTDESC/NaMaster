@@ -8,10 +8,10 @@ This sample script showcases the use of the NmtFieldCatalog class for source clu
 
 The result of running this is:
 
-.. image:: figs/sample_shearcatalog_coupled.png
+.. image:: ../figs/sample_clusteringcatalog_coupled.png
    :width: 500
    :alt: Coupled overdensity power spectrum
 
-.. image:: figs/sample_shearcatalog_decoupled.png
+.. image:: ../figs/sample_shearcatalog_decoupled.png
    :width: 500
    :alt: Decoupled overdensity power spectrum

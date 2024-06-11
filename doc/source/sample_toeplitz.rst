@@ -8,10 +8,10 @@ This sample script shows how to compute mode-coupling coefficients fast using th
 
 The result of running this is:
 
-.. image:: figs/mcms_tpltz.png
+.. image:: ../figs/mcms_tpltz.png
    :width: 700
    :alt: Mode-coupling matrices
 
-.. image:: figs/cls_tpltz.png
+.. image:: ../figs/cls_tpltz.png
    :width: 500
    :alt: Power spectra and errors
