@@ -784,9 +784,9 @@ def moore_penrose_pinvh(mat, tol_pinv):
         return np.linalg.inv(mat)
 
     w, v = np.linalg.eigh(mat)
-    badw = w < tol_pinv*np.max(w)
-    w_inv = 1./w
-    w_inv[badw] = 0.
+    goodw = w >= tol_pinv*np.max(w)
+    w_inv = np.zeros_like(w)
+    w_inv[goodw] = 1./w[goodw]
     pinv = np.dot(v, np.dot(np.diag(w_inv), v.T))
     return pinv
 

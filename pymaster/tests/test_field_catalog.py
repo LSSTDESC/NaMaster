@@ -174,14 +174,33 @@ def test_field_catalog_errors():
                             [[1., 1.], [1., 1.], [1., 1.]], 10)
     with pytest.raises(ValueError):  # Passing single angle
         nmt.NmtFieldCatalog([[0., 0.]], [1., 1.], [1., 1.], 10)
-    with pytest.raises(ValueError):  # Trash angles (th, phi)
+    with pytest.raises(ValueError):
+        nmt.NmtFieldCatalogClustering([[0., 0.]], [1., 1.],
+                                      [[0., 0.]], [1., 1.], 10)
+    with pytest.raises(ValueError):  # Trash latitude (th, phi)
         nmt.NmtFieldCatalog([[-1., 0.], [1., 1.]], [1., 1.], [1., 1.], 10)
+    with pytest.raises(ValueError):
+        nmt.NmtFieldCatalogClustering([[-1., 0.], [1., 1.]], [1., 1.],
+                                      [[-1., 0.], [1., 1.]], [1., 1.], 10)
+    with pytest.raises(ValueError):  # Trash longitude (th, phi)
+        nmt.NmtFieldCatalog([[0., 0.], [-1., 1.]], [1., 1.], [1., 1.], 10)
+    with pytest.raises(ValueError):
+        nmt.NmtFieldCatalogClustering([[0., 0.], [-1., 1.]], [1., 1.],
+                                      [[0., 0.], [-1., 1.]], [1., 1.], 10)
     with pytest.raises(ValueError):  # Trash latitude (lonlat=True)
         nmt.NmtFieldCatalog([[0., 0.], [930., 420.]], [1., 1.], [1., 1.], 10,
                             lonlat=True)
+    with pytest.raises(ValueError):
+        nmt.NmtFieldCatalogClustering([[0., 0.], [930., 420.]], [1., 1.],
+                                      [[0., 0.], [930., 420.]], [1., 1.],
+                                      10, lonlat=True)
     with pytest.raises(ValueError):  # Trash longitude (lonlat=True)
         nmt.NmtFieldCatalog([[-10., 0.], [45., 45.]], [1., 1.], [1., 1.], 10,
                             lonlat=True)
+    with pytest.raises(ValueError):
+        nmt.NmtFieldCatalogClustering([[-10., 0.], [45., 45.]], [1., 1.],
+                                      [[-10., 0.], [45., 45.]], [1., 1.],
+                                      10, lonlat=True)
 
     f = nmt.NmtFieldCatalog(  # Check beam
         [[0., 0.], [1., 1.]], [1., 1.], [1., 1.], 10, beam=np.ones(20)
@@ -225,6 +244,9 @@ def test_field_catalog_errors():
     with pytest.raises(ValueError):
         nmt.NmtFieldCatalog([[0., 0.], [1., 1.]], [1., 1.],
                             [[1., 1.], [1., 1.]], 10)
+    with pytest.raises(ValueError):
+        nmt.NmtFieldCatalogClustering([[0., 0.], [1., 1.]], [1., 1.],
+                                      [[0., 0.], [1., 1.]], [1., 1.], 10)
     nmt.utils.HAVE_DUCC = True
 
 
@@ -267,6 +289,7 @@ def test_field_catalog_clustering_poisson():
                             2*np.pi*np.random.rand(ncat)])
         f = nmt.NmtFieldCatalogClustering(pos_dat, w_dat, pos_ran, w_ran,
                                           lmax=3*nside-1)
+        assert np.isclose(f.alpha, 1/16)
         cls_full.append(w.decouple_cell(nmt.compute_coupled_cell(f, f)))
 
         # Half-sky version

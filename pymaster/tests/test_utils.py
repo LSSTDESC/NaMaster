@@ -1,3 +1,4 @@
+import numpy as np
 import pytest
 import pymaster as nmt
 
@@ -45,6 +46,34 @@ def test_params_set_get():
     # Wrong tolerance
     with pytest.raises(ValueError):
         nmt.set_tol_pinv_default(2)
+
+
+def test_moore_penrose_pinv():
+    # Unit vector
+    v = np.random.rand(3)
+    v /= np.sqrt(np.dot(v, v))
+
+    # Matrix with single eigenvalue
+    m = np.outer(v, v)
+    # Pseudo-inverse
+    im = nmt.utils.moore_penrose_pinvh(m, 1E-4)
+    # Diagonalise
+    w, e = np.linalg.eigh(im)
+    # Pick up largest eigval
+    e = e[:, w > 0.1].squeeze()
+    # Should only have two non-zero eigvals
+    assert np.sum(np.fabs(w) < 1E-15) == 2
+    # Check e is parallel to v
+    assert np.isclose(np.dot(e, v),
+                      np.sqrt(np.dot(e, e)))
+
+    # For invertible matrix, we just get
+    # the inverse
+    w = np.array([1, 2, 3])
+    m = np.diag(w)
+    im = nmt.utils.moore_penrose_pinvh(m, None)
+    imb = np.diag(1/w)
+    assert np.allclose(im, imb)
 
 
 def test_ducc_catalog2alm():
