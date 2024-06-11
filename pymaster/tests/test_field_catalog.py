@@ -183,6 +183,9 @@ def test_field_catalog_errors():
     with pytest.raises(ValueError):  # Trash latitude (lonlat=True)
         nmt.NmtFieldCatalog([[0., 0.], [930., 420.]], [1., 1.], [1., 1.], 10,
                             lonlat=True)
+    with pytest.raises(ValueError):  # Trash longitude (lonlat=True)
+        nmt.NmtFieldCatalog([[-10., 0.], [45., 45.]], [1., 1.], [1., 1.], 10,
+                            lonlat=True)
 
     f = nmt.NmtFieldCatalog(  # Check beam
         [[0., 0.], [1., 1.]], [1., 1.], [1., 1.], 10, beam=np.ones(20)
