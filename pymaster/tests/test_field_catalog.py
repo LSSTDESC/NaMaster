@@ -28,7 +28,6 @@ def test_field_catalog_compatibility():
     assert f0.is_compatible(f1)
 
     # Different lmax
-    print(f0.ainfo_mask.lmax)
     f1 = nmt.NmtFieldCatalog(p, w_rand, f_rand, lmax=111)
     assert not f0.is_compatible(f1)
 
@@ -46,7 +45,7 @@ def test_field_catalog_init():
     w1 = np.random.rand(Ncat)
     val_s0 = np.random.rand(Ncat) - 0.5
     val_s2 = np.random.rand(2, Ncat) - 0.5
-    col_rad = np.pi*np.random.rand(Ncat)
+    col_rad = np.arccos(-1+2*np.random.rand(Ncat))
     lon_rad = 2*np.pi*np.random.rand(Ncat)
     lon_deg = np.rad2deg(lon_rad)
     lat_deg = np.rad2deg(np.pi/2. - col_rad)
@@ -85,7 +84,7 @@ def test_field_catalog_Nw():
     for i in range(Nsims):
         np.random.seed(5675 + i)
         val_s0 = np.random.rand(Ncat) - 0.5
-        col_rad = np.pi*np.random.rand(Ncat)
+        col_rad = np.arccos(-1+2*np.random.rand(Ncat))
         lon_rad = 2*np.pi*np.random.rand(Ncat)
         f = nmt.NmtFieldCatalog([col_rad, lon_rad], w1, val_s0, lmax)
         pcl_mask = hp.alm2cl(f.get_mask_alms())
@@ -110,7 +109,7 @@ def test_field_catalog_Nf():
     np.random.seed(5675)
     val_s0 = np.random.rand(Ncat) - 0.5
     val_s2 = np.random.rand(2, Ncat) - 0.5
-    col_rad = np.pi*np.random.rand(Ncat)
+    col_rad = np.arccos(-1+2*np.random.rand(Ncat))
     lon_rad = 2*np.pi*np.random.rand(Ncat)
 
     for val in [val_s0, val_s2]:
@@ -135,7 +134,7 @@ def test_field_catalog_alm():
     # are equal up to numerical accuracy.
     nside = 32
     npix = int(hp.nside2npix(nside))
-    pixel_area = np.pi*4./npix
+    pixel_area = hp.nside2pixarea(nside)
     lmax = 20
 
     mps = np.zeros([3, npix])
@@ -152,20 +151,17 @@ def test_field_catalog_alm():
     f0_cat = nmt.NmtFieldCatalog([th, ph], np.ones(npix), mps[0], lmax)
 
     # spin 2
-    f2_cat = nmt.NmtFieldCatalog([th, ph], np.ones(npix),
-                                 np.array([mps[1], mps[2]]), lmax)
+    f2_cat = nmt.NmtFieldCatalog([th, ph], np.ones(npix), mps[1:], lmax)
 
-    alms_cat = np.array([pixel_area*f0_cat.get_alms()[0],
-                         pixel_area*f2_cat.get_alms()[0],
-                         pixel_area*f2_cat.get_alms()[1]])
+    alms_cat = pixel_area * np.array(list(f0_cat.get_alms()) +
+                                     list(f2_cat.get_alms()))
 
     alms_in = np.zeros_like(alms_cat)
     alms_in[0, hp.Alm.getidx(lmax, 2, 2)] = 2.
     alms_in[1, hp.Alm.getidx(lmax, 2, 0)] = 1.
     alms_in[2, hp.Alm.getidx(lmax, 3, 0)] = 2.
 
-    for f_idx in range(3):
-        assert np.all(np.absolute(alms_cat - alms_in)[f_idx] < 1.e-3)
+    assert np.all(np.absolute(alms_cat - alms_in) < 1.e-3)
 
 
 def test_field_catalog_errors():
@@ -230,3 +226,61 @@ def test_field_catalog_errors():
         nmt.NmtFieldCatalog([[0., 0.], [1., 1.]], [1., 1.],
                             [[1., 1.], [1., 1.]], 10)
     nmt.utils.HAVE_DUCC = True
+
+
+def test_field_catalog_clustering_poisson():
+    # Checks that a purely Poisson catalog has a power spectrum
+    # that is close to zero.
+
+    # Create random catalog
+    nside = 64
+    npix = hp.nside2npix(nside)
+    pos_ran = np.array([np.arccos(-1+2*np.random.rand(4*npix)),
+                        2*np.pi*np.random.rand(4*npix)])
+    w_ran = np.ones(4*npix)
+    # We'll do a full-sky version and a half-sky version
+    goodhalfran = pos_ran[0] <= np.pi/2
+
+    # Create dummy field for workspaces
+    b = nmt.NmtBin.from_nside_linear(nside, 4)
+    f = nmt.NmtFieldCatalogClustering(pos_ran, w_ran, pos_ran, w_ran,
+                                      lmax=3*nside-1)
+    w = nmt.NmtWorkspace()
+    w.compute_coupling_matrix(f, f, b)
+    # Half-sky version
+    f = nmt.NmtFieldCatalogClustering(pos_ran[:, goodhalfran],
+                                      w_ran[goodhalfran],
+                                      pos_ran[:, goodhalfran],
+                                      w_ran[goodhalfran],
+                                      lmax=3*nside-1)
+    wh = nmt.NmtWorkspace()
+    wh.compute_coupling_matrix(f, f, b)
+
+    nsims = 10
+    ncat = npix//4
+    cls_full = []
+    cls_half = []
+    w_dat = np.ones(ncat)
+    for i in range(nsims):
+        # Generate sim and get C_ell
+        pos_dat = np.array([np.arccos(-1+2*np.random.rand(ncat)),
+                            2*np.pi*np.random.rand(ncat)])
+        f = nmt.NmtFieldCatalogClustering(pos_dat, w_dat, pos_ran, w_ran,
+                                          lmax=3*nside-1)
+        cls_full.append(w.decouple_cell(nmt.compute_coupled_cell(f, f)))
+
+        # Half-sky version
+        goodhalfdat = pos_dat[0] <= np.pi/2
+        f = nmt.NmtFieldCatalogClustering(pos_dat[:, goodhalfdat],
+                                          w_dat[goodhalfdat],
+                                          pos_ran[:, goodhalfran],
+                                          w_ran[goodhalfran],
+                                          lmax=3*nside-1)
+        cls_half.append(w.decouple_cell(nmt.compute_coupled_cell(f, f)))
+    cls_full = np.array(cls_full).squeeze()
+    cls_half = np.array(cls_half).squeeze()
+
+    for c in [cls_full, cls_half]:
+        x = np.mean(c, axis=0)
+        s = np.std(c, axis=0)/np.sqrt(nsims)
+        assert np.all(np.fabs(x) < 5*s)
