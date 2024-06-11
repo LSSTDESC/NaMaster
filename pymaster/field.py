@@ -868,7 +868,7 @@ class NmtFieldCatalogClustering(NmtField):
         # These first attributes are compulsory for all fields
         self.lite = True
         self.mask = None
-        self.beam = None
+        self.beam = np.ones(lmax+1)
         self.n_iter = None
         self.n_iter_mask = None
         self.pure_e = False
