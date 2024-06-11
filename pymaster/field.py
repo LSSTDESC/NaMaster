@@ -915,24 +915,24 @@ class NmtFieldCatalogClustering(NmtField):
             if not (np.logical_and(pos[0] >= 0., pos[0] <= np.pi)).all():
                 if lonlat:
                     raise ValueError(
-                        "Second dimension of positions must be "
+                        f"Second dimension of {kind} positions must be "
                         "latitude in degrees, between -90 and 90."
                     )
                 else:
                     raise ValueError(
-                        "First dimension of positions must be "
+                        f"First dimension of {kind} positions must be "
                         "colatitude in radians, between 0 and pi."
                     )
             if not (np.logical_and(pos[1] >= 0., pos[1] <= 2*np.pi)).all():
                 if lonlat:
                     raise ValueError(
-                        "First dimension of positions must be longitude in "
-                        "degrees, between 0 and 360."
+                        f"First dimension of {kind} positions must be "
+                        "longitude in degrees, between 0 and 360."
                     )
                 else:
                     raise ValueError(
-                        "Second dimension of positions must be longitude in "
-                        "radians, between 0 and 2*pi."
+                        f"Second dimension of {kind} positions must be "
+                        "longitude in radians, between 0 and 2*pi."
                     )
             return pos, w
 
