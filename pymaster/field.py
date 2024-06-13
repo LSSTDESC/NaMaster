@@ -719,9 +719,10 @@ class NmtFieldCatalog(NmtField):
             respectively.
         beam (`array`): Spherical harmonic transform of the instrumental beam
             (assumed to be rotationally symmetric - i.e. no :math:`m`
-            dependence) associated with this field. If ``None``, no beam will
-            be corrected for. Otherwise, this array should have at least of
-            size ``lmax+1``.
+            dependence) associated with any smoothing that the field that
+            was sampled on these catalog sources may have undergone. If
+            ``None``, no beam will be corrected for. Otherwise, this array
+            should have at least of size ``lmax+1``.
         field_is_weighted (:obj:`bool`): Set to ``True`` if the input field has
             already been multiplied by the source weights.
         lonlat (:obj:`bool`): If ``True``, longitude and latitude in degrees

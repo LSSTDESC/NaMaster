@@ -12,6 +12,6 @@ The result of running this is:
    :width: 500
    :alt: Coupled overdensity power spectrum
 
-.. image:: ../figs/sample_shearcatalog_decoupled.png
+.. image:: ../figs/sample_clusteringcatalog_decoupled.png
    :width: 500
    :alt: Decoupled overdensity power spectrum
