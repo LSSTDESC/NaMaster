@@ -149,6 +149,10 @@ html_sidebars = {
     ]
 }
 
+# Add any extra paths that contain custom files (such as robots.txt or
+# .htaccess) here, relative to this directory. These files are copied
+# directly to the root of the documentation.
+html_extra_path = ['1BasicFunctionality.html']
 
 # -- Options for HTMLHelp output ------------------------------------------
 
