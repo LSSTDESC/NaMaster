@@ -6,3 +6,4 @@ Below is a list of tutorials, in the form of jupyter notebooks, that guide you t
 
 * `Basic functionality <../1BasicFunctionality.html>`_
 * `Fields with spin <../2Spin.html>`_
+* `Covariances <../3Covariances.html>`_

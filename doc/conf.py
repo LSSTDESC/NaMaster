@@ -153,7 +153,8 @@ html_sidebars = {
 # .htaccess) here, relative to this directory. These files are copied
 # directly to the root of the documentation.
 html_extra_path = ['1BasicFunctionality.html',
-                   '2Spin.html']
+                   '2Spin.html',
+                   '3Covariances.html']
 
 # -- Options for HTMLHelp output ------------------------------------------
 
