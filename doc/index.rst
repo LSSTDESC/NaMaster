@@ -6,7 +6,7 @@
 Welcome to NaMaster's documentation!
 ====================================
 
-NaMaster is a python package that provides support to compute the angular power spectrum of masked fields with arbitrary spin pymaster using the so-called pseudo-Cl formalism. ``pymaster`` is the python implementation of the NaMaster library. Below you can find links to NaMaster's full documentation and various example scripts showcasing its usage. Understanding these scripts will allow you to make the most efficient use of this package.
+NaMaster is a python package that provides support to compute the angular power spectrum of masked fields with arbitrary spin pymaster using the so-called pseudo-Cl formalism. ``pymaster`` is the python implementation of the NaMaster library. Below you can find links to NaMaster's full documentation, a series of detailed tutorials in the form of ipython notebooks, and various example scripts showcasing its usage. Understanding these notebooks and scripts will allow you to make the most efficient use of this package.
 
 We recommend that users read NaMaster's :download:`scientific documentation <doc_scientific.pdf>`, as well as the original paper `Alonso et al. 2019 <https://arxiv.org/abs/1809.09603>`_ to have a good understanding of the methods implemented in the library. Additional useful information, particularly regarding the calculation of covariance matrices, can be found in `Garcia-Garcia et al. 2019 <https://arxiv.org/abs/1906.11765>`_, and `Nicola et al. 2021 <https://arxiv.org/abs/2010.09717>`_. We kindly request that you cite these papers where relevant.
 
