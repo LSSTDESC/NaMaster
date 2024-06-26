@@ -92,10 +92,8 @@ class NmtWorkspace(object):
         match the :math:`\\ell_{\\rm max}` of the fields as well.
 
         Args:
-            fl1 (:class:`~pymaster.field.NmtField`): First field to
-                correlate.
-            fl2 (:class:`~pymaster.field.NmtField`): Second field to
-                correlate.
+            fl1 (:class:`~pymaster.field.NmtField`): First field to correlate.
+            fl2 (:class:`~pymaster.field.NmtField`): Second field to correlate.
             bin (:class:`~pymaster.bins.NmtBin`): Binning scheme.
             is_teb (:obj:`bool`): If ``True``, all mode-coupling matrices
                 (0-0,0-s,s-s) will be computed at the same time. In this
@@ -128,8 +126,10 @@ class NmtWorkspace(object):
 
         # Get mask PCL
         alm1 = fl1.get_mask_alms()
+        Nw = 0
         if fl2 is fl1:
             alm2 = alm1
+            Nw = fl1.Nw
         else:
             alm2 = fl2.get_mask_alms()
         pcl_mask = hp.alm2cl(alm1, alm2, lmax=fl1.ainfo_mask.lmax)
@@ -137,7 +137,7 @@ class NmtWorkspace(object):
             int(fl1.spin), int(fl2.spin),
             int(fl1.ainfo.lmax), int(fl1.ainfo_mask.lmax),
             int(fl1.pure_e), int(fl1.pure_b), int(fl2.pure_e), int(fl2.pure_b),
-            fl1.beam, fl2.beam, pcl_mask,
+            fl1.beam, fl2.beam, pcl_mask.flatten()-Nw,
             bins.bin, int(is_teb), l_toeplitz, l_exact, dl_band)
         self.has_unbinned = True
 
@@ -727,8 +727,15 @@ def compute_coupled_cell(f1, f2):
     alm2 = f2.get_alms()
     ncl = len(alm1) * len(alm2)
     lmax = min(f1.ainfo.lmax, f2.ainfo.lmax)
+
+    Nf = 0
+    if f2 is f1:
+        Nf = f1.Nf
+
     cls = np.array([[hp.alm2cl(a1, a2, lmax=lmax)
                      for a2 in alm2] for a1 in alm1])
+    for i in range(len(alm1)):
+        cls[i, i, :] -= Nf
     cls = cls.reshape([ncl, lmax+1])
     return cls
 

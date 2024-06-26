@@ -30,8 +30,17 @@ and a number of functions
 - :func:`pymaster.utils.mask_apodization_flat`
 - :func:`pymaster.utils.synfast_flat`
 
-Many of these function accept or return sets of power \
-spectra (arrays with one element per angular multipole) \
+Finally, :mod:`pymaster` has functionality to calculate \
+the power spectra of fields defined at the arbitrary \
+positions of a discrete set of sources. These should be \
+defined using the following two field classes:
+
+- :class:`pymaster.field.NmtFieldCatalog`
+- :class:`pymaster.field.NmtFieldCatalogClustering`
+
+
+Many of the NaMaster functions above accept or return sets \
+of power spectra (arrays with one element per angular multipole) \
 or bandpowers (binned versions of power spectra). In \
 all cases, these are returned and provided as 2D arrays \
 with shape ``[n_cls][nl]``, where ``n_cls`` is the number of \
@@ -74,7 +83,10 @@ from pymaster.utils import (  # noqa
     moore_penrose_pinvh,
     map2alm, alm2map,
 )
-from pymaster.field import NmtField, NmtFieldFlat  # noqa
+from pymaster.field import (  # noqa
+    NmtField, NmtFieldFlat,
+    NmtFieldCatalog, NmtFieldCatalogClustering
+)
 from pymaster.bins import NmtBin, NmtBinFlat  # noqa
 from pymaster.workspaces import (  # noqa
     NmtWorkspace,
