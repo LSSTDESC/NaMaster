@@ -16,6 +16,7 @@ We recommend that users read NaMaster's :download:`scientific documentation <doc
 
    source/installation
    API Documentation<api/pymaster>
+   source/tutorials
    source/sample_simple
    source/sample_bins
    source/sample_fields
