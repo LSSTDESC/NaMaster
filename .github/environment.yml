@@ -4,7 +4,9 @@ dependencies:
   - pip
   - setuptools_scm
   - numpy
-  - scipy
+  # The below is only because the version of healpy that gets installed on mac uses deprecated scipy functions.
+  # We should remove the <1.14 flag as soon as this is fixed.
+  - scipy<1.14
   - pytest
   - pytest-cov
   - coveralls
