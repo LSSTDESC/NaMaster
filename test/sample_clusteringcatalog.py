@@ -13,6 +13,8 @@ import wget
 # a given nside and a given source density and survey mask.
 nside = 128
 source_density = 0.001  # source number density per square arcmin
+# We use as a basis the publicly available selection function for the
+# Quaia sample.
 fname_mask = 'selection_function_NSIDE64_G20.5_zsplit2bin0.fits'
 if not os.path.isfile(fname_mask):
     wget.download("https://zenodo.org/records/8098636/files/selection_function_NSIDE64_G20.5_zsplit2bin0.fits?download=1")  # noqa

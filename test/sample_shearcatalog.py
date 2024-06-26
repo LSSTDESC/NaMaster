@@ -11,6 +11,8 @@ import os
 
 # We start by creating a pixel-level survey mask
 nside = 128
+# We use as a basis the publicly available selection function for the
+# Quaia sample.
 fname_mask = 'selection_function_NSIDE64_G20.5_zsplit2bin0.fits'
 if not os.path.isfile(fname_mask):
     wget.download("https://zenodo.org/records/8098636/files/selection_function_NSIDE64_G20.5_zsplit2bin0.fits?download=1")  # noqa
