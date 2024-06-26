@@ -689,9 +689,10 @@ class NmtFieldFlat(object):
 
 class NmtFieldCatalog(NmtField):
     """ An :obj:`NmtFieldCatalog` object contains all the information
-    describing a given field sampled at the discrete positions of
-    a given catalog of sources. It can also be used for clustering studies,
-    in which the density of points itself is the field of interest.
+    describing a field sampled at the discrete positions of
+    a given catalog of sources. If you want to estimate clustering power
+    spectra directly from catalogs, use :obj:`NmtFieldCatalogClustering`
+    instead.
 
     Args:
         positions (`array`): Source positions, provided as a list or array
@@ -710,7 +711,7 @@ class NmtFieldCatalog(NmtField):
         lmax (:obj:`int`): Maximum multipole up to which the spherical
             harmonics of this field will be computed.
         lmax_mask (:obj:`int`): Maximum multipole up to which the spherical
-            harmonics of this field's mask will be computed. If negative,
+            harmonics of this field's mask will be computed. If ``None``,
             it will default to ``lmax``. Note that you should explore the
             sensitivity of the recovered :math:`C_\\ell` to the choice of
             ``lmax_mask``, and enlarge it if necessary.
@@ -864,8 +865,8 @@ class NmtFieldCatalogClustering(NmtField):
             coordinates :math:`(\\theta,\\phi)`).
         weights (`array`): An array containing the weight assigned to
             each source.
-        positions_rand (`array`): As `positions` for the random catalog.
-        weights_rand (`array`): As `weights` for the random catalog.
+        positions_rand (`array`): As ``positions`` for the random catalog.
+        weights_rand (`array`): As ``weights`` for the random catalog.
         lmax (:obj:`int`): Maximum multipole up to which the spherical
             harmonics of this field will be computed.
         lonlat (:obj:`bool`): If ``True``, longitude and latitude in degrees
