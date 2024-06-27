@@ -154,7 +154,8 @@ html_sidebars = {
 # directly to the root of the documentation.
 html_extra_path = ['1BasicFunctionality.html',
                    '2Spin.html',
-                   '3Covariances.html']
+                   '3Covariances.html',
+                   '4Catalogs.html']
 
 # -- Options for HTMLHelp output ------------------------------------------
 
