@@ -90,8 +90,7 @@ def test_workspace_car_methods():
         w.compute_coupling_matrix(WT.f0, WT.f0,
                                   WT.b_doub)
     # Incompatible resolutions
-    with pytest.raises(ValueError):
-        WT.f0.is_compatible(WT.f0_half)
+    assert not WT.f0.is_compatible(WT.f0_half)
 
     # Wrong fields for TEB
     with pytest.raises(RuntimeError):
