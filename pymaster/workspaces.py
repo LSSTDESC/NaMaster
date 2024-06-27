@@ -111,7 +111,7 @@ class NmtWorkspace(object):
                 corresponds to :math:`\\Delta \\ell_{\\rm band}` in Fig.
                 3 of the paper. Ignored if ``l_toeplitz<=0``.
         """
-        if not fl1.is_compatible(fl2):
+        if not fl1.is_compatible(fl2, strict=False):
             raise ValueError("Fields have incompatible pixelizations.")
         if fl1.ainfo.lmax != bins.lmax:
             raise ValueError(f"Maximum multipoles in bins ({bins.lmax}) "
@@ -721,7 +721,7 @@ def compute_coupled_cell(f1, f2):
     Returns:
         (`array`): Array of coupled pseudo-:math:`C_\\ell` s.
     """  # noqa
-    if not f1.is_compatible(f2):
+    if not f1.is_compatible(f2, strict=False):
         raise ValueError("You're trying to correlate incompatible fields")
     alm1 = f1.get_alms()
     alm2 = f2.get_alms()
@@ -829,7 +829,7 @@ def compute_full_master(f1, f2, b=None, cl_noise=None, cl_guess=None,
     """
     if (b is None) and (workspace is None):
         raise SyntaxError("Must supply either workspace or bins.")
-    if not f1.is_compatible(f2):
+    if not f1.is_compatible(f2, strict=False):
         raise ValueError("Fields have incompatible pixelizations.")
     pcl_shape = (f1.nmaps * f2.nmaps, f1.ainfo.lmax+1)
 
