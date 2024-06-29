@@ -227,6 +227,11 @@ def test_field_catalog_errors():
     # Automatically assign spin = 0 for a single field
     f = nmt.NmtFieldCatalog([[0., 0.], [1., 1.]], [1., 1.], [1., 1.], 10)
     assert (f.spin == 0)
+
+    # Can't access mask
+    with pytest.raises(ValueError):
+        f.get_mask()
+
     # Automatically assign spin = 2 for 2 fields
     f = nmt.NmtFieldCatalog([[0., 0.], [1., 1.]], [1., 1.],
                             [[1., 1.], [1., 1.]], 10)
