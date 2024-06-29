@@ -65,6 +65,13 @@ def test_field_compatibility():
     f1 = nmt.NmtField(msk, [mp])
     assert not f0.is_compatible(f1)
 
+    # Strictness
+    # Diff. nside but same lmax
+    f0 = nmt.NmtField(FT.msk, [FT.mps[0]], lmax=100, lmax_mask=100)
+    f1 = nmt.NmtField(msk, [mp], lmax=100, lmax_mask=100)
+    assert f0.is_compatible(f1, strict=False)
+    assert not f0.is_compatible(f1)
+
 
 def test_field_get_mask():
     nside = 32

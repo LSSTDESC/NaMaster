@@ -277,15 +277,24 @@ class NmtField(object):
                 self.temp = templates.copy()
                 self.alm_temp = alm_temp
 
-    def is_compatible(self, other):
-        """ Returns ``True`` if the pixelization of this :obj:`NmtField`
+    def is_compatible(self, other, strict=True):
+        """ Returns ``True`` if the this :obj:`NmtField`
         is compatible with that of another one (``other``).
+
+        Args:
+            other: field to compare with
+            strict: if ``True``, the fields are compared at the pixel-
+                and harmonic-space levels. Otherwise, only the
+                harmonic-space resolution is compared. This is relevant
+                if only power spectra between fields are necessary, but
+                no pixel-level operations (e.g. map multiplications).
         """
-        if self.minfo != other.minfo:
+        if strict:
+            if self.minfo != other.minfo:
+                return False
+        if self.ainfo_mask != other.ainfo_mask:
             return False
         if self.ainfo != other.ainfo:
-            return False
-        if self.ainfo_mask != other.ainfo_mask:
             return False
         return True
 
@@ -295,6 +304,8 @@ class NmtField(object):
         Returns:
             (`array`): 1D array containing the field's mask.
         """
+        if self.mask is None:
+            raise ValueError("Input mask unavailable for this field")
         return self.mask
 
     def get_mask_alms(self):
