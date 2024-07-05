@@ -1,3 +1,8 @@
+# v2.1
+- Catalog-based pseudo-C_ells (#184)
+- Tutorial notebooks and improved documentation (#192, #195, #196, #197)
+- Unit tests for mac-OS (#194)
+
 # v2.0
 - Improved error messages (#187)
 - Migrated to ducc from libsharp (#183)
