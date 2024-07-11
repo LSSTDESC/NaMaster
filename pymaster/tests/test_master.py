@@ -65,46 +65,46 @@ def test_toeplitz_raises():
                       purify_b=True)
     # No Toeplitz with purification
     with pytest.raises(ValueError):
-        w = nmt.NmtWorkspace()
-        w.compute_coupling_matrix(fp, fp, WT.b,
-                                  l_toeplitz=WT.nside,
-                                  l_exact=WT.nside//2,
-                                  dl_band=10)
+        nmt.NmtWorkspace.from_fields(
+            fp, fp, WT.b,
+            l_toeplitz=WT.nside,
+            l_exact=WT.nside//2,
+            dl_band=10)
     # l_exact is zero
     with pytest.raises(ValueError):
-        w = nmt.NmtWorkspace()
-        w.compute_coupling_matrix(WT.f2, WT.f2, WT.b,
-                                  l_toeplitz=WT.nside,
-                                  l_exact=0,
-                                  dl_band=10)
+        nmt.NmtWorkspace.from_fields(
+            WT.f2, WT.f2, WT.b,
+            l_toeplitz=WT.nside,
+            l_exact=0,
+            dl_band=10)
     # dl_band is negative
     with pytest.raises(ValueError):
-        w = nmt.NmtWorkspace()
-        w.compute_coupling_matrix(WT.f2, WT.f2, WT.b,
-                                  l_toeplitz=WT.nside,
-                                  l_exact=WT.nside//2,
-                                  dl_band=-1)
+        nmt.NmtWorkspace.from_fields(
+            WT.f2, WT.f2, WT.b,
+            l_toeplitz=WT.nside,
+            l_exact=WT.nside//2,
+            dl_band=-1)
     # l_exact > l_toeplitz
     with pytest.raises(ValueError):
-        w = nmt.NmtWorkspace()
-        w.compute_coupling_matrix(WT.f2, WT.f2, WT.b,
-                                  l_toeplitz=WT.nside,
-                                  l_exact=WT.nside+1,
-                                  dl_band=10)
+        nmt.NmtWorkspace.from_fields(
+            WT.f2, WT.f2, WT.b,
+            l_toeplitz=WT.nside,
+            l_exact=WT.nside+1,
+            dl_band=10)
     # l_toeplitz > lmax
     with pytest.raises(ValueError):
-        w = nmt.NmtWorkspace()
-        w.compute_coupling_matrix(WT.f2, WT.f2, WT.b,
-                                  l_toeplitz=3*WT.nside,
-                                  l_exact=WT.nside//2,
-                                  dl_band=10)
+        nmt.NmtWorkspace.from_fields(
+            WT.f2, WT.f2, WT.b,
+            l_toeplitz=3*WT.nside,
+            l_exact=WT.nside//2,
+            dl_band=10)
     # dl_band > lmax
     with pytest.raises(ValueError):
-        w = nmt.NmtWorkspace()
-        w.compute_coupling_matrix(WT.f2, WT.f2, WT.b,
-                                  l_toeplitz=WT.nside,
-                                  l_exact=WT.nside//2,
-                                  dl_band=3*WT.nside)
+        nmt.NmtWorkspace.from_fields(
+            WT.f2, WT.f2, WT.b,
+            l_toeplitz=WT.nside,
+            l_exact=WT.nside//2,
+            dl_band=3*WT.nside)
 
 
 def compare_toeplitz(ce, ct, l_toeplitz, l_exact, dl_band):
@@ -157,15 +157,13 @@ def test_toeplitz_00():
     l_exact = WT.nside // 2
     dl_band = WT.nside // 4
 
-    we = nmt.NmtWorkspace()
-    we.compute_coupling_matrix(WT.f0, WT.f0, WT.b)
+    we = nmt.NmtWorkspace.from_fields(WT.f0, WT.f0, WT.b)
     ce = we.get_coupling_matrix()
 
-    wt = nmt.NmtWorkspace()
-    wt.compute_coupling_matrix(WT.f0, WT.f0, WT.b,
-                               l_toeplitz=l_toeplitz,
-                               l_exact=l_exact,
-                               dl_band=dl_band)
+    wt = nmt.NmtWorkspace.from_fields(WT.f0, WT.f0, WT.b,
+                                      l_toeplitz=l_toeplitz,
+                                      l_exact=l_exact,
+                                      dl_band=dl_band)
     ct = wt.get_coupling_matrix()
 
     # Check that the approximate matrix is constructed
@@ -183,17 +181,15 @@ def test_toeplitz_02():
     l_exact = WT.nside // 2
     dl_band = WT.nside // 4
 
-    we = nmt.NmtWorkspace()
-    we.compute_coupling_matrix(WT.f0, WT.f2, WT.b)
+    we = nmt.NmtWorkspace.from_fields(WT.f0, WT.f2, WT.b)
     ce = we.get_coupling_matrix().reshape([3*WT.nside, 2,
                                            3*WT.nside, 2])
     ce = ce[:, 0, :, 0]
 
-    wt = nmt.NmtWorkspace()
-    wt.compute_coupling_matrix(WT.f0, WT.f2, WT.b,
-                               l_toeplitz=l_toeplitz,
-                               l_exact=l_exact,
-                               dl_band=dl_band)
+    wt = nmt.NmtWorkspace.from_fields(WT.f0, WT.f2, WT.b,
+                                      l_toeplitz=l_toeplitz,
+                                      l_exact=l_exact,
+                                      dl_band=dl_band)
     ct = wt.get_coupling_matrix().reshape([3*WT.nside, 2,
                                            3*WT.nside, 2])
     ct = ct[:, 0, :, 0]
@@ -213,18 +209,16 @@ def test_toeplitz_22():
     l_exact = WT.nside // 2
     dl_band = WT.nside // 4
 
-    we = nmt.NmtWorkspace()
-    we.compute_coupling_matrix(WT.f2, WT.f2, WT.b)
+    we = nmt.NmtWorkspace.from_fields(WT.f2, WT.f2, WT.b)
     ce = we.get_coupling_matrix().reshape([3*WT.nside, 4,
                                            3*WT.nside, 4])
     ce_pp = ce[:, 0, :, 0]
     ce_mm = ce[:, 0, :, 3]
 
-    wt = nmt.NmtWorkspace()
-    wt.compute_coupling_matrix(WT.f2, WT.f2, WT.b,
-                               l_toeplitz=l_toeplitz,
-                               l_exact=l_exact,
-                               dl_band=dl_band)
+    wt = nmt.NmtWorkspace.from_fields(WT.f2, WT.f2, WT.b,
+                                      l_toeplitz=l_toeplitz,
+                                      l_exact=l_exact,
+                                      dl_band=dl_band)
     ct = wt.get_coupling_matrix().reshape([3*WT.nside, 4,
                                            3*WT.nside, 4])
     ct_pp = ct[:, 0, :, 0]
@@ -249,8 +243,7 @@ def test_lite_pure():
     f2e = nmt.NmtField(WT.msk, None, purify_b=True,
                        lite=True, spin=2)
     nlth = np.array([WT.nlte, 0*WT.nlte])
-    w = nmt.NmtWorkspace()
-    w.compute_coupling_matrix(f0, f2e, WT.b)
+    w = nmt.NmtWorkspace.from_fields(f0, f2e, WT.b)
     clb = nlth
     cl = w.decouple_cell(nmt.compute_coupled_cell(f0, f2l),
                          cl_bias=clb)
@@ -269,8 +262,7 @@ def test_lite_cont():
     f2e = nmt.NmtField(WT.msk, None, lite=True, spin=2)
     clth = np.array([WT.clte, 0*WT.clte])
     nlth = np.array([WT.nlte, 0*WT.nlte])
-    w = nmt.NmtWorkspace()
-    w.compute_coupling_matrix(f0, f2e, WT.b)
+    w = nmt.NmtWorkspace.from_fields(f0, f2e, WT.b)
     clb = nlth
     dlb = nmt.deprojection_bias(f0, f2, clth+nlth)
     clb += dlb
@@ -296,8 +288,7 @@ def test_spin1():
 
     for ip1 in range(2):
         for ip2 in range(ip1, 2):
-            w = nmt.NmtWorkspace()
-            w.compute_coupling_matrix(f[ip1], f[ip2], WT.b)
+            w = nmt.NmtWorkspace.from_fields(f[ip1], f[ip2], WT.b)
             cl = w.decouple_cell(nmt.compute_coupled_cell(f[ip1],
                                                           f[ip2]))[0]
             tl = np.loadtxt(prefix+'_c%d%d.txt' % (ip1, ip2),
@@ -343,8 +334,7 @@ def mastest(wtemp, wpure, do_teb=False, use_healpy=False):
             else:
                 clth = np.array([WT.clte, 0*WT.clte])
                 nlth = np.array([WT.nlte, 0*WT.nlte])
-            w = nmt.NmtWorkspace()
-            w.compute_coupling_matrix(f[ip1], f[ip2], WT.b)
+            w = nmt.NmtWorkspace.from_fields(f[ip1], f[ip2], WT.b)
             clb = nlth
             if wtemp:
                 dlb = nmt.deprojection_bias(f[ip1], f[ip2],
@@ -372,8 +362,7 @@ def mastest(wtemp, wpure, do_teb=False, use_healpy=False):
         nlth = np.array([WT.nltt, WT.nlte, 0*WT.nlte,
                          WT.nlee, 0*WT.nlee, 0*WT.nlbb,
                          WT.nlbb])
-        w = nmt.NmtWorkspace()
-        w.compute_coupling_matrix(f[0], f[1], WT.b, is_teb=True)
+        w = nmt.NmtWorkspace.from_fields(f[0], f[1], WT.b, is_teb=True)
         c00 = nmt.compute_coupled_cell(f[0], f[0])
         c02 = nmt.compute_coupled_cell(f[0], f[1])
         c22 = nmt.compute_coupled_cell(f[1], f[1])
@@ -409,8 +398,8 @@ def test_workspace_master_healpy():
 
 
 def test_workspace_shorten():
-    w = nmt.NmtWorkspace()
-    w.read_from("test/benchmarks/bm_yc_yp_w02.fits")  # OK read
+    # OK read
+    w = nmt.NmtWorkspace.from_file("test/benchmarks/bm_yc_yp_w02.fits")
     lmax = w.wsp.lmax
     larr = np.arange(lmax + 1)
     larr_long = np.arange(2 * lmax + 1)
@@ -423,8 +412,8 @@ def test_workspace_shorten():
 
 
 def test_workspace_rebeam():
-    w = nmt.NmtWorkspace()
-    w.read_from("test/benchmarks/bm_yc_yp_w02.fits")  # OK read
+    # OK read
+    w = nmt.NmtWorkspace.from_file("test/benchmarks/bm_yc_yp_w02.fits")
     lmax = w.wsp.lmax_fields
     b = np.ones(lmax+1)*2.
     w.update_beams(b, b)  # All good
@@ -438,8 +427,8 @@ def test_workspace_rebeam():
 
 def test_workspace_rebin():
     b4 = nmt.NmtBin.from_nside_linear(WT.nside, 4)
-    w = nmt.NmtWorkspace()
-    w.read_from("test/benchmarks/bm_yc_yp_w02.fits")  # OK read
+    # OK read
+    w = nmt.NmtWorkspace.from_file("test/benchmarks/bm_yc_yp_w02.fits")
     w.update_bins(b4)
     assert (w.wsp.bin.n_bands == b4.bin.n_bands)
     b4 = nmt.NmtBin.from_nside_linear(WT.nside//2, 4)
@@ -465,8 +454,8 @@ def test_workspace_io():
         w = nmt.NmtWorkspace()
         w.write_to("test/wspc.fits")
 
-    w = nmt.NmtWorkspace()
-    w.read_from("test/benchmarks/bm_yc_yp_w02.fits")  # OK read
+    # OK read
+    w = nmt.NmtWorkspace.from_file("test/benchmarks/bm_yc_yp_w02.fits")
     assert w.wsp.lmax == 3*64-1
     w.get_coupling_matrix()  # Read mode coupling matrix
     # Updating mode-coupling matrix
@@ -490,12 +479,9 @@ def test_workspace_io():
 def test_workspace_bandpower_windows():
     # This tests the bandpower window functions returned by NaMaster
     # Compute MCMs
-    w00 = nmt.NmtWorkspace()
-    w00.compute_coupling_matrix(WT.f0, WT.f0, WT.b)
-    w02 = nmt.NmtWorkspace()
-    w02.compute_coupling_matrix(WT.f0, WT.f2, WT.b)
-    w22 = nmt.NmtWorkspace()
-    w22.compute_coupling_matrix(WT.f2, WT.f2, WT.b)
+    w00 = nmt.NmtWorkspace.from_fields(WT.f0, WT.f0, WT.b)
+    w02 = nmt.NmtWorkspace.from_fields(WT.f0, WT.f2, WT.b)
+    w22 = nmt.NmtWorkspace.from_fields(WT.f2, WT.f2, WT.b)
 
     # Create some random theory power spectra
     larr = np.arange(3*WT.nside)
@@ -538,8 +524,8 @@ def test_lite_errors():
 
 
 def test_workspace_methods():
-    w = nmt.NmtWorkspace()
-    w.compute_coupling_matrix(WT.f0, WT.f0, WT.b)  # OK init
+    # OK init
+    w = nmt.NmtWorkspace.from_fields(WT.f0, WT.f0, WT.b)
     assert w.wsp.lmax == 3*64-1
     with pytest.raises(ValueError):  # Incompatible bandpowers
         w.compute_coupling_matrix(WT.f0, WT.f0, WT.b_doub)
@@ -584,10 +570,7 @@ def test_workspace_methods():
 
 def test_workspace_full_master():
     # Test compute_full_master
-    w = nmt.NmtWorkspace()
-    w.compute_coupling_matrix(WT.f0, WT.f0, WT.b)  # OK init
-    w_half = nmt.NmtWorkspace()
-    w_half.compute_coupling_matrix(WT.f0_half, WT.f0_half, WT.b_half)
+    w = nmt.NmtWorkspace.from_fields(WT.f0, WT.f0, WT.b)
 
     c = nmt.compute_full_master(WT.f0, WT.f0, WT.b)
     assert c.shape == (1, WT.b.bin.n_bands)
@@ -668,17 +651,15 @@ def test_workspace_compute_coupled_cell():
 
 def test_unbinned_mcm_io():
     f0 = nmt.NmtField(WT.msk, [WT.mps[0]])
-    w = nmt.NmtWorkspace()
-    w.compute_coupling_matrix(f0, f0, WT.b)
+    w = nmt.NmtWorkspace.from_fields(f0, f0, WT.b)
     w.write_to("test/wspc.fits")
     assert w.has_unbinned
 
-    w1 = nmt.NmtWorkspace()
-    w1.read_from("test/wspc.fits")
+    w1 = nmt.NmtWorkspace.from_file("test/wspc.fits")
     assert w1.has_unbinned
 
-    w2 = nmt.NmtWorkspace()
-    w2.read_from("test/wspc.fits", read_unbinned_MCM=False)
+    w2 = nmt.NmtWorkspace.from_file("test/wspc.fits",
+                                    read_unbinned_MCM=False)
     assert w2.has_unbinned is False
 
     with pytest.raises(ValueError):

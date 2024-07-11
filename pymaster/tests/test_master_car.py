@@ -59,15 +59,13 @@ def test_workspace_car_master():
                                   WT.cleb, WT.clbb])
             else:
                 cl_bm = np.array([WT.clte, WT.cltb])
-            w = nmt.NmtWorkspace()
-            w.compute_coupling_matrix(f[ip1], f[ip2], WT.b)
+            w = nmt.NmtWorkspace.from_fields(f[ip1], f[ip2], WT.b)
             cl = w.decouple_cell(nmt.compute_coupled_cell(f[ip1], f[ip2]))
             assert np.amax(np.fabs(cl-cl_bm)) <= 1E-10
 
     # TEB
-    w = nmt.NmtWorkspace()
-    w.compute_coupling_matrix(f[0], f[1], WT.b,
-                              is_teb=True)
+    w = nmt.NmtWorkspace.from_fields(f[0], f[1], WT.b,
+                                     is_teb=True)
     c00 = nmt.compute_coupled_cell(f[0], f[0])
     c02 = nmt.compute_coupled_cell(f[0], f[1])
     c22 = nmt.compute_coupled_cell(f[1], f[1])
@@ -82,9 +80,8 @@ def test_workspace_car_master():
 
 @pytest.mark.skipif(False, reason='slow')
 def test_workspace_car_methods():
-    w = nmt.NmtWorkspace()
-    w.compute_coupling_matrix(WT.f0, WT.f0,
-                              WT.b)  # OK init
+    w = nmt.NmtWorkspace.from_fields(WT.f0, WT.f0,
+                                     WT.b)  # OK init
     # Incompatible bandpowers
     with pytest.raises(ValueError):
         w.compute_coupling_matrix(WT.f0, WT.f0,

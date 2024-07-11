@@ -2,6 +2,7 @@ import numpy as np
 import healpy as hp
 from pymaster import nmtlib as lib
 import pymaster.utils as ut
+import warnings
 
 
 class NmtCovarianceWorkspace(object):
@@ -16,8 +17,43 @@ class NmtCovarianceWorkspace(object):
     describing the coupling coefficients must be computed or read from
     a file afterwards using the methods below.
     """
-    def __init__(self):
+    def __init__(self, fla1=None, fla2=None, flb1=None, flb2=None,
+                 l_toeplitz=-1, l_exact=-1, dl_band=-1,
+                 spin0_only=False, fname=None, force_spin0_only=False):
         self.wsp = None
+
+        if ((fla1 is None) and (fla2 is None) and (fname is None)):
+            warnings.warn("The bare constructor for `NmtCovarianceWorkspace` "
+                          "objects is deprecated and will be removed "
+                          "in future versions of NaMaster. Consider "
+                          "using the class methods "
+                          "`from_fields` and `from_file`, or pass "
+                          "the necessary arguments to the constructor.",
+                          category=DeprecationWarning)
+            return
+
+        if (fname is not None):
+            self.read_from(fname, force_spin0_only=force_spin0_only)
+            return
+
+        self.compute_coupling_coefficients(fla1, fla2,
+                                           flb1=flb1, flb2=flb2,
+                                           l_toeplitz=l_toeplitz,
+                                           l_exact=l_exact,
+                                           dl_band=dl_band,
+                                           spin0_only=spin0_only)
+
+    @classmethod
+    def from_fields(cls, fla1, fla2, flb1=None, flb2=None,
+                    l_toeplitz=-1, l_exact=-1, dl_band=-1,
+                    spin0_only=False):
+        return cls(fla1=fla1, fla2=fla2, flb1=flb1, flb2=flb2,
+                   l_toeplitz=l_toeplitz, l_exact=l_exact,
+                   dl_band=dl_band, spin0_only=spin0_only)
+
+    @classmethod
+    def from_file(cls, fname, force_spin0_only=False):
+        return cls(fname=fname, force_spin0_only=force_spin0_only)
 
     def __del__(self):
         if self.wsp is not None:

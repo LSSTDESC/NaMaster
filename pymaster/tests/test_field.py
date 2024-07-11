@@ -164,12 +164,9 @@ def test_field_masked():
     f2 = nmt.NmtField(msk, mps[1:])
     f2_msk = nmt.NmtField(msk, mps_msk[1:],
                           masked_on_input=True)
-    w00 = nmt.NmtWorkspace()
-    w00.compute_coupling_matrix(f0, f0, b)
-    w02 = nmt.NmtWorkspace()
-    w02.compute_coupling_matrix(f0, f2, b)
-    w22 = nmt.NmtWorkspace()
-    w22.compute_coupling_matrix(f2, f2, b)
+    w00 = nmt.NmtWorkspace.from_fields(f0, f0, b)
+    w02 = nmt.NmtWorkspace.from_fields(f0, f2, b)
+    w22 = nmt.NmtWorkspace.from_fields(f2, f2, b)
 
     def mkcl(w, f, g):
         return w.decouple_cell(nmt.compute_coupled_cell(f, g))
@@ -207,8 +204,7 @@ def test_field_masked_pure():
                                       FT.tmp[0][2]*msk*mskb]],
                           masked_on_input=True,
                           purify_b=True)
-    w22 = nmt.NmtWorkspace()
-    w22.compute_coupling_matrix(f2, f2, b)
+    w22 = nmt.NmtWorkspace.from_fields(f2, f2, b)
 
     def mkcl(w, f, g):
         return w.decouple_cell(nmt.compute_coupled_cell(f, g))

@@ -2,6 +2,7 @@ from pymaster import nmtlib as lib
 import pymaster.utils as ut
 import numpy as np
 import healpy as hp
+import warnings
 
 
 class NmtWorkspace(object):
@@ -11,9 +12,41 @@ class NmtWorkspace(object):
     is practically empty. The information describing the coupling
     matrix must be computed or read from a file afterwards.
     """
-    def __init__(self):
+    def __init__(self, fl1=None, fl2=None, bins=None, is_teb=False,
+                 l_toeplitz=-1, l_exact=-1, dl_band=-1, fname=None,
+                 read_unbinned_MCM=True):
         self.wsp = None
         self.has_unbinned = False
+
+        if ((fl1 is None) and (fl2 is None) and (bins is None) and
+                (fname is None)):
+            warnings.warn("The bare constructor for `NmtWorkspace` "
+                          "objects is deprecated and will be removed "
+                          "in future versions of NaMaster. Consider "
+                          "using the class methods "
+                          "`from_fields` and `from_file`, or pass "
+                          "the necessary arguments to the constructor.",
+                          category=DeprecationWarning)
+            return
+
+        if (fname is not None):
+            self.read_from(fname, read_unbinned_MCM=read_unbinned_MCM)
+            return
+
+        self.compute_coupling_matrix(
+            fl1, fl2, bins, is_teb=is_teb, l_toeplitz=l_toeplitz,
+            l_exact=l_exact, dl_band=dl_band)
+
+    @classmethod
+    def from_fields(cls, fl1, fl2, bins, is_teb=False,
+                    l_toeplitz=-1, l_exact=-1, dl_band=-1):
+        return cls(fl1=fl1, fl2=fl2, bins=bins, is_teb=is_teb,
+                   l_toeplitz=l_toeplitz, l_exact=l_exact,
+                   dl_band=dl_band)
+
+    @classmethod
+    def from_file(cls, fname, read_unbinned_MCM=True):
+        return cls(fname=fname, read_unbinned_MCM=read_unbinned_MCM)
 
     def __del__(self):
         if self.wsp is not None:
@@ -854,9 +887,9 @@ def compute_full_master(f1, f2, b=None, cl_noise=None, cl_guess=None,
     pclb = deprojection_bias(f1, f2, clg)
 
     if workspace is None:
-        w = NmtWorkspace()
-        w.compute_coupling_matrix(
-            f1, f2, b, l_toeplitz=l_toeplitz,
+        w = NmtWorkspace.from_fields(
+            fl1=f1, fl2=f2, bins=b,
+            l_toeplitz=l_toeplitz,
             l_exact=l_exact, dl_band=dl_band)
     else:
         w = workspace
