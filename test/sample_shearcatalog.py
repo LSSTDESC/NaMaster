@@ -63,8 +63,7 @@ f = nmt.NmtFieldCatalog(positions, weights, None, lmax=lmax,
 # not have a window function, this should in general not be
 # necessary!
 
-wsp = nmt.NmtWorkspace()
-wsp.compute_coupling_matrix(f, f, nmt_bin)
+wsp = nmt.NmtWorkspace.from_fields(f, f, nmt_bin)
 
 # We compute and plot the survey mask's pseudo power spectrum, highlighting
 # the contribution of the mask shot noise.

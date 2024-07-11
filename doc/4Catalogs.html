@@ -7774,8 +7774,7 @@ Random catalog has 22390184 sources
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="n">b</span> <span class="o">=</span> <span class="n">nmt</span><span class="o">.</span><span class="n">NmtBin</span><span class="o">.</span><span class="n">from_lmax_linear</span><span class="p">(</span><span class="n">lmax</span><span class="p">,</span> <span class="n">nlb</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
-<span class="n">w</span> <span class="o">=</span> <span class="n">nmt</span><span class="o">.</span><span class="n">NmtWorkspace</span><span class="p">()</span>
-<span class="n">w</span><span class="o">.</span><span class="n">compute_coupling_matrix</span><span class="p">(</span><span class="n">fld</span><span class="p">,</span> <span class="n">fld</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
+<span class="n">w</span> <span class="o">=</span> <span class="n">nmt</span><span class="o">.</span><span class="n">NmtWorkspace</span><span class="o">.</span><span class="n">from_fields</span><span class="p">(</span><span class="n">fld</span><span class="p">,</span> <span class="n">fld</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
 <span class="n">pcl</span> <span class="o">=</span> <span class="n">nmt</span><span class="o">.</span><span class="n">compute_coupled_cell</span><span class="p">(</span><span class="n">fld</span><span class="p">,</span> <span class="n">fld</span><span class="p">)</span>
 <span class="n">cl</span> <span class="o">=</span> <span class="n">w</span><span class="o">.</span><span class="n">decouple_cell</span><span class="p">(</span><span class="n">pcl</span><span class="p">)</span>
 
@@ -7965,8 +7964,7 @@ Random catalog has 22390184 sources
 <div class="highlight hl-ipython3"><pre><span></span><span class="c1"># First we need to calculate the corresponding MCM for spin-2</span>
 <span class="n">f2</span> <span class="o">=</span> <span class="n">nmt</span><span class="o">.</span><span class="n">NmtFieldCatalog</span><span class="p">(</span><span class="n">pos_data</span><span class="p">,</span> <span class="n">w_data</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">spin</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
                          <span class="n">lmax</span><span class="o">=</span><span class="n">lmax</span><span class="p">,</span> <span class="n">lonlat</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="n">w2</span> <span class="o">=</span> <span class="n">nmt</span><span class="o">.</span><span class="n">NmtWorkspace</span><span class="p">()</span>
-<span class="n">w2</span><span class="o">.</span><span class="n">compute_coupling_matrix</span><span class="p">(</span><span class="n">f2</span><span class="p">,</span> <span class="n">f2</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
+<span class="n">w2</span> <span class="o">=</span> <span class="n">nmt</span><span class="o">.</span><span class="n">NmtWorkspace</span><span class="o">.</span><span class="n">from_fields</span><span class="p">(</span><span class="n">f2</span><span class="p">,</span> <span class="n">f2</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
 <span class="c1"># ... and the corresponding theory prediction</span>
 <span class="n">cl_pred2</span> <span class="o">=</span> <span class="n">w2</span><span class="o">.</span><span class="n">decouple_cell</span><span class="p">(</span><span class="n">w2</span><span class="o">.</span><span class="n">couple_cell</span><span class="p">([</span><span class="n">cl_true</span><span class="o">*</span><span class="n">hp</span><span class="o">.</span><span class="n">pixwin</span><span class="p">(</span><span class="n">nside</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span>
                                             <span class="mi">0</span><span class="o">*</span><span class="n">cl_true</span><span class="p">,</span> <span class="mi">0</span><span class="o">*</span><span class="n">cl_true</span><span class="p">,</span> <span class="mi">0</span><span class="o">*</span><span class="n">cl_true</span><span class="p">]))</span>
@@ -8114,8 +8112,7 @@ where $\langle\cdots\rangle$ denotes averaging over all sky pixels.</p>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="c1"># Compute the mode-coupling matrix</span>
-<span class="n">wpix</span> <span class="o">=</span> <span class="n">nmt</span><span class="o">.</span><span class="n">NmtWorkspace</span><span class="p">()</span>
-<span class="n">wpix</span><span class="o">.</span><span class="n">compute_coupling_matrix</span><span class="p">(</span><span class="n">f_pix</span><span class="p">,</span> <span class="n">f_pix</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
+<span class="n">wpix</span> <span class="o">=</span> <span class="n">nmt</span><span class="o">.</span><span class="n">NmtWorkspace</span><span class="o">.</span><span class="n">from_fields</span><span class="p">(</span><span class="n">f_pix</span><span class="p">,</span> <span class="n">f_pix</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
 
 <span class="n">pcl</span> <span class="o">=</span> <span class="n">nmt</span><span class="o">.</span><span class="n">compute_coupled_cell</span><span class="p">(</span><span class="n">f_pix</span><span class="p">,</span> <span class="n">f_pix</span><span class="p">)</span>
 <span class="n">cl</span> <span class="o">=</span> <span class="n">wpix</span><span class="o">.</span><span class="n">decouple_cell</span><span class="p">(</span><span class="n">pcl</span><span class="p">)</span>
@@ -8171,8 +8168,7 @@ where $\langle\cdots\rangle$ denotes averaging over all sky pixels.</p>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="n">f_cat</span> <span class="o">=</span> <span class="n">nmt</span><span class="o">.</span><span class="n">NmtFieldCatalogClustering</span><span class="p">(</span><span class="n">pos_data</span><span class="p">,</span> <span class="n">w_data</span><span class="p">,</span> <span class="n">pos_ran</span><span class="p">,</span> <span class="n">w_ran</span><span class="p">,</span> <span class="n">lmax</span><span class="o">=</span><span class="n">lmax</span><span class="p">,</span> <span class="n">lonlat</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="n">w_cat</span> <span class="o">=</span> <span class="n">nmt</span><span class="o">.</span><span class="n">NmtWorkspace</span><span class="p">()</span>
-<span class="n">w_cat</span><span class="o">.</span><span class="n">compute_coupling_matrix</span><span class="p">(</span><span class="n">f_cat</span><span class="p">,</span> <span class="n">f_cat</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
+<span class="n">w_cat</span> <span class="o">=</span> <span class="n">nmt</span><span class="o">.</span><span class="n">NmtWorkspace</span><span class="o">.</span><span class="n">from_fields</span><span class="p">(</span><span class="n">f_cat</span><span class="p">,</span> <span class="n">f_cat</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
 
 <span class="n">pcl</span> <span class="o">=</span> <span class="n">nmt</span><span class="o">.</span><span class="n">compute_coupled_cell</span><span class="p">(</span><span class="n">f_cat</span><span class="p">,</span> <span class="n">f_cat</span><span class="p">)</span>
 <span class="n">cl_cat</span> <span class="o">=</span> <span class="n">w_cat</span><span class="o">.</span><span class="n">decouple_cell</span><span class="p">(</span><span class="n">pcl</span><span class="p">)</span>
@@ -8235,8 +8231,7 @@ where $\langle\cdots\rangle$ denotes averaging over all sky pixels.</p>
 
 <span class="c1"># You can compute both the auto and cross-correlations of both fields:</span>
 <span class="k">def</span> <span class="nf">get_cl</span><span class="p">(</span><span class="n">f1</span><span class="p">,</span> <span class="n">f2</span><span class="p">):</span>
-    <span class="n">w</span> <span class="o">=</span> <span class="n">nmt</span><span class="o">.</span><span class="n">NmtWorkspace</span><span class="p">()</span>
-    <span class="n">w</span><span class="o">.</span><span class="n">compute_coupling_matrix</span><span class="p">(</span><span class="n">f1</span><span class="p">,</span> <span class="n">f2</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
+    <span class="n">w</span> <span class="o">=</span> <span class="n">nmt</span><span class="o">.</span><span class="n">NmtWorkspace</span><span class="o">.</span><span class="n">from_fields</span><span class="p">(</span><span class="n">f1</span><span class="p">,</span> <span class="n">f2</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
     <span class="n">cl</span> <span class="o">=</span> <span class="n">w</span><span class="o">.</span><span class="n">decouple_cell</span><span class="p">(</span><span class="n">nmt</span><span class="o">.</span><span class="n">compute_coupled_cell</span><span class="p">(</span><span class="n">f1</span><span class="p">,</span> <span class="n">f2</span><span class="p">))</span>
     <span class="k">return</span> <span class="n">cl</span>
 

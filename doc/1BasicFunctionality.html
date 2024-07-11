@@ -7896,8 +7896,7 @@ The code below shows that this approximation can be used as a first-order correc
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="c1"># Create a NaMaster workspace</span>
-<span class="n">w</span> <span class="o">=</span> <span class="n">nmt</span><span class="o">.</span><span class="n">NmtWorkspace</span><span class="p">()</span>
-<span class="n">w</span><span class="o">.</span><span class="n">compute_coupling_matrix</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
+<span class="n">w</span> <span class="o">=</span> <span class="n">nmt</span><span class="o">.</span><span class="n">NmtWorkspace</span><span class="o">.</span><span class="n">from_fields</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
 
 <span class="c1"># Extract the mode-coupling matrix</span>
 <span class="n">mcm</span> <span class="o">=</span> <span class="n">w</span><span class="o">.</span><span class="n">get_coupling_matrix</span><span class="p">()</span>

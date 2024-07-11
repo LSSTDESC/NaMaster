@@ -42,8 +42,7 @@ cl_02_th = np.array([clte, np.zeros_like(clte)])
 # the mode coupling matrix. Note that this matrix depends only on the masks
 # of the two fields to correlate, but not on the maps themselves (in this
 # case both maps are the same.
-w = nmt.NmtWorkspace()
-w.compute_coupling_matrix(f0, f2, b)
+w = nmt.NmtWorkspace.from _fields(f0, f2, b)
 
 # Since we suspect that our maps are contaminated (that's why we passed the
 # contaminant templates as arguments to the NmtField constructor), we also

@@ -7693,12 +7693,10 @@ a.anchor-link {
 <span class="n">f</span> <span class="o">=</span> <span class="n">nmt</span><span class="o">.</span><span class="n">NmtField</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">spin</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 
 <span class="c1"># MCM</span>
-<span class="n">w</span> <span class="o">=</span> <span class="n">nmt</span><span class="o">.</span><span class="n">NmtWorkspace</span><span class="p">()</span>
-<span class="n">w</span><span class="o">.</span><span class="n">compute_coupling_matrix</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
+<span class="n">w</span> <span class="o">=</span> <span class="n">nmt</span><span class="o">.</span><span class="n">NmtWorkspace</span><span class="o">.</span><span class="n">from_fields</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
 
 <span class="c1"># Covariance MCM</span>
-<span class="n">cw</span> <span class="o">=</span> <span class="n">nmt</span><span class="o">.</span><span class="n">NmtCovarianceWorkspace</span><span class="p">()</span>
-<span class="n">cw</span><span class="o">.</span><span class="n">compute_coupling_coefficients</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+<span class="n">cw</span> <span class="o">=</span> <span class="n">nmt</span><span class="o">.</span><span class="n">NmtCovarianceWorkspace</span><span class="o">.</span><span class="n">from_fields</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
 <span class="n">fsky</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">mask</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -8126,11 +8124,9 @@ I.e. the covariance depends on four other, potentially distinct, power spectra: 
 
 <span class="c1"># MCMs</span>
 <span class="n">f</span> <span class="o">=</span> <span class="n">nmt</span><span class="o">.</span><span class="n">NmtField</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">spin</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
-<span class="n">w</span> <span class="o">=</span> <span class="n">nmt</span><span class="o">.</span><span class="n">NmtWorkspace</span><span class="p">()</span>
-<span class="n">w</span><span class="o">.</span><span class="n">compute_coupling_matrix</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
+<span class="n">w</span> <span class="o">=</span> <span class="n">nmt</span><span class="o">.</span><span class="n">NmtWorkspace</span><span class="o">.</span><span class="n">from_fields</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
 <span class="n">f</span> <span class="o">=</span> <span class="n">nmt</span><span class="o">.</span><span class="n">NmtField</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">spin</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">purify_b</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="n">wp</span> <span class="o">=</span> <span class="n">nmt</span><span class="o">.</span><span class="n">NmtWorkspace</span><span class="p">()</span>
-<span class="n">wp</span><span class="o">.</span><span class="n">compute_coupling_matrix</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
+<span class="n">wp</span> <span class="o">=</span> <span class="n">nmt</span><span class="o">.</span><span class="n">NmtWorkspace</span><span class="o">.</span><span class="n">from_fields</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
 
 <span class="c1"># Sims</span>
 <span class="n">nsims</span> <span class="o">=</span> <span class="mi">100</span>
@@ -8191,16 +8187,13 @@ I.e. the covariance depends on four other, potentially distinct, power spectra: 
 <span class="c1"># Compute covariance workspaces</span>
 <span class="c1"># As scalar fields</span>
 <span class="n">f</span> <span class="o">=</span> <span class="n">nmt</span><span class="o">.</span><span class="n">NmtField</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">spin</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-<span class="n">w0</span> <span class="o">=</span> <span class="n">nmt</span><span class="o">.</span><span class="n">NmtWorkspace</span><span class="p">()</span>
-<span class="n">w0</span><span class="o">.</span><span class="n">compute_coupling_matrix</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
+<span class="n">w0</span> <span class="o">=</span> <span class="n">nmt</span><span class="o">.</span><span class="n">NmtWorkspace</span><span class="o">.</span><span class="n">from_fields</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
 <span class="n">pcl_ee</span> <span class="o">=</span> <span class="n">w0</span><span class="o">.</span><span class="n">couple_cell</span><span class="p">([</span><span class="n">cl_ee</span><span class="p">])</span><span class="o">/</span><span class="n">fsky</span>
 <span class="n">pcl_bb</span> <span class="o">=</span> <span class="n">w0</span><span class="o">.</span><span class="n">couple_cell</span><span class="p">([</span><span class="n">cl_bb</span><span class="p">])</span><span class="o">/</span><span class="n">fsky</span>
-<span class="n">cw0</span> <span class="o">=</span> <span class="n">nmt</span><span class="o">.</span><span class="n">NmtCovarianceWorkspace</span><span class="p">()</span>
-<span class="n">cw0</span><span class="o">.</span><span class="n">compute_coupling_coefficients</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+<span class="n">cw0</span> <span class="o">=</span> <span class="n">nmt</span><span class="o">.</span><span class="n">NmtCovarianceWorkspace</span><span class="o">.</span><span class="n">from_fields</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
 <span class="c1"># As spin-2 fields</span>
 <span class="n">f</span> <span class="o">=</span> <span class="n">nmt</span><span class="o">.</span><span class="n">NmtField</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">spin</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
-<span class="n">cw2</span> <span class="o">=</span> <span class="n">nmt</span><span class="o">.</span><span class="n">NmtCovarianceWorkspace</span><span class="p">()</span>
-<span class="n">cw2</span><span class="o">.</span><span class="n">compute_coupling_coefficients</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+<span class="n">cw2</span> <span class="o">=</span> <span class="n">nmt</span><span class="o">.</span><span class="n">NmtCovarianceWorkspace</span><span class="o">.</span><span class="n">from_fields</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
 
 <span class="c1"># Gaussian covariance as scalar fields</span>
 <span class="c1"># EE</span>
