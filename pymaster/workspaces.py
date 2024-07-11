@@ -8,9 +8,43 @@ import warnings
 class NmtWorkspace(object):
     """ :obj:`NmtWorkspace` objects are used to compute and store the
     mode-coupling matrix associated with an incomplete sky coverage,
-    and used in the MASTER algorithm. When initialized, this object
-    is practically empty. The information describing the coupling
-    matrix must be computed or read from a file afterwards.
+    and used in the MASTER algorithm. :obj:`NmtWorkspace` objects can be
+    initialised from a pair of :class:`~pymaster.field.NmtField` objects
+    and an :class:`~pymaster.bins.NmtBin` object, containing information
+    about the masks involved and the :math:`\\ell` binning scheme, or
+    read from a file where the mode-coupling matrix was stored.
+
+    We recommend using the class methods :meth:`from_fields` and
+    :meth:`from_file` to create new :obj:`NmtWorkspace` objects,
+    rather than using the main constructor.
+
+    Args:
+        fl1 (:class:`~pymaster.field.NmtField`): First field being
+            correlated.
+        fl2 (:class:`~pymaster.field.NmtField`): Second field being
+            correlated.
+        bins (:class:`~pymaster.bins.NmtBin`): Binning scheme.
+        is_teb (:obj:`bool`): If ``True``, all mode-coupling matrices
+            (0-0,0-s,s-s) will be computed at the same time. In this
+            case, ``fl1`` must be a spin-0 field and ``fl2`` must be
+            spin-s.
+        l_toeplitz (:obj:`int`): If a positive number, the Toeplitz
+            approximation described in `Louis et al. 2020
+            <https://arxiv.org/abs/2010.14344>`_ will be used.
+            In that case, this quantity corresponds to
+            :math:`\\ell_{\\rm toeplitz}` in Fig. 3 of that paper.
+        l_exact (:obj:`int`): If ``l_toeplitz>0``, it corresponds to
+            :math:`\\ell_{\\rm exact}` in Fig. 3 of the paper.
+            Ignored if ``l_toeplitz<=0``.
+        dl_band (:obj:`int`): If ``l_toeplitz>0``, this quantity
+            corresponds to :math:`\\Delta \\ell_{\\rm band}` in Fig.
+            3 of the paper. Ignored if ``l_toeplitz<=0``.
+        fname (:obj:`str`): Input file name. If not `None`, this
+            workspace will be initialised from file, and the values
+            of ``fl1``, ``fl2``, and ``bin`` will be ignored.
+        read_unbinned_MCM (:obj:`bool`): If ``False``, the unbinned
+            mode-coupling matrix will not be read. This can save
+            significant IO time.
     """
     def __init__(self, fl1=None, fl2=None, bins=None, is_teb=False,
                  l_toeplitz=-1, l_exact=-1, dl_band=-1, fname=None,
@@ -40,12 +74,49 @@ class NmtWorkspace(object):
     @classmethod
     def from_fields(cls, fl1, fl2, bins, is_teb=False,
                     l_toeplitz=-1, l_exact=-1, dl_band=-1):
+        """ Creates an :obj:`NmtWorkspace` object containing the
+        mode-coupling matrix associated with the cross-power spectrum of
+        two :class:`~pymaster.field.NmtField` s
+        and an :class:`~pymaster.bins.NmtBin` binning scheme. Note that
+        the mode-coupling matrix will only contain :math:`\\ell` s up
+        to the maximum multipole included in the bandpowers, which should
+        match the :math:`\\ell_{\\rm max}` of the fields as well.
+
+        Args:
+            fl1 (:class:`~pymaster.field.NmtField`): First field to correlate.
+            fl2 (:class:`~pymaster.field.NmtField`): Second field to correlate.
+            bins (:class:`~pymaster.bins.NmtBin`): Binning scheme.
+            is_teb (:obj:`bool`): If ``True``, all mode-coupling matrices
+                (0-0,0-s,s-s) will be computed at the same time. In this
+                case, ``fl1`` must be a spin-0 field and ``fl2`` must be
+                spin-s.
+            l_toeplitz (:obj:`int`): If a positive number, the Toeplitz
+                approximation described in `Louis et al. 2020
+                <https://arxiv.org/abs/2010.14344>`_ will be used.
+                In that case, this quantity corresponds to
+                :math:`\\ell_{\\rm toeplitz}` in Fig. 3 of that paper.
+            l_exact (:obj:`int`): If ``l_toeplitz>0``, it corresponds to
+                :math:`\\ell_{\\rm exact}` in Fig. 3 of the paper.
+                Ignored if ``l_toeplitz<=0``.
+            dl_band (:obj:`int`): If ``l_toeplitz>0``, this quantity
+                corresponds to :math:`\\Delta \\ell_{\\rm band}` in Fig.
+                3 of the paper. Ignored if ``l_toeplitz<=0``.
+        """
         return cls(fl1=fl1, fl2=fl2, bins=bins, is_teb=is_teb,
                    l_toeplitz=l_toeplitz, l_exact=l_exact,
                    dl_band=dl_band)
 
     @classmethod
     def from_file(cls, fname, read_unbinned_MCM=True):
+        """ Creates an :obj:`NmtWorkspace` object from a mode-coupling
+        matrix stored in a FITS file. See :meth:`write_to`.
+
+        Args:
+            fname (:obj:`str`): Input file name.
+            read_unbinned_MCM (:obj:`bool`): If ``False``, the unbinned
+                mode-coupling matrix will not be read. This can save
+                significant IO time.
+        """
         return cls(fname=fname, read_unbinned_MCM=read_unbinned_MCM)
 
     def __del__(self):
@@ -127,7 +198,7 @@ class NmtWorkspace(object):
         Args:
             fl1 (:class:`~pymaster.field.NmtField`): First field to correlate.
             fl2 (:class:`~pymaster.field.NmtField`): Second field to correlate.
-            bin (:class:`~pymaster.bins.NmtBin`): Binning scheme.
+            bins (:class:`~pymaster.bins.NmtBin`): Binning scheme.
             is_teb (:obj:`bool`): If ``True``, all mode-coupling matrices
                 (0-0,0-s,s-s) will be computed at the same time. In this
                 case, ``fl1`` must be a spin-0 field and ``fl2`` must be

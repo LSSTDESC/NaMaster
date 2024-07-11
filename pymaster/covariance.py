@@ -13,9 +13,46 @@ class NmtCovarianceWorkspace(object):
     <https://arxiv.org/abs/1906.11765>`_ (see also
     `Efstathiou et al. 2003 <https://arxiv.org/abs/astro-ph/0307515>`_,
     and `Couchot et al. 2016 <https://arxiv.org/abs/1609.09730>`_).
-    When initialized, this object is practically empty. The information
-    describing the coupling coefficients must be computed or read from
-    a file afterwards using the methods below.
+
+    :obj:`NmtCovarianceWorkspace` objects may be constructed from a set
+    of :obj:`~pymaster.field.NmtField` objects, describing the masks
+    of the fields being correlated, or may be read from a file.
+    We recommend using the class methods :meth:`from_fields` and
+    :meth:`from_file` to create new :obj:`NmtCovarianceWorkspace` objects,
+    rather than using the main constructor.
+
+    Args:
+        fla1 (:class:`~pymaster.field.NmtField`): First field contributing
+            to the first power spectrum whose covariance you want to
+            compute.
+        fla2 (:class:`~pymaster.field.NmtField`): Second field contributing
+            to the first power spectrum whose covariance you want to
+            compute.
+        flb1 (:class:`~pymaster.field.NmtField`): As ``fla1`` for the
+            second power spectrum. If ``None``, it will be set to
+            ``fla1``.
+        flb2 (:class:`~pymaster.field.NmtField`): As ``fla2`` for the
+            second power spectrum. If ``None``, it will be set to
+            ``fla2``.
+        l_toeplitz (:obj:`int`): If a positive number, the Toeplitz
+            approximation described in `Louis et al. 2020
+            <https://arxiv.org/abs/2010.14344>`_ will be used.
+            In that case, this quantity corresponds to
+            :math:`\\ell_{\\rm toeplitz}` in Fig. 3 of that paper.
+        l_exact (:obj:`int`): If ``l_toeplitz>0``, it corresponds to
+            :math:`\\ell_{\\rm exact}` in Fig. 3 of the paper.
+            Ignored if ``l_toeplitz<=0``.
+        dl_band (:obj:`int`): If ``l_toeplitz>0``, this quantity
+            corresponds to :math:`\\Delta \\ell_{\\rm band}` in Fig.
+            3 of the paper. Ignored if ``l_toeplitz<=0``.
+        spin0_only (:obj:`bool`): If ``True``, only spin-0 combinations
+            of the mode-coupling coefficients will be computed and stored.
+        fname (:obj:`str`): Input file name. If not `None`, the values of
+            all input fields will be ignored, and all mode-coupling
+            coefficients will be read from file.
+        force_spin_only (:obj:`bool`): If ``True``, only spin-0
+            combinations of the mode-coupling coefficients will
+            be read and stored.
     """
     def __init__(self, fla1=None, fla2=None, flb1=None, flb2=None,
                  l_toeplitz=-1, l_exact=-1, dl_band=-1,
@@ -47,12 +84,59 @@ class NmtCovarianceWorkspace(object):
     def from_fields(cls, fla1, fla2, flb1=None, flb2=None,
                     l_toeplitz=-1, l_exact=-1, dl_band=-1,
                     spin0_only=False):
+        """ Creates an :obj:`NmtCovarianceWorkspace` object containing the
+        mode-coupling coefficients of the Gaussian covariance
+        between the power spectra of two pairs of
+        :class:`~pymaster.field.NmtField` objects (``fla1``, ``fla2``,
+        ``flb1``, and ``flb2``). Note that you can reuse this
+        workspace for the covariance of power spectra between any
+        pairs of fields as long as the fields have the same masks
+        as those passed to this function, and as long as the binning
+        schemes used are also the same.
+
+        Args:
+            fla1 (:class:`~pymaster.field.NmtField`): First field contributing
+                to the first power spectrum whose covariance you want to
+                compute.
+            fla2 (:class:`~pymaster.field.NmtField`): Second field contributing
+                to the first power spectrum whose covariance you want to
+                compute.
+            flb1 (:class:`~pymaster.field.NmtField`): As ``fla1`` for the
+                second power spectrum. If ``None``, it will be set to
+                ``fla1``.
+            flb2 (:class:`~pymaster.field.NmtField`): As ``fla2`` for the
+                second power spectrum. If ``None``, it will be set to
+                ``fla2``.
+            l_toeplitz (:obj:`int`): If a positive number, the Toeplitz
+                approximation described in `Louis et al. 2020
+                <https://arxiv.org/abs/2010.14344>`_ will be used.
+                In that case, this quantity corresponds to
+                :math:`\\ell_{\\rm toeplitz}` in Fig. 3 of that paper.
+            l_exact (:obj:`int`): If ``l_toeplitz>0``, it corresponds to
+                :math:`\\ell_{\\rm exact}` in Fig. 3 of the paper.
+                Ignored if ``l_toeplitz<=0``.
+            dl_band (:obj:`int`): If ``l_toeplitz>0``, this quantity
+                corresponds to :math:`\\Delta \\ell_{\\rm band}` in Fig.
+                3 of the paper. Ignored if ``l_toeplitz<=0``.
+            spin0_only (:obj:`bool`): If ``True``, only spin-0 combinations
+                of the mode-coupling coefficients will be computed and stored.
+        """
         return cls(fla1=fla1, fla2=fla2, flb1=flb1, flb2=flb2,
                    l_toeplitz=l_toeplitz, l_exact=l_exact,
                    dl_band=dl_band, spin0_only=spin0_only)
 
     @classmethod
     def from_file(cls, fname, force_spin0_only=False):
+        """ Creates an :obj:`NmtCovarianceWorkspace` object from the
+        mode-coupling coefficients stored in a FITS file.
+        See :meth:`write_to`.
+
+        Args:
+            fname (:obj:`str`): Input file name.
+            force_spin_only (:obj:`bool`): If ``True``, only spin-0
+                combinations of the mode-coupling coefficients will
+                be read and stored.
+        """
         return cls(fname=fname, force_spin0_only=force_spin0_only)
 
     def __del__(self):
