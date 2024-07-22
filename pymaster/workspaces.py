@@ -882,8 +882,9 @@ def compute_coupled_cell(f1, f2):
 
     cls = np.array([[hp.alm2cl(a1, a2, lmax=lmax)
                      for a2 in alm2] for a1 in alm1])
-    for i in range(len(alm1)):
-        cls[i, i, :] -= Nf
+    if Nf != 0:
+        for i in range(len(alm1)):
+            cls[i, i, :] -= Nf
     cls = cls.reshape([ncl, lmax+1])
     return cls
 
