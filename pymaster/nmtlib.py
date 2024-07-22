@@ -293,6 +293,8 @@ class workspace(object):
     pcl_masks = property(_nmtlib.workspace_pcl_masks_get, _nmtlib.workspace_pcl_masks_set)
     coupling_matrix_unbinned = property(_nmtlib.workspace_coupling_matrix_unbinned_get, _nmtlib.workspace_coupling_matrix_unbinned_set)
     bin = property(_nmtlib.workspace_bin_get, _nmtlib.workspace_bin_set)
+    norm_type = property(_nmtlib.workspace_norm_type_get, _nmtlib.workspace_norm_type_set)
+    w2 = property(_nmtlib.workspace_w2_get, _nmtlib.workspace_w2_set)
     coupling_matrix_binned = property(_nmtlib.workspace_coupling_matrix_binned_get, _nmtlib.workspace_coupling_matrix_binned_set)
     coupling_matrix_perm = property(_nmtlib.workspace_coupling_matrix_perm_get, _nmtlib.workspace_coupling_matrix_perm_set)
 
@@ -341,8 +343,8 @@ def compute_master_coefficients(lmax, lmax_mask, npcl, pcl_masks, s1, s2, pure_e
 def master_calculator_free(c):
     return _nmtlib.master_calculator_free(c)
 
-def compute_coupling_matrix(spin1, spin2, lmax, lmax_mask, pure_e1, pure_b1, pure_e2, pure_b2, pcl_masks, beam1, beam2, bin, is_teb, l_toeplitz, l_exact, dl_band):
-    return _nmtlib.compute_coupling_matrix(spin1, spin2, lmax, lmax_mask, pure_e1, pure_b1, pure_e2, pure_b2, pcl_masks, beam1, beam2, bin, is_teb, l_toeplitz, l_exact, dl_band)
+def compute_coupling_matrix(spin1, spin2, lmax, lmax_mask, pure_e1, pure_b1, pure_e2, pure_b2, pcl_masks, beam1, beam2, bin, is_teb, l_toeplitz, l_exact, dl_band, norm_type, w2):
+    return _nmtlib.compute_coupling_matrix(spin1, spin2, lmax, lmax_mask, pure_e1, pure_b1, pure_e2, pure_b2, pcl_masks, beam1, beam2, bin, is_teb, l_toeplitz, l_exact, dl_band, norm_type, w2)
 
 def update_coupling_matrix(w, n_rows, new_matrix):
     return _nmtlib.update_coupling_matrix(w, n_rows, new_matrix)
@@ -524,8 +526,8 @@ def apomask_flat(nx, ny, lx, ly, npix_1, dout, aposize, apotype):
 def synfast_new_flat(nx, ny, lx, ly, nfields, seed, ncl1, ncl2, dout):
     return _nmtlib.synfast_new_flat(nx, ny, lx, ly, nfields, seed, ncl1, ncl2, dout)
 
-def comp_coupling_matrix(spin1, spin2, lmax, lmax_mask, pure_e_1, pure_b_1, pure_e_2, pure_b_2, nlb1, nlb2, nell4, bin, is_teb, l_toeplitz, l_exact, dl_band):
-    return _nmtlib.comp_coupling_matrix(spin1, spin2, lmax, lmax_mask, pure_e_1, pure_b_1, pure_e_2, pure_b_2, nlb1, nlb2, nell4, bin, is_teb, l_toeplitz, l_exact, dl_band)
+def comp_coupling_matrix(spin1, spin2, lmax, lmax_mask, pure_e_1, pure_b_1, pure_e_2, pure_b_2, norm_type, w2, nlb1, nlb2, nell4, bin, is_teb, l_toeplitz, l_exact, dl_band):
+    return _nmtlib.comp_coupling_matrix(spin1, spin2, lmax, lmax_mask, pure_e_1, pure_b_1, pure_e_2, pure_b_2, norm_type, w2, nlb1, nlb2, nell4, bin, is_teb, l_toeplitz, l_exact, dl_band)
 
 def comp_coupling_matrix_flat(fl1, fl2, bin, lmn_x, lmx_x, lmn_y, lmx_y, is_teb):
     return _nmtlib.comp_coupling_matrix_flat(fl1, fl2, bin, lmn_x, lmx_x, lmn_y, lmx_y, is_teb)
