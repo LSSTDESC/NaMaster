@@ -681,3 +681,33 @@ def test_unbinned_mcm_io():
         w2.get_bandpower_windows()
 
     os.system("rm test/wspc.fits")
+
+
+def test_fkp_normalization():
+    # Create disc mask
+    nside = 256
+    npix = hp.nside2npix(nside)
+    mask = np.zeros(npix)
+    mask[hp.query_disc(nside, [1, 0, 0], np.radians(30))] = 1
+
+    # Construct bandpower window functions
+    f = nmt.NmtField(mask, None, spin=0)
+    b = nmt.NmtBin.from_nside_linear(nside, nlb=10)
+    w = nmt.NmtWorkspace.from_fields(f, f, b, normalization='FKP')
+    bpw = w.get_bandpower_windows()
+
+    # Now construct them by hand from MCM
+    mcm = w.get_coupling_matrix()
+    mcm_binned = np.array([b.bin_cell(row) for row in mcm.T]).T
+    # FKP normalisation
+    w2 = np.mean(mask**2)
+    bpw_r = mcm_binned/w2
+
+    # Compare bandpowers
+    assert np.all(np.fabs(bpw-bpw_r) < 1E-10)
+
+    # Verify that a white power spectrum conserves amplitude
+    nl = np.pi*np.ones([1, npix])
+    nlc = w.decouple_cell(w.couple_cell(nl))
+    nlc = nlc.squeeze()[b.get_effective_ells() < 2*nside]
+    assert np.all(np.fabs(nlc/np.pi-1) < 1E-2)

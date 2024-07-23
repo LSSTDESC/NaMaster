@@ -79,9 +79,8 @@ static void bin_coupling_matrix(nmt_workspace *w)
     for(icl_b=0;icl_b<w->ncls;icl_b++) {
       for(ib2=0;ib2<w->bin->n_bands;ib2++) {
 	for(ib3=0;ib3<w->bin->n_bands;ib3++) {
-	  double coupling_b;
+	  double coupling_b=0;
 	  if(w->norm_type==0) { //Usual normalisation
-	    coupling_b=0;
 	    for(i2=0;i2<w->bin->nell_list[ib2];i2++) {
 	      l2=w->bin->ell_list[ib2][i2];
 	      for(i3=0;i3<w->bin->nell_list[ib3];i3++) {
@@ -92,7 +91,8 @@ static void bin_coupling_matrix(nmt_workspace *w)
 	    }
 	  }
 	  else { //FKP normalisation
-	    coupling_b=w->w2;
+	    if((w->ncls*ib2+icl_a) == (w->ncls*ib3+icl_b))
+	      coupling_b=w->w2;
 	  }
 	  gsl_matrix_set(w->coupling_matrix_binned,w->ncls*ib2+icl_a,w->ncls*ib3+icl_b,coupling_b);
 	}
