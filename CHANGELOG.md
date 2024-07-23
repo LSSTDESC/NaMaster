@@ -1,3 +1,6 @@
+# v2.2
+- More convenient constructors for workspaces and FKP normalisation (#201)
+
 # v2.1
 - Catalog-based pseudo-C_ells (#184)
 - Tutorial notebooks and improved documentation (#192, #195, #196, #197)
