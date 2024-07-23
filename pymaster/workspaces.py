@@ -264,7 +264,7 @@ class NmtWorkspace(object):
         elif normalization == 'FKP':
             norm_type = 1
         else:
-            raise ValueError("Unknown normalization type {normalization}. "
+            raise ValueError(f"Unknown normalization type {normalization}. "
                              "Allowed options are 'MASTER' and 'FKP'.")
 
         wawb = 0
@@ -275,7 +275,7 @@ class NmtWorkspace(object):
                 else:
                     raise ValueError("Cannot use FKP normalisation for "
                                      "catalog fields unless they are the "
-                                     "same.")
+                                     "same field.")
             else:
                 msk1 = fl1.get_mask()
                 msk2 = fl2.get_mask()

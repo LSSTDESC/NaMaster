@@ -738,3 +738,32 @@ def test_fkp_normalization_catalog():
 
     # Compare bandpowers
     assert np.all(np.fabs(bpw-bpw_r) < 1E-10)
+
+
+def test_fkp_normalization_errors():
+    # Dummy fields and binning
+    nside = 256
+    npix = hp.nside2npix(nside)
+    mask = np.zeros(npix)
+    fm = nmt.NmtField(mask, None, spin=0)
+    nsrc = 100000
+    phi = 2*np.pi*np.random.rand(nsrc)
+    theta = np.arccos(-1+2*np.random.rand(nsrc))
+    weight = np.ones(nsrc)+(-0.05 + 0.1*np.random.rand(nsrc))
+    fval = np.random.randn(nsrc)
+    lmax = 3*nside-1
+    fc = nmt.NmtFieldCatalog([theta, phi], weight, fval, lmax)
+    fcb = nmt.NmtFieldCatalog([theta, phi], weight, fval, lmax)
+    b = nmt.NmtBin.from_nside_linear(nside, nlb=100)
+
+    # Wrong normalization type
+    with pytest.raises(ValueError):
+        nmt.NmtWorkspace.from_fields(fm, fm, b, normalization='FKPP')
+
+    # Mixing catalog and map fields
+    with pytest.raises(ValueError):
+        nmt.NmtWorkspace.from_fields(fm, fc, b, normalization='FKP')
+
+    # Two potentially different catalog fields
+    with pytest.raises(ValueError):
+        nmt.NmtWorkspace.from_fields(fc, fcb, b, normalization='FKP')
