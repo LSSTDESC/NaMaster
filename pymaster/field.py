@@ -704,7 +704,9 @@ class NmtFieldCatalog(NmtField):
     describing a field sampled at the discrete positions of
     a given catalog of sources. If you want to estimate clustering power
     spectra directly from catalogs, use :obj:`NmtFieldCatalogClustering`
-    instead.
+    instead. The mathematical background for these fields was laid out
+    in `Baleato & White 2024 <https://arxiv.org/abs/2312.12285>`_ , and
+    expanded in Wolz et al. 2024.
 
     Args:
         positions (`array`): Source positions, provided as a list or array
