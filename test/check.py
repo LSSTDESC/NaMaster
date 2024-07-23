@@ -16,12 +16,9 @@ larr = b.get_effective_ells()
 
 f0 = nmt.NmtField(mask, [mp_t])
 f2 = nmt.NmtField(mask, [mp_q, mp_u])
-w00 = nmt.NmtWorkspace()
-w00.compute_coupling_matrix(f0, f0, b)
-w02 = nmt.NmtWorkspace()
-w02.compute_coupling_matrix(f0, f2, b)
-w22 = nmt.NmtWorkspace()
-w22.compute_coupling_matrix(f2, f2, b)
+w00 = nmt.NmtWorkspace.from_fields(f0, f0, b)
+w02 = nmt.NmtWorkspace.from_fields(f0, f2, b)
+w22 = nmt.NmtWorkspace.from_fields(f2, f2, b)
 
 
 def compute_master(f_a, f_b, wsp):

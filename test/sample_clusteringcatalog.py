@@ -77,8 +77,7 @@ lb = nmt_bin.get_effective_ells()
 f = nmt.NmtFieldCatalogClustering(
     positions, weights, positions_ran, weights_rand, 3*nside-1
 )
-wsp = nmt.NmtWorkspace()
-wsp.compute_coupling_matrix(f, f, nmt_bin)
+wsp = nmt.NmtWorkspace.from_fields(f, f, nmt_bin)
 
 # We compute the clustering field by passing both the source catalog and the
 # random catalog.

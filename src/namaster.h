@@ -702,6 +702,8 @@ typedef struct {
   flouble *pcl_masks; //!< Pseudo-CL of the masks.
   flouble **coupling_matrix_unbinned; //!< Unbinned mode-coupling matrix
   nmt_binning_scheme *bin; //!< Bandpowers defining the binning
+  int norm_type;  //!< Normalisation used for final bandpower window functions (0 == full binned matrix inversion, 1 == unit response to white spectrum).
+  flouble w2;  //!< mean of mask product (needed if norm_type == 1.
   gsl_matrix *coupling_matrix_binned; //!< GSL version of MCM (prepared for inversion)
   gsl_permutation *coupling_matrix_perm; //!< Complements \p coupling_matrix_binned_gsl for inversion.
 } nmt_workspace;
@@ -745,7 +747,8 @@ nmt_workspace *nmt_compute_coupling_matrix(int spin1,int spin2,
 					   flouble *pcl_masks,
 					   flouble *beam1,flouble *beam2,
 					   nmt_binning_scheme *bin,int is_teb,
-                                           int l_toeplitz,int l_exact,int dl_band);
+                                           int l_toeplitz,int l_exact,int dl_band,
+					   int norm_type,flouble w2);
 
 /**
  * @brief Updates the mode coupling matrix with a new one.Saves nmt_workspace structure to file

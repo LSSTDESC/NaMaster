@@ -26,12 +26,12 @@ class CovarTester(object):
         self.f2 = nmt.NmtField(msk, [mps[1], mps[2]])
         self.f0_half = nmt.NmtField(msk[:self.npix//4],
                                     [mps[0, :self.npix//4]])  # Half nside
-        self.w = nmt.NmtWorkspace()
-        self.w.read_from("test/benchmarks/bm_nc_np_w00.fits")
-        self.w02 = nmt.NmtWorkspace()
-        self.w02.read_from("test/benchmarks/bm_nc_np_w02.fits")
-        self.w22 = nmt.NmtWorkspace()
-        self.w22.read_from("test/benchmarks/bm_nc_np_w22.fits")
+        self.w = nmt.NmtWorkspace.from_file(
+            "test/benchmarks/bm_nc_np_w00.fits")
+        self.w02 = nmt.NmtWorkspace.from_file(
+            "test/benchmarks/bm_nc_np_w02.fits")
+        self.w22 = nmt.NmtWorkspace.from_file(
+            "test/benchmarks/bm_nc_np_w22.fits")
 
         cls = np.loadtxt("test/benchmarks/cls_lss.txt", unpack=True)
         l, cltt, clee, clbb, clte, nltt, nlee, nlbb, nlte = cls
@@ -56,8 +56,7 @@ def test_workspace_covar_benchmark():
                             np.fabs(db))*1E-4).all()
 
     # Check against a benchmark
-    cw = nmt.NmtCovarianceWorkspace()
-    cw.compute_coupling_coefficients(CT.f0, CT.f0)
+    cw = nmt.NmtCovarianceWorkspace.from_fields(CT.f0, CT.f0)
 
     # [0,0 ; 0,0]
     covar = nmt.gaussian_covariance(cw, 0, 0, 0, 0,
@@ -123,19 +122,17 @@ def test_workspace_covar_benchmark():
 
 def test_workspace_covar_spin0():
     # Compute all coefficients
-    cw1 = nmt.NmtCovarianceWorkspace()
-    cw1.compute_coupling_coefficients(CT.f0, CT.f2)
+    cw1 = nmt.NmtCovarianceWorkspace.from_fields(CT.f0, CT.f2)
     # Write to file
     cw1.write_to("cwsp_test.fits")
 
     # Only spin-0
-    cw2 = nmt.NmtCovarianceWorkspace()
-    cw2.compute_coupling_coefficients(CT.f0, CT.f2, spin0_only=True)
+    cw2 = nmt.NmtCovarianceWorkspace.from_fields(CT.f0, CT.f2,
+                                                 spin0_only=True)
 
     # Read only spin-0 from file
-    cw3 = nmt.NmtCovarianceWorkspace()
-    cw3.read_from("cwsp_test.fits",
-                  force_spin0_only=True)
+    cw3 = nmt.NmtCovarianceWorkspace.from_file("cwsp_test.fits",
+                                               force_spin0_only=True)
 
     # Spin-0 matrices
     c1 = nmt.gaussian_covariance(cw1, 0, 0, 0, 0,
@@ -187,7 +184,7 @@ def test_workspace_covar_errors():
     with pytest.raises(ValueError):  # Write uninitialized
         cw.write_to("wsp.fits")
 
-    cw.compute_coupling_coefficients(CT.f0, CT.f0)  # All good
+    cw = nmt.NmtCovarianceWorkspace.from_fields(CT.f0, CT.f0)  # All good
     assert cw.wsp.lmax == CT.w.wsp.lmax
     assert cw.wsp.lmax == CT.w.wsp.lmax
 
@@ -227,12 +224,9 @@ def test_covar_rectangular():
     f = nmt.NmtField(msk, None, spin=0)
     b1 = nmt.NmtBin.from_nside_linear(nside, nlb=4)
     b2 = nmt.NmtBin.from_nside_linear(nside, nlb=6)
-    w1 = nmt.NmtWorkspace()
-    w1.compute_coupling_matrix(f, f, b1)
-    w2 = nmt.NmtWorkspace()
-    w2.compute_coupling_matrix(f, f, b2)
-    cw = nmt.NmtCovarianceWorkspace()
-    cw.compute_coupling_coefficients(f, f, f, f)
+    w1 = nmt.NmtWorkspace.from_fields(f, f, b1)
+    w2 = nmt.NmtWorkspace.from_fields(f, f, b2)
+    cw = nmt.NmtCovarianceWorkspace.from_fields(f, f, f, f)
     cov = nmt.gaussian_covariance(cw, 0, 0, 0, 0, [cl], [cl], [cl], [cl],
                                   w1, wb=w2)
     n1, n2 = cov.shape

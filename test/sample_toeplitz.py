@@ -21,33 +21,29 @@ leff = b.get_effective_ells()
 
 # First, let's compute the mode-coupling matrix and the mode-coupling
 # matrix exactly.
-we = nmt.NmtWorkspace()
-we.compute_coupling_matrix(f0, f0, b)
+we = nmt.NmtWorkspace.from_fields(f0, f0, b)
 c_exact = we.get_coupling_matrix() / (2 * ls[None, :]+1.)
 cl_exact = we.decouple_cell(nmt.compute_coupled_cell(f0, f0))
 
 # Now, let's use the Toeplitz approximation. Note that the choices
 # of l_toeplitz, l_exact and dl_band are arbitrary, and should not
 # be understood as a rule of thumb.
-wt = nmt.NmtWorkspace()
-wt.compute_coupling_matrix(f0, f0, b, l_toeplitz=nside,
-                           l_exact=nside//2, dl_band=40)
+wt = nmt.NmtWorkspace.from_fields(f0, f0, b, l_toeplitz=nside,
+                                  l_exact=nside//2, dl_band=40)
 c_tpltz = wt.get_coupling_matrix() / (2 * ls[None, :]+1.)
 cl_tpltz = wt.decouple_cell(nmt.compute_coupled_cell(f0, f0))
 
 # You can also use the Toeplitz approximation to compute the
 # Gaussian covariance matrix. Let's try that here:
 # First, the exact calculation
-cwe = nmt.NmtCovarianceWorkspace()
-cwe.compute_coupling_coefficients(f0, f0)
+cwe = nmt.NmtCovarianceWorkspace.from_fields(f0, f0)
 cov_exact = nmt.gaussian_covariance(cwe, 0, 0, 0, 0,
                                     [cl_theory], [cl_theory],
                                     [cl_theory], [cl_theory],
                                     we)
 # Now using the Toeplitz approximation:
-cwt = nmt.NmtCovarianceWorkspace()
-cwt.compute_coupling_coefficients(f0, f0, l_toeplitz=nside,
-                                  l_exact=nside//2, dl_band=40)
+cwt = nmt.NmtCovarianceWorkspace.from_fields(
+    f0, f0, l_toeplitz=nside, l_exact=nside//2, dl_band=40)
 cov_tpltz = nmt.gaussian_covariance(cwt, 0, 0, 0, 0,
                                     [cl_theory], [cl_theory],
                                     [cl_theory], [cl_theory],

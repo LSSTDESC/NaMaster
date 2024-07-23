@@ -127,6 +127,7 @@ class NmtField(object):
         self._Nw = 0
         self._Nf = 0
         self._alpha = None
+        self.is_catalog = False
 
         # 1. Store mask and beam
         # This ensures the mask will have the right type
@@ -763,6 +764,7 @@ class NmtFieldCatalog(NmtField):
         self._Nf = 0.
         self.ainfo = ut.NmtAlmInfo(lmax)
         self._alpha = None
+        self.is_catalog = True
 
         # The remaining attributes are only required for non-lite maps
         self.maps = None
@@ -907,6 +909,7 @@ class NmtFieldCatalogClustering(NmtField):
         self.ainfo = ut.NmtAlmInfo(lmax)
         self._alpha = 0
         self.spin = 0
+        self.is_catalog = True
 
         # The remaining attributes are only required for non-lite maps
         self.maps = None

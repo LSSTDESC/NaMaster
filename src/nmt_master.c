@@ -27,7 +27,8 @@ static void nmt_workspace_store_bins(nmt_workspace *w,
 
 static nmt_workspace *nmt_workspace_new(int ncls,
 					nmt_binning_scheme *bin,int is_teb,
-					int lmax_fields,int lmax_mask)
+					int lmax_fields,int lmax_mask,
+					int norm_type, flouble w2)
 {
   int ii;
   nmt_workspace *w=my_malloc(sizeof(nmt_workspace));
@@ -39,6 +40,8 @@ static nmt_workspace *nmt_workspace_new(int ncls,
 
   w->pcl_masks=my_malloc((w->lmax_mask+1)*sizeof(flouble));
   w->beam_prod=my_malloc((w->lmax_fields+1)*sizeof(flouble));
+  w->norm_type=norm_type;
+  w->w2=w2;
 
   w->coupling_matrix_unbinned=my_malloc(w->ncls*(w->lmax+1)*sizeof(flouble *));
   for(ii=0;ii<w->ncls*(w->lmax+1);ii++)
@@ -77,13 +80,19 @@ static void bin_coupling_matrix(nmt_workspace *w)
       for(ib2=0;ib2<w->bin->n_bands;ib2++) {
 	for(ib3=0;ib3<w->bin->n_bands;ib3++) {
 	  double coupling_b=0;
-	  for(i2=0;i2<w->bin->nell_list[ib2];i2++) {
-	    l2=w->bin->ell_list[ib2][i2];
-	    for(i3=0;i3<w->bin->nell_list[ib3];i3++) {
-	      l3=w->bin->ell_list[ib3][i3];
-	      coupling_b+=w->coupling_matrix_unbinned[w->ncls*l2+icl_a][w->ncls*l3+icl_b]*
-		w->beam_prod[l3]*w->bin->w_list[ib2][i2]*w->bin->f_ell[ib2][i2]/w->bin->f_ell[ib3][i3];
+	  if(w->norm_type==0) { //Usual normalisation
+	    for(i2=0;i2<w->bin->nell_list[ib2];i2++) {
+	      l2=w->bin->ell_list[ib2][i2];
+	      for(i3=0;i3<w->bin->nell_list[ib3];i3++) {
+		l3=w->bin->ell_list[ib3][i3];
+		coupling_b+=w->coupling_matrix_unbinned[w->ncls*l2+icl_a][w->ncls*l3+icl_b]*
+		  w->beam_prod[l3]*w->bin->w_list[ib2][i2]*w->bin->f_ell[ib2][i2]/w->bin->f_ell[ib3][i3];
+	      }
 	    }
+	  }
+	  else { //FKP normalisation
+	    if((w->ncls*ib2+icl_a) == (w->ncls*ib3+icl_b))
+	      coupling_b=w->w2;
 	  }
 	  gsl_matrix_set(w->coupling_matrix_binned,w->ncls*ib2+icl_a,w->ncls*ib3+icl_b,coupling_b);
 	}
@@ -806,7 +815,8 @@ nmt_workspace *nmt_compute_coupling_matrix(int spin1,int spin2,
 					   flouble *pcl_masks,
 					   flouble *beam1,flouble *beam2,
 					   nmt_binning_scheme *bin,int is_teb,
-                                           int l_toeplitz,int l_exact,int dl_band)
+                                           int l_toeplitz,int l_exact,int dl_band,
+					   int norm_type,flouble w2)
 {
   int l2,lmax_large,lmax_fields;
   nmt_workspace *w;
@@ -827,7 +837,7 @@ nmt_workspace *nmt_compute_coupling_matrix(int spin1,int spin2,
   lmax_fields=lmax; // ell_max for the maps
   lmax_large=lmax_mask; // ell_max for the masks
   w=nmt_workspace_new(n_cl,bin,is_teb,
-		      lmax_fields,lmax_large);
+		      lmax_fields,lmax_large,norm_type,w2);
 
   for(l2=0;l2<=w->lmax_fields;l2++)
     w->beam_prod[l2]=beam1[l2]*beam2[l2];

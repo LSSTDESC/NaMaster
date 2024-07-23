@@ -51,12 +51,9 @@ f0, f2 = get_sample_field()
 # We will use 20 multipoles per bandpower.
 b = nmt.NmtBin.from_nside_linear(nside, 20)
 print("Workspace")
-w00 = nmt.NmtWorkspace()
-w00.compute_coupling_matrix(f0, f0, b)
-w02 = nmt.NmtWorkspace()
-w02.compute_coupling_matrix(f0, f2, b)
-w22 = nmt.NmtWorkspace()
-w22.compute_coupling_matrix(f2, f2, b)
+w00 = nmt.NmtWorkspace.from_fields(f0, f0, b)
+w02 = nmt.NmtWorkspace.from_fields(f0, f2, b)
+w22 = nmt.NmtWorkspace.from_fields(f2, f2, b)
 cl_00 = compute_master(f0, f0, w00)
 cl_02 = compute_master(f0, f2, w02)
 cl_22 = compute_master(f2, f2, w22)
@@ -66,11 +63,10 @@ n_ell = len(cl_00[0])
 print("Covariance")
 # First we generate a NmtCovarianceWorkspace object to precompute
 # and store the necessary coupling coefficients
-cw = nmt.NmtCovarianceWorkspace()
-# This is the time-consuming operation
+# This is the time-consuming operation.
 # Note that you only need to do this once,
 # regardless of spin
-cw.compute_coupling_coefficients(f0, f0, f0, f0)
+cw = nmt.NmtCovarianceWorkspace.from_fields(f0, f0, f0, f0)
 
 # The next few lines show how to extract the covariance matrices
 # for different spin combinations.

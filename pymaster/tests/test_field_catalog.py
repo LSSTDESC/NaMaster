@@ -272,16 +272,14 @@ def test_field_catalog_clustering_poisson():
     b = nmt.NmtBin.from_nside_linear(nside, 4)
     f = nmt.NmtFieldCatalogClustering(pos_ran, w_ran, pos_ran, w_ran,
                                       lmax=3*nside-1)
-    w = nmt.NmtWorkspace()
-    w.compute_coupling_matrix(f, f, b)
+    w = nmt.NmtWorkspace.from_fields(f, f, b)
     # Half-sky version
     f = nmt.NmtFieldCatalogClustering(pos_ran[:, goodhalfran],
                                       w_ran[goodhalfran],
                                       pos_ran[:, goodhalfran],
                                       w_ran[goodhalfran],
                                       lmax=3*nside-1)
-    wh = nmt.NmtWorkspace()
-    wh.compute_coupling_matrix(f, f, b)
+    wh = nmt.NmtWorkspace.from_fields(f, f, b)
 
     nsims = 10
     ncat = npix//4
@@ -304,7 +302,7 @@ def test_field_catalog_clustering_poisson():
                                           pos_ran[:, goodhalfran],
                                           w_ran[goodhalfran],
                                           lmax=3*nside-1)
-        cls_half.append(w.decouple_cell(nmt.compute_coupled_cell(f, f)))
+        cls_half.append(wh.decouple_cell(nmt.compute_coupled_cell(f, f)))
     cls_full = np.array(cls_full).squeeze()
     cls_half = np.array(cls_half).squeeze()
 

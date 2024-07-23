@@ -2,18 +2,136 @@ from pymaster import nmtlib as lib
 import pymaster.utils as ut
 import numpy as np
 import healpy as hp
+import warnings
 
 
 class NmtWorkspace(object):
     """ :obj:`NmtWorkspace` objects are used to compute and store the
     mode-coupling matrix associated with an incomplete sky coverage,
-    and used in the MASTER algorithm. When initialized, this object
-    is practically empty. The information describing the coupling
-    matrix must be computed or read from a file afterwards.
+    and used in the MASTER algorithm. :obj:`NmtWorkspace` objects can be
+    initialised from a pair of :class:`~pymaster.field.NmtField` objects
+    and an :class:`~pymaster.bins.NmtBin` object, containing information
+    about the masks involved and the :math:`\\ell` binning scheme, or
+    read from a file where the mode-coupling matrix was stored.
+
+    We recommend using the class methods :meth:`from_fields` and
+    :meth:`from_file` to create new :obj:`NmtWorkspace` objects,
+    rather than using the main constructor.
+
+    Args:
+        fl1 (:class:`~pymaster.field.NmtField`): First field being
+            correlated.
+        fl2 (:class:`~pymaster.field.NmtField`): Second field being
+            correlated.
+        bins (:class:`~pymaster.bins.NmtBin`): Binning scheme.
+        is_teb (:obj:`bool`): If ``True``, all mode-coupling matrices
+            (0-0,0-s,s-s) will be computed at the same time. In this
+            case, ``fl1`` must be a spin-0 field and ``fl2`` must be
+            spin-s.
+        l_toeplitz (:obj:`int`): If a positive number, the Toeplitz
+            approximation described in `Louis et al. 2020
+            <https://arxiv.org/abs/2010.14344>`_ will be used.
+            In that case, this quantity corresponds to
+            :math:`\\ell_{\\rm toeplitz}` in Fig. 3 of that paper.
+        l_exact (:obj:`int`): If ``l_toeplitz>0``, it corresponds to
+            :math:`\\ell_{\\rm exact}` in Fig. 3 of the paper.
+            Ignored if ``l_toeplitz<=0``.
+        dl_band (:obj:`int`): If ``l_toeplitz>0``, this quantity
+            corresponds to :math:`\\Delta \\ell_{\\rm band}` in Fig.
+            3 of the paper. Ignored if ``l_toeplitz<=0``.
+        fname (:obj:`str`): Input file name. If not `None`, this
+            workspace will be initialised from file, and the values
+            of ``fl1``, ``fl2``, and ``bin`` will be ignored.
+        read_unbinned_MCM (:obj:`bool`): If ``False``, the unbinned
+            mode-coupling matrix will not be read. This can save
+            significant IO time.
+        normalization (:obj:`str`): Normalization convention to use for
+            the bandpower window functions. Two options supported:
+            `'MASTER'` (default) corresponds to the standard inversion
+            of the binned mode-coupling matrix. `'FKP'` simply divides
+            by the mean of the mask product, forcing a unit response
+            to an input white spectrum.
     """
-    def __init__(self):
+    def __init__(self, fl1=None, fl2=None, bins=None, is_teb=False,
+                 l_toeplitz=-1, l_exact=-1, dl_band=-1, fname=None,
+                 read_unbinned_MCM=True, normalization='MASTER'):
         self.wsp = None
         self.has_unbinned = False
+
+        if ((fl1 is None) and (fl2 is None) and (bins is None) and
+                (fname is None)):
+            warnings.warn("The bare constructor for `NmtWorkspace` "
+                          "objects is deprecated and will be removed "
+                          "in future versions of NaMaster. Consider "
+                          "using the class methods "
+                          "`from_fields` and `from_file`, or pass "
+                          "the necessary arguments to the constructor.",
+                          category=DeprecationWarning)
+            return
+
+        if (fname is not None):
+            self.read_from(fname, read_unbinned_MCM=read_unbinned_MCM)
+            return
+
+        self.compute_coupling_matrix(
+            fl1, fl2, bins, is_teb=is_teb,
+            l_toeplitz=l_toeplitz, l_exact=l_exact, dl_band=dl_band,
+            normalization=normalization)
+
+    @classmethod
+    def from_fields(cls, fl1, fl2, bins, is_teb=False,
+                    l_toeplitz=-1, l_exact=-1, dl_band=-1,
+                    normalization='MASTER'):
+        """ Creates an :obj:`NmtWorkspace` object containing the
+        mode-coupling matrix associated with the cross-power spectrum of
+        two :class:`~pymaster.field.NmtField` s
+        and an :class:`~pymaster.bins.NmtBin` binning scheme. Note that
+        the mode-coupling matrix will only contain :math:`\\ell` s up
+        to the maximum multipole included in the bandpowers, which should
+        match the :math:`\\ell_{\\rm max}` of the fields as well.
+
+        Args:
+            fl1 (:class:`~pymaster.field.NmtField`): First field to correlate.
+            fl2 (:class:`~pymaster.field.NmtField`): Second field to correlate.
+            bins (:class:`~pymaster.bins.NmtBin`): Binning scheme.
+            is_teb (:obj:`bool`): If ``True``, all mode-coupling matrices
+                (0-0,0-s,s-s) will be computed at the same time. In this
+                case, ``fl1`` must be a spin-0 field and ``fl2`` must be
+                spin-s.
+            l_toeplitz (:obj:`int`): If a positive number, the Toeplitz
+                approximation described in `Louis et al. 2020
+                <https://arxiv.org/abs/2010.14344>`_ will be used.
+                In that case, this quantity corresponds to
+                :math:`\\ell_{\\rm toeplitz}` in Fig. 3 of that paper.
+            l_exact (:obj:`int`): If ``l_toeplitz>0``, it corresponds to
+                :math:`\\ell_{\\rm exact}` in Fig. 3 of the paper.
+                Ignored if ``l_toeplitz<=0``.
+            dl_band (:obj:`int`): If ``l_toeplitz>0``, this quantity
+                corresponds to :math:`\\Delta \\ell_{\\rm band}` in Fig.
+                3 of the paper. Ignored if ``l_toeplitz<=0``.
+            normalization (:obj:`str`): Normalization convention to use
+                for the bandpower window functions. Two options
+                supported: `'MASTER'` (default) corresponds to the
+                standard inversion of the binned mode-coupling matrix.
+                `'FKP'` simply divides by the mean of the mask product,
+                forcing a unit response to an input white spectrum.
+        """
+        return cls(fl1=fl1, fl2=fl2, bins=bins, is_teb=is_teb,
+                   l_toeplitz=l_toeplitz, l_exact=l_exact,
+                   dl_band=dl_band, normalization=normalization)
+
+    @classmethod
+    def from_file(cls, fname, read_unbinned_MCM=True):
+        """ Creates an :obj:`NmtWorkspace` object from a mode-coupling
+        matrix stored in a FITS file. See :meth:`write_to`.
+
+        Args:
+            fname (:obj:`str`): Input file name.
+            read_unbinned_MCM (:obj:`bool`): If ``False``, the unbinned
+                mode-coupling matrix will not be read. This can save
+                significant IO time.
+        """
+        return cls(fname=fname, read_unbinned_MCM=read_unbinned_MCM)
 
     def __del__(self):
         if self.wsp is not None:
@@ -83,7 +201,8 @@ class NmtWorkspace(object):
         lib.wsp_update_bins(self.wsp, bins.bin)
 
     def compute_coupling_matrix(self, fl1, fl2, bins, is_teb=False,
-                                l_toeplitz=-1, l_exact=-1, dl_band=-1):
+                                l_toeplitz=-1, l_exact=-1, dl_band=-1,
+                                normalization='MASTER'):
         """ Computes the mode-coupling matrix associated with the
         cross-power spectrum of two :class:`~pymaster.field.NmtField` s
         and an :class:`~pymaster.bins.NmtBin` binning scheme. Note that
@@ -94,7 +213,7 @@ class NmtWorkspace(object):
         Args:
             fl1 (:class:`~pymaster.field.NmtField`): First field to correlate.
             fl2 (:class:`~pymaster.field.NmtField`): Second field to correlate.
-            bin (:class:`~pymaster.bins.NmtBin`): Binning scheme.
+            bins (:class:`~pymaster.bins.NmtBin`): Binning scheme.
             is_teb (:obj:`bool`): If ``True``, all mode-coupling matrices
                 (0-0,0-s,s-s) will be computed at the same time. In this
                 case, ``fl1`` must be a spin-0 field and ``fl2`` must be
@@ -110,6 +229,12 @@ class NmtWorkspace(object):
             dl_band (:obj:`int`): If ``l_toeplitz>0``, this quantity
                 corresponds to :math:`\\Delta \\ell_{\\rm band}` in Fig.
                 3 of the paper. Ignored if ``l_toeplitz<=0``.
+            normalization (:obj:`str`): Normalization convention to use for
+                the bandpower window functions. Two options supported:
+                `'MASTER'` (default) corresponds to the standard inversion
+                of the binned mode-coupling matrix. `'FKP'` simply divides
+                by the mean of the mask product, forcing a unit response to
+                an input white spectrum.
         """
         if not fl1.is_compatible(fl2, strict=False):
             raise ValueError("Fields have incompatible pixelizations.")
@@ -133,11 +258,34 @@ class NmtWorkspace(object):
         else:
             alm2 = fl2.get_mask_alms()
         pcl_mask = hp.alm2cl(alm1, alm2, lmax=fl1.ainfo_mask.lmax)
+
+        if normalization == 'MASTER':
+            norm_type = 0
+        elif normalization == 'FKP':
+            norm_type = 1
+        else:
+            raise ValueError(f"Unknown normalization type {normalization}. "
+                             "Allowed options are 'MASTER' and 'FKP'.")
+
+        wawb = 0
+        if norm_type == 1:
+            if fl1.is_catalog or fl2.is_catalog:
+                if fl2 is fl1:
+                    wawb = fl1.Nw
+                else:
+                    raise ValueError("Cannot use FKP normalisation for "
+                                     "catalog fields unless they are the "
+                                     "same field.")
+            else:
+                msk1 = fl1.get_mask()
+                msk2 = fl2.get_mask()
+                wawb = fl1.minfo.si.dot_map(msk1, msk2)/(4*np.pi)
+
         self.wsp = lib.comp_coupling_matrix(
             int(fl1.spin), int(fl2.spin),
             int(fl1.ainfo.lmax), int(fl1.ainfo_mask.lmax),
             int(fl1.pure_e), int(fl1.pure_b), int(fl2.pure_e), int(fl2.pure_b),
-            fl1.beam, fl2.beam, pcl_mask.flatten()-Nw,
+            int(norm_type), wawb, fl1.beam, fl2.beam, pcl_mask.flatten()-Nw,
             bins.bin, int(is_teb), l_toeplitz, l_exact, dl_band)
         self.has_unbinned = True
 
@@ -788,7 +936,8 @@ def compute_coupled_cell_flat(f1, f2, b, ell_cut_x=[1., -1.],
 
 
 def compute_full_master(f1, f2, b=None, cl_noise=None, cl_guess=None,
-                        workspace=None, l_toeplitz=-1, l_exact=-1, dl_band=-1):
+                        workspace=None, l_toeplitz=-1, l_exact=-1, dl_band=-1,
+                        normalization='MASTER'):
     """ Computes the full MASTER estimate of the power spectrum of two
     fields (``f1`` and ``f2``). This is equivalent to sequentially calling:
 
@@ -824,6 +973,12 @@ def compute_full_master(f1, f2, b=None, cl_noise=None, cl_guess=None,
         dl_band (:obj:`int`): If ``l_toeplitz>0``, this quantity
             corresponds to :math:`\\Delta \\ell_{\\rm band}` in Fig.
             3 of the paper. Ignored if ``l_toeplitz<=0``.
+        normalization (:obj:`str`): Normalization convention to use for
+            the bandpower window functions. Two options supported:
+            `'MASTER'` (default) corresponds to the standard inversion
+            of the binned mode-coupling matrix. `'FKP'` simply divides
+            by the mean of the mask product, forcing a unit response
+            to an input white spectrum.
 
     Returns:
         (`array`): Set of decoupled bandpowers.
@@ -855,10 +1010,11 @@ def compute_full_master(f1, f2, b=None, cl_noise=None, cl_guess=None,
     pclb = deprojection_bias(f1, f2, clg)
 
     if workspace is None:
-        w = NmtWorkspace()
-        w.compute_coupling_matrix(
-            f1, f2, b, l_toeplitz=l_toeplitz,
-            l_exact=l_exact, dl_band=dl_band)
+        w = NmtWorkspace.from_fields(
+            fl1=f1, fl2=f2, bins=b,
+            l_toeplitz=l_toeplitz,
+            l_exact=l_exact, dl_band=dl_band,
+            normalization=normalization)
     else:
         w = workspace
 

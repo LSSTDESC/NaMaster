@@ -45,10 +45,8 @@ def get_fields():
 
 # We initialize two workspaces for the non-pure and pure fields:
 f2np0, f2yp0 = get_fields()
-w_np = nmt.NmtWorkspace()
-w_np.compute_coupling_matrix(f2np0, f2np0, b)
-w_yp = nmt.NmtWorkspace()
-w_yp.compute_coupling_matrix(f2yp0, f2yp0, b)
+w_np = nmt.NmtWorkspace.from_fields(f2np0, f2np0, b)
+w_yp = nmt.NmtWorkspace.from_fields(f2yp0, f2yp0, b)
 
 
 # This wraps up the two steps needed to compute the power spectrum
