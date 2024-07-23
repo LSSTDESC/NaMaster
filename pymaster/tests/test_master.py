@@ -694,7 +694,7 @@ def test_fkp_normalization():
     f = nmt.NmtField(mask, None, spin=0)
     b = nmt.NmtBin.from_nside_linear(nside, nlb=10)
     w = nmt.NmtWorkspace.from_fields(f, f, b, normalization='FKP')
-    bpw = w.get_bandpower_windows()
+    bpw = w.get_bandpower_windows().squeeze()
 
     # Now construct them by hand from MCM
     mcm = w.get_coupling_matrix()
@@ -711,3 +711,30 @@ def test_fkp_normalization():
     nlc = w.decouple_cell(w.couple_cell(nl))
     nlc = nlc.squeeze()[b.get_effective_ells() < 2*nside]
     assert np.all(np.fabs(nlc/np.pi-1) < 1E-2)
+
+
+def test_fkp_normalization_catalog():
+    # Create random catalog
+    nside = 256  # Just to guide the lmax
+    nsrc = 100000
+    phi = 2*np.pi*np.random.rand(nsrc)
+    theta = np.arccos(-1+2*np.random.rand(nsrc))
+    weight = np.ones(nsrc)+(-0.05 + 0.1*np.random.rand(nsrc))
+    fval = np.random.randn(nsrc)
+    lmax = 3*nside-1
+
+    # Construct bandpower window functions
+    f = nmt.NmtFieldCatalog([theta, phi], weight, fval, lmax)
+    b = nmt.NmtBin.from_nside_linear(nside, nlb=100)
+    w = nmt.NmtWorkspace.from_fields(f, f, b, normalization='FKP')
+    bpw = w.get_bandpower_windows().squeeze()
+
+    # Now construct them by hand from MCM
+    mcm = w.get_coupling_matrix()
+    mcm_binned = np.array([b.bin_cell(row) for row in mcm.T]).T
+    # FKP normalisation
+    w2 = np.sum(weight**2)/(4*np.pi)
+    bpw_r = mcm_binned/w2
+
+    # Compare bandpowers
+    assert np.all(np.fabs(bpw-bpw_r) < 1E-10)
