@@ -112,7 +112,7 @@ jobs:
         if: matrix.label == 'osx-64'
         run: |
           # Without the prefixes, it won't compile on mac
-          CC=gcc-13 LDFLAGS=-L/opt/homebrew/lib CPPFLAGS=-I/opt/homebrew/include python -m pip install .
+          CC=gcc-14 LDFLAGS=-L/opt/homebrew/lib CPPFLAGS=-I/opt/homebrew/include python -m pip install .
 
       - name: C tests
         run: |
