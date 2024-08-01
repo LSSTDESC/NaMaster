@@ -1,3 +1,6 @@
+# v2.2.1
+- Fixed small bug due to floating point error in CAR initialisation (#204)
+
 # v2.2
 - More convenient constructors for workspaces and FKP normalisation (#201)
 
