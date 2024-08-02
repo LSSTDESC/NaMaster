@@ -1,3 +1,6 @@
+# v2.2.2
+- Improved bug fix (#204)
+
 # v2.2.1
 - Fixed small bug due to floating point error in CAR initialisation (#204)
 
