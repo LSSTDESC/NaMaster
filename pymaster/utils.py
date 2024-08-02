@@ -337,7 +337,7 @@ class NmtMapInfo(object):
                 raise ValueError("The colatitude map edges are "
                                  "outside the sphere")
 
-            if np.fabs(nx*d_ra) > 360+0.1*d_ra:
+            if np.fabs(nx*d_ra) > 360+0.1*np.fabs(d_ra):
                 raise ValueError("Seems like you're wrapping the "
                                  "sphere more than once")
 
