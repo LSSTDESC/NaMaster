@@ -481,8 +481,7 @@ def mask_apodization(mask_in, aposize, apotype="C1"):
       where :math:`x=\\sqrt{(1-\\cos\\theta)/(1-\\cos\\theta_*)}`, with
       :math:`\\theta_*` the apodization scale, and :math:`\\theta` the
       separation between a pixel and its nearest masked pixel (i.e. where
-      the mask takes a zero value). See `Grain et al. 2009
-      <https://arxiv.org/abs/0903.2350>`_.
+      the mask takes a zero value).
     - **"C2"** apodization: similar to "C1", but using the apodization
       function:
 
@@ -502,6 +501,16 @@ def mask_apodization(mask_in, aposize, apotype="C1"):
          with standard deviation :math:`\\theta_*`.
       3. The resulting map is multiplied by the original mask to ensure
          that all pixels that were previously masked are still masked.
+
+    .. note::
+      Note that, confusingly, the definition of the "C1" and "C2"
+      apodization windows above is the opposite of the similar :math:`C^1`
+      and :math:`C^2` functions in
+      `Grain et al. 2009 <https://arxiv.org/abs/0903.2350>`_. This is due
+      to a typo in the early development of NaMaster, which may be too
+      disruptive to fix at this stage. This may be modified in a future
+      release. Until then, users should rely on the documentation above,
+      and not the defitions in Grain et al. 2009.
 
     Args:
         mask_in (`array`): Input mask, provided as an array of floats
