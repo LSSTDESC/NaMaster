@@ -56,7 +56,8 @@ the ordering is as follows:
 By defaut, all sky maps accepted and returned by the curved-sky \
 functions are in the form of HEALPix maps exclusively with RING \
 ordering. Note that NaMaster also supports CAR (Plate Carree) \
-pixelization (see Example 9 in documentation).
+pixelization (see Example 9 in documentation), as well as catalog-based \
+fields in a pixel-less manner (see Examples 11 and 12).
 """
 try:
     from importlib.metadata import version
