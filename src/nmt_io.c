@@ -36,8 +36,10 @@ static void nmt_workspace_info_fromhdus(fitsfile *fptr,
   fits_read_key(fptr,TINT,"IS_TEB",&(w->is_teb),NULL,status);
   fits_read_key(fptr,TINT,"NCLS",&(w->ncls),NULL,status);
   fits_read_key(fptr,TINT,"NORM_TYPE",&(w->norm_type),NULL,status);
-  if(status) // maybe used old format
+  if(status) {// maybe used old format
     w->norm_type=0;
+    status=0;
+  }
   long ii;
   long n_el=w->ncls*(w->lmax+1);
   long fpixel[2]={1,1};
