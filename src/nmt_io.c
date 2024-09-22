@@ -29,16 +29,18 @@ static void nmt_workspace_info_fromhdus(fitsfile *fptr,
 					int w_unbinned,
 					int *status)
 {
+  int status_pre;
   fits_movnam_hdu(fptr,IMAGE_HDU,"WSP_PRIMARY",0,status);
   fits_read_key(fptr,TINT,"LMAX",&(w->lmax),NULL,status);
   fits_read_key(fptr,TINT,"LMAX_FIELDS",&(w->lmax_fields),NULL,status);
   fits_read_key(fptr,TINT,"LMAX_MASK",&(w->lmax_mask),NULL,status);
   fits_read_key(fptr,TINT,"IS_TEB",&(w->is_teb),NULL,status);
   fits_read_key(fptr,TINT,"NCLS",&(w->ncls),NULL,status);
+  status_pre = *status;
   fits_read_key(fptr,TINT,"NORM_TYPE",&(w->norm_type),NULL,status);
   if(*status) {// maybe used old format
     w->norm_type=0;
-    *status=0;
+    *status=status_pre;
   }
   long ii;
   long n_el=w->ncls*(w->lmax+1);
