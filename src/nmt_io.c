@@ -17,6 +17,7 @@ static void nmt_workspace_info_tohdus(fitsfile *fptr,
   fits_write_key(fptr,TINT,"LMAX_MASK",&(w->lmax_mask),NULL,status);
   fits_write_key(fptr,TINT,"IS_TEB",&(w->is_teb),NULL,status);
   fits_write_key(fptr,TINT,"NCLS",&(w->ncls),NULL,status);
+  fits_write_key(fptr,TINT,"NORM_TYPE",&(w->norm_type),NULL,status);
   for(ii=0;ii<n_el;ii++) {
     fpixel[1]=ii+1;
     fits_write_pix(fptr,TDOUBLE,fpixel,n_el,w->coupling_matrix_unbinned[ii],status);
@@ -34,6 +35,9 @@ static void nmt_workspace_info_fromhdus(fitsfile *fptr,
   fits_read_key(fptr,TINT,"LMAX_MASK",&(w->lmax_mask),NULL,status);
   fits_read_key(fptr,TINT,"IS_TEB",&(w->is_teb),NULL,status);
   fits_read_key(fptr,TINT,"NCLS",&(w->ncls),NULL,status);
+  fits_read_key(fptr,TINT,"NORM_TYPE",&(w->norm_type),NULL,status);
+  if(status) // maybe used old format
+    w->norm_type=0;
   long ii;
   long n_el=w->ncls*(w->lmax+1);
   long fpixel[2]={1,1};
