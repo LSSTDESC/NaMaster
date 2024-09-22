@@ -1,3 +1,6 @@
+# v2.2.3
+- Bugfix: saving `norm_type` in workspace fits files (#212)
+
 # v2.2.2
 - Improved bug fix (#204)
 
