@@ -429,6 +429,16 @@ class NmtWorkspace(object):
         ``w.decouple_cell(w.couple_cell(cls_theory))``. See Eqs. 18 and
         19 of the NaMaster paper.
 
+        As an example consider the power spectrum of two spin-2 fields. In
+        this case, the estimated bandpowers would have shape ``[4, n_bpw]``,
+        where ``n_bpw`` is the number of bandpowers. The unbinned power
+        spectra would have shape ``[4, lmax+1]``, where ``lmax`` is the
+        maximum multipole under study. The bandpower window functions would
+        then have shape ``[4, n_bpw, 4, lmax+1]`` and, for example, the
+        window function at indices ``[0, b1, 3, ell2]`` quantifies the
+        amount of :math:`BB` power at :math:`\\ell=` ``ell2`` that is leaked
+        into the ``b1``-th :math:`EE` bandpower.
+
         Returns:
             (`array`): Bandpower windows with shape \
                 ``(n_cls, n_bpws, n_cls, lmax+1)``.
