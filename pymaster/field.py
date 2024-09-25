@@ -48,7 +48,12 @@ class NmtField(object):
             (assumed to be rotationally symmetric - i.e. no :math:`m`
             dependence). If ``None``, no beam will be corrected for. Otherwise,
             this array should have at least as many elements as the maximum
-            multipole sampled by the maps + 1 (see ``lmax``).
+            multipole sampled by the maps + 1 (see ``lmax``). Note that
+            NaMaster does not automatically correct for pixel window function
+            effects, as this is not always appropriate. If you want to correct
+            for these effects, you should include them pixel window function
+            in the beam or account for it when interpreting the measured
+            power spectrum.
         purify_e (:obj:`bool`): Purify E-modes?
         purify_b (:obj:`bool`): Purify B-modes?
         n_iter (:obj:`int`): Number of iterations when computing the
@@ -487,6 +492,11 @@ class NmtFieldFlat(object):
             ``(2,nl)``. ``beam[0]`` contains the values of :math:`\\ell` for
             which de beam is defined, with ``beam[1]`` containing the
             corresponding beam values. If None, no beam will be corrected for.
+            Note that NaMaster does not automatically correct for pixel window
+            function effects, as this is not always appropriate. If you want
+            to correct for these effects, you should include them pixel window
+            function in the beam or account for it when interpreting the
+            measured power spectrum.
         purify_e (:obj:`bool`): Purify E-modes?
         purify_b (:obj:`bool`): Purify B-modes?
         tol_pinv (:obj:`float`): When computing the pseudo-inverse of the
