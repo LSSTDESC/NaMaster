@@ -2676,24 +2676,25 @@ SWIGINTERN PyObject *SWIG_PyStaticMethod_New(PyObject *SWIGUNUSEDPARM(self), PyO
 #define SWIGTYPE_p_gsl_permutation swig_types[5]
 #define SWIGTYPE_p_gsl_spline swig_types[6]
 #define SWIGTYPE_p_int swig_types[7]
-#define SWIGTYPE_p_nmt_binning_scheme swig_types[8]
-#define SWIGTYPE_p_nmt_binning_scheme_flat swig_types[9]
-#define SWIGTYPE_p_nmt_covar_workspace swig_types[10]
-#define SWIGTYPE_p_nmt_covar_workspace_flat swig_types[11]
-#define SWIGTYPE_p_nmt_field_flat swig_types[12]
-#define SWIGTYPE_p_nmt_flatsky_info swig_types[13]
-#define SWIGTYPE_p_nmt_k_function swig_types[14]
-#define SWIGTYPE_p_nmt_master_calculator swig_types[15]
-#define SWIGTYPE_p_nmt_workspace swig_types[16]
-#define SWIGTYPE_p_nmt_workspace_flat swig_types[17]
-#define SWIGTYPE_p_p_double swig_types[18]
-#define SWIGTYPE_p_p_double_complex swig_types[19]
-#define SWIGTYPE_p_p_int swig_types[20]
-#define SWIGTYPE_p_p_p_double swig_types[21]
-#define SWIGTYPE_p_p_p_double_complex swig_types[22]
-#define SWIGTYPE_p_p_p_p_double swig_types[23]
-static swig_type_info *swig_types[25];
-static swig_module_info swig_module = {swig_types, 24, 0, 0, 0, 0};
+#define SWIGTYPE_p_nmt_binninb_scheme swig_types[8]
+#define SWIGTYPE_p_nmt_binning_scheme swig_types[9]
+#define SWIGTYPE_p_nmt_binning_scheme_flat swig_types[10]
+#define SWIGTYPE_p_nmt_covar_workspace swig_types[11]
+#define SWIGTYPE_p_nmt_covar_workspace_flat swig_types[12]
+#define SWIGTYPE_p_nmt_field_flat swig_types[13]
+#define SWIGTYPE_p_nmt_flatsky_info swig_types[14]
+#define SWIGTYPE_p_nmt_k_function swig_types[15]
+#define SWIGTYPE_p_nmt_master_calculator swig_types[16]
+#define SWIGTYPE_p_nmt_workspace swig_types[17]
+#define SWIGTYPE_p_nmt_workspace_flat swig_types[18]
+#define SWIGTYPE_p_p_double swig_types[19]
+#define SWIGTYPE_p_p_double_complex swig_types[20]
+#define SWIGTYPE_p_p_int swig_types[21]
+#define SWIGTYPE_p_p_p_double swig_types[22]
+#define SWIGTYPE_p_p_p_double_complex swig_types[23]
+#define SWIGTYPE_p_p_p_p_double swig_types[24]
+static swig_type_info *swig_types[26];
+static swig_module_info swig_module = {swig_types, 25, 0, 0, 0, 0};
 #define SWIG_TypeQuery(name) SWIG_TypeQueryModule(&swig_module, &swig_module, name)
 #define SWIG_MangledTypeQuery(name) SWIG_MangledTypeQueryModule(&swig_module, &swig_module, name)
 
@@ -3398,6 +3399,42 @@ void synfast_new_flat(int nx,int ny,double lx,double ly,
   free(larr);
 }
 
+nmt_workspace *comp_coupling_matrix_anisotropic(int spin1,int spin2,
+						int aniso1, int aniso2,
+						int lmax, int lmax_mask,
+						int nl00,double *fl00,
+						int nl0e,double *fl0e,
+						int nl0b,double *fl0b,
+						int nle0,double *fle0,
+						int nlb0,double *flb0,
+						int nlee,double *flee,
+						int nleb,double *fleb,
+						int nlbe,double *flbe,
+						int nlbb,double *flbb,
+						int nlb1,double *beam1,
+						int nlb2,double *beam2,
+						nmt_binninb_scheme *bin,
+						int norm_type,double w2)
+{
+  asserting(nlb1==lmax+1);
+  asserting(nlb2==lmax+1);
+  asserting(nl00==lmax_mask+1);
+  asserting(nl0e==lmax_mask+1);
+  asserting(nl0b==lmax_mask+1);
+  asserting(nle0==lmax_mask+1);
+  asserting(nlb0==lmax_mask+1);
+  asserting(nlee==lmax_mask+1);
+  asserting(nleb==lmax_mask+1);
+  asserting(nlbe==lmax_mask+1);
+  asserting(nlbb==lmax_mask+1);
+  return nmt_compute_coupling_matrix_anisotropic(spin1,spin2,aniso1,aniso2,
+						 lmax,lmax_mask,
+						 fl00,fl0e,fl0b,fle0,flb0,
+						 flee,fleb,flbe,flbb,
+						 beam1,beam2,bin,norm_type,w2);
+}						
+						
+						
 nmt_workspace *comp_coupling_matrix(int spin1,int spin2,
 				    int lmax,int lmax_mask,
 				    int pure_e_1,int pure_b_1,
@@ -11418,6 +11455,180 @@ fail:
 }
 
 
+SWIGINTERN PyObject *_wrap_compute_coupling_matrix_anisotropic(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  int arg1 ;
+  int arg2 ;
+  int arg3 ;
+  int arg4 ;
+  int arg5 ;
+  int arg6 ;
+  flouble *arg7 = (flouble *) 0 ;
+  flouble *arg8 = (flouble *) 0 ;
+  flouble *arg9 = (flouble *) 0 ;
+  flouble *arg10 = (flouble *) 0 ;
+  flouble *arg11 = (flouble *) 0 ;
+  flouble *arg12 = (flouble *) 0 ;
+  flouble *arg13 = (flouble *) 0 ;
+  flouble *arg14 = (flouble *) 0 ;
+  flouble *arg15 = (flouble *) 0 ;
+  flouble *arg16 = (flouble *) 0 ;
+  flouble *arg17 = (flouble *) 0 ;
+  nmt_binning_scheme *arg18 = (nmt_binning_scheme *) 0 ;
+  int arg19 ;
+  flouble arg20 ;
+  int val1 ;
+  int ecode1 = 0 ;
+  int val2 ;
+  int ecode2 = 0 ;
+  int val3 ;
+  int ecode3 = 0 ;
+  int val4 ;
+  int ecode4 = 0 ;
+  int val5 ;
+  int ecode5 = 0 ;
+  int val6 ;
+  int ecode6 = 0 ;
+  void *argp7 = 0 ;
+  int res7 = 0 ;
+  void *argp8 = 0 ;
+  int res8 = 0 ;
+  void *argp9 = 0 ;
+  int res9 = 0 ;
+  void *argp10 = 0 ;
+  int res10 = 0 ;
+  void *argp11 = 0 ;
+  int res11 = 0 ;
+  void *argp12 = 0 ;
+  int res12 = 0 ;
+  void *argp13 = 0 ;
+  int res13 = 0 ;
+  void *argp14 = 0 ;
+  int res14 = 0 ;
+  void *argp15 = 0 ;
+  int res15 = 0 ;
+  void *argp16 = 0 ;
+  int res16 = 0 ;
+  void *argp17 = 0 ;
+  int res17 = 0 ;
+  void *argp18 = 0 ;
+  int res18 = 0 ;
+  int val19 ;
+  int ecode19 = 0 ;
+  double val20 ;
+  int ecode20 = 0 ;
+  PyObject *swig_obj[20] ;
+  nmt_workspace *result = 0 ;
+  
+  if (!SWIG_Python_UnpackTuple(args, "compute_coupling_matrix_anisotropic", 20, 20, swig_obj)) SWIG_fail;
+  ecode1 = SWIG_AsVal_int(swig_obj[0], &val1);
+  if (!SWIG_IsOK(ecode1)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "compute_coupling_matrix_anisotropic" "', argument " "1"" of type '" "int""'");
+  } 
+  arg1 = (int)(val1);
+  ecode2 = SWIG_AsVal_int(swig_obj[1], &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "compute_coupling_matrix_anisotropic" "', argument " "2"" of type '" "int""'");
+  } 
+  arg2 = (int)(val2);
+  ecode3 = SWIG_AsVal_int(swig_obj[2], &val3);
+  if (!SWIG_IsOK(ecode3)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "compute_coupling_matrix_anisotropic" "', argument " "3"" of type '" "int""'");
+  } 
+  arg3 = (int)(val3);
+  ecode4 = SWIG_AsVal_int(swig_obj[3], &val4);
+  if (!SWIG_IsOK(ecode4)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "compute_coupling_matrix_anisotropic" "', argument " "4"" of type '" "int""'");
+  } 
+  arg4 = (int)(val4);
+  ecode5 = SWIG_AsVal_int(swig_obj[4], &val5);
+  if (!SWIG_IsOK(ecode5)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode5), "in method '" "compute_coupling_matrix_anisotropic" "', argument " "5"" of type '" "int""'");
+  } 
+  arg5 = (int)(val5);
+  ecode6 = SWIG_AsVal_int(swig_obj[5], &val6);
+  if (!SWIG_IsOK(ecode6)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode6), "in method '" "compute_coupling_matrix_anisotropic" "', argument " "6"" of type '" "int""'");
+  } 
+  arg6 = (int)(val6);
+  res7 = SWIG_ConvertPtr(swig_obj[6], &argp7,SWIGTYPE_p_double, 0 |  0 );
+  if (!SWIG_IsOK(res7)) {
+    SWIG_exception_fail(SWIG_ArgError(res7), "in method '" "compute_coupling_matrix_anisotropic" "', argument " "7"" of type '" "flouble *""'"); 
+  }
+  arg7 = (flouble *)(argp7);
+  res8 = SWIG_ConvertPtr(swig_obj[7], &argp8,SWIGTYPE_p_double, 0 |  0 );
+  if (!SWIG_IsOK(res8)) {
+    SWIG_exception_fail(SWIG_ArgError(res8), "in method '" "compute_coupling_matrix_anisotropic" "', argument " "8"" of type '" "flouble *""'"); 
+  }
+  arg8 = (flouble *)(argp8);
+  res9 = SWIG_ConvertPtr(swig_obj[8], &argp9,SWIGTYPE_p_double, 0 |  0 );
+  if (!SWIG_IsOK(res9)) {
+    SWIG_exception_fail(SWIG_ArgError(res9), "in method '" "compute_coupling_matrix_anisotropic" "', argument " "9"" of type '" "flouble *""'"); 
+  }
+  arg9 = (flouble *)(argp9);
+  res10 = SWIG_ConvertPtr(swig_obj[9], &argp10,SWIGTYPE_p_double, 0 |  0 );
+  if (!SWIG_IsOK(res10)) {
+    SWIG_exception_fail(SWIG_ArgError(res10), "in method '" "compute_coupling_matrix_anisotropic" "', argument " "10"" of type '" "flouble *""'"); 
+  }
+  arg10 = (flouble *)(argp10);
+  res11 = SWIG_ConvertPtr(swig_obj[10], &argp11,SWIGTYPE_p_double, 0 |  0 );
+  if (!SWIG_IsOK(res11)) {
+    SWIG_exception_fail(SWIG_ArgError(res11), "in method '" "compute_coupling_matrix_anisotropic" "', argument " "11"" of type '" "flouble *""'"); 
+  }
+  arg11 = (flouble *)(argp11);
+  res12 = SWIG_ConvertPtr(swig_obj[11], &argp12,SWIGTYPE_p_double, 0 |  0 );
+  if (!SWIG_IsOK(res12)) {
+    SWIG_exception_fail(SWIG_ArgError(res12), "in method '" "compute_coupling_matrix_anisotropic" "', argument " "12"" of type '" "flouble *""'"); 
+  }
+  arg12 = (flouble *)(argp12);
+  res13 = SWIG_ConvertPtr(swig_obj[12], &argp13,SWIGTYPE_p_double, 0 |  0 );
+  if (!SWIG_IsOK(res13)) {
+    SWIG_exception_fail(SWIG_ArgError(res13), "in method '" "compute_coupling_matrix_anisotropic" "', argument " "13"" of type '" "flouble *""'"); 
+  }
+  arg13 = (flouble *)(argp13);
+  res14 = SWIG_ConvertPtr(swig_obj[13], &argp14,SWIGTYPE_p_double, 0 |  0 );
+  if (!SWIG_IsOK(res14)) {
+    SWIG_exception_fail(SWIG_ArgError(res14), "in method '" "compute_coupling_matrix_anisotropic" "', argument " "14"" of type '" "flouble *""'"); 
+  }
+  arg14 = (flouble *)(argp14);
+  res15 = SWIG_ConvertPtr(swig_obj[14], &argp15,SWIGTYPE_p_double, 0 |  0 );
+  if (!SWIG_IsOK(res15)) {
+    SWIG_exception_fail(SWIG_ArgError(res15), "in method '" "compute_coupling_matrix_anisotropic" "', argument " "15"" of type '" "flouble *""'"); 
+  }
+  arg15 = (flouble *)(argp15);
+  res16 = SWIG_ConvertPtr(swig_obj[15], &argp16,SWIGTYPE_p_double, 0 |  0 );
+  if (!SWIG_IsOK(res16)) {
+    SWIG_exception_fail(SWIG_ArgError(res16), "in method '" "compute_coupling_matrix_anisotropic" "', argument " "16"" of type '" "flouble *""'"); 
+  }
+  arg16 = (flouble *)(argp16);
+  res17 = SWIG_ConvertPtr(swig_obj[16], &argp17,SWIGTYPE_p_double, 0 |  0 );
+  if (!SWIG_IsOK(res17)) {
+    SWIG_exception_fail(SWIG_ArgError(res17), "in method '" "compute_coupling_matrix_anisotropic" "', argument " "17"" of type '" "flouble *""'"); 
+  }
+  arg17 = (flouble *)(argp17);
+  res18 = SWIG_ConvertPtr(swig_obj[17], &argp18,SWIGTYPE_p_nmt_binning_scheme, 0 |  0 );
+  if (!SWIG_IsOK(res18)) {
+    SWIG_exception_fail(SWIG_ArgError(res18), "in method '" "compute_coupling_matrix_anisotropic" "', argument " "18"" of type '" "nmt_binning_scheme *""'"); 
+  }
+  arg18 = (nmt_binning_scheme *)(argp18);
+  ecode19 = SWIG_AsVal_int(swig_obj[18], &val19);
+  if (!SWIG_IsOK(ecode19)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode19), "in method '" "compute_coupling_matrix_anisotropic" "', argument " "19"" of type '" "int""'");
+  } 
+  arg19 = (int)(val19);
+  ecode20 = SWIG_AsVal_double(swig_obj[19], &val20);
+  if (!SWIG_IsOK(ecode20)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode20), "in method '" "compute_coupling_matrix_anisotropic" "', argument " "20"" of type '" "flouble""'");
+  } 
+  arg20 = (flouble)(val20);
+  result = (nmt_workspace *)nmt_compute_coupling_matrix_anisotropic(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13,arg14,arg15,arg16,arg17,arg18,arg19,arg20);
+  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_nmt_workspace, 0 |  0 );
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
 SWIGINTERN PyObject *_wrap_compute_coupling_matrix(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   int arg1 ;
@@ -15920,6 +16131,407 @@ fail:
 }
 
 
+SWIGINTERN PyObject *_wrap_comp_coupling_matrix_anisotropic(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  int arg1 ;
+  int arg2 ;
+  int arg3 ;
+  int arg4 ;
+  int arg5 ;
+  int arg6 ;
+  int arg7 ;
+  double *arg8 = (double *) 0 ;
+  int arg9 ;
+  double *arg10 = (double *) 0 ;
+  int arg11 ;
+  double *arg12 = (double *) 0 ;
+  int arg13 ;
+  double *arg14 = (double *) 0 ;
+  int arg15 ;
+  double *arg16 = (double *) 0 ;
+  int arg17 ;
+  double *arg18 = (double *) 0 ;
+  int arg19 ;
+  double *arg20 = (double *) 0 ;
+  int arg21 ;
+  double *arg22 = (double *) 0 ;
+  int arg23 ;
+  double *arg24 = (double *) 0 ;
+  int arg25 ;
+  double *arg26 = (double *) 0 ;
+  int arg27 ;
+  double *arg28 = (double *) 0 ;
+  nmt_binninb_scheme *arg29 = (nmt_binninb_scheme *) 0 ;
+  int arg30 ;
+  double arg31 ;
+  int val1 ;
+  int ecode1 = 0 ;
+  int val2 ;
+  int ecode2 = 0 ;
+  int val3 ;
+  int ecode3 = 0 ;
+  int val4 ;
+  int ecode4 = 0 ;
+  int val5 ;
+  int ecode5 = 0 ;
+  int val6 ;
+  int ecode6 = 0 ;
+  PyArrayObject *array7 = NULL ;
+  int is_new_object7 = 0 ;
+  PyArrayObject *array9 = NULL ;
+  int is_new_object9 = 0 ;
+  PyArrayObject *array11 = NULL ;
+  int is_new_object11 = 0 ;
+  PyArrayObject *array13 = NULL ;
+  int is_new_object13 = 0 ;
+  PyArrayObject *array15 = NULL ;
+  int is_new_object15 = 0 ;
+  PyArrayObject *array17 = NULL ;
+  int is_new_object17 = 0 ;
+  PyArrayObject *array19 = NULL ;
+  int is_new_object19 = 0 ;
+  PyArrayObject *array21 = NULL ;
+  int is_new_object21 = 0 ;
+  PyArrayObject *array23 = NULL ;
+  int is_new_object23 = 0 ;
+  PyArrayObject *array25 = NULL ;
+  int is_new_object25 = 0 ;
+  PyArrayObject *array27 = NULL ;
+  int is_new_object27 = 0 ;
+  void *argp29 = 0 ;
+  int res29 = 0 ;
+  int val30 ;
+  int ecode30 = 0 ;
+  double val31 ;
+  int ecode31 = 0 ;
+  PyObject *swig_obj[20] ;
+  nmt_workspace *result = 0 ;
+  
+  if (!SWIG_Python_UnpackTuple(args, "comp_coupling_matrix_anisotropic", 20, 20, swig_obj)) SWIG_fail;
+  ecode1 = SWIG_AsVal_int(swig_obj[0], &val1);
+  if (!SWIG_IsOK(ecode1)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "comp_coupling_matrix_anisotropic" "', argument " "1"" of type '" "int""'");
+  } 
+  arg1 = (int)(val1);
+  ecode2 = SWIG_AsVal_int(swig_obj[1], &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "comp_coupling_matrix_anisotropic" "', argument " "2"" of type '" "int""'");
+  } 
+  arg2 = (int)(val2);
+  ecode3 = SWIG_AsVal_int(swig_obj[2], &val3);
+  if (!SWIG_IsOK(ecode3)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "comp_coupling_matrix_anisotropic" "', argument " "3"" of type '" "int""'");
+  } 
+  arg3 = (int)(val3);
+  ecode4 = SWIG_AsVal_int(swig_obj[3], &val4);
+  if (!SWIG_IsOK(ecode4)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "comp_coupling_matrix_anisotropic" "', argument " "4"" of type '" "int""'");
+  } 
+  arg4 = (int)(val4);
+  ecode5 = SWIG_AsVal_int(swig_obj[4], &val5);
+  if (!SWIG_IsOK(ecode5)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode5), "in method '" "comp_coupling_matrix_anisotropic" "', argument " "5"" of type '" "int""'");
+  } 
+  arg5 = (int)(val5);
+  ecode6 = SWIG_AsVal_int(swig_obj[5], &val6);
+  if (!SWIG_IsOK(ecode6)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode6), "in method '" "comp_coupling_matrix_anisotropic" "', argument " "6"" of type '" "int""'");
+  } 
+  arg6 = (int)(val6);
+  {
+    npy_intp size[1] = {
+      -1
+    };
+    array7 = obj_to_array_contiguous_allow_conversion(swig_obj[6],
+      NPY_DOUBLE,
+      &is_new_object7);
+    if (!array7 || !require_dimensions(array7, 1) ||
+      !require_size(array7, size, 1)) SWIG_fail;
+    arg7 = (int) array_size(array7,0);
+    arg8 = (double*) array_data(array7);
+  }
+  {
+    npy_intp size[1] = {
+      -1
+    };
+    array9 = obj_to_array_contiguous_allow_conversion(swig_obj[7],
+      NPY_DOUBLE,
+      &is_new_object9);
+    if (!array9 || !require_dimensions(array9, 1) ||
+      !require_size(array9, size, 1)) SWIG_fail;
+    arg9 = (int) array_size(array9,0);
+    arg10 = (double*) array_data(array9);
+  }
+  {
+    npy_intp size[1] = {
+      -1
+    };
+    array11 = obj_to_array_contiguous_allow_conversion(swig_obj[8],
+      NPY_DOUBLE,
+      &is_new_object11);
+    if (!array11 || !require_dimensions(array11, 1) ||
+      !require_size(array11, size, 1)) SWIG_fail;
+    arg11 = (int) array_size(array11,0);
+    arg12 = (double*) array_data(array11);
+  }
+  {
+    npy_intp size[1] = {
+      -1
+    };
+    array13 = obj_to_array_contiguous_allow_conversion(swig_obj[9],
+      NPY_DOUBLE,
+      &is_new_object13);
+    if (!array13 || !require_dimensions(array13, 1) ||
+      !require_size(array13, size, 1)) SWIG_fail;
+    arg13 = (int) array_size(array13,0);
+    arg14 = (double*) array_data(array13);
+  }
+  {
+    npy_intp size[1] = {
+      -1
+    };
+    array15 = obj_to_array_contiguous_allow_conversion(swig_obj[10],
+      NPY_DOUBLE,
+      &is_new_object15);
+    if (!array15 || !require_dimensions(array15, 1) ||
+      !require_size(array15, size, 1)) SWIG_fail;
+    arg15 = (int) array_size(array15,0);
+    arg16 = (double*) array_data(array15);
+  }
+  {
+    npy_intp size[1] = {
+      -1
+    };
+    array17 = obj_to_array_contiguous_allow_conversion(swig_obj[11],
+      NPY_DOUBLE,
+      &is_new_object17);
+    if (!array17 || !require_dimensions(array17, 1) ||
+      !require_size(array17, size, 1)) SWIG_fail;
+    arg17 = (int) array_size(array17,0);
+    arg18 = (double*) array_data(array17);
+  }
+  {
+    npy_intp size[1] = {
+      -1
+    };
+    array19 = obj_to_array_contiguous_allow_conversion(swig_obj[12],
+      NPY_DOUBLE,
+      &is_new_object19);
+    if (!array19 || !require_dimensions(array19, 1) ||
+      !require_size(array19, size, 1)) SWIG_fail;
+    arg19 = (int) array_size(array19,0);
+    arg20 = (double*) array_data(array19);
+  }
+  {
+    npy_intp size[1] = {
+      -1
+    };
+    array21 = obj_to_array_contiguous_allow_conversion(swig_obj[13],
+      NPY_DOUBLE,
+      &is_new_object21);
+    if (!array21 || !require_dimensions(array21, 1) ||
+      !require_size(array21, size, 1)) SWIG_fail;
+    arg21 = (int) array_size(array21,0);
+    arg22 = (double*) array_data(array21);
+  }
+  {
+    npy_intp size[1] = {
+      -1
+    };
+    array23 = obj_to_array_contiguous_allow_conversion(swig_obj[14],
+      NPY_DOUBLE,
+      &is_new_object23);
+    if (!array23 || !require_dimensions(array23, 1) ||
+      !require_size(array23, size, 1)) SWIG_fail;
+    arg23 = (int) array_size(array23,0);
+    arg24 = (double*) array_data(array23);
+  }
+  {
+    npy_intp size[1] = {
+      -1
+    };
+    array25 = obj_to_array_contiguous_allow_conversion(swig_obj[15],
+      NPY_DOUBLE,
+      &is_new_object25);
+    if (!array25 || !require_dimensions(array25, 1) ||
+      !require_size(array25, size, 1)) SWIG_fail;
+    arg25 = (int) array_size(array25,0);
+    arg26 = (double*) array_data(array25);
+  }
+  {
+    npy_intp size[1] = {
+      -1
+    };
+    array27 = obj_to_array_contiguous_allow_conversion(swig_obj[16],
+      NPY_DOUBLE,
+      &is_new_object27);
+    if (!array27 || !require_dimensions(array27, 1) ||
+      !require_size(array27, size, 1)) SWIG_fail;
+    arg27 = (int) array_size(array27,0);
+    arg28 = (double*) array_data(array27);
+  }
+  res29 = SWIG_ConvertPtr(swig_obj[17], &argp29,SWIGTYPE_p_nmt_binninb_scheme, 0 |  0 );
+  if (!SWIG_IsOK(res29)) {
+    SWIG_exception_fail(SWIG_ArgError(res29), "in method '" "comp_coupling_matrix_anisotropic" "', argument " "29"" of type '" "nmt_binninb_scheme *""'"); 
+  }
+  arg29 = (nmt_binninb_scheme *)(argp29);
+  ecode30 = SWIG_AsVal_int(swig_obj[18], &val30);
+  if (!SWIG_IsOK(ecode30)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode30), "in method '" "comp_coupling_matrix_anisotropic" "', argument " "30"" of type '" "int""'");
+  } 
+  arg30 = (int)(val30);
+  ecode31 = SWIG_AsVal_double(swig_obj[19], &val31);
+  if (!SWIG_IsOK(ecode31)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode31), "in method '" "comp_coupling_matrix_anisotropic" "', argument " "31"" of type '" "double""'");
+  } 
+  arg31 = (double)(val31);
+  {
+    try {
+      result = (nmt_workspace *)comp_coupling_matrix_anisotropic(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13,arg14,arg15,arg16,arg17,arg18,arg19,arg20,arg21,arg22,arg23,arg24,arg25,arg26,arg27,arg28,arg29,arg30,arg31);
+    }
+    finally {
+      SWIG_exception(SWIG_RuntimeError,nmt_error_message);
+    }
+  }
+  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_nmt_workspace, 0 |  0 );
+  {
+    if (is_new_object7 && array7)
+    {
+      Py_DECREF(array7); 
+    }
+  }
+  {
+    if (is_new_object9 && array9)
+    {
+      Py_DECREF(array9); 
+    }
+  }
+  {
+    if (is_new_object11 && array11)
+    {
+      Py_DECREF(array11); 
+    }
+  }
+  {
+    if (is_new_object13 && array13)
+    {
+      Py_DECREF(array13); 
+    }
+  }
+  {
+    if (is_new_object15 && array15)
+    {
+      Py_DECREF(array15); 
+    }
+  }
+  {
+    if (is_new_object17 && array17)
+    {
+      Py_DECREF(array17); 
+    }
+  }
+  {
+    if (is_new_object19 && array19)
+    {
+      Py_DECREF(array19); 
+    }
+  }
+  {
+    if (is_new_object21 && array21)
+    {
+      Py_DECREF(array21); 
+    }
+  }
+  {
+    if (is_new_object23 && array23)
+    {
+      Py_DECREF(array23); 
+    }
+  }
+  {
+    if (is_new_object25 && array25)
+    {
+      Py_DECREF(array25); 
+    }
+  }
+  {
+    if (is_new_object27 && array27)
+    {
+      Py_DECREF(array27); 
+    }
+  }
+  return resultobj;
+fail:
+  {
+    if (is_new_object7 && array7)
+    {
+      Py_DECREF(array7); 
+    }
+  }
+  {
+    if (is_new_object9 && array9)
+    {
+      Py_DECREF(array9); 
+    }
+  }
+  {
+    if (is_new_object11 && array11)
+    {
+      Py_DECREF(array11); 
+    }
+  }
+  {
+    if (is_new_object13 && array13)
+    {
+      Py_DECREF(array13); 
+    }
+  }
+  {
+    if (is_new_object15 && array15)
+    {
+      Py_DECREF(array15); 
+    }
+  }
+  {
+    if (is_new_object17 && array17)
+    {
+      Py_DECREF(array17); 
+    }
+  }
+  {
+    if (is_new_object19 && array19)
+    {
+      Py_DECREF(array19); 
+    }
+  }
+  {
+    if (is_new_object21 && array21)
+    {
+      Py_DECREF(array21); 
+    }
+  }
+  {
+    if (is_new_object23 && array23)
+    {
+      Py_DECREF(array23); 
+    }
+  }
+  {
+    if (is_new_object25 && array25)
+    {
+      Py_DECREF(array25); 
+    }
+  }
+  {
+    if (is_new_object27 && array27)
+    {
+      Py_DECREF(array27); 
+    }
+  }
+  return NULL;
+}
+
+
 SWIGINTERN PyObject *_wrap_comp_coupling_matrix(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   int arg1 ;
@@ -18744,6 +19356,7 @@ static PyMethodDef SwigMethods[] = {
 	 { "master_calculator_swiginit", master_calculator_swiginit, METH_VARARGS, NULL},
 	 { "compute_master_coefficients", _wrap_compute_master_coefficients, METH_VARARGS, NULL},
 	 { "master_calculator_free", _wrap_master_calculator_free, METH_O, NULL},
+	 { "compute_coupling_matrix_anisotropic", _wrap_compute_coupling_matrix_anisotropic, METH_VARARGS, NULL},
 	 { "compute_coupling_matrix", _wrap_compute_coupling_matrix, METH_VARARGS, NULL},
 	 { "update_coupling_matrix", _wrap_update_coupling_matrix, METH_VARARGS, NULL},
 	 { "workspace_update_binning", _wrap_workspace_update_binning, METH_VARARGS, NULL},
@@ -18839,6 +19452,7 @@ static PyMethodDef SwigMethods[] = {
 	 { "apomask", _wrap_apomask, METH_VARARGS, NULL},
 	 { "apomask_flat", _wrap_apomask_flat, METH_VARARGS, NULL},
 	 { "synfast_new_flat", _wrap_synfast_new_flat, METH_VARARGS, NULL},
+	 { "comp_coupling_matrix_anisotropic", _wrap_comp_coupling_matrix_anisotropic, METH_VARARGS, NULL},
 	 { "comp_coupling_matrix", _wrap_comp_coupling_matrix, METH_VARARGS, NULL},
 	 { "comp_coupling_matrix_flat", _wrap_comp_coupling_matrix_flat, METH_VARARGS, NULL},
 	 { "read_workspace", _wrap_read_workspace, METH_VARARGS, NULL},
@@ -18882,6 +19496,7 @@ static swig_type_info _swigt__p_gsl_matrix = {"_p_gsl_matrix", "gsl_matrix *", 0
 static swig_type_info _swigt__p_gsl_permutation = {"_p_gsl_permutation", "gsl_permutation *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_gsl_spline = {"_p_gsl_spline", "gsl_spline *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_int = {"_p_int", "int *", 0, 0, (void*)0, 0};
+static swig_type_info _swigt__p_nmt_binninb_scheme = {"_p_nmt_binninb_scheme", "nmt_binninb_scheme *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_nmt_binning_scheme = {"_p_nmt_binning_scheme", "nmt_binning_scheme *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_nmt_binning_scheme_flat = {"_p_nmt_binning_scheme_flat", "nmt_binning_scheme_flat *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_nmt_covar_workspace = {"_p_nmt_covar_workspace", "nmt_covar_workspace *", 0, 0, (void*)0, 0};
@@ -18908,6 +19523,7 @@ static swig_type_info *swig_type_initial[] = {
   &_swigt__p_gsl_permutation,
   &_swigt__p_gsl_spline,
   &_swigt__p_int,
+  &_swigt__p_nmt_binninb_scheme,
   &_swigt__p_nmt_binning_scheme,
   &_swigt__p_nmt_binning_scheme_flat,
   &_swigt__p_nmt_covar_workspace,
@@ -18934,6 +19550,7 @@ static swig_cast_info _swigc__p_gsl_matrix[] = {  {&_swigt__p_gsl_matrix, 0, 0, 
 static swig_cast_info _swigc__p_gsl_permutation[] = {  {&_swigt__p_gsl_permutation, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_gsl_spline[] = {  {&_swigt__p_gsl_spline, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_int[] = {  {&_swigt__p_int, 0, 0, 0},{0, 0, 0, 0}};
+static swig_cast_info _swigc__p_nmt_binninb_scheme[] = {  {&_swigt__p_nmt_binninb_scheme, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_nmt_binning_scheme[] = {  {&_swigt__p_nmt_binning_scheme, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_nmt_binning_scheme_flat[] = {  {&_swigt__p_nmt_binning_scheme_flat, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_nmt_covar_workspace[] = {  {&_swigt__p_nmt_covar_workspace, 0, 0, 0},{0, 0, 0, 0}};
@@ -18960,6 +19577,7 @@ static swig_cast_info *swig_cast_initial[] = {
   _swigc__p_gsl_permutation,
   _swigc__p_gsl_spline,
   _swigc__p_int,
+  _swigc__p_nmt_binninb_scheme,
   _swigc__p_nmt_binning_scheme,
   _swigc__p_nmt_binning_scheme_flat,
   _swigc__p_nmt_covar_workspace,

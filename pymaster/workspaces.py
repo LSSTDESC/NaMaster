@@ -246,6 +246,10 @@ class NmtWorkspace(object):
             lib.workspace_free(self.wsp)
             self.wsp = None
 
+        anisotropic_mask_any = fl1.anisotropic_mask or fl2.anisotropic_mask
+        if anisotropic_mask_any and (l_toeplitz >= 0):
+            raise ValueError("Toeplitz approximation not implemented for "
+                             "anisotropic masks.")
         ut._toeplitz_sanity(l_toeplitz, l_exact, dl_band,
                             bins.bin.ell_max, fl1, fl2)
 
@@ -258,6 +262,29 @@ class NmtWorkspace(object):
         else:
             alm2 = fl2.get_mask_alms()
         pcl_mask = hp.alm2cl(alm1, alm2, lmax=fl1.ainfo_mask.lmax)
+        if anisotropic_mask_any:
+            pclm_00 = pcl_mask
+            pclm_0e = pclm_0b = pclm_e0 = pclm_b0 = None
+            pclm_ee = pclm_eb = pclm_be = pclm_bb = None
+            if fl1.anisotropic_mask:
+                alm1a = fl1.get_anisotropic_mask_alms()
+            if fl2.anisotropic_mask:
+                alm2a = fl2.get_anisotropic_mask_alms()
+            if fl2.anisotropic_mask:
+                pclm_0e = hp.alm2cl(alm1, alm2a[0], lmax=fl1.ainfo_mask.lmax)
+                pclm_0b = hp.alm2cl(alm1, alm2a[1], lmax=fl1.ainfo_mask.lmax)
+            if fl1.anisotropic_mask:
+                pclm_e0 = hp.alm2cl(alm1a[0], alm2, lmax=fl1.ainfo_mask.lmax)
+                pclm_b0 = hp.alm2cl(alm1a[1], alm2, lmax=fl1.ainfo_mask.lmax)
+                if fl1.anisotropic_mask:
+                    pclm_ee = hp.alm2cl(alm1a[0], alm2a[0],
+                                        lmax=fl1.ainfo_mask.lmax)
+                    pclm_eb = hp.alm2cl(alm1a[0], alm2a[1],
+                                        lmax=fl1.ainfo_mask.lmax)
+                    pclm_be = hp.alm2cl(alm1a[1], alm2a[0],
+                                        lmax=fl1.ainfo_mask.lmax)
+                    pclm_bb = hp.alm2cl(alm1a[1], alm2a[1],
+                                        lmax=fl1.ainfo_mask.lmax)
 
         if normalization == 'MASTER':
             norm_type = 0
@@ -281,12 +308,24 @@ class NmtWorkspace(object):
                 msk2 = fl2.get_mask()
                 wawb = fl1.minfo.si.dot_map(msk1, msk2)/(4*np.pi)
 
-        self.wsp = lib.comp_coupling_matrix(
-            int(fl1.spin), int(fl2.spin),
-            int(fl1.ainfo.lmax), int(fl1.ainfo_mask.lmax),
-            int(fl1.pure_e), int(fl1.pure_b), int(fl2.pure_e), int(fl2.pure_b),
-            int(norm_type), wawb, fl1.beam, fl2.beam, pcl_mask.flatten()-Nw,
-            bins.bin, int(is_teb), l_toeplitz, l_exact, dl_band)
+        if anisotropic_mask_any:
+            self.wsp = lib.comp_coupling_matrix_anisotropic(
+                int(fl1.spin), int(fl2.spin),
+                int(fl1.anisotropic_mask), int(fl2.anisotropic_mask),
+                int(fl1.ainfo.lmax), int(fl1.ainfo_mask.lmax),
+                pclm_00, pclm_0e, pclm_0b, pclm_e0, pclm_b0,
+                pclm_ee, pclm_eb, pclm_be, pclm_bb,
+                fl1.beam, fl2.beam, bins.bin,
+                int(norm_type), wawb)
+        else:
+            self.wsp = lib.comp_coupling_matrix(
+                int(fl1.spin), int(fl2.spin),
+                int(fl1.ainfo.lmax), int(fl1.ainfo_mask.lmax),
+                int(fl1.pure_e), int(fl1.pure_b),
+                int(fl2.pure_e), int(fl2.pure_b),
+                int(norm_type), wawb,
+                fl1.beam, fl2.beam, pcl_mask.flatten()-Nw,
+                bins.bin, int(is_teb), l_toeplitz, l_exact, dl_band)
         self.has_unbinned = True
 
     def write_to(self, fname):

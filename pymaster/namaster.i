@@ -21,10 +21,19 @@
 %apply (double* ARGOUT_ARRAY1, int DIM1) {(double* dout, int ndout)};
 %apply (double* ARGOUT_ARRAY1, long DIM1) {(double* ldout, long nldout)};
 %apply (int DIM1,double *IN_ARRAY1) {(int npix_1,double *mask),
-                                     (int nell3,double *weights),
+     (int nell3,double *weights),
      (int nell4,double *f_ell),
      (int nlb1,double *beam1),
-     (int nlb2,double *beam2)};
+     (int nlb2,double *beam2),
+     (int nl00,double *fl00),
+     (int nl0e,double *fl0e),
+     (int nl0b,double *fl0b),
+     (int nle0,double *fle0),
+     (int nlb0,double *flb0),
+     (int nlee,double *flee),
+     (int nleb,double *fleb),
+     (int nlbe,double *flbe),
+     (int nlbb,double *flbb)};
 %apply (int DIM1,int *IN_ARRAY1) {(int nell1,int *bpws),
                                   (int nell2,int *ells),
                                   (int nfields,int *spin_arr)};
@@ -422,6 +431,42 @@ void synfast_new_flat(int nx,int ny,double lx,double ly,
   free(larr);
 }
 
+nmt_workspace *comp_coupling_matrix_anisotropic(int spin1,int spin2,
+						int aniso1, int aniso2,
+						int lmax, int lmax_mask,
+						int nl00,double *fl00,
+						int nl0e,double *fl0e,
+						int nl0b,double *fl0b,
+						int nle0,double *fle0,
+						int nlb0,double *flb0,
+						int nlee,double *flee,
+						int nleb,double *fleb,
+						int nlbe,double *flbe,
+						int nlbb,double *flbb,
+						int nlb1,double *beam1,
+						int nlb2,double *beam2,
+						nmt_binninb_scheme *bin,
+						int norm_type,double w2)
+{
+  asserting(nlb1==lmax+1);
+  asserting(nlb2==lmax+1);
+  asserting(nl00==lmax_mask+1);
+  asserting(nl0e==lmax_mask+1);
+  asserting(nl0b==lmax_mask+1);
+  asserting(nle0==lmax_mask+1);
+  asserting(nlb0==lmax_mask+1);
+  asserting(nlee==lmax_mask+1);
+  asserting(nleb==lmax_mask+1);
+  asserting(nlbe==lmax_mask+1);
+  asserting(nlbb==lmax_mask+1);
+  return nmt_compute_coupling_matrix_anisotropic(spin1,spin2,aniso1,aniso2,
+						 lmax,lmax_mask,
+						 fl00,fl0e,fl0b,fle0,flb0,
+						 flee,fleb,flbe,flbb,
+						 beam1,beam2,bin,norm_type,w2);
+}						
+						
+						
 nmt_workspace *comp_coupling_matrix(int spin1,int spin2,
 				    int lmax,int lmax_mask,
 				    int pure_e_1,int pure_b_1,
