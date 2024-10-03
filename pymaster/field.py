@@ -410,7 +410,7 @@ class NmtField(object):
         if self.alm_mask_a is None:
             amask = ut.map2alm(self.mask_a, 2*self.spin,
                                self.minfo, self.ainfo_mask,
-                               n_iter=self.n_iter_mask)[0]
+                               n_iter=self.n_iter_mask)
             if not self.lite:  # Store while we're at it
                 self.alm_mask_a = amask
         else:

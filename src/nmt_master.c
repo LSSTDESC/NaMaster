@@ -462,26 +462,27 @@ nmt_workspace *nmt_compute_coupling_matrix_anisotropic(int spin1, int spin2,
   flouble **pcl_masks=my_malloc(9*sizeof(flouble *));
   for(l2=0;l2<9;l2++)
     pcl_masks[l2]=my_calloc(lmax_mask+1,sizeof(flouble));
-  memcpy(pcl_masks[i_00], pcl_masks_00, (lmax+1)*sizeof(flouble));
+  memcpy(pcl_masks[i_00], pcl_masks_00, (lmax_mask+1)*sizeof(flouble));
   if(mask_aniso_2) {
-    memcpy(pcl_masks[i_0e], pcl_masks_0e, (lmax+1)*sizeof(flouble));
-    memcpy(pcl_masks[i_0b], pcl_masks_0b, (lmax+1)*sizeof(flouble));
+    memcpy(pcl_masks[i_0e], pcl_masks_0e, (lmax_mask+1)*sizeof(flouble));
+    memcpy(pcl_masks[i_0b], pcl_masks_0b, (lmax_mask+1)*sizeof(flouble));
   }
   if(mask_aniso_1) {
-    memcpy(pcl_masks[i_e0], pcl_masks_e0, (lmax+1)*sizeof(flouble));
-    memcpy(pcl_masks[i_b0], pcl_masks_b0, (lmax+1)*sizeof(flouble));
+    memcpy(pcl_masks[i_e0], pcl_masks_e0, (lmax_mask+1)*sizeof(flouble));
+    memcpy(pcl_masks[i_b0], pcl_masks_b0, (lmax_mask+1)*sizeof(flouble));
     if(mask_aniso_2) {
-      memcpy(pcl_masks[i_ee], pcl_masks_ee, (lmax+1)*sizeof(flouble));
-      memcpy(pcl_masks[i_ee], pcl_masks_eb, (lmax+1)*sizeof(flouble));
-      memcpy(pcl_masks[i_ee], pcl_masks_be, (lmax+1)*sizeof(flouble));
-      memcpy(pcl_masks[i_ee], pcl_masks_bb, (lmax+1)*sizeof(flouble));
+      memcpy(pcl_masks[i_ee], pcl_masks_ee, (lmax_mask+1)*sizeof(flouble));
+      memcpy(pcl_masks[i_eb], pcl_masks_eb, (lmax_mask+1)*sizeof(flouble));
+      memcpy(pcl_masks[i_be], pcl_masks_be, (lmax_mask+1)*sizeof(flouble));
+      memcpy(pcl_masks[i_bb], pcl_masks_bb, (lmax_mask+1)*sizeof(flouble));
     }
   }
+
   int sign_00 = 1;
   int sign_0P = (spin2 & 1) ? -1 : 1;
   int sign_P0 = (spin1 & 1) ? -1 : 1;
   int sign_PP = ((spin1+spin2) & 1) ? -1 : 1;
-  for(l2=0;l2<=lmax;l2++) {
+  for(l2=0;l2<=lmax_mask;l2++) {
     flouble fac=(2*l2+1)/(4*M_PI);
     pcl_masks[i_00][l2] *= sign_00*fac;
     pcl_masks[i_0e][l2] *= sign_0P*fac;
