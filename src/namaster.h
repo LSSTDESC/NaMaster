@@ -740,6 +740,22 @@ nmt_master_calculator *nmt_compute_master_coefficients(int lmax, int lmax_mask,
                                                        int l_exact, int dl_band);
 void nmt_master_calculator_free(nmt_master_calculator *c);
 
+nmt_workspace *nmt_compute_coupling_matrix_anisotropic(int spin1, int spin2,
+						       int mask_aniso_1, int mask_aniso_2,
+						       int lmax, int lmax_mask,
+						       flouble *pcl_masks_00,
+						       flouble *pcl_masks_0e,
+						       flouble *pcl_masks_e0,
+						       flouble *pcl_masks_0b,
+						       flouble *pcl_masks_b0,
+						       flouble *pcl_masks_ee,
+						       flouble *pcl_masks_eb,
+						       flouble *pcl_masks_be,
+						       flouble *pcl_masks_bb,
+						       flouble *beam1,flouble *beam2,
+						       nmt_binning_scheme *bin,
+						       int norm_type,flouble w2);
+
 nmt_workspace *nmt_compute_coupling_matrix(int spin1,int spin2,
 					   int lmax, int lmax_mask,
 					   int pure_e1,int pure_b1,
