@@ -102,7 +102,8 @@ class NmtField(object):
     def __init__(self, mask, maps, *, spin=None, templates=None, beam=None,
                  purify_e=False, purify_b=False, n_iter=None, n_iter_mask=None,
                  tol_pinv=None, wcs=None, lmax=None, lmax_mask=None,
-                 masked_on_input=False, lite=False):
+                 masked_on_input=False, lite=False,
+                 mask_22=None, mask_12=None):
         if n_iter_mask is None:
             n_iter_mask = ut.nmt_params.n_iter_mask_default
         if n_iter is None:
@@ -133,14 +134,41 @@ class NmtField(object):
         self._Nf = 0
         self._alpha = None
         self.is_catalog = False
+        # Anisotropic mask
+        self.anisotropic_mask = False
+        self.mask_a = None
+        self.alm_mask_a = None
 
         # 1. Store mask and beam
-        # This ensures the mask will have the right type
-        # and endianness (can cause issues when read from
-        # some FITS files).
-        mask = mask.astype(np.float64)
+
+        # 1.1 Check for anisotropic masks
+        if (mask_22 is not None) or (mask_12 is not None):
+            # Check that all anisotropic components are provided
+            if (mask_22 is None) or (mask_12 is None):
+                raise ValueError("Both mask_22 and mask_12 must be passed if "
+                                 "either of them is passed.")
+            # Check that the noise covariance that the masks derive from
+            # is positive-definite
+            mask_scale = np.mean(mask+mask_22)
+            if np.any(mask*mask_22-mask_12**2 < -1E-5*mask_scale):
+                raise ValueError("The anisotropic mask does not seem to be "
+                                 "positive-definite.")
+            mask0 = (0.5*(mask + mask_22)).astype(np.float64)
+            mask1 = (0.5*(mask - mask_22)).astype(np.float64)
+            mask2 = mask_12.astype(np.float64)
+            mask = mask0
+            self.anisotropic_mask = True
+        else:
+            # This ensures the mask will have the right type
+            # and endianness (can cause issues when read from
+            # some FITS files).
+            mask = mask.astype(np.float64)
+
+        # 1.2 get all spatial info from the masks
         self.minfo = ut.NmtMapInfo(wcs, mask.shape)
         self.mask = self.minfo.reform_map(mask)
+        if self.anisotropic_mask:
+            self.mask_a = self.minfo.reform_map(np.array([mask1, mask2]))
         if lmax is None:
             lmax = self.minfo.get_lmax()
         if lmax_mask is None:
@@ -166,6 +194,9 @@ class NmtField(object):
             if spin is None:
                 raise ValueError("Please supply field spin")
             self.spin = spin
+            if (self.spin == 0) and self.anisotropic_mask:
+                raise ValueError("Anisotropic masks can't be used "
+                                 "with scalar fields.")
             self.nmaps = 2 if spin else 1
             return
 
@@ -194,6 +225,19 @@ class NmtField(object):
         pure_any = self.pure_e or self.pure_b
         if pure_any and self.spin != 2:
             raise ValueError("Purification only implemented for spin-2 fields")
+
+        # 2.1 Check that no bells nor whistles are requested for anisotropic
+        # masks, since these are not supported.
+        if self.anisotropic_mask:
+            if self.spin == 0:
+                raise ValueError("Anisotropic masks can't be used with "
+                                 "scalar fields.")
+            if pure_any:
+                raise ValueError("Purification not implemented for "
+                                 "anisotropic masks")
+            if templates is not None:
+                raise ValueError("Contaminant deprojection not supported "
+                                 "for anisotropic masks.")
 
         # 3. Check templates
         if isinstance(templates, (list, tuple, np.ndarray)):
@@ -227,7 +271,14 @@ class NmtField(object):
         if w_temp:
             templates = np.array(templates)
         if not masked_on_input:
-            maps *= self.mask[None, :]
+            if self.anisotropic_mask:
+                maps = (maps*self.mask[None, :] +
+                        np.array([maps[0]*self.mask_a[0] +
+                                  maps[1]*self.mask_a[1],
+                                  maps[0]*self.mask_a[1] -
+                                  maps[1]*self.mask_a[0]]))
+            else:
+                maps *= self.mask[None, :]
             if w_temp:
                 templates *= self.mask[None, None, :]
 
@@ -314,6 +365,17 @@ class NmtField(object):
             raise ValueError("Input mask unavailable for this field")
         return self.mask
 
+    def get_anisotropic_mask(self):
+        """ Get this field's anisotropic mask components.
+
+        Returns:
+            (`array`): 2D array containing the field's anisotropic mask.
+        """
+        if self.mask_a is None:
+            raise ValueError("Input anisotropic mask unavailable "
+                             "for this field")
+        return self.mask_a
+
     def get_mask_alms(self):
         """ Get the :math:`a_{\\ell m}` coefficients of this field's mask.
         Note that, in most cases, the mask :math:`a_{\\ell n}` s are not
@@ -333,6 +395,26 @@ class NmtField(object):
                 self.alm_mask = amask
         else:
             amask = self.alm_mask
+        return amask
+
+    def get_anisotropic_mask_alms(self):
+        """ Get the :math:`a_{\\ell m}` coefficients of this field's
+        anisotropic mask components.
+
+        Returns:
+            (`array`): 2D array containing the mask :math:`a_{\\ell m}` s.
+        """
+        if self.mask_a is None:
+            raise ValueError("This field does not have an anisotropic mask.")
+
+        if self.alm_mask_a is None:
+            amask = ut.map2alm(self.mask_a, 2*self.spin,
+                               self.minfo, self.ainfo_mask,
+                               n_iter=self.n_iter_mask)[0]
+            if not self.lite:  # Store while we're at it
+                self.alm_mask_a = amask
+        else:
+            amask = self.alm_mask_a
         return amask
 
     def get_maps(self):
