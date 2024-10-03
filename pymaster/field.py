@@ -1014,6 +1014,9 @@ class NmtFieldCatalogClustering(NmtField):
         self.alm_temp = None
         self.minfo = None
         self.n_temp = 0
+        self.anisotropic_mask = False
+        self.mask_a = None
+        self.alm_mask_a = None
 
         # Sanity checks on positions and weights
         def process_pos_w(pos, w, kind):
