@@ -2676,25 +2676,24 @@ SWIGINTERN PyObject *SWIG_PyStaticMethod_New(PyObject *SWIGUNUSEDPARM(self), PyO
 #define SWIGTYPE_p_gsl_permutation swig_types[5]
 #define SWIGTYPE_p_gsl_spline swig_types[6]
 #define SWIGTYPE_p_int swig_types[7]
-#define SWIGTYPE_p_nmt_binninb_scheme swig_types[8]
-#define SWIGTYPE_p_nmt_binning_scheme swig_types[9]
-#define SWIGTYPE_p_nmt_binning_scheme_flat swig_types[10]
-#define SWIGTYPE_p_nmt_covar_workspace swig_types[11]
-#define SWIGTYPE_p_nmt_covar_workspace_flat swig_types[12]
-#define SWIGTYPE_p_nmt_field_flat swig_types[13]
-#define SWIGTYPE_p_nmt_flatsky_info swig_types[14]
-#define SWIGTYPE_p_nmt_k_function swig_types[15]
-#define SWIGTYPE_p_nmt_master_calculator swig_types[16]
-#define SWIGTYPE_p_nmt_workspace swig_types[17]
-#define SWIGTYPE_p_nmt_workspace_flat swig_types[18]
-#define SWIGTYPE_p_p_double swig_types[19]
-#define SWIGTYPE_p_p_double_complex swig_types[20]
-#define SWIGTYPE_p_p_int swig_types[21]
-#define SWIGTYPE_p_p_p_double swig_types[22]
-#define SWIGTYPE_p_p_p_double_complex swig_types[23]
-#define SWIGTYPE_p_p_p_p_double swig_types[24]
-static swig_type_info *swig_types[26];
-static swig_module_info swig_module = {swig_types, 25, 0, 0, 0, 0};
+#define SWIGTYPE_p_nmt_binning_scheme swig_types[8]
+#define SWIGTYPE_p_nmt_binning_scheme_flat swig_types[9]
+#define SWIGTYPE_p_nmt_covar_workspace swig_types[10]
+#define SWIGTYPE_p_nmt_covar_workspace_flat swig_types[11]
+#define SWIGTYPE_p_nmt_field_flat swig_types[12]
+#define SWIGTYPE_p_nmt_flatsky_info swig_types[13]
+#define SWIGTYPE_p_nmt_k_function swig_types[14]
+#define SWIGTYPE_p_nmt_master_calculator swig_types[15]
+#define SWIGTYPE_p_nmt_workspace swig_types[16]
+#define SWIGTYPE_p_nmt_workspace_flat swig_types[17]
+#define SWIGTYPE_p_p_double swig_types[18]
+#define SWIGTYPE_p_p_double_complex swig_types[19]
+#define SWIGTYPE_p_p_int swig_types[20]
+#define SWIGTYPE_p_p_p_double swig_types[21]
+#define SWIGTYPE_p_p_p_double_complex swig_types[22]
+#define SWIGTYPE_p_p_p_p_double swig_types[23]
+static swig_type_info *swig_types[25];
+static swig_module_info swig_module = {swig_types, 24, 0, 0, 0, 0};
 #define SWIG_TypeQuery(name) SWIG_TypeQueryModule(&swig_module, &swig_module, name)
 #define SWIG_MangledTypeQuery(name) SWIG_MangledTypeQueryModule(&swig_module, &swig_module, name)
 
@@ -3413,7 +3412,7 @@ nmt_workspace *comp_coupling_matrix_anisotropic(int spin1,int spin2,
 						int nlbb,double *flbb,
 						int nlb1,double *beam1,
 						int nlb2,double *beam2,
-						nmt_binninb_scheme *bin,
+						nmt_binning_scheme *bin,
 						int norm_type,double w2)
 {
   asserting(nlb1==lmax+1);
@@ -16161,7 +16160,7 @@ SWIGINTERN PyObject *_wrap_comp_coupling_matrix_anisotropic(PyObject *SWIGUNUSED
   double *arg26 = (double *) 0 ;
   int arg27 ;
   double *arg28 = (double *) 0 ;
-  nmt_binninb_scheme *arg29 = (nmt_binninb_scheme *) 0 ;
+  nmt_binning_scheme *arg29 = (nmt_binning_scheme *) 0 ;
   int arg30 ;
   double arg31 ;
   int val1 ;
@@ -16370,11 +16369,11 @@ SWIGINTERN PyObject *_wrap_comp_coupling_matrix_anisotropic(PyObject *SWIGUNUSED
     arg27 = (int) array_size(array27,0);
     arg28 = (double*) array_data(array27);
   }
-  res29 = SWIG_ConvertPtr(swig_obj[17], &argp29,SWIGTYPE_p_nmt_binninb_scheme, 0 |  0 );
+  res29 = SWIG_ConvertPtr(swig_obj[17], &argp29,SWIGTYPE_p_nmt_binning_scheme, 0 |  0 );
   if (!SWIG_IsOK(res29)) {
-    SWIG_exception_fail(SWIG_ArgError(res29), "in method '" "comp_coupling_matrix_anisotropic" "', argument " "29"" of type '" "nmt_binninb_scheme *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res29), "in method '" "comp_coupling_matrix_anisotropic" "', argument " "29"" of type '" "nmt_binning_scheme *""'"); 
   }
-  arg29 = (nmt_binninb_scheme *)(argp29);
+  arg29 = (nmt_binning_scheme *)(argp29);
   ecode30 = SWIG_AsVal_int(swig_obj[18], &val30);
   if (!SWIG_IsOK(ecode30)) {
     SWIG_exception_fail(SWIG_ArgError(ecode30), "in method '" "comp_coupling_matrix_anisotropic" "', argument " "30"" of type '" "int""'");
@@ -19496,7 +19495,6 @@ static swig_type_info _swigt__p_gsl_matrix = {"_p_gsl_matrix", "gsl_matrix *", 0
 static swig_type_info _swigt__p_gsl_permutation = {"_p_gsl_permutation", "gsl_permutation *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_gsl_spline = {"_p_gsl_spline", "gsl_spline *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_int = {"_p_int", "int *", 0, 0, (void*)0, 0};
-static swig_type_info _swigt__p_nmt_binninb_scheme = {"_p_nmt_binninb_scheme", "nmt_binninb_scheme *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_nmt_binning_scheme = {"_p_nmt_binning_scheme", "nmt_binning_scheme *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_nmt_binning_scheme_flat = {"_p_nmt_binning_scheme_flat", "nmt_binning_scheme_flat *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_nmt_covar_workspace = {"_p_nmt_covar_workspace", "nmt_covar_workspace *", 0, 0, (void*)0, 0};
@@ -19523,7 +19521,6 @@ static swig_type_info *swig_type_initial[] = {
   &_swigt__p_gsl_permutation,
   &_swigt__p_gsl_spline,
   &_swigt__p_int,
-  &_swigt__p_nmt_binninb_scheme,
   &_swigt__p_nmt_binning_scheme,
   &_swigt__p_nmt_binning_scheme_flat,
   &_swigt__p_nmt_covar_workspace,
@@ -19550,7 +19547,6 @@ static swig_cast_info _swigc__p_gsl_matrix[] = {  {&_swigt__p_gsl_matrix, 0, 0, 
 static swig_cast_info _swigc__p_gsl_permutation[] = {  {&_swigt__p_gsl_permutation, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_gsl_spline[] = {  {&_swigt__p_gsl_spline, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_int[] = {  {&_swigt__p_int, 0, 0, 0},{0, 0, 0, 0}};
-static swig_cast_info _swigc__p_nmt_binninb_scheme[] = {  {&_swigt__p_nmt_binninb_scheme, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_nmt_binning_scheme[] = {  {&_swigt__p_nmt_binning_scheme, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_nmt_binning_scheme_flat[] = {  {&_swigt__p_nmt_binning_scheme_flat, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_nmt_covar_workspace[] = {  {&_swigt__p_nmt_covar_workspace, 0, 0, 0},{0, 0, 0, 0}};
@@ -19577,7 +19573,6 @@ static swig_cast_info *swig_cast_initial[] = {
   _swigc__p_gsl_permutation,
   _swigc__p_gsl_spline,
   _swigc__p_int,
-  _swigc__p_nmt_binninb_scheme,
   _swigc__p_nmt_binning_scheme,
   _swigc__p_nmt_binning_scheme_flat,
   _swigc__p_nmt_covar_workspace,

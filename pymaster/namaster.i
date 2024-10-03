@@ -445,7 +445,7 @@ nmt_workspace *comp_coupling_matrix_anisotropic(int spin1,int spin2,
 						int nlbb,double *flbb,
 						int nlb1,double *beam1,
 						int nlb2,double *beam2,
-						nmt_binninb_scheme *bin,
+						nmt_binning_scheme *bin,
 						int norm_type,double w2)
 {
   asserting(nlb1==lmax+1);
