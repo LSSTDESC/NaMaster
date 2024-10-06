@@ -497,30 +497,34 @@ nmt_workspace *nmt_compute_coupling_matrix_anisotropic(int spin1, int spin2,
 
   int max_spin=NMT_MAX(spin1, spin2);
   int lstart=max_spin;
-  int has_ss2=(spin1!=0) && (spin2!=0) && (spin1!=spin2);
+  int reuse_ss1=(spin1==spin2);
   int is_0s=(spin1==0) && (spin2!=0);
   int is_s0=(spin1!=0) && (spin2==0);
   int is_ss=(spin1!=0) && (spin2!=0);
 
 #pragma omp parallel default(none)				\
-  shared(pcl_masks, lstart, has_ss2, lmax, lmax_mask)		\
+  shared(pcl_masks, lstart, reuse_ss1, lmax, lmax_mask)		\
   shared(mask_aniso_1, mask_aniso_2, is_0s, is_s0, is_ss)	\
   shared(spin1, spin2, i_00, i_0e, i_0b, i_e0, i_b0)		\
   shared(i_ee, i_eb, i_be, i_bb, w)
   {
     int ll2,ll3;
     double *wigner_ss1=NULL, *wigner_ss2=NULL, *wigner_ss1a=NULL, *wigner_ss2a=NULL;
+    // s -s 0 terms
     wigner_ss1=my_malloc(2*(lmax_mask+1)*sizeof(double));
+    if(reuse_ss1)
+      wigner_ss2=wigner_ss1;
+    else
+      wigner_ss2=my_malloc(2*(lmax_mask+1)*sizeof(double));
+
+    // s s -2s terms
     if(mask_aniso_1)
       wigner_ss1a=my_malloc(2*(lmax_mask+1)*sizeof(double));
-    if(has_ss2) {
-      wigner_ss2=my_malloc(2*(lmax_mask+1)*sizeof(double));
-      if(mask_aniso_2)
+    if(mask_aniso_2) {
+      if((!reuse_ss1) || (mask_aniso_1 == 0))
 	wigner_ss2a=my_malloc(2*(lmax_mask+1)*sizeof(double));
-    }
-    else {
-      wigner_ss2=wigner_ss1;
-      wigner_ss2a=wigner_ss1a;
+      else
+	wigner_ss2a=wigner_ss1a;
     }
 
 #pragma omp for schedule(dynamic)
@@ -535,19 +539,25 @@ nmt_workspace *nmt_compute_coupling_matrix_anisotropic(int spin1, int spin2,
 	lmin_here=abs(ll2-ll3);
 	lmax_here=ll2+ll3;
 
+	// s -s 0 terms
 	drc3jj(ll2,ll3,spin1,-spin1,&lmin_ss1,&lmax_ss1,wigner_ss1,2*(lmax_mask+1));
-	if(mask_aniso_1)
-	  drc3jj(ll2,ll3,spin1,spin1,&lmin_ss1a,&lmax_ss1a,wigner_ss1a,2*(lmax_mask+1));
-	if(has_ss2) {
-	  drc3jj(ll2,ll3,spin2,-spin2,&lmin_ss2,&lmax_ss2,wigner_ss2,2*(lmax_mask+1));
-	  if(mask_aniso_2)
-	    drc3jj(ll2,ll3,spin2,spin2,&lmin_ss2a,&lmax_ss2a,wigner_ss2a,2*(lmax_mask+1));
-	}
-	else {
+	if(reuse_ss1) {
 	  lmin_ss2=lmin_ss1;
 	  lmax_ss2=lmax_ss1;
-	  lmin_ss2a=lmin_ss1a;
-	  lmax_ss2a=lmax_ss1a;
+	}
+	else
+	  drc3jj(ll2,ll3,spin2,-spin2,&lmin_ss2,&lmax_ss2,wigner_ss2,2*(lmax_mask+1));
+
+	// s s -2s terms
+	if(mask_aniso_1)
+	  drc3jj(ll2,ll3,spin1,spin1,&lmin_ss1a,&lmax_ss1a,wigner_ss1a,2*(lmax_mask+1));
+	if(mask_aniso_2) {
+	  if((!reuse_ss1) || (mask_aniso_1 == 0))
+	    drc3jj(ll2,ll3,spin2,spin2,&lmin_ss2a,&lmax_ss2a,wigner_ss2a,2*(lmax_mask+1));
+	  else {
+	    lmin_ss2a=lmin_ss1a;
+	    lmax_ss2a=lmax_ss1a;
+	  }
 	}
 
 	for(l1=lmin_here;l1<=lmax_here;l1++) {
@@ -583,18 +593,17 @@ nmt_workspace *nmt_compute_coupling_matrix_anisotropic(int spin1, int spin2,
 		mbb = wss1a*wss2a*pcl_masks[i_bb][l1];
 	      }
 	    }
-
 	    if(is_0s) {
 	      w->coupling_matrix_unbinned[2*ll2+0][2*ll3+0] += l3fac*(m00-m0e); //0E,0E
 	      w->coupling_matrix_unbinned[2*ll2+0][2*ll3+1] += l3fac*(-m0b);    //0E,0B
-	      w->coupling_matrix_unbinned[4*ll2+1][4*ll3+0] += l3fac*(-m0b);    //0B,0E
-	      w->coupling_matrix_unbinned[4*ll2+1][4*ll3+1] += l3fac*(m00+m0e); //0B,0B
+	      w->coupling_matrix_unbinned[2*ll2+1][2*ll3+0] += l3fac*(-m0b);    //0B,0E
+	      w->coupling_matrix_unbinned[2*ll2+1][2*ll3+1] += l3fac*(m00+m0e); //0B,0B
 	    }
 	    if(is_s0) {
-	      w->coupling_matrix_unbinned[4*ll2+0][4*ll3+0] += l3fac*(m00-me0); //E0,E0
-	      w->coupling_matrix_unbinned[4*ll2+0][4*ll3+2] += l3fac*(-mb0);    //E0,B0
-	      w->coupling_matrix_unbinned[4*ll2+2][4*ll3+0] += l3fac*(-mb0);    //B0,E0
-	      w->coupling_matrix_unbinned[4*ll2+2][4*ll3+2] += l3fac*(m00+me0); //B0,B0
+	      w->coupling_matrix_unbinned[2*ll2+0][2*ll3+0] += l3fac*(m00-me0); //E0,E0
+	      w->coupling_matrix_unbinned[2*ll2+0][2*ll3+1] += l3fac*(-mb0);    //E0,B0
+	      w->coupling_matrix_unbinned[2*ll2+1][2*ll3+0] += l3fac*(-mb0);    //B0,E0
+	      w->coupling_matrix_unbinned[2*ll2+1][2*ll3+1] += l3fac*(m00+me0); //B0,B0
 	    }
 	    if(is_ss) {
 	      w->coupling_matrix_unbinned[4*ll2+0][4*ll3+0] += l3fac*(splus * (m00-m0e-me0+mee) + sminus * mbb);                //EE,EE
@@ -619,12 +628,15 @@ nmt_workspace *nmt_compute_coupling_matrix_anisotropic(int spin1, int spin2,
       }
     } //end omp for
 
+    // s -s 0 terms
     free(wigner_ss1);
+    if(!reuse_ss1)
+      free(wigner_ss2);
+    // s s -2s terms
     if(mask_aniso_1)
       free(wigner_ss1a);
-    if(has_ss2) {
-      free(wigner_ss2);
-      if(mask_aniso_2)
+    if(mask_aniso_2) {
+      if((!reuse_ss1) || (mask_aniso_1 == 0))
 	free(wigner_ss2a);
     }
   } //end omp parallel

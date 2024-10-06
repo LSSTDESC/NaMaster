@@ -263,9 +263,10 @@ class NmtWorkspace(object):
             alm2 = fl2.get_mask_alms()
         pcl_mask = hp.alm2cl(alm1, alm2, lmax=fl1.ainfo_mask.lmax)
         if anisotropic_mask_any:
+            pcl0 = pcl_mask * 0
             pclm_00 = pcl_mask
-            pclm_0e = pclm_0b = pclm_e0 = pclm_b0 = None
-            pclm_ee = pclm_eb = pclm_be = pclm_bb = None
+            pclm_0e = pclm_0b = pclm_e0 = pclm_b0 = pcl0
+            pclm_ee = pclm_eb = pclm_be = pclm_bb = pcl0
             if fl1.anisotropic_mask:
                 alm1a = fl1.get_anisotropic_mask_alms()
             if fl2.anisotropic_mask:
@@ -276,7 +277,7 @@ class NmtWorkspace(object):
             if fl1.anisotropic_mask:
                 pclm_e0 = hp.alm2cl(alm1a[0], alm2, lmax=fl1.ainfo_mask.lmax)
                 pclm_b0 = hp.alm2cl(alm1a[1], alm2, lmax=fl1.ainfo_mask.lmax)
-                if fl1.anisotropic_mask:
+                if fl2.anisotropic_mask:
                     pclm_ee = hp.alm2cl(alm1a[0], alm2a[0],
                                         lmax=fl1.ainfo_mask.lmax)
                     pclm_eb = hp.alm2cl(alm1a[0], alm2a[1],
