@@ -98,6 +98,15 @@ class NmtField(object):
             deprojection and purification, but you don't care about
             deprojection bias. This will significantly reduce the memory taken
             up by the resulting object.
+        mask_22 (`array`): Array containing the mask corresponding to the
+            ``22`` component of an anisotropic weight matrix. If not ``None``
+            the ``mask`` argument will be interpreted as the ``11`` component
+            of the same matrix. The off-diagonal component of the weight
+            matrix must then be passed as ``mask_12`` (below). If ``mask_22``
+            and ``mask_12`` are ``None``, isotropic weighting is assumed,
+            described by ``mask``.
+        mask_12 (`array`): Array containing the off-diagonal component of the
+            anisotropic weight matrix. See ``mask_22`` above.
     """
     def __init__(self, mask, maps, *, spin=None, templates=None, beam=None,
                  purify_e=False, purify_b=False, n_iter=None, n_iter_mask=None,
@@ -233,11 +242,11 @@ class NmtField(object):
                 raise ValueError("Anisotropic masks can't be used with "
                                  "scalar fields.")
             if pure_any:
-                raise ValueError("Purification not implemented for "
-                                 "anisotropic masks")
+                raise NotImplementedError("Purification not implemented for "
+                                          "anisotropic masks")
             if templates is not None:
-                raise ValueError("Contaminant deprojection not supported "
-                                 "for anisotropic masks.")
+                raise NotImplementedError("Contaminant deprojection not "
+                                          "supported for anisotropic masks.")
 
         # 3. Check templates
         if isinstance(templates, (list, tuple, np.ndarray)):

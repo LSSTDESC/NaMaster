@@ -207,6 +207,11 @@ class NmtCovarianceWorkspace(object):
         if flb2 is None:
             flb2 = fla2
 
+        if np.any([fla1.anisotropic_mask, fla2.anisotropic_mask,
+                   flb1.anisotropic_mask, flb2.anisotropic_mask]):
+            raise NotImplementedError("Covariance matrix estimation not "
+                                      "implemented for anisotropic weights.")
+
         if (not (fla1.is_compatible(fla2) and
                  fla1.is_compatible(flb1) and
                  fla1.is_compatible(flb2))):

@@ -248,8 +248,8 @@ class NmtWorkspace(object):
 
         anisotropic_mask_any = fl1.anisotropic_mask or fl2.anisotropic_mask
         if anisotropic_mask_any and (l_toeplitz >= 0):
-            raise ValueError("Toeplitz approximation not implemented for "
-                             "anisotropic masks.")
+            raise NotImplementedError("Toeplitz approximation not "
+                                      "implemented for anisotropic masks.")
         ut._toeplitz_sanity(l_toeplitz, l_exact, dl_band,
                             bins.bin.ell_max, fl1, fl2)
 

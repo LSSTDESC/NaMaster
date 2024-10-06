@@ -1,6 +1,66 @@
 import numpy as np
 import healpy as hp
 import pymaster as nmt
+import pytest
+
+
+def test_anisotropic_weighting_smoke():
+    nside = 64
+    npix = hp.nside2npix(nside)
+    m = np.ones(npix)
+
+    f = nmt.NmtField(m, [m, m],
+                     mask_12=0.5*m,
+                     mask_22=2.0*m)
+    msk_a = f.get_anisotropic_mask()
+
+    assert np.allclose(msk_a[1], 0.5*m)
+    assert np.allclose(msk_a[0], -0.5*m)
+
+
+def test_anisotropic_weighting_errors():
+    nside = 64
+    npix = hp.nside2npix(nside)
+    m = np.ones(npix)
+
+    # Field-level errors
+    # Must pass full weight matrix
+    with pytest.raises(ValueError):
+        nmt.NmtField(m, [m, m], mask_12=m)
+
+    # Non-positive-definite weight matrix
+    with pytest.raises(ValueError):
+        nmt.NmtField(m, [m, m], mask_22=0*m, mask_12=m)
+
+    # No anisotropic matrix for scalar fields
+    with pytest.raises(ValueError):
+        nmt.NmtField(m, None, spin=0, mask_22=m, mask_12=m*0)
+
+    # No anisotropic matrix for scalar fields (second check)
+    with pytest.raises(ValueError):
+        nmt.NmtField(m, [m], mask_22=m, mask_12=m*0)
+
+    # No purification with anisotropic weights
+    with pytest.raises(NotImplementedError):
+        nmt.NmtField(m, [m, m], mask_12=0*m, mask_22=m,
+                     purify_b=True)
+
+    # No contaminant deprojection with anisotropic weights
+    with pytest.raises(NotImplementedError):
+        nmt.NmtField(m, [m, m], mask_12=0*m, mask_22=m,
+                     templates=[[m, m]])
+
+    # Workspace-level errors
+    f = nmt.NmtField(m, [m, m],
+                     mask_12=0.5*m,
+                     mask_22=2.0*m)
+    b = nmt.NmtBin.from_nside_linear(nside, nlb=4)
+    with pytest.raises(NotImplementedError):
+        nmt.NmtWorkspace.from_fields(f, f, b, l_toeplitz=3)
+
+    # Covariance-level errors
+    with pytest.raises(NotImplementedError):
+        nmt.NmtCovarianceWorkspace.from_fields(f, f, f, f)
 
 
 def test_anisotropic_weighting():
