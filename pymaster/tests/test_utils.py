@@ -62,8 +62,11 @@ def test_moore_penrose_pinv():
     # Pick up largest eigval
     e = e[:, w > 0.1].squeeze()
     # Should only have two non-zero eigvals
+    print(w)
     assert np.sum(np.fabs(w) < 1E-15) == 2
     # Check e is parallel to v
+    print(np.dot(e, v))
+    print(np.dot(e, e))
     assert np.isclose(np.dot(e, v),
                       np.sqrt(np.dot(e, e)))
 
@@ -73,6 +76,8 @@ def test_moore_penrose_pinv():
     m = np.diag(w)
     im = nmt.utils.moore_penrose_pinvh(m, None)
     imb = np.diag(1/w)
+    print(im)
+    print(imb)
     assert np.allclose(im, imb)
 
 
