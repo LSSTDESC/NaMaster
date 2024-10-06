@@ -155,7 +155,8 @@ html_sidebars = {
 html_extra_path = ['1BasicFunctionality.html',
                    '2Spin.html',
                    '3Covariances.html',
-                   '4Catalogs.html']
+                   '4Catalogs.html',
+                   '5AnisotropicWeighting.html']
 
 # -- Options for HTMLHelp output ------------------------------------------
 
