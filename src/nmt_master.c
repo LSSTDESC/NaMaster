@@ -614,10 +614,10 @@ nmt_workspace *nmt_compute_coupling_matrix_anisotropic(int spin1, int spin2,
 	      w->coupling_matrix_unbinned[4*ll2+1][4*ll3+1] += l3fac*(splus * (m00+m0e-me0-mee) + sminus * (-mbb));             //EB,EB
 	      w->coupling_matrix_unbinned[4*ll2+1][4*ll3+2] += l3fac*(splus * mbb               + sminus * (-m00+m0e-me0+mee)); //EB,BE
 	      w->coupling_matrix_unbinned[4*ll2+1][4*ll3+3] += l3fac*(splus * (-mb0-mbe)        + sminus * (m0b+meb));          //EB,BB
-	      w->coupling_matrix_unbinned[4*ll2+2][4*ll3+0] += l3fac*(splus * (-mb0+mbe)        + sminus * (m0b-mbe));          //BE,EE
+	      w->coupling_matrix_unbinned[4*ll2+2][4*ll3+0] += l3fac*(splus * (-mb0+mbe)        + sminus * (m0b-meb));          //BE,EE
 	      w->coupling_matrix_unbinned[4*ll2+2][4*ll3+1] += l3fac*(splus * mbb               + sminus * (-m00-m0e+me0+mee)); //BE,EB
 	      w->coupling_matrix_unbinned[4*ll2+2][4*ll3+2] += l3fac*(splus * (m00-m0e+me0-mee) + sminus * (-mbb));             //BE,BE
-	      w->coupling_matrix_unbinned[4*ll2+2][4*ll3+3] += l3fac*(splus * (-mb0-mbe)        + sminus * (m0b+meb));          //BE,BB
+	      w->coupling_matrix_unbinned[4*ll2+2][4*ll3+3] += l3fac*(splus * (-m0b-meb)        + sminus * (mb0+mbe));          //BE,BB
 	      w->coupling_matrix_unbinned[4*ll2+3][4*ll3+0] += l3fac*(splus * mbb               + sminus * (m00-m0e-me0+mee));  //BB,EE
 	      w->coupling_matrix_unbinned[4*ll2+3][4*ll3+1] += l3fac*(splus * (-mb0-mbe)        + sminus * (-m0b+meb));         //BB,EB
 	      w->coupling_matrix_unbinned[4*ll2+3][4*ll3+2] += l3fac*(splus * (-m0b-meb)        + sminus * (-mb0+mbe));         //BB,BE
