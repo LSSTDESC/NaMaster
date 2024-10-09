@@ -418,6 +418,238 @@ static void populate_toeplitz(nmt_master_calculator *c, flouble **pcl_masks, int
   }
 }
 
+nmt_workspace *nmt_compute_coupling_matrix_anisotropic(int spin1, int spin2,
+						       int mask_aniso_1, int mask_aniso_2,
+						       int lmax, int lmax_mask,
+						       flouble *pcl_masks_00,
+						       flouble *pcl_masks_0e,
+						       flouble *pcl_masks_e0,
+						       flouble *pcl_masks_0b,
+						       flouble *pcl_masks_b0,
+						       flouble *pcl_masks_ee,
+						       flouble *pcl_masks_eb,
+						       flouble *pcl_masks_be,
+						       flouble *pcl_masks_bb,
+						       flouble *beam1,flouble *beam2,
+						       nmt_binning_scheme *bin,
+						       int norm_type,flouble w2)
+{
+  int l2,lmax_large,lmax_fields;
+  int n_cl,nmaps1=1,nmaps2=1;
+  nmt_workspace *w;
+  if(spin1) nmaps1=2;
+  if(spin2) nmaps2=2;
+  n_cl=nmaps1*nmaps2;
+
+  if(bin->ell_max>lmax)
+    report_error(NMT_ERROR_CONSISTENT_RESO,
+		 "Requesting bandpowers for too high a "
+		 "multipole given map resolution\n");
+  lmax_fields=lmax; // ell_max for the maps
+  lmax_large=lmax_mask; // ell_max for the masks
+
+
+  w=nmt_workspace_new(n_cl,bin,0,
+		      lmax_fields,lmax_large,norm_type,w2);
+
+  for(l2=0;l2<=w->lmax_fields;l2++)
+    w->beam_prod[l2]=beam1[l2]*beam2[l2];
+
+  for(l2=0;l2<=w->lmax_mask;l2++)
+    w->pcl_masks[l2]=pcl_masks_00[l2]*(2*l2+1.)/(4*M_PI);
+
+  int i_00=0, i_0e=1, i_0b=2, i_e0=3, i_b0=4, i_ee=5, i_eb=6, i_be=7, i_bb=8;
+  flouble **pcl_masks=my_malloc(9*sizeof(flouble *));
+  for(l2=0;l2<9;l2++)
+    pcl_masks[l2]=my_calloc(lmax_mask+1,sizeof(flouble));
+  memcpy(pcl_masks[i_00], pcl_masks_00, (lmax_mask+1)*sizeof(flouble));
+  if(mask_aniso_2) {
+    memcpy(pcl_masks[i_0e], pcl_masks_0e, (lmax_mask+1)*sizeof(flouble));
+    memcpy(pcl_masks[i_0b], pcl_masks_0b, (lmax_mask+1)*sizeof(flouble));
+  }
+  if(mask_aniso_1) {
+    memcpy(pcl_masks[i_e0], pcl_masks_e0, (lmax_mask+1)*sizeof(flouble));
+    memcpy(pcl_masks[i_b0], pcl_masks_b0, (lmax_mask+1)*sizeof(flouble));
+    if(mask_aniso_2) {
+      memcpy(pcl_masks[i_ee], pcl_masks_ee, (lmax_mask+1)*sizeof(flouble));
+      memcpy(pcl_masks[i_eb], pcl_masks_eb, (lmax_mask+1)*sizeof(flouble));
+      memcpy(pcl_masks[i_be], pcl_masks_be, (lmax_mask+1)*sizeof(flouble));
+      memcpy(pcl_masks[i_bb], pcl_masks_bb, (lmax_mask+1)*sizeof(flouble));
+    }
+  }
+
+  int sign_00 = 1;
+  int sign_0P = (spin2 & 1) ? -1 : 1;
+  int sign_P0 = (spin1 & 1) ? -1 : 1;
+  int sign_PP = ((spin1+spin2) & 1) ? -1 : 1;
+  for(l2=0;l2<=lmax_mask;l2++) {
+    flouble fac=(2*l2+1)/(4*M_PI);
+    pcl_masks[i_00][l2] *= sign_00*fac;
+    pcl_masks[i_0e][l2] *= sign_0P*fac;
+    pcl_masks[i_0b][l2] *= sign_0P*fac;
+    pcl_masks[i_e0][l2] *= sign_P0*fac;
+    pcl_masks[i_b0][l2] *= sign_P0*fac;
+    pcl_masks[i_ee][l2] *= sign_PP*fac;
+    pcl_masks[i_eb][l2] *= sign_PP*fac;
+    pcl_masks[i_be][l2] *= sign_PP*fac;
+    pcl_masks[i_bb][l2] *= sign_PP*fac;
+  }
+
+  int max_spin=NMT_MAX(spin1, spin2);
+  int lstart=max_spin;
+  int reuse_ss1=(spin1==spin2);
+  int is_0s=(spin1==0) && (spin2!=0);
+  int is_s0=(spin1!=0) && (spin2==0);
+  int is_ss=(spin1!=0) && (spin2!=0);
+
+#pragma omp parallel default(none)				\
+  shared(pcl_masks, lstart, reuse_ss1, lmax, lmax_mask)		\
+  shared(mask_aniso_1, mask_aniso_2, is_0s, is_s0, is_ss)	\
+  shared(spin1, spin2, i_00, i_0e, i_0b, i_e0, i_b0)		\
+  shared(i_ee, i_eb, i_be, i_bb, w)
+  {
+    int ll2,ll3;
+    double *wigner_ss1=NULL, *wigner_ss2=NULL, *wigner_ss1a=NULL, *wigner_ss2a=NULL;
+    // s -s 0 terms
+    wigner_ss1=my_malloc(2*(lmax_mask+1)*sizeof(double));
+    if(reuse_ss1)
+      wigner_ss2=wigner_ss1;
+    else
+      wigner_ss2=my_malloc(2*(lmax_mask+1)*sizeof(double));
+
+    // s s -2s terms
+    if(mask_aniso_1)
+      wigner_ss1a=my_malloc(2*(lmax_mask+1)*sizeof(double));
+    if(mask_aniso_2) {
+      if((!reuse_ss1) || (mask_aniso_1 == 0))
+	wigner_ss2a=my_malloc(2*(lmax_mask+1)*sizeof(double));
+      else
+	wigner_ss2a=wigner_ss1a;
+    }
+
+#pragma omp for schedule(dynamic)
+    for(ll2=lstart;ll2<=lmax;ll2++) {
+      for(ll3=lstart;ll3<=lmax;ll3++) {  //TODO: investigate if there are ell-ell' symmetries to exploit
+	int l1,lmin_here,lmax_here;
+	int l3fac=2*ll3+1;
+	int lmin_ss1=0,lmax_ss1=2*(lmax_mask+1)+1;
+	int lmin_ss2=0,lmax_ss2=2*(lmax_mask+1)+1;
+	int lmin_ss1a=0,lmax_ss1a=2*(lmax_mask+1)+1;
+	int lmin_ss2a=0,lmax_ss2a=2*(lmax_mask+1)+1;
+	lmin_here=abs(ll2-ll3);
+	lmax_here=ll2+ll3;
+
+	// s -s 0 terms
+	drc3jj(ll2,ll3,spin1,-spin1,&lmin_ss1,&lmax_ss1,wigner_ss1,2*(lmax_mask+1));
+	if(reuse_ss1) {
+	  lmin_ss2=lmin_ss1;
+	  lmax_ss2=lmax_ss1;
+	}
+	else
+	  drc3jj(ll2,ll3,spin2,-spin2,&lmin_ss2,&lmax_ss2,wigner_ss2,2*(lmax_mask+1));
+
+	// s s -2s terms
+	if(mask_aniso_1)
+	  drc3jj(ll2,ll3,spin1,spin1,&lmin_ss1a,&lmax_ss1a,wigner_ss1a,2*(lmax_mask+1));
+	if(mask_aniso_2) {
+	  if((!reuse_ss1) || (mask_aniso_1 == 0))
+	    drc3jj(ll2,ll3,spin2,spin2,&lmin_ss2a,&lmax_ss2a,wigner_ss2a,2*(lmax_mask+1));
+	  else {
+	    lmin_ss2a=lmin_ss1a;
+	    lmax_ss2a=lmax_ss1a;
+	  }
+	}
+
+	for(l1=lmin_here;l1<=lmax_here;l1++) {
+	  if(l1<=lmax_mask) {
+	    flouble m00=0,m0e=0,m0b=0,me0=0,mb0=0,mee=0,meb=0,mbe=0,mbb=0;
+	    int suml=l1+ll2+ll3;
+	    flouble wss1=0,wss2=0,wss1a=0,wss2a=0;
+	    int jss1=l1-lmin_ss1;
+	    int jss2=l1-lmin_ss2;
+	    int jss1a=l1-lmin_ss1a;
+	    int jss2a=l1-lmin_ss2a;
+	    int splus= (suml & 1) ? 0 : 1;
+	    int sminus= (suml & 1) ? 1 : 0;
+	    wss1=jss1 < 0 ? 0 : wigner_ss1[jss1];
+	    wss2=jss2 < 0 ? 0 : wigner_ss2[jss2];
+	    if(mask_aniso_1)
+	      wss1a=jss1a < 0 ? 0 : wigner_ss1a[jss1a];
+	    if(mask_aniso_2)
+	      wss2a=jss2a < 0 ? 0 : wigner_ss2a[jss2a];
+
+	    m00 = wss1*wss2*pcl_masks[i_00][l1];
+	    if(mask_aniso_2) {
+	      m0e = wss1*wss2a*pcl_masks[i_0e][l1];
+	      m0b = wss1*wss2a*pcl_masks[i_0b][l1];
+	    }
+	    if(mask_aniso_1) {
+	      me0 = wss1a*wss2*pcl_masks[i_e0][l1];
+	      mb0 = wss1a*wss2*pcl_masks[i_b0][l1];
+	      if(mask_aniso_2) {
+		mee = wss1a*wss2a*pcl_masks[i_ee][l1];
+		meb = wss1a*wss2a*pcl_masks[i_eb][l1];
+		mbe = wss1a*wss2a*pcl_masks[i_be][l1];
+		mbb = wss1a*wss2a*pcl_masks[i_bb][l1];
+	      }
+	    }
+	    if(is_0s) {
+	      w->coupling_matrix_unbinned[2*ll2+0][2*ll3+0] += l3fac*(m00-m0e); //0E,0E
+	      w->coupling_matrix_unbinned[2*ll2+0][2*ll3+1] += l3fac*(-m0b);    //0E,0B
+	      w->coupling_matrix_unbinned[2*ll2+1][2*ll3+0] += l3fac*(-m0b);    //0B,0E
+	      w->coupling_matrix_unbinned[2*ll2+1][2*ll3+1] += l3fac*(m00+m0e); //0B,0B
+	    }
+	    if(is_s0) {
+	      w->coupling_matrix_unbinned[2*ll2+0][2*ll3+0] += l3fac*(m00-me0); //E0,E0
+	      w->coupling_matrix_unbinned[2*ll2+0][2*ll3+1] += l3fac*(-mb0);    //E0,B0
+	      w->coupling_matrix_unbinned[2*ll2+1][2*ll3+0] += l3fac*(-mb0);    //B0,E0
+	      w->coupling_matrix_unbinned[2*ll2+1][2*ll3+1] += l3fac*(m00+me0); //B0,B0
+	    }
+	    if(is_ss) {
+	      w->coupling_matrix_unbinned[4*ll2+0][4*ll3+0] += l3fac*(splus * (m00-m0e-me0+mee) + sminus * mbb);                //EE,EE
+	      w->coupling_matrix_unbinned[4*ll2+0][4*ll3+1] += l3fac*(splus * (-m0b+meb)        + sminus * (-mb0-mbe));         //EE,EB
+	      w->coupling_matrix_unbinned[4*ll2+0][4*ll3+2] += l3fac*(splus * (-mb0+mbe)        + sminus * (-m0b-meb));         //EE,BE
+	      w->coupling_matrix_unbinned[4*ll2+0][4*ll3+3] += l3fac*(splus * mbb               + sminus * (m00+m0e+me0+mee));  //EE,BB
+	      w->coupling_matrix_unbinned[4*ll2+1][4*ll3+0] += l3fac*(splus * (-m0b+meb)        + sminus * (mb0-mbe));          //EB,EE
+	      w->coupling_matrix_unbinned[4*ll2+1][4*ll3+1] += l3fac*(splus * (m00+m0e-me0-mee) + sminus * (-mbb));             //EB,EB
+	      w->coupling_matrix_unbinned[4*ll2+1][4*ll3+2] += l3fac*(splus * mbb               + sminus * (-m00+m0e-me0+mee)); //EB,BE
+	      w->coupling_matrix_unbinned[4*ll2+1][4*ll3+3] += l3fac*(splus * (-mb0-mbe)        + sminus * (m0b+meb));          //EB,BB
+	      w->coupling_matrix_unbinned[4*ll2+2][4*ll3+0] += l3fac*(splus * (-mb0+mbe)        + sminus * (m0b-meb));          //BE,EE
+	      w->coupling_matrix_unbinned[4*ll2+2][4*ll3+1] += l3fac*(splus * mbb               + sminus * (-m00-m0e+me0+mee)); //BE,EB
+	      w->coupling_matrix_unbinned[4*ll2+2][4*ll3+2] += l3fac*(splus * (m00-m0e+me0-mee) + sminus * (-mbb));             //BE,BE
+	      w->coupling_matrix_unbinned[4*ll2+2][4*ll3+3] += l3fac*(splus * (-m0b-meb)        + sminus * (mb0+mbe));          //BE,BB
+	      w->coupling_matrix_unbinned[4*ll2+3][4*ll3+0] += l3fac*(splus * mbb               + sminus * (m00-m0e-me0+mee));  //BB,EE
+	      w->coupling_matrix_unbinned[4*ll2+3][4*ll3+1] += l3fac*(splus * (-mb0-mbe)        + sminus * (-m0b+meb));         //BB,EB
+	      w->coupling_matrix_unbinned[4*ll2+3][4*ll3+2] += l3fac*(splus * (-m0b-meb)        + sminus * (-mb0+mbe));         //BB,BE
+	      w->coupling_matrix_unbinned[4*ll2+3][4*ll3+3] += l3fac*(splus * (m00+m0e+me0+mee) + sminus * mbb);                //BB,BB
+	    }
+	  }
+	}
+      }
+    } //end omp for
+
+    // s -s 0 terms
+    free(wigner_ss1);
+    if(!reuse_ss1)
+      free(wigner_ss2);
+    // s s -2s terms
+    if(mask_aniso_1)
+      free(wigner_ss1a);
+    if(mask_aniso_2) {
+      if((!reuse_ss1) || (mask_aniso_1 == 0))
+	free(wigner_ss2a);
+    }
+  } //end omp parallel
+
+  for(l2=0;l2<9;l2++)
+    free(pcl_masks[l2]);
+  free(pcl_masks);
+
+  bin_coupling_matrix(w);
+
+  return w;
+}
+
 nmt_master_calculator *nmt_compute_master_coefficients(int lmax, int lmax_mask,
                                                        int npcl, flouble **pcl_masks,
                                                        int s1, int s2,

@@ -343,6 +343,9 @@ def compute_master_coefficients(lmax, lmax_mask, npcl, pcl_masks, s1, s2, pure_e
 def master_calculator_free(c):
     return _nmtlib.master_calculator_free(c)
 
+def compute_coupling_matrix_anisotropic(spin1, spin2, mask_aniso_1, mask_aniso_2, lmax, lmax_mask, pcl_masks_00, pcl_masks_0e, pcl_masks_e0, pcl_masks_0b, pcl_masks_b0, pcl_masks_ee, pcl_masks_eb, pcl_masks_be, pcl_masks_bb, beam1, beam2, bin, norm_type, w2):
+    return _nmtlib.compute_coupling_matrix_anisotropic(spin1, spin2, mask_aniso_1, mask_aniso_2, lmax, lmax_mask, pcl_masks_00, pcl_masks_0e, pcl_masks_e0, pcl_masks_0b, pcl_masks_b0, pcl_masks_ee, pcl_masks_eb, pcl_masks_be, pcl_masks_bb, beam1, beam2, bin, norm_type, w2)
+
 def compute_coupling_matrix(spin1, spin2, lmax, lmax_mask, pure_e1, pure_b1, pure_e2, pure_b2, pcl_masks, beam1, beam2, bin, is_teb, l_toeplitz, l_exact, dl_band, norm_type, w2):
     return _nmtlib.compute_coupling_matrix(spin1, spin2, lmax, lmax_mask, pure_e1, pure_b1, pure_e2, pure_b2, pcl_masks, beam1, beam2, bin, is_teb, l_toeplitz, l_exact, dl_band, norm_type, w2)
 
@@ -525,6 +528,9 @@ def apomask_flat(nx, ny, lx, ly, npix_1, dout, aposize, apotype):
 
 def synfast_new_flat(nx, ny, lx, ly, nfields, seed, ncl1, ncl2, dout):
     return _nmtlib.synfast_new_flat(nx, ny, lx, ly, nfields, seed, ncl1, ncl2, dout)
+
+def comp_coupling_matrix_anisotropic(spin1, spin2, aniso1, aniso2, lmax, lmax_mask, nl00, nl0e, nl0b, nle0, nlb0, nlee, nleb, nlbe, nlbb, nlb1, nlb2, bin, norm_type, w2):
+    return _nmtlib.comp_coupling_matrix_anisotropic(spin1, spin2, aniso1, aniso2, lmax, lmax_mask, nl00, nl0e, nl0b, nle0, nlb0, nlee, nleb, nlbe, nlbb, nlb1, nlb2, bin, norm_type, w2)
 
 def comp_coupling_matrix(spin1, spin2, lmax, lmax_mask, pure_e_1, pure_b_1, pure_e_2, pure_b_2, norm_type, w2, nlb1, nlb2, nell4, bin, is_teb, l_toeplitz, l_exact, dl_band):
     return _nmtlib.comp_coupling_matrix(spin1, spin2, lmax, lmax_mask, pure_e_1, pure_b_1, pure_e_2, pure_b_2, norm_type, w2, nlb1, nlb2, nell4, bin, is_teb, l_toeplitz, l_exact, dl_band)

@@ -64,7 +64,7 @@ def test_moore_penrose_pinv():
     # Should only have two non-zero eigvals
     assert np.sum(np.fabs(w) < 1E-15) == 2
     # Check e is parallel to v
-    assert np.isclose(np.dot(e, v),
+    assert np.isclose(np.fabs(np.dot(e, v)),
                       np.sqrt(np.dot(e, e)))
 
     # For invertible matrix, we just get
