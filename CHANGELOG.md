@@ -1,3 +1,6 @@
+# v2.3
+- Support for anisotropically-weighted fields (#217)
+
 # v2.2.3
 - Bugfix: saving `norm_type` in workspace fits files (#212)
 
