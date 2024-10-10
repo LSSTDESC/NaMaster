@@ -7540,7 +7540,7 @@ a.anchor-link {
 <li><strong>G19</strong>. Garcia-Garcia et al. 2019 (<a href="https://arxiv.org/abs/1906.11765">https://arxiv.org/abs/1906.11765</a>), which introduces the basic approximation used by NaMaster to estimate covariance matrix.</li>
 <li><strong>N20</strong>. Nicola et al. 2020 (<a href="https://arxiv.org/abs/2010.09717">https://arxiv.org/abs/2010.09717</a>), which refined these approximations and described in detail the procedure to estimate cosmic shear power spectra.</li>
 <li><strong>W24</strong>. Wolz et al. 2024 (<a href="https://arxiv.org/abs/2407.21013">https://arxiv.org/abs/2407.21013</a>), which introduced the formalism for catalog-based $C_\ell$s.</li>
-<li><strong>A24</strong>. Alonso 2024 (TBD), which generalised the estimator to anisotropic weights.</li>
+<li><strong>A24</strong>. Alonso 2024 (<a href="https://arxiv.org/abs/2410.07077">https://arxiv.org/abs/2410.07077</a>), which generalised the estimator to anisotropic weights.</li>
 </ul>
 </div>
 </div>
@@ -7553,7 +7553,7 @@ a.anchor-link {
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <h1 id="5-Anisotropic-masks-">5 Anisotropic masks <a class="anchor" id="S5"></a><a class="anchor-link" href="#5-Anisotropic-masks-">¶</a></h1><p>This short tutorial shows how to use the functionality to account for anisotropic weighting of spin-$s$ fields. In short, anisotropic weighting applies different weights or masks to the different spin component of a field, and even mixes them up. This makes sense when the noise properties of your field are better characterised at every pixel by a covariance matrix that is not proportional to the identity (in which case, it may be appropriate to weight your field by the inverse of this matrix, instead of a simple scalar mask). The application of anisotropic weights causes additional mode coupling between different angular scales and $E/B$ modes, so the mode-coupling coefficients for the power spectra of these fields is also different.</p>
-<p>The code below describes one of the tests presented in <a href="TBD">Alonso et al. 2024</a> to validate the implementation of anisotropic weights in NaMaster.</p>
+<p>The code below describes one of the tests presented in <a href="https://arxiv.org/abs/2410.07077">Alonso 2024</a> to validate the implementation of anisotropic weights in NaMaster.</p>
 </div>
 </div>
 </div>
