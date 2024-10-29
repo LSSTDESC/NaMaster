@@ -4,6 +4,8 @@ import warnings
 import sys
 import pytest
 from .utils import normdiff
+from astropy.io import fits
+from astropy.wcs import WCS
 
 
 class FieldTesterCAR(object):
@@ -12,9 +14,6 @@ class FieldTesterCAR(object):
         # has nothing to do with pymaster
         if (sys.version_info > (3, 1)):
             warnings.simplefilter("ignore", ResourceWarning)
-
-        from astropy.io import fits
-        from astropy.wcs import WCS
 
         hdul = fits.open("test/benchmarks/mps_car_small.fits")
         self.wcs = WCS(hdul[0].header)
@@ -238,3 +237,14 @@ def test_field_error():
         nmt.NmtField(FT.msk, [FT.mps[0]],
                      templates=[[t[0]] for t in FT.tmp],
                      beam=1, wcs=FT.wcs)
+
+
+def test_field_car_wrap():
+    # Tests that full-sky maps that could wrap around azimuth
+    # with floating point errors in `cdelt` are still parseable.
+
+    hdul = fits.open("test/benchmarks/car_wrap.fits")
+    wcs = WCS(hdul[0].header)
+    m = hdul[0].data
+    # This should throw no error
+    nmt.NmtField(m[0], [m[0]], wcs=wcs)

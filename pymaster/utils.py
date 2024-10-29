@@ -154,7 +154,7 @@ class _SHTInfo(object):
         theta = th[:-1].astype(np.float64)
         phi0 = np.zeros(n_theta, dtype=np.float64)+phi0
         nx_short = n_phi
-        nx_full = int(2*np.pi/d_phi)
+        nx_full = int(2*np.pi/d_phi+0.5)
         nphi = np.zeros(n_theta, dtype=np.uint64)+nx_full
 
         # CC weights according to ducc0
