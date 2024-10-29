@@ -852,7 +852,8 @@ _a2m_d = {'ducc': _alm2map_ducc0,
 def _catalog2alm_ducc0(values, positions, spin, lmax):
     values = np.atleast_2d(values)
     alm = ducc0.sht.adjoint_synthesis_general(lmax=lmax, map=values,
-                                              loc=positions.T, spin=int(spin))
+                                              loc=positions.T, spin=int(spin),
+                                              epsilon=1E-5)
     return alm
 
 
