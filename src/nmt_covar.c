@@ -96,7 +96,7 @@ void  nmt_compute_gaussian_covariance_coupled(nmt_covar_workspace *cw,
                                               flouble *covar_out)
 {
   if((cw->lmax<wa->bin->ell_max) || (cw->lmax<wb->bin->ell_max))
-    report_error(NMT_ERROR_COVAR,"Coupling coefficients only computed up to l=%d, but you require"
+    report_error(NMT_ERROR_COVAR,"Coupling coefficients only computed up to l=%d, but you require "
 		 "lmax=%d. Recompute this workspace with a larger lmax\n",cw->lmax,wa->bin->ell_max);
   if((cw->spin0_only) && (spin_a+spin_b+spin_c+spin_d != 0))
     report_error(NMT_ERROR_COVAR,"Coupling coefficients only computed for spin=0\n");
@@ -191,7 +191,7 @@ void  nmt_compute_gaussian_covariance(nmt_covar_workspace *cw,
 				      flouble *covar_out)
 {
   if((cw->lmax<wa->bin->ell_max) || (cw->lmax<wb->bin->ell_max))
-    report_error(NMT_ERROR_COVAR,"Coupling coefficients only computed up to l=%d, but you require"
+    report_error(NMT_ERROR_COVAR,"Coupling coefficients only computed up to l=%d, but you require "
 		 "lmax=%d. Recompute this workspace with a larger lmax\n",cw->lmax,wa->bin->ell_max);
   if((cw->spin0_only) && (spin_a+spin_b+spin_c+spin_d != 0))
     report_error(NMT_ERROR_COVAR,"Coupling coefficients only computed for spin=0\n");

@@ -70,11 +70,11 @@ class NmtField(object):
             :meth:`~pymaster.utils.get_default_params`,
             and modified via :meth:`~pymaster.utils.set_n_iter_default`.
         lmax (:obj:`int`): Maximum multipole up to which map power spectra
-            will be computed. If negative or zero, the maximum multipole given
+            will be computed. If ``None``, the maximum multipole given
             the map resolution will be used (e.g. :math:`3N_{\\rm side}-1`
             for HEALPix maps).
         lmax_mask (:obj:`int`): Maximum multipole up to which the power
-            spectrum of the mask will be computed. If negative or zero, the
+            spectrum of the mask will be computed. If ``None``, the
             maximum multipole given the map resolution will be used (e.g.
             :math:`3N_{\\rm side}-1` for HEALPix maps).
         tol_pinv (:obj:`float`): When computing the pseudo-inverse of the
@@ -182,6 +182,9 @@ class NmtField(object):
             lmax = self.minfo.get_lmax()
         if lmax_mask is None:
             lmax_mask = self.minfo.get_lmax()
+        if (lmax <= 0) or (lmax_mask <= 0):
+            raise ValueError("`lmax` and `lmax_mask` must be positive.")
+
         self.ainfo = ut.NmtAlmInfo(lmax)
         self.ainfo_mask = ut.NmtAlmInfo(lmax_mask)
 

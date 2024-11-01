@@ -308,3 +308,9 @@ def test_field_error():
     with pytest.raises(ValueError):
         f = nmt.NmtField(FT.msk, [FT.mps[1], FT.mps[2]], spin=1,
                          purify_b=True, n_iter=0)
+
+    # lmax must be zero
+    with pytest.raises(ValueError):
+        nmt.NmtField(FT.msk, [FT.mps[0]], lmax=0)
+    with pytest.raises(ValueError):
+        nmt.NmtField(FT.msk, [FT.mps[0]], lmax_mask=0)
