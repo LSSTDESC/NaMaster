@@ -994,9 +994,45 @@ class NmtFieldCatalogClustering(NmtField):
         lonlat (:obj:`bool`): If ``True``, longitude and latitude in degrees
             are provided as input. If ``False``, colatitude and longitude in
             radians are provided instead.
+        templates (`array`): Array containing a set of contaminant templates
+            for this field. This array should have shape ``[ntemp,nmap,...]``,
+            where ``ntemp`` is the number of templates, ``nmap`` should be 1
+            for spin-0 fields and 2 otherwise. The other dimensions should be
+            ``[npix]`` for HEALPix maps or ``[ny,nx]`` for maps with
+            rectangular pixels. The best-fit contribution from each
+            contaminant is automatically removed from the maps unless
+            ``templates=None``.
+        masked_on_input (:obj:`bool`): Set to ``True`` if the input templates 
+            are already multiplied by the mask.
+        mask (`array`): Array containing a map corresponding to the
+            field's mask. Should be 1-dimensional for a HEALPix map or
+            2-dimensional for a map with rectangular (CAR) pixelization.
+            Only used if ``templates`` is not ``None`` and 
+            ``masked_on_input=False``. If not provided despite these conditions
+            being true, a mask will be constructed from the positions of the 
+            randoms.
+        n_iter (:obj:`int`): Number of iterations when computing the
+            :math:`a_{\\ell m}` s of the input maps. See the documentation of
+            :meth:`~pymaster.utils.map2alm`. If ``None``, it will default to
+            the internal value (see documentation of
+            :class:`~pymaster.utils.NmtParams`), which can be accessed via
+            :meth:`~pymaster.utils.get_default_params`, and modified via
+            :meth:`~pymaster.utils.set_n_iter_default`.
+        wcs (`WCS`): A WCS object if using rectangular (CAR) pixels (see
+            `the astropy documentation
+            <http://docs.astropy.org/en/stable/wcs/index.html>`_).
+        tol_pinv (:obj:`float`): When computing the pseudo-inverse of the
+            contaminant covariance matrix. See documentation of
+            :meth:`~pymaster.utils.moore_penrose_pinvh`. Only relevant if
+            passing contaminant templates that are likely to be highly
+            correlated. If ``None``, it will default to the internal value,
+            which can be accessed via
+            :meth:`~pymaster.utils.get_default_params`, and modified via
+            :meth:`~pymaster.utils.set_tol_pinv_default`.
     """
     def __init__(self, positions, weights, positions_rand, weights_rand,
-                 lmax, lonlat=False):
+                 lmax, lonlat=False, templates=None, masked_on_input=False, 
+                 mask=None, n_iter=None, wcs=None, tol_pinv=None):
         # Preliminary initializations
         if ut.HAVE_DUCC:
             self.sht_calculator = 'ducc'
@@ -1005,9 +1041,9 @@ class NmtFieldCatalogClustering(NmtField):
 
         # These first attributes are compulsory for all fields
         self.lite = True
-        self.mask = None
+        self.mask = mask
         self.beam = np.ones(lmax+1)
-        self.n_iter = None
+        self.n_iter = n_iter
         self.n_iter_mask = None
         self.pure_e = False
         self.pure_b = False
@@ -1020,10 +1056,11 @@ class NmtFieldCatalogClustering(NmtField):
         self.spin = 0
         self.is_catalog = True
 
-        # The remaining attributes are only required for non-lite maps
-        self.maps = None
+        # These attributes are only required if templates are provided for deprojection
         self.temp = None
         self.alm_temp = None
+        # The remaining attributes are only required for non-lite maps
+        self.maps = None
         self.minfo = None
         self.n_temp = 0
         self.anisotropic_mask = False
@@ -1091,3 +1128,80 @@ class NmtFieldCatalogClustering(NmtField):
 
         # Compute field shot noise
         self._Nf = np.sum(weights**2)/(4*np.pi)+self._Nw
+
+        # Systematics mitigation with mode deprojection
+        if templates is not None:
+            # Initialisation of parameters related to deprojection
+            if n_iter is None:
+                n_iter = ut.nmt_params.n_iter_default
+            if tol_pinv is None:
+                tol_pinv = ut.nmt_params.tol_pinv_default
+            self.n_temp = len(templates)
+            
+            # Check format of templates
+            if isinstance(templates, (list, tuple, np.ndarray)):
+                templates = np.array(templates, dtype=np.float64)
+                if (len(templates[0]) != 1):
+                    raise ValueError("Templates must have length 1 "
+                                     "along axis 1.")
+                # Get spatial info from first template
+                self.minfo = ut.NmtMapInfo(wcs, templates.shape[2:])
+                templates = self.minfo.reform_map(templates)
+                self.n_temp = len(templates)
+            else:
+                raise ValueError("Input templates can only be an array "
+                                 "or None")
+            
+            # Get the number of pixels in each template and convert to NSIDE
+            npix = len(templates[0][0])
+            nside = hp.npix2nside(npix)
+            # Identify the pixels to which each data/random galaxy belongs
+            ipix_data = hp.ang2pix(nside, *positions)
+            ipix_rand = hp.ang2pix(nside, *positions_rand)
+
+            # Check if templates have been masked before input
+            if not masked_on_input:
+                # Check if a mask has been provided
+                if mask is None:
+                    # Generate a mask from the positions of the randoms
+                    mask = np.bincount(ipix_rand, minlength=npix).astype(np.float64)
+                    # Normalise to range [0,1]
+                    mask /= mask.max()
+                # Get spatial info from mask
+                self.mask = self.minfo.reform_map(mask)
+
+                # Multiply the templates by the mask
+                templates *= self.mask[None, :]
+            
+            # Get the template values at each source's position
+            temp_at_data = templates[:, :, ipix_data]
+            temp_at_rand = templates[:, :, ipix_rand]
+            # Multiply by the weights assigned to each galaxy
+            temp_at_data *= weights[None, None, :]
+            temp_at_rand *= weights_rand[None, None, :]
+            # Sum across all sources
+            S_data = temp_at_data.sum(axis=2)
+            S_rand = temp_at_rand.sum(axis=2)
+            # Weighted difference between the two sums
+            dS = S_data - self._alpha * S_rand 
+
+            # Compute alms of each template
+            alm_temp = np.array([ut.map2alm(t, self.spin, self.minfo,
+                                                self.ainfo, n_iter=n_iter)
+                                     for t in templates])
+            
+            # Compute template normalisation matrix
+            M = np.array([[self.minfo.si.dot_map(t1, t2)
+                           for t1 in templates]
+                          for t2 in templates])
+            iM = ut.moore_penrose_pinvh(M, tol_pinv)
+
+            # Compute the alms of the deprojected component
+            alm_deproj = np.zeros(self.alm.shape, dtype=np.complex128)
+            for i in range(self.n_temp):
+                for j in range(self.n_temp):
+                    alm_deproj += alm_temp[i] * iM[i][j] * dS[j]
+
+            # Subtract from the alms of the field
+            self.alm -= alm_deproj
+
