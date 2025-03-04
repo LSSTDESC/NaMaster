@@ -1002,14 +1002,14 @@ class NmtFieldCatalogClustering(NmtField):
             rectangular pixels. The best-fit contribution from each
             contaminant is automatically removed from the maps unless
             ``templates=None``.
-        masked_on_input (:obj:`bool`): Set to ``True`` if the input templates 
+        masked_on_input (:obj:`bool`): Set to ``True`` if the input templates
             are already multiplied by the mask.
         mask (`array`): Array containing a map corresponding to the
             field's mask. Should be 1-dimensional for a HEALPix map or
             2-dimensional for a map with rectangular (CAR) pixelization.
-            Only used if ``templates`` is not ``None`` and 
+            Only used if ``templates`` is not ``None`` and
             ``masked_on_input=False``. If not provided despite these conditions
-            being true, a mask will be constructed from the positions of the 
+            being true, a mask will be constructed from the positions of the
             randoms.
         n_iter (:obj:`int`): Number of iterations when computing the
             :math:`a_{\\ell m}` s of the input maps. See the documentation of
@@ -1031,7 +1031,7 @@ class NmtFieldCatalogClustering(NmtField):
             :meth:`~pymaster.utils.set_tol_pinv_default`.
     """
     def __init__(self, positions, weights, positions_rand, weights_rand,
-                 lmax, lonlat=False, templates=None, masked_on_input=False, 
+                 lmax, lonlat=False, templates=None, masked_on_input=False,
                  mask=None, n_iter=None, wcs=None, tol_pinv=None):
         # Preliminary initializations
         if ut.HAVE_DUCC:
@@ -1056,7 +1056,7 @@ class NmtFieldCatalogClustering(NmtField):
         self.spin = 0
         self.is_catalog = True
 
-        # These attributes are only required if templates are provided for deprojection
+        # These attributes only required if templates provided for deprojection
         self.temp = None
         self.alm_temp = None
         # The remaining attributes are only required for non-lite maps
@@ -1137,7 +1137,7 @@ class NmtFieldCatalogClustering(NmtField):
             if tol_pinv is None:
                 tol_pinv = ut.nmt_params.tol_pinv_default
             self.n_temp = len(templates)
-            
+
             # Check format of templates
             if isinstance(templates, (list, tuple, np.ndarray)):
                 templates = np.array(templates, dtype=np.float64)
@@ -1151,7 +1151,7 @@ class NmtFieldCatalogClustering(NmtField):
             else:
                 raise ValueError("Input templates can only be an array "
                                  "or None")
-            
+
             # Get the number of pixels in each template and convert to NSIDE
             npix = len(templates[0][0])
             nside = hp.npix2nside(npix)
@@ -1164,7 +1164,8 @@ class NmtFieldCatalogClustering(NmtField):
                 # Check if a mask has been provided
                 if mask is None:
                     # Generate a mask from the positions of the randoms
-                    mask = np.bincount(ipix_rand, minlength=npix).astype(np.float64)
+                    mask = np.bincount(ipix_rand,
+                                       minlength=npix).astype(np.float64)
                     # Normalise to range [0,1]
                     mask /= mask.max()
                 # Get spatial info from mask
@@ -1172,7 +1173,7 @@ class NmtFieldCatalogClustering(NmtField):
 
                 # Multiply the templates by the mask
                 templates *= self.mask[None, :]
-            
+
             # Get the template values at each source's position
             temp_at_data = templates[:, :, ipix_data]
             temp_at_rand = templates[:, :, ipix_rand]
@@ -1183,13 +1184,13 @@ class NmtFieldCatalogClustering(NmtField):
             S_data = temp_at_data.sum(axis=2)
             S_rand = temp_at_rand.sum(axis=2)
             # Weighted difference between the two sums
-            dS = S_data - self._alpha * S_rand 
+            dS = S_data - self._alpha * S_rand
 
             # Compute alms of each template
             alm_temp = np.array([ut.map2alm(t, self.spin, self.minfo,
-                                                self.ainfo, n_iter=n_iter)
-                                     for t in templates])
-            
+                                            self.ainfo, n_iter=n_iter)
+                                for t in templates])
+
             # Compute template normalisation matrix
             M = np.array([[self.minfo.si.dot_map(t1, t2)
                            for t1 in templates]
@@ -1204,4 +1205,3 @@ class NmtFieldCatalogClustering(NmtField):
 
             # Subtract from the alms of the field
             self.alm -= alm_deproj
-
