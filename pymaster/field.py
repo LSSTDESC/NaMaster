@@ -1018,6 +1018,12 @@ class NmtFieldCatalogClustering(NmtField):
             :class:`~pymaster.utils.NmtParams`), which can be accessed via
             :meth:`~pymaster.utils.get_default_params`, and modified via
             :meth:`~pymaster.utils.set_n_iter_default`.
+        n_iter_mask (:obj:`int`): Number of iterations when computing the
+            spherical harmonic transform of the mask. If ``None``, it will
+            default to the internal value (see documentation of
+            :class:`~pymaster.utils.NmtParams`), which can be accessed via
+            :meth:`~pymaster.utils.get_default_params`,
+            and modified via :meth:`~pymaster.utils.set_n_iter_default`.
         wcs (`WCS`): A WCS object if using rectangular (CAR) pixels (see
             `the astropy documentation
             <http://docs.astropy.org/en/stable/wcs/index.html>`_).
@@ -1032,7 +1038,8 @@ class NmtFieldCatalogClustering(NmtField):
     """
     def __init__(self, positions, weights, lmax, positions_rand=None,
                  weights_rand=None, mask=None, lonlat=False, templates=None,
-                 masked_on_input=False, n_iter=None, wcs=None, tol_pinv=None):
+                 masked_on_input=False, n_iter=None, n_iter_mask=None,
+                 wcs=None, tol_pinv=None):
         # Preliminary initializations
         if ut.HAVE_DUCC:
             self.sht_calculator = 'ducc'
@@ -1044,7 +1051,7 @@ class NmtFieldCatalogClustering(NmtField):
         self.mask = mask
         self.beam = np.ones(lmax+1)
         self.n_iter = n_iter
-        self.n_iter_mask = None
+        self.n_iter_mask = n_iter_mask
         self.pure_e = False
         self.pure_b = False
         self.alm = None
@@ -1104,22 +1111,52 @@ class NmtFieldCatalogClustering(NmtField):
             return pos, w
 
         positions, weights = process_pos_w(positions, weights, "data")
-        positions_rand, weights_rand = process_pos_w(positions_rand,
-                                                     weights_rand, "random")
 
-        # Compute alpha
-        self._alpha = np.sum(weights)/np.sum(weights_rand)
-
-        # Compute mask shot noise
-        self._Nw = self._alpha**2*np.sum(weights_rand**2.)/(4.*np.pi)
-
-        # Compute mask alms
-        # Sanity checks
+        # Define alm info for mask using same lmax as field
         self.ainfo_mask = ut.NmtAlmInfo(lmax)
-        # Mask alms
-        self.alm_mask = ut._catalog2alm_ducc0(weights_rand*self._alpha,
-                                              positions_rand,
-                                              spin=0, lmax=lmax)
+
+        # Check if mask provided, use randoms if not
+        if mask is None:
+            positions_rand, weights_rand = process_pos_w(positions_rand,
+                                                         weights_rand,
+                                                         "random")
+            # Compute alpha
+            self._alpha = np.sum(weights)/np.sum(weights_rand)
+
+            # Compute mask shot noise
+            self._Nw = self._alpha**2*np.sum(weights_rand**2.)/(4.*np.pi)
+
+            # Compute mask alms
+            self.alm_mask = ut._catalog2alm_ducc0(weights_rand*self._alpha,
+                                                  positions_rand,
+                                                  spin=0, lmax=lmax)
+        # If mask provided, ignore/replace randoms-related quantities
+        else:
+            # Get the number of pixels in the mask and convert to NSIDE
+            # NOTE: assumes HealPIX format for now
+            npix = len(mask)
+            nside = hp.npix2nside(npix)
+            # Pixel area in steradians
+            Apix = 4. * np.pi / npix
+
+            # Initialisation of parameters related to the mask
+            if n_iter_mask is None:
+                n_iter_mask = ut.nmt_params.n_iter_default
+            # No randoms, so set alpha to 1
+            self._alpha = 1.
+            # No shot noise for map-based masks
+            self._Nw = 0.
+
+            # Use mask to estimate expected mean number density in each pixel
+            nbar = mask * np.sum(weights) / (Apix * np.sum(mask))
+
+            # Get spatial info from the mask
+            self.minfo = ut.NmtMapInfo(wcs, mask.shape)
+            self.mask = self.minfo.reform_map(mask)
+            # Compute mask alms
+            self.alm_mask = ut.map2alm(np.array([nbar]), 0,
+                                       self.minfo, self.ainfo_mask,
+                                       n_iter=n_iter_mask)
 
         # Compute field alms
         self.alm = ut._catalog2alm_ducc0(weights, positions,
@@ -1144,47 +1181,57 @@ class NmtFieldCatalogClustering(NmtField):
                 if (len(templates[0]) != 1):
                     raise ValueError("Templates must have length 1 "
                                      "along axis 1.")
-                # Get spatial info from first template
-                self.minfo = ut.NmtMapInfo(wcs, templates.shape[2:])
-                templates = self.minfo.reform_map(templates)
-                self.n_temp = len(templates)
             else:
                 raise ValueError("Input templates can only be an array "
                                  "or None")
 
-            # Get the number of pixels in each template and convert to NSIDE
-            npix = len(templates[0][0])
-            nside = hp.npix2nside(npix)
-            # Identify the pixels to which each data/random galaxy belongs
-            ipix_data = hp.ang2pix(nside, *positions)
-            ipix_rand = hp.ang2pix(nside, *positions_rand)
+            # Method of deprojection depends on whether mask provided
+            if mask is None:
+                # Get spatial info from first template
+                self.minfo = ut.NmtMapInfo(wcs, templates.shape[2:])
+                templates = self.minfo.reform_map(templates)
+                # Get the number of pixels per template and convert to NSIDE
+                npix = len(templates[0][0])
+                nside = hp.npix2nside(npix)
+                # Identify the pixels to which each random belongs
+                ipix_rand = hp.ang2pix(nside, *positions_rand)
 
-            # Check if templates have been masked before input
-            if not masked_on_input:
-                # Check if a mask has been provided
-                if mask is None:
+                # Apply mask to templates if not done already
+                if not masked_on_input:
                     # Generate a mask from the positions of the randoms
                     mask = np.bincount(ipix_rand,
                                        minlength=npix).astype(np.float64)
                     # Normalise to range [0,1]
                     mask /= mask.max()
-                # Get spatial info from mask
-                self.mask = self.minfo.reform_map(mask)
+                    # Multiply the templates by the mask
+                    templates *= mask[None, :]
 
-                # Multiply the templates by the mask
-                templates *= self.mask[None, :]
+                # Get the template values at each random's position
+                temp_at_rand = templates[:, :, ipix_rand]
+                # Multiply by the weights assigned to each random
+                temp_at_rand *= weights_rand[None, None, :]
+                # Sum across all randoms
+                S_rand = temp_at_rand.sum(axis=2) * self._alpha
+            else:
+                templates = self.minfo.reform_map(templates)
+                # Apply mask to templates if not done already
+                if not masked_on_input:
+                    templates *= mask[None, :]
+                S_rand = np.sum(Apix * templates * nbar[None, :], axis=2)
 
+            self.n_temp = len(templates)
+
+            # Identify the pixels to which each source belongs
+            ipix_data = hp.ang2pix(nside, *positions)
             # Get the template values at each source's position
             temp_at_data = templates[:, :, ipix_data]
-            temp_at_rand = templates[:, :, ipix_rand]
-            # Multiply by the weights assigned to each galaxy
+            # Multiply by the weights assigned to each source
             temp_at_data *= weights[None, None, :]
-            temp_at_rand *= weights_rand[None, None, :]
             # Sum across all sources
             S_data = temp_at_data.sum(axis=2)
-            S_rand = temp_at_rand.sum(axis=2)
+
             # Weighted difference between the two sums
-            dS = S_data - self._alpha * S_rand
+            dS = S_data - S_rand
 
             # Compute alms of each template
             alm_temp = np.array([ut.map2alm(t, self.spin, self.minfo,
