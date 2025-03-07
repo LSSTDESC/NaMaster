@@ -987,10 +987,17 @@ class NmtFieldCatalogClustering(NmtField):
             coordinates :math:`(\\theta,\\phi)`).
         weights (`array`): An array containing the weight assigned to
             each source.
-        positions_rand (`array`): As ``positions`` for the random catalog.
-        weights_rand (`array`): As ``weights`` for the random catalog.
         lmax (:obj:`int`): Maximum multipole up to which the spherical
             harmonics of this field will be computed.
+        positions_rand (`array`): As ``positions`` for the random catalog.
+        weights_rand (`array`): As ``weights`` for the random catalog.
+        mask (`array`): Array containing a map corresponding to the
+            field's mask. Should be 1-dimensional for a HEALPix map or
+            2-dimensional for a map with rectangular (CAR) pixelization.
+            Only used if ``templates`` is not ``None`` and
+            ``masked_on_input=False``. If not provided despite these conditions
+            being true, a mask will be constructed from the positions of the
+            randoms.
         lonlat (:obj:`bool`): If ``True``, longitude and latitude in degrees
             are provided as input. If ``False``, colatitude and longitude in
             radians are provided instead.
@@ -1004,13 +1011,6 @@ class NmtFieldCatalogClustering(NmtField):
             ``templates=None``.
         masked_on_input (:obj:`bool`): Set to ``True`` if the input templates
             are already multiplied by the mask.
-        mask (`array`): Array containing a map corresponding to the
-            field's mask. Should be 1-dimensional for a HEALPix map or
-            2-dimensional for a map with rectangular (CAR) pixelization.
-            Only used if ``templates`` is not ``None`` and
-            ``masked_on_input=False``. If not provided despite these conditions
-            being true, a mask will be constructed from the positions of the
-            randoms.
         n_iter (:obj:`int`): Number of iterations when computing the
             :math:`a_{\\ell m}` s of the input maps. See the documentation of
             :meth:`~pymaster.utils.map2alm`. If ``None``, it will default to
@@ -1030,9 +1030,9 @@ class NmtFieldCatalogClustering(NmtField):
             :meth:`~pymaster.utils.get_default_params`, and modified via
             :meth:`~pymaster.utils.set_tol_pinv_default`.
     """
-    def __init__(self, positions, weights, positions_rand, weights_rand,
-                 lmax, lonlat=False, templates=None, masked_on_input=False,
-                 mask=None, n_iter=None, wcs=None, tol_pinv=None):
+    def __init__(self, positions, weights, lmax, positions_rand=None,
+                 weights_rand=None, mask=None, lonlat=False, templates=None,
+                 masked_on_input=False, n_iter=None, wcs=None, tol_pinv=None):
         # Preliminary initializations
         if ut.HAVE_DUCC:
             self.sht_calculator = 'ducc'
