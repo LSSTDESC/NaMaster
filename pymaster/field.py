@@ -1004,9 +1004,9 @@ class NmtFieldCatalogClustering(NmtField):
             field's mask. Should be 1-dimensional for a HEALPix map or
             2-dimensional for a map with rectangular (CAR) pixelization.
             If not ``None``, the random catalogue (``positions_rand`` and
-            ``weights_rand``). Note that, if deprojection templates are
-            provided but no mask is passed, a mask will be constructed
-            from the random catalogue for deprojection.
+            ``weights_rand``) will be ignored. Note that, if deprojection
+            templates are provided but no mask is passed, a mask will be
+            constructed from the random catalogue for deprojection.
         lonlat (:obj:`bool`): If ``True``, longitude and latitude in degrees
             are provided as input. If ``False``, colatitude and longitude in
             radians are provided instead.
