@@ -258,6 +258,10 @@ def test_field_catalog_errors():
         nmt.NmtFieldCatalogClustering([[0., 0.], [1., 1.]], [1., 1.],
                                       [[0., 0.], [1., 1.]], [1., 1.], 10,
                                       templates=np.zeros([1, 12*64**2]))
+    with pytest.raises(ValueError):
+        nmt.NmtFieldCatalogClustering([[0., 0.], [1., 1.]], [1., 1.],
+                                      [[0., 0.], [1., 1.]], [1., 1.], 10,
+                                      templates=-5)
 
 
 def test_field_catalog_clustering_poisson():

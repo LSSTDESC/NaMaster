@@ -1182,7 +1182,6 @@ class NmtFieldCatalogClustering(NmtField):
                 n_iter = ut.nmt_params.n_iter_default
             if tol_pinv is None:
                 tol_pinv = ut.nmt_params.tol_pinv_default
-            self.n_temp = len(templates)
 
             # Check format of templates
             if isinstance(templates, (list, tuple, np.ndarray)):
@@ -1193,6 +1192,7 @@ class NmtFieldCatalogClustering(NmtField):
             else:
                 raise ValueError("Input templates can only be an array "
                                  "or None")
+            self.n_temp = len(templates)
 
             # Method of deprojection depends on whether mask provided
             if mask is None:
