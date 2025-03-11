@@ -253,6 +253,15 @@ def test_field_catalog_errors():
         nmt.NmtFieldCatalogClustering([[0., 0.], [1., 1.]], [1., 1.],
                                       [[0., 0.], [1., 1.]], [1., 1.], 10)
     nmt.utils.HAVE_DUCC = True
+    # Wrong template size ([1, npix] instead of [1, 1, npix])
+    with pytest.raises(ValueError):
+        nmt.NmtFieldCatalogClustering([[0., 0.], [1., 1.]], [1., 1.],
+                                      [[0., 0.], [1., 1.]], [1., 1.], 10,
+                                      templates=np.zeros([1, 12*64**2]))
+    with pytest.raises(ValueError):
+        nmt.NmtFieldCatalogClustering([[0., 0.], [1., 1.]], [1., 1.],
+                                      [[0., 0.], [1., 1.]], [1., 1.], 10,
+                                      templates=-5)
 
 
 def test_field_catalog_clustering_poisson():
@@ -310,3 +319,71 @@ def test_field_catalog_clustering_poisson():
         x = np.mean(c, axis=0)
         s = np.std(c, axis=0)/np.sqrt(nsims)
         assert np.all(np.fabs(x) < 5*s)
+
+
+def test_field_catalog_clustering_deproj():
+    nside = 128
+    npix = hp.nside2npix(nside)
+
+    # Create depth variations
+    depth = np.ones(npix)
+    for lat in np.linspace(-60, 60, 5):
+        for lon in np.linspace(0, 360, 10):
+            v = hp.ang2vec(lon, lat, lonlat=True)
+            ip = hp.query_disc(nside, v, np.radians(5))
+            depth[ip] = 0.7
+    fsky = np.sum(depth)/len(depth)
+    depth_var = depth - np.mean(depth)
+
+    # Create random catalog
+    pos_ran = np.array([np.arccos(-1+2*np.random.rand(4*npix)),
+                        2*np.pi*np.random.rand(4*npix)])
+    w_ran = np.ones(4*npix)
+
+    # Create dummy field for workspaces
+    b = nmt.NmtBin.from_nside_linear(nside, 4)
+    f = nmt.NmtFieldCatalogClustering(pos_ran, w_ran, pos_ran, w_ran,
+                                      lmax=3*nside-1)
+    w = nmt.NmtWorkspace.from_fields(f, f, b)
+
+    nsims = 10
+    ncat = npix//4
+    cls_biased = []
+    cls_deproj_cat = []
+    cls_deproj_msk = []
+    for i in range(nsims):
+        # Generate sim and get C_ell
+        pos_dat = np.array([np.arccos(-1+2*np.random.rand(ncat)),
+                            2*np.pi*np.random.rand(ncat)])
+        keep = np.random.rand(ncat) < depth[hp.ang2pix(nside, *pos_dat)]
+        pos_dat = pos_dat[:, keep]
+        w_dat = np.ones(pos_dat.shape[1])
+        f = nmt.NmtFieldCatalogClustering(pos_dat, w_dat, pos_ran, w_ran,
+                                          lmax=3*nside-1)
+        assert np.isclose(f.alpha, fsky/16, rtol=0.1)
+        cls_biased.append(w.decouple_cell(nmt.compute_coupled_cell(f, f)))
+        f = nmt.NmtFieldCatalogClustering(pos_dat, w_dat, pos_ran, w_ran,
+                                          lmax=3*nside-1,
+                                          templates=[[depth_var]])
+        cls_deproj_cat.append(w.decouple_cell(nmt.compute_coupled_cell(f, f)))
+        f = nmt.NmtFieldCatalogClustering(pos_dat, w_dat, None, None,
+                                          lmax=3*nside-1, mask=np.ones(npix),
+                                          templates=[[depth_var]])
+        cls_deproj_msk.append(w.decouple_cell(nmt.compute_coupled_cell(f, f)))
+    cls_biased = np.array(cls_biased).squeeze()
+    cls_deproj_cat = np.array(cls_deproj_cat).squeeze()
+    cls_deproj_msk = np.array(cls_deproj_msk).squeeze()
+
+    def check_biased(c_ells, biased_bad=True):
+        x = np.mean(c_ells, axis=0)
+        s = np.std(c_ells, axis=0)/np.sqrt(nsims)
+        if biased_bad:
+            assert np.all(np.fabs(x) < 5*s)
+        else:
+            assert np.any(np.fabs(x) > 5*s)
+
+    # Check that the power spectra are biased without deprojection
+    check_biased(cls_biased, biased_bad=False)
+    # But they're unbiased otherwise (whether randoms or mask are passed)
+    check_biased(cls_deproj_msk)
+    check_biased(cls_deproj_msk)
