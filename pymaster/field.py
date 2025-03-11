@@ -977,6 +977,15 @@ class NmtFieldCatalogClustering(NmtField):
     of discrete sources, with a survey footprint characterised by a set of
     random points or through a standard mask.
 
+    .. note::
+        The ordering of arguments for this class will change in the next
+        major version of NaMaster.
+
+    .. note::
+        Currently only HEALPix format is accepted for the mask and
+        templates passed to this field, but we hope to implement CAR
+        pixelisation in the near future.
+
     Args:
         positions (`array`): Source positions, provided as a list or array
             of 2 arrays. If ``lonlat`` is True, the arrays should contain the
@@ -987,17 +996,17 @@ class NmtFieldCatalogClustering(NmtField):
             coordinates :math:`(\\theta,\\phi)`).
         weights (`array`): An array containing the weight assigned to
             each source.
-        lmax (:obj:`int`): Maximum multipole up to which the spherical
-            harmonics of this field will be computed.
         positions_rand (`array`): As ``positions`` for the random catalog.
         weights_rand (`array`): As ``weights`` for the random catalog.
+        lmax (:obj:`int`): Maximum multipole up to which the spherical
+            harmonics of this field will be computed.
         mask (`array`): Array containing a map corresponding to the
             field's mask. Should be 1-dimensional for a HEALPix map or
             2-dimensional for a map with rectangular (CAR) pixelization.
-            Only used if ``templates`` is not ``None`` and
-            ``masked_on_input=False``. If not provided despite these conditions
-            being true, a mask will be constructed from the positions of the
-            randoms.
+            If not ``None``, the random catalogue (``positions_rand`` and
+            ``weights_rand``). Note that, if deprojection templates are
+            provided but no mask is passed, a mask will be constructed
+            from the random catalogue for deprojection.
         lonlat (:obj:`bool`): If ``True``, longitude and latitude in degrees
             are provided as input. If ``False``, colatitude and longitude in
             radians are provided instead.
@@ -1036,8 +1045,8 @@ class NmtFieldCatalogClustering(NmtField):
             :meth:`~pymaster.utils.get_default_params`, and modified via
             :meth:`~pymaster.utils.set_tol_pinv_default`.
     """
-    def __init__(self, positions, weights, lmax, positions_rand=None,
-                 weights_rand=None, mask=None, lonlat=False, templates=None,
+    def __init__(self, positions, weights, positions_rand, weights_rand,
+                 lmax, lonlat=False, mask=None, templates=None,
                  masked_on_input=False, n_iter=None, n_iter_mask=None,
                  wcs=None, tol_pinv=None):
         # Preliminary initializations
