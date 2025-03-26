@@ -9,7 +9,6 @@ dependencies:
   - scipy
   - pytest
   - pytest-cov
-  - coveralls
-  - coverage<5
   - pip:
     - ducc0
+    - coveralls
