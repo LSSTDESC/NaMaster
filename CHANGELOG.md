@@ -1,3 +1,15 @@
+# v2.4
+- Mode deprojection enabled for `NmtFieldCatalogClustering` fields (#227)
+
+# v2.3.1
+- Fixed docstrings (#224)
+
+# v2.3.2
+- Fixed azimuth wrapping issue in CAR (#222)
+
+# v2.3.1
+- Fixed API-breaking change in ducc0 (#220)
+
 # v2.3
 - Support for anisotropically-weighted fields (#217)
 
