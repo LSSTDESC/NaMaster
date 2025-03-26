@@ -1,14 +1,14 @@
 name: test  # default testing environment name from conda-incubator
 dependencies:
-  - python=3.11
+  - python=3.13
   - pip
   - setuptools_scm
   - numpy
   # The below is only because the version of healpy that gets installed on mac uses deprecated scipy functions.
   # We should remove the <1.14 flag as soon as this is fixed.
-  - scipy<1.14
-  - pytest
-  - pytest-cov
-  - coveralls
+  - scipy
   - pip:
     - ducc0
+    - coveralls
+    - pytest
+    - pytest-cov

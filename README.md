@@ -101,5 +101,6 @@ If you use NaMaster for any scientific publication, we kindly ask you to cite th
 - Zack Li (@xzackli)
 - Thibaut Louis (@thibautlouis)
 - Tom Cornish (@tmcornish)
+- Kevin Wolz (@kwolz)
 
 For feedback, please contact the author via github issues or email (david.alonso@physics.ox.ac.uk).
