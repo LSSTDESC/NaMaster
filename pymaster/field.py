@@ -843,13 +843,32 @@ class NmtFieldCatalog(NmtField):
             ``None``, no beam will be corrected for. Otherwise, this array
             should have at least of size ``lmax+1``.
         field_is_weighted (:obj:`bool`): Set to ``True`` if the input field has
-            already been multiplied by the source weights.
+            already been multiplied by the source weights. The same will also
+            be assumed of the contaminant templates (see ``templates``).
         lonlat (:obj:`bool`): If ``True``, longitude and latitude in degrees
             are provided as input. If ``False``, colatitude and longitude in
             radians are provided instead.
+        templates (`array`): Array containing the values of a set of
+            contaminant templates for this field sampled at the source
+            positions. This array should have a shape ``[ntemp, nmap, nsrc]``,
+            where ``ntemp`` is the number of templates, ``nmap`` is 1 for
+            spin-0 fields and 2 otherwise, and ``nsrc`` is the number of
+            sources in the catalogue (i.e. the length of ``weights``). The
+            best-fit contribution from all contaminants is automatically
+            subtracted (i.e. deprojected) from the field values for each
+            source. If ``None``, no deprojection is carried out.
+        tol_pinv (:obj:`float`): When computing the pseudo-inverse of the
+            contaminant covariance matrix. See documentation of
+            :meth:`~pymaster.utils.moore_penrose_pinvh`. Only relevant if
+            passing contaminant templates that are likely to be highly
+            correlated. If ``None``, it will default to the internal value,
+            which can be accessed via
+            :meth:`~pymaster.utils.get_default_params`, and modified via
+            :meth:`~pymaster.utils.set_tol_pinv_default`.
     """
     def __init__(self, positions, weights, field, lmax, lmax_mask=None,
-                 spin=None, beam=None, field_is_weighted=False, lonlat=False):
+                 spin=None, beam=None, field_is_weighted=False, lonlat=False,
+                 templates=None, tol_pinv=None):
         # 0. Preliminary initializations
         if ut.HAVE_DUCC:
             self.sht_calculator = 'ducc'
@@ -964,6 +983,30 @@ class NmtFieldCatalog(NmtField):
             raise ValueError(f"Field should have shape {(self.nmaps, nsrcs)}.")
         if not field_is_weighted:
             self.field *= weights
+
+        # 3. Contaminant deprojection
+        if templates is not None:
+            ntemp = len(templates)
+            if templates.shape != (ntemp, self.nmaps, nsrcs):
+                raise ValueError("Templates should have shape "
+                                 f"{(ntemp, self.nmaps, nsrcs)}")
+            if not field_is_weighted:
+                templates *= weights
+            if tol_pinv is None:
+                tol_pinv = ut.nmt_params.tol_pinv_default
+
+            M = np.array([[np.sum(t1*t2)
+                           for t1 in templates]
+                          for t2 in templates])
+            iM = ut.moore_penrose_pinvh(M, tol_pinv)
+            prods = np.array([np.sum(t*self.field)
+                              for t in templates])
+            alphas = np.dot(iM, prods)
+            self.iM = iM
+            self.alphas = alphas
+            self.field = self.field - np.sum(alphas[:, None, None]*templates,
+                                             axis=0)
+
         self.alm = ut._catalog2alm_ducc0(self.field, positions,
                                          spin=spin, lmax=lmax)
 
