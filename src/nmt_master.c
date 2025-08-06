@@ -677,7 +677,7 @@ nmt_master_calculator *nmt_compute_master_coefficients(int lmax, int lmax_mask,
   c->xi_mm=NULL;
   if(c->pure_any) {
     c->npure_0s=2;
-    c->npure_ss=3;
+    c->npure_ss=4;
   }
   else {
     c->npure_0s=1;
@@ -765,8 +765,11 @@ nmt_master_calculator *nmt_compute_master_coefficients(int lmax, int lmax_mask,
   shared(c, lstart, do_teb, pcl_masks, has_ss2) \
   shared(l_toeplitz, l_exact, dl_band)
   {
-    int ll2,ll3,icc;
-    double *wigner_00=NULL,*wigner_ss1=NULL,*wigner_12=NULL,*wigner_02=NULL,*wigner_ss2=NULL;
+    int ll2,ll3,icc,iss;
+    int pure_reuse=((c->pure_e1 || c->pure_b1) && (c->pure_e2 || c->pure_b2) && (c->s1 == c->s2));
+    double *wigner_00=NULL,*wigner_ss1=NULL,*wigner_ss2=NULL;
+    double **wigner_pure1, **wigner_pure2;
+    int *lmins_pure1, *lmins_pure2, *lmaxs_pure1, *lmaxs_pure2;
     if(c->has_00 || c->has_0s)
       wigner_00=my_malloc(2*(c->lmax_mask+1)*sizeof(double));
     if(c->has_0s || c->has_ss)
@@ -776,8 +779,27 @@ nmt_master_calculator *nmt_compute_master_coefficients(int lmax, int lmax_mask,
     else
       wigner_ss2=wigner_ss1;
     if(c->pure_any) {
-      wigner_12=my_malloc(2*(c->lmax_mask+1)*sizeof(double));
-      wigner_02=my_malloc(2*(c->lmax_mask+1)*sizeof(double));
+      if(c->pure_e1 || c->pure_b1) {
+	lmins_pure1 = my_malloc(c->s1*sizeof(int));
+	lmaxs_pure1 = my_malloc(c->s1*sizeof(int));
+	wigner_pure1 = my_malloc(c->s1*sizeof(double *));
+	for(iss=0;iss<c->s1;iss++)
+	  wigner_pure1[iss] = my_malloc(2*(c->lmax_mask+1)*sizeof(double));
+      }
+      if(c->pure_e2 || c->pure_b2) {
+	if(pure_reuse) {
+	  lmins_pure2 = lmins_pure1;
+	  lmaxs_pure2 = lmaxs_pure1;
+	  wigner_pure2 = wigner_pure1;
+	}
+	else {
+	  lmins_pure2 = my_malloc(c->s2*sizeof(int));
+	  lmaxs_pure2 = my_malloc(c->s2*sizeof(int));
+	  wigner_pure2 = my_malloc(c->s2*sizeof(double *));
+	  for(iss=0;iss<c->s2;iss++)
+	    wigner_pure2[iss] = my_malloc(2*(c->lmax_mask+1)*sizeof(double));
+	}
+      }
     }
 
 #pragma omp for schedule(dynamic)
@@ -787,14 +809,27 @@ nmt_master_calculator *nmt_compute_master_coefficients(int lmax, int lmax_mask,
       if(!(c->pure_any)) //We can use symmetry
         l3_start=ll2;
       for(ll3=l3_start;ll3<=l3_end;ll3++) {
-        int l1,lmin_here,lmax_here;
+        int ss, l1,lmin_here,lmax_here;
         int lmin_00=0,lmax_00=2*(c->lmax_mask+1)+1;
         int lmin_ss1=0,lmax_ss1=2*(c->lmax_mask+1)+1;
         int lmin_ss2=0,lmax_ss2=2*(c->lmax_mask+1)+1;
-        int lmin_12=0,lmax_12=2*(c->lmax_mask+1)+1;
-        int lmin_02=0,lmax_02=2*(c->lmax_mask+1)+1;
         lmin_here=abs(ll2-ll3);
         lmax_here=ll2+ll3;
+
+	if(c->pure_any) {
+	  if(c->pure_e1 || c->pure_b1) {
+	    for(ss=0;ss<c->s1;ss++) {
+	      lmins_pure1[ss]=0;
+	      lmaxs_pure1[ss]=2*(c->lmax_mask+1)+1;
+	    }
+	  }
+	  if((c->pure_e2 || c->pure_b2) && (!(pure_reuse))) {
+	    for(ss=0;ss<c->s1;ss++) {
+	      lmins_pure2[ss]=0;
+	      lmaxs_pure2[ss]=2*(c->lmax_mask+1)+1;
+	    }
+	  }
+	}
 
         if(l_toeplitz > 0) {
           //Set all elements that will be recomputed to zero
@@ -821,16 +856,20 @@ nmt_master_calculator *nmt_compute_master_coefficients(int lmax, int lmax_mask,
           lmax_ss2=lmax_ss1;
         }
 	if(c->pure_any) {
-	  drc3jj(ll2,ll3,1,-2,&lmin_12,&lmax_12,wigner_12,2*(c->lmax_mask+1));
-	  drc3jj(ll2,ll3,0,-2,&lmin_02,&lmax_02,wigner_02,2*(c->lmax_mask+1));
+	  if(c->pure_e1 || c->pure_b1) {
+	    for(ss=0;ss<c->s1;ss++)
+	      drc3jj(ll2,ll3,ss,-c->s1,&(lmins_pure1[ss]),&(lmaxs_pure1[ss]),wigner_pure1[ss],2*(c->lmax_mask+1));
+	  }
+	  if(!(pure_reuse) && (c->pure_e2 || c->pure_b2)) {
+	    for(ss=0;ss<c->s2;ss++)
+	      drc3jj(ll2,ll3,ss,-c->s2,&(lmins_pure2[ss]),&(lmaxs_pure2[ss]),wigner_pure2[ss],2*(c->lmax_mask+1));
+	  }
 	}
 
         for(l1=lmin_here;l1<=lmax_here;l1++) {
           int ipp;
           if(l1<=c->lmax_mask) {
-            flouble wfac,fac_12=0,fac_02=0;
-            flouble w00=0,wss1=0,wss2=0,w12=0,w02=0;
-            int j02,j12;
+            flouble wfac, w00=0,wss1=0,wss2=0,wp1=0,wp2=0;
             int j00=l1-lmin_00;
             int jss1=l1-lmin_ss1;
             int jss2=l1-lmin_ss2;
@@ -842,29 +881,31 @@ nmt_master_calculator *nmt_compute_master_coefficients(int lmax, int lmax_mask,
             }
 
             if(c->pure_any) {
-	      j12=l1-lmin_12;
-	      j02=l1-lmin_02;
-	      if(ll2>1.) {
-		fac_12=2*sqrt((l1+1.)*(l1+0.)/((ll2+2)*(ll2-1.)));
-		if(l1>1.)
-		  fac_02=sqrt((l1+2.)*(l1+1.)*(l1+0.)*(l1-1.)/((ll2+2.)*(ll2+1.)*(ll2+0.)*(ll2-1.)));
-		else
-		  fac_02=0;
+	      if(c->pure_e1 || c->pure_b1) {
+		wp1=wss1;
+		for(ss=0;ss<c->s1;ss++) {
+		  int jp=l1-lmins_pure1[ss];
+		  // (s // n) * sqrt((l-s)! (l+n)! (l''+s-n)! / [(l+s)! (l-n)! (l''-s+n)!])
+		  double fac=(c->lfac[c->s1]-c->lfac[ss]-c->lfac[c->s1-ss]+
+			      0.5*(c->lfac[ll2-c->s1]+c->lfac[ll2+ss]+c->lfac[l1+c->s1-ss])-
+			      0.5*(c->lfac[ll2+c->s1]+c->lfac[ll2-ss]+c->lfac[l1-c->s1+ss]));
+		  fac=exp(fac);
+		  if(jp >= 0)
+		    wp1 += fac*wigner_pure1[ss][jp];
+		}
 	      }
-	      else {
-		fac_12=0;
-		fac_02=0;
+	      if(c->pure_e2 || c->pure_b2) {
+		wp2=wss2;
+		for(ss=0;ss<c->s2;ss++) {
+		  int jp=l1-lmins_pure2[ss];
+		  double fac=(c->lfac[c->s2]-c->lfac[ss]-c->lfac[c->s2-ss]+
+			      0.5*(c->lfac[ll2-c->s2]+c->lfac[ll2+ss]+c->lfac[l1+c->s2-ss])-
+			      0.5*(c->lfac[ll2+c->s2]+c->lfac[ll2-ss]+c->lfac[l1-c->s2+ss]));
+		  fac=exp(fac);
+		  if(jp >= 0)
+		    wp2 += fac*wigner_pure2[ss][jp];
+		}
 	      }
-	      if(j12<0) { //If out of range, w12 is just 0
-		fac_12=0;
-		j12=0;
-	      }
-	      if(j02<0) { //if out of range, w02 is just 0
-		fac_02=0;
-		j02=0;
-	      }
-              w12=j12 < 0 ? 0 : wigner_12[j12];
-              w02=j02 < 0 ? 0 : wigner_02[j02];
 	    }
 
             for(icc=0;icc<c->npcl;icc++) {
@@ -878,21 +919,28 @@ nmt_master_calculator *nmt_compute_master_coefficients(int lmax, int lmax_mask,
                 wfac_ispure[0]=wss1;
                 wfac_ispure[0]*=pcl[l1]*w00;
                 if(c->pure_any) {
-                  wfac_ispure[1]=wss1+fac_12*w12+fac_02*w02;
+		  if(c->pure_e1 || c->pure_b1)
+		    wfac_ispure[1]=wp1;
+		  else
+		    wfac_ispure[1]=wp2;
                   wfac_ispure[1]*=pcl[l1]*w00;
                 }
                 for(ipp=0;ipp<c->npure_0s;ipp++)
                   c->xi_0s[icc][ipp][ll2][ll3]+=wfac_ispure[ipp];
               }
               if(c->has_ss) {
-                double wfac_ispure[3];
+                double wfac_ispure[4];
                 int suml=l1+ll2+ll3;
                 wfac_ispure[0]=wss1;
                 wfac_ispure[0]*=wss2*pcl[l1];
                 if(c->pure_any) {
-                  wfac_ispure[1]=wss1+fac_12*w12+fac_02*w02;
-                  wfac_ispure[2]=wfac_ispure[1]*wfac_ispure[1]*pcl[l1];
-                  wfac_ispure[1]*=wss2*pcl[l1];
+		  if(c->pure_e1 || c->pure_b1) {
+		    wfac_ispure[1]=wp1*wss2*pcl[l1];	
+		    if(c->pure_e2 || c->pure_b2)
+		      wfac_ispure[3]=wp1*wp2*pcl[l1];
+		  }
+		  if(c->pure_e2 || c->pure_b2)
+		    wfac_ispure[2]=wp2*wss2*pcl[l1];
                 }
 
                 if(suml & 1) { //Odd sum
@@ -926,8 +974,22 @@ nmt_master_calculator *nmt_compute_master_coefficients(int lmax, int lmax_mask,
     free(wigner_ss1);
     if(has_ss2)
       free(wigner_ss2);
-    free(wigner_12);
-    free(wigner_02);
+    if(c->pure_any) {
+      if(c->pure_e1 || c->pure_b1) {
+	for(iss=0;iss<c->s1;iss++)
+	  free(wigner_pure1[iss]);
+	free(wigner_pure1);
+	free(lmins_pure1);
+	free(lmaxs_pure1);
+      }
+      if((!(pure_reuse)) && (c->pure_e2 || c->pure_b2)) {
+	for(iss=0;iss<c->s2;iss++)
+	  free(wigner_pure2[iss]);
+	free(wigner_pure2);
+	free(lmins_pure2);
+	free(lmaxs_pure2);
+      }
+    }
   } //end omp parallel
 
   // Fill out lower triangle
@@ -1106,27 +1168,27 @@ nmt_workspace *nmt_compute_coupling_matrix(int spin1,int spin2,
           w->coupling_matrix_unbinned[2*ll2+1][2*ll3+1]=fac*c->xi_0s[0][pb1+pb2][ll2][ll3]; //TB,TB
         }
         if(w->ncls==4) {
-          w->coupling_matrix_unbinned[4*ll2+0][4*ll3+3]=fac*c->xi_mm[0][pe1+pe2][ll2][ll3]; //EE,BB
-          w->coupling_matrix_unbinned[4*ll2+1][4*ll3+2]=-fac*c->xi_mm[0][pe1+pb2][ll2][ll3]; //EB,BE
-          w->coupling_matrix_unbinned[4*ll2+2][4*ll3+1]=-fac*c->xi_mm[0][pb1+pe2][ll2][ll3]; //BE,EB
-          w->coupling_matrix_unbinned[4*ll2+3][4*ll3+0]=fac*c->xi_mm[0][pb1+pb2][ll2][ll3]; //BB,EE
-          w->coupling_matrix_unbinned[4*ll2+0][4*ll3+0]=fac*c->xi_pp[0][pe1+pe2][ll2][ll3]; //EE,EE
-          w->coupling_matrix_unbinned[4*ll2+1][4*ll3+1]=fac*c->xi_pp[0][pe1+pb2][ll2][ll3]; //EB,EB
-          w->coupling_matrix_unbinned[4*ll2+2][4*ll3+2]=fac*c->xi_pp[0][pb1+pe2][ll2][ll3]; //BE,BE
-          w->coupling_matrix_unbinned[4*ll2+3][4*ll3+3]=fac*c->xi_pp[0][pb1+pb2][ll2][ll3]; //BB,BB
+          w->coupling_matrix_unbinned[4*ll2+0][4*ll3+3]=fac*c->xi_mm[0][pe1+2*pe2][ll2][ll3]; //EE,BB
+          w->coupling_matrix_unbinned[4*ll2+1][4*ll3+2]=-fac*c->xi_mm[0][pe1+2*pb2][ll2][ll3]; //EB,BE
+          w->coupling_matrix_unbinned[4*ll2+2][4*ll3+1]=-fac*c->xi_mm[0][pb1+2*pe2][ll2][ll3]; //BE,EB
+          w->coupling_matrix_unbinned[4*ll2+3][4*ll3+0]=fac*c->xi_mm[0][pb1+2*pb2][ll2][ll3]; //BB,EE
+          w->coupling_matrix_unbinned[4*ll2+0][4*ll3+0]=fac*c->xi_pp[0][pe1+2*pe2][ll2][ll3]; //EE,EE
+          w->coupling_matrix_unbinned[4*ll2+1][4*ll3+1]=fac*c->xi_pp[0][pe1+2*pb2][ll2][ll3]; //EB,EB
+          w->coupling_matrix_unbinned[4*ll2+2][4*ll3+2]=fac*c->xi_pp[0][pb1+2*pe2][ll2][ll3]; //BE,BE
+          w->coupling_matrix_unbinned[4*ll2+3][4*ll3+3]=fac*c->xi_pp[0][pb1+2*pb2][ll2][ll3]; //BB,BB
         }
         if(w->ncls==7) {
           w->coupling_matrix_unbinned[7*ll2+0][7*ll3+0]=fac*c->xi_00[0][ll2][ll3]; //TT,TT
           w->coupling_matrix_unbinned[7*ll2+1][7*ll3+1]=fac*c->xi_0s[0][pe2][ll2][ll3]; //TE,TE
           w->coupling_matrix_unbinned[7*ll2+2][7*ll3+2]=fac*c->xi_0s[0][pb2][ll2][ll3]; //TB,TB
-          w->coupling_matrix_unbinned[7*ll2+3][7*ll3+6]=fac*c->xi_mm[0][pe2+pe2][ll2][ll3]; //EE,BB
-          w->coupling_matrix_unbinned[7*ll2+4][7*ll3+5]=-fac*c->xi_mm[0][pe2+pb2][ll2][ll3]; //EB,BE
-          w->coupling_matrix_unbinned[7*ll2+5][7*ll3+4]=-fac*c->xi_mm[0][pb2+pe2][ll2][ll3]; //BE,EB
-          w->coupling_matrix_unbinned[7*ll2+6][7*ll3+3]=fac*c->xi_mm[0][pb2+pb2][ll2][ll3]; //BB,EE
-          w->coupling_matrix_unbinned[7*ll2+3][7*ll3+3]=fac*c->xi_pp[0][pe2+pe2][ll2][ll3]; //EE,EE
-          w->coupling_matrix_unbinned[7*ll2+4][7*ll3+4]=fac*c->xi_pp[0][pe2+pb2][ll2][ll3]; //EB,EB
-          w->coupling_matrix_unbinned[7*ll2+5][7*ll3+5]=fac*c->xi_pp[0][pb2+pe2][ll2][ll3]; //BE,BE
-          w->coupling_matrix_unbinned[7*ll2+6][7*ll3+6]=fac*c->xi_pp[0][pb2+pb2][ll2][ll3]; //BB,BB
+          w->coupling_matrix_unbinned[7*ll2+3][7*ll3+6]=fac*c->xi_mm[0][pe2+2*pe2][ll2][ll3]; //EE,BB
+          w->coupling_matrix_unbinned[7*ll2+4][7*ll3+5]=-fac*c->xi_mm[0][pe2+2*pb2][ll2][ll3]; //EB,BE
+          w->coupling_matrix_unbinned[7*ll2+5][7*ll3+4]=-fac*c->xi_mm[0][pb2+2*pe2][ll2][ll3]; //BE,EB
+          w->coupling_matrix_unbinned[7*ll2+6][7*ll3+3]=fac*c->xi_mm[0][pb2+2*pb2][ll2][ll3]; //BB,EE
+          w->coupling_matrix_unbinned[7*ll2+3][7*ll3+3]=fac*c->xi_pp[0][pe2+2*pe2][ll2][ll3]; //EE,EE
+          w->coupling_matrix_unbinned[7*ll2+4][7*ll3+4]=fac*c->xi_pp[0][pe2+2*pb2][ll2][ll3]; //EB,EB
+          w->coupling_matrix_unbinned[7*ll2+5][7*ll3+5]=fac*c->xi_pp[0][pb2+2*pe2][ll2][ll3]; //BE,BE
+          w->coupling_matrix_unbinned[7*ll2+6][7*ll3+6]=fac*c->xi_pp[0][pb2+2*pb2][ll2][ll3]; //BB,BB
         }
       }
     } //end omp for
