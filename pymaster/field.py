@@ -236,8 +236,8 @@ class NmtField(object):
         maps = self.minfo.reform_map(maps)
 
         pure_any = self.pure_e or self.pure_b
-        if pure_any and self.spin != 2:
-            raise ValueError("Purification only implemented for spin-2 fields")
+        #if pure_any and self.spin != 2:
+        #    raise ValueError("Purification only implemented for spin-2 fields")
 
         # 2.1 Check that no bells nor whistles are requested for anisotropic
         # masks, since these are not supported.
@@ -488,7 +488,7 @@ class NmtField(object):
         # Multiply by mask
         maps = maps_u*mask[None, :]
         # Compute alms
-        alms = ut.map2alm(maps, 2, self.minfo,
+        alms = ut.map2alm(maps, self.spin, self.minfo,
                           self.ainfo_mask, n_iter=n_iter)
 
         for n in range(self.spin):
@@ -526,7 +526,7 @@ class NmtField(object):
 
         if return_maps:
             # 3. Compute purified map if needed
-            maps = ut.alm2map(alms, 2, self.minfo, self.ainfo)
+            maps = ut.alm2map(alms, self.spin, self.minfo, self.ainfo)
             return alms, maps
         return alms
 
