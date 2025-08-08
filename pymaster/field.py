@@ -236,8 +236,6 @@ class NmtField(object):
         maps = self.minfo.reform_map(maps)
 
         pure_any = self.pure_e or self.pure_b
-        #if pure_any and self.spin != 2:
-        #    raise ValueError("Purification only implemented for spin-2 fields")
 
         # 2.1 Check that no bells nor whistles are requested for anisotropic
         # masks, since these are not supported.
