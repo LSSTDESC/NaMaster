@@ -824,7 +824,7 @@ nmt_master_calculator *nmt_compute_master_coefficients(int lmax, int lmax_mask,
 	    }
 	  }
 	  if((c->pure_e2 || c->pure_b2) && (!(pure_reuse))) {
-	    for(ss=0;ss<c->s1;ss++) {
+	    for(ss=0;ss<c->s2;ss++) {
 	      lmins_pure2[ss]=0;
 	      lmaxs_pure2[ss]=2*(c->lmax_mask+1)+1;
 	    }
@@ -885,25 +885,27 @@ nmt_master_calculator *nmt_compute_master_coefficients(int lmax, int lmax_mask,
 		wp1=wss1;
 		for(ss=0;ss<c->s1;ss++) {
 		  int jp=l1-lmins_pure1[ss];
-		  // (s // n) * sqrt((l-s)! (l+n)! (l''+s-n)! / [(l+s)! (l-n)! (l''-s+n)!])
-		  double fac=(c->lfac[c->s1]-c->lfac[ss]-c->lfac[c->s1-ss]+
-			      0.5*(c->lfac[ll2-c->s1]+c->lfac[ll2+ss]+c->lfac[l1+c->s1-ss])-
-			      0.5*(c->lfac[ll2+c->s1]+c->lfac[ll2-ss]+c->lfac[l1-c->s1+ss]));
-		  fac=exp(fac);
-		  if(jp >= 0)
+		  if(jp >= 0) {
+		    // (s // n) * sqrt((l-s)! (l+n)! (l''+s-n)! / [(l+s)! (l-n)! (l''-s+n)!])
+		    double fac=(c->lfac[c->s1]-c->lfac[ss]-c->lfac[c->s1-ss]+
+				0.5*(c->lfac[ll2-c->s1]+c->lfac[ll2+ss]+c->lfac[l1+c->s1-ss])-
+				0.5*(c->lfac[ll2+c->s1]+c->lfac[ll2-ss]+c->lfac[l1-c->s1+ss]));
+		    fac=exp(fac);
 		    wp1 += fac*wigner_pure1[ss][jp];
+		  }
 		}
 	      }
 	      if(c->pure_e2 || c->pure_b2) {
 		wp2=wss2;
 		for(ss=0;ss<c->s2;ss++) {
 		  int jp=l1-lmins_pure2[ss];
-		  double fac=(c->lfac[c->s2]-c->lfac[ss]-c->lfac[c->s2-ss]+
-			      0.5*(c->lfac[ll2-c->s2]+c->lfac[ll2+ss]+c->lfac[l1+c->s2-ss])-
-			      0.5*(c->lfac[ll2+c->s2]+c->lfac[ll2-ss]+c->lfac[l1-c->s2+ss]));
-		  fac=exp(fac);
-		  if(jp >= 0)
+		  if(jp >= 0) {
+		    double fac=(c->lfac[c->s2]-c->lfac[ss]-c->lfac[c->s2-ss]+
+				0.5*(c->lfac[ll2-c->s2]+c->lfac[ll2+ss]+c->lfac[l1+c->s2-ss])-
+				0.5*(c->lfac[ll2+c->s2]+c->lfac[ll2-ss]+c->lfac[l1-c->s2+ss]));
+		    fac=exp(fac);
 		    wp2 += fac*wigner_pure2[ss][jp];
+		  }
 		}
 	      }
 	    }
@@ -931,8 +933,7 @@ nmt_master_calculator *nmt_compute_master_coefficients(int lmax, int lmax_mask,
               if(c->has_ss) {
                 double wfac_ispure[4];
                 int suml=l1+ll2+ll3;
-                wfac_ispure[0]=wss1;
-                wfac_ispure[0]*=wss2*pcl[l1];
+                wfac_ispure[0]=wss1*wss2*pcl[l1];
                 if(c->pure_any) {
 		  if(c->pure_e1 || c->pure_b1) {
 		    wfac_ispure[1]=wp1*wss2*pcl[l1];	
@@ -940,7 +941,7 @@ nmt_master_calculator *nmt_compute_master_coefficients(int lmax, int lmax_mask,
 		      wfac_ispure[3]=wp1*wp2*pcl[l1];
 		  }
 		  if(c->pure_e2 || c->pure_b2)
-		    wfac_ispure[2]=wp2*wss2*pcl[l1];
+		    wfac_ispure[2]=wss1*wp2*pcl[l1];
                 }
 
                 if(suml & 1) { //Odd sum
