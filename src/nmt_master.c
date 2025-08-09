@@ -690,6 +690,10 @@ nmt_master_calculator *nmt_compute_master_coefficients(int lmax, int lmax_mask,
     }
     else {
       c->s1=s2; c->s2=0;
+      c->pure_e1=pure_e2;
+      c->pure_b1=pure_b2;
+      c->pure_e2=pure_e1;
+      c->pure_b2=pure_b1;
     }
   }
   else {
@@ -935,14 +939,21 @@ nmt_master_calculator *nmt_compute_master_coefficients(int lmax, int lmax_mask,
                 int suml=l1+ll2+ll3;
                 wfac_ispure[0]=wss1*wss2*pcl[l1];
                 if(c->pure_any) {
-		  if(c->pure_e1 || c->pure_b1) {
-		    wfac_ispure[1]=wp1*wss2*pcl[l1];	
-		    if(c->pure_e2 || c->pure_b2)
-		      wfac_ispure[3]=wp1*wp2*pcl[l1];
+		  if(do_teb) {
+		    wfac_ispure[1]=wp1*wss2*pcl[l1];
+		    wfac_ispure[2]=wp1*wss2*pcl[l1];
+		    wfac_ispure[3]=wp1*wp1*pcl[l1];
 		  }
-		  if(c->pure_e2 || c->pure_b2)
-		    wfac_ispure[2]=wss1*wp2*pcl[l1];
-                }
+		  else {
+		    if(c->pure_e1 || c->pure_b1) {
+		      wfac_ispure[1]=wp1*wss2*pcl[l1];
+		      if(c->pure_e2 || c->pure_b2)
+			wfac_ispure[3]=wp1*wp2*pcl[l1];
+		    }
+		    if(c->pure_e2 || c->pure_b2)
+		      wfac_ispure[2]=wss1*wp2*pcl[l1];
+		  }
+		}
 
                 if(suml & 1) { //Odd sum
                   for(ipp=0;ipp<c->npure_ss;ipp++)
