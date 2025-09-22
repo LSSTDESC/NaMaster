@@ -1311,16 +1311,21 @@ class NmtFieldCatalogClustering(NmtField):
                 pcl_ff = np.zeros((self.n_temp, self.n_temp,
                                    self.nmaps, self.nmaps,
                                    self.ainfo.lmax+1))
-                fFilt = np.array([ut._alm2catalog_ducc0(flm, positions,
-                                                        spin=0,
-                                                        lmax=lmax_deproj)
-                                  for flm in flms])
-                if mask is None:
-                    fFilt_r = np.array([ut._alm2catalog_ducc0(flm,
-                                                              positions_rand,
-                                                              spin=0,
-                                                              lmax=lmax_deproj)
-                                        for flm in flms])
+                # Filter template maps to ell <= lmax_deproj
+                filt = (np.arange(self.ainfo.lmax+1)
+                        <= lmax_deproj).astype(float)
+                fFilt = []
+                fFilt_r = []
+                for flm in flms:
+                    flmfilt = np.array([hp.almxfl(ff, filt) for ff in flm])
+                    fFilt.append(ut._alm2catalog_ducc0(
+                        flmfilt, positions,
+                        spin=0, lmax=self.ainfo.lmax))
+                    if mask is None:
+                        fFilt_r.append(ut._alm2catalog_ducc0(
+                            flmfilt, positions_rand,
+                            spin=0, lmax=self.ainfo.lmax))
+
                 for j, fF in enumerate(fFilt):
                     fwj = ut._catalog2alm_ducc0(
                         (weights/self._alpha)**2*fF, positions,
