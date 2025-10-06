@@ -1289,16 +1289,27 @@ class NmtFieldCatalogClustering(NmtField):
                                  for t in templates])
                 M_zerop = np.zeros([ntemp, ntemp])
                 prods_zerop = np.zeros(ntemp)
+            # M = np.array([[np.sum((2*ls+1) *
+            #                       (hp.alm2cl(flms[i1], flms[i2],
+            #                                  lmax=lmax_deproj) -
+            #                        M_zerop[i1, i2]))
+            #                for i1 in range(ntemp)]
+            #               for i2 in range(ntemp)])
             M = np.array([[np.sum((2*ls+1) *
-                                  (hp.alm2cl(flms[i1], flms[i2],
-                                             lmax=lmax_deproj) -
+                                  (hp.alm2cl(flms[i1],
+                                             flms[i2])[:, :lmax_deproj+1] -
                                    M_zerop[i1, i2]))
                            for i1 in range(ntemp)]
                           for i2 in range(ntemp)])
             iM = ut.moore_penrose_pinvh(M, tol_pinv)
+            # prods = np.array([np.sum((2*ls+1) *
+            #                          (hp.alm2cl(self.alm, flms[i],
+            #                                     lmax=lmax_deproj) -
+            #                           prods_zerop[i]))
+            #                   for i in range(ntemp)])
             prods = np.array([np.sum((2*ls+1) *
-                                     (hp.alm2cl(self.alm, flms[i],
-                                                lmax=lmax_deproj) -
+                                     (hp.alm2cl(self.alm,
+                                                flms[i])[:, :lmax_deproj+1] -
                                       prods_zerop[i]))
                               for i in range(ntemp)])
             alphas = np.dot(iM, prods)
@@ -1318,22 +1329,29 @@ class NmtFieldCatalogClustering(NmtField):
                 fFilt_r = []
                 for flm in flms:
                     flmfilt = np.array([hp.almxfl(ff, filt) for ff in flm])
-                    fFilt.append(ut._alm2catalog_ducc0(
-                        flmfilt, positions,
-                        spin=0, lmax=self.ainfo.lmax))
                     if mask is None:
+                        fFilt.append(ut._alm2catalog_ducc0(
+                            flmfilt, positions,
+                            spin=0, lmax=self.ainfo.lmax))
                         fFilt_r.append(ut._alm2catalog_ducc0(
                             flmfilt, positions_rand,
                             spin=0, lmax=self.ainfo.lmax))
+                    else:
+                        fFilt.append(ut.alm2map(flmfilt, 0, self.minfo,
+                                                self.ainfo))
 
                 for j, fF in enumerate(fFilt):
-                    fwj = ut._catalog2alm_ducc0(
-                        (weights/self._alpha)**2*fF, positions,
-                        spin=0, lmax=lmax)
                     if mask is None:
+                        fwj = ut._catalog2alm_ducc0(
+                            (weights/self._alpha)**2*fF, positions,
+                            spin=0, lmax=lmax)
                         fwj += ut._catalog2alm_ducc0(
                             weights_rand**2*fFilt_r[j], positions_rand,
                             spin=0, lmax=lmax)
+                    else:
+                        fwj = ut.map2alm(fF*mask/self._alpha, 0,
+                                         self.minfo, self.ainfo,
+                                         n_iter=n_iter_temp)
                     for i, fi in enumerate(flms):
                         cl = np.array([[hp.alm2cl(a1, a2, lmax=self.ainfo.lmax)
                                         for a1 in fi]
@@ -1346,12 +1364,15 @@ class NmtFieldCatalogClustering(NmtField):
                                      for a1 in fi]
                                     for fs in flms]
                                    for fi in flms])
-                prod_ff = np.array([[np.sum((weights/self._alpha)**2*fj*fr)
-                                     for fr in fFilt] for fj in fFilt])
                 if mask is None:
+                    prod_ff = np.array([[np.sum((weights/self._alpha)**2*fj*fr)
+                                         for fr in fFilt] for fj in fFilt])
                     prod_ff += np.array([[np.sum(weights_rand**2*fj*fr)
                                           for fr in fFilt_r]
                                          for fj in fFilt_r])
+                else:
+                    prod_ff = np.array([[np.sum(fj*fr*mask/self._alpha)*Apix
+                                         for fr in fFilt] for fj in fFilt])
                 premat = np.einsum('ij,jr,rs', self.iM, prod_ff, self.iM)
                 clb += np.einsum('is,isklm', premat, pcl_ff)
                 clb = clb.reshape([self.nmaps*self.nmaps, self.ainfo.lmax+1])
