@@ -1289,27 +1289,16 @@ class NmtFieldCatalogClustering(NmtField):
                                  for t in templates])
                 M_zerop = np.zeros([ntemp, ntemp])
                 prods_zerop = np.zeros(ntemp)
-            # M = np.array([[np.sum((2*ls+1) *
-            #                       (hp.alm2cl(flms[i1], flms[i2],
-            #                                  lmax=lmax_deproj) -
-            #                        M_zerop[i1, i2]))
-            #                for i1 in range(ntemp)]
-            #               for i2 in range(ntemp)])
             M = np.array([[np.sum((2*ls+1) *
-                                  (hp.alm2cl(flms[i1],
-                                             flms[i2])[:, :lmax_deproj+1] -
+                                  (hp.alm2cl(flms[i1], flms[i2],
+                                             lmax_out=lmax_deproj) -
                                    M_zerop[i1, i2]))
                            for i1 in range(ntemp)]
                           for i2 in range(ntemp)])
             iM = ut.moore_penrose_pinvh(M, tol_pinv)
-            # prods = np.array([np.sum((2*ls+1) *
-            #                          (hp.alm2cl(self.alm, flms[i],
-            #                                     lmax=lmax_deproj) -
-            #                           prods_zerop[i]))
-            #                   for i in range(ntemp)])
             prods = np.array([np.sum((2*ls+1) *
-                                     (hp.alm2cl(self.alm,
-                                                flms[i])[:, :lmax_deproj+1] -
+                                     (hp.alm2cl(self.alm, flms[i],
+                                                lmax_out=lmax_deproj) -
                                       prods_zerop[i]))
                               for i in range(ntemp)])
             alphas = np.dot(iM, prods)
