@@ -119,7 +119,7 @@ jobs:
           # After migrating to Xcode 15.4, a bunch of things broke, for whatever reason...
           # sudo xcode-select -s "/Applications/Xcode_15.0.1.app"
           # Without the prefixes, it won't compile on mac
-          CC=gcc-14 LDFLAGS=-L/opt/homebrew/lib CPPFLAGS=-I/opt/homebrew/include python -m pip install .
+          CC=gcc-14 LDFLAGS="-Wl,-no_warn_nonportable,-L/opt/homebrew/lib" CPPFLAGS=-I/opt/homebrew/include CFLAGS="-falign-functions=8 -falign-loops=8" python -m pip install .
 
       - name: C tests
         run: |
