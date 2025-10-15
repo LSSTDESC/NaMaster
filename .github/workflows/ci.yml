@@ -116,8 +116,6 @@ jobs:
       - name: Build NaMaster (mac)
         if: matrix.label == 'osx-64'
         run: |
-          # Check alignment of problem struct
-          nm -m test/check_nmt-nmt_test.o | grep ctest_suite_test
           # After migrating to Xcode 15.4, a bunch of things broke, for whatever reason...
           # sudo xcode-select -s "/Applications/Xcode_15.0.1.app"
           # Without the prefixes, it won't compile on mac
