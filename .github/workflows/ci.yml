@@ -117,7 +117,7 @@ jobs:
         if: matrix.label == 'osx-64'
         run: |
           # After migrating to Xcode 15.4, a bunch of things broke, for whatever reason...
-          # sudo xcode-select -s "/Applications/Xcode_15.0.1.app"
+          sudo xcode-select -s "/Applications/Xcode_16.4.0.app"
           # Without the prefixes, it won't compile on mac
           CC=gcc-14 LDFLAGS=-L/opt/homebrew/lib CPPFLAGS=-I/opt/homebrew/include MACOSX_DEPLOYMENT_TARGET=15 python -m pip install .
 
