@@ -902,13 +902,13 @@ class NmtFieldCatalog(NmtField):
             which can be accessed via
             :meth:`~pymaster.utils.get_default_params`, and modified via
             :meth:`~pymaster.utils.set_tol_pinv_default`.
-        noi_var (`array`): estimate of the noise variance per source. Needed
-            to correct for additional uncorrelated noise bias due to
+        noise_variance (`array`): estimate of the noise variance per source.
+            Needed to correct for additional uncorrelated noise bias due to
             deprojection. If ``None``, no additional correction is computed.
     """
     def __init__(self, positions, weights, field, lmax, lmax_mask=None,
                  spin=None, beam=None, field_is_weighted=False, lonlat=False,
-                 templates=None, tol_pinv=None, iM_extern=None, noi_var=None):
+                 templates=None, tol_pinv=None, noise_variance=None):
         # 0. Preliminary initializations
         if ut.HAVE_DUCC:
             self.sht_calculator = 'ducc'
@@ -930,6 +930,7 @@ class NmtFieldCatalog(NmtField):
         self.ainfo = ut.NmtAlmInfo(lmax)
         self._alpha = None
         self.is_catalog = True
+        self.clb = None
 
         # The remaining attributes are only required for non-lite maps
         self.maps = None
@@ -1011,13 +1012,10 @@ class NmtFieldCatalog(NmtField):
             if tol_pinv is None:
                 tol_pinv = ut.nmt_params.tol_pinv_default
 
-            if iM_extern is not None:
-                iM = iM_extern
-            else:
-                M = np.array([[np.sum(t1*t2)
-                               for t1 in templates]
-                              for t2 in templates])
-                iM = ut.moore_penrose_pinvh(M, tol_pinv)
+            M = np.array([[np.sum(t1*t2)
+                           for t1 in templates]
+                          for t2 in templates])
+            iM = ut.moore_penrose_pinvh(M, tol_pinv)
 
             prods = np.array([np.sum(t*self.field)
                               for t in templates])
@@ -1028,7 +1026,7 @@ class NmtFieldCatalog(NmtField):
             self.field = self.field - np.sum(alphas[:, None, None]*templates,
                                              axis=0)
 
-            if noi_var is not None:
+            if noise_variance is not None:
                 clb = np.zeros((self.nmaps, self.nmaps, self.ainfo.lmax+1))
                 pcl_ff = np.zeros((self.n_temp, self.n_temp,
                                    self.nmaps, self.nmaps,
@@ -1037,7 +1035,7 @@ class NmtFieldCatalog(NmtField):
                                                        spin=spin, lmax=lmax)
                                  for t in templates])
                 for j, fj in enumerate(templates):
-                    fwj = ut._catalog2alm_ducc0(fj*weights**2*noi_var,
+                    fwj = ut._catalog2alm_ducc0(fj*weights**2*noise_variance,
                                                 positions, spin=spin,
                                                 lmax=lmax)
                     for i, fi in enumerate(flms):
@@ -1052,14 +1050,12 @@ class NmtFieldCatalog(NmtField):
                                      for a1 in fi]
                                     for fs in flms]
                                    for fi in flms])
-                prod_ff = np.array([[np.sum(weights**2*noi_var*fj*fr)
+                prod_ff = np.array([[np.sum(weights**2*noise_variance*fj*fr)
                                      for fr in templates] for fj in templates])
                 premat = np.einsum('ij,jr,rs', self.iM, prod_ff, self.iM)
                 clb += np.einsum('is,isklm', premat, pcl_ff)
                 clb = clb.reshape([self.nmaps*self.nmaps, self.ainfo.lmax+1])
-            else:
-                clb = 0
-            self.clb = clb
+                self.clb = clb
 
         self.alm = ut._catalog2alm_ducc0(self.field, positions,
                                          spin=spin, lmax=lmax)
@@ -1067,6 +1063,12 @@ class NmtFieldCatalog(NmtField):
         # 4. Compute field noise bias on mask pseudo-C_ell
         # TODO: add clb?
         self._Nf = np.sum(self.field**2)/(4*np.pi*self.nmaps)
+
+    def get_noise_deprojection_bias(self):
+        if self.clb is None:
+            raise ValueError("No noise deprojection bias calculated "
+                             "for this field")
+        return self.clb
 
 
 class NmtFieldCatalogClustering(NmtField):
@@ -1165,6 +1167,7 @@ class NmtFieldCatalogClustering(NmtField):
         self.spin = 0
         self.is_catalog = True
         self.nmaps = 1
+        self.clb = None
 
         # The remaining attributes are only required for non-lite maps
         self.maps = None
@@ -1381,10 +1384,14 @@ class NmtFieldCatalogClustering(NmtField):
                 premat = np.einsum('ij,jr,rs', self.iM, prod_ff, self.iM)
                 clb += np.einsum('is,isklm', premat, pcl_ff)
                 clb = clb.reshape([self.nmaps*self.nmaps, self.ainfo.lmax+1])
-            else:
-                clb = 0
-            self.clb = clb
+                self.clb = clb
 
         # Compute field shot noise
         # TODO: add clb?
         self._Nf = np.sum(weights**2)/(4*np.pi*self._alpha**2)+self._Nw
+
+    def get_noise_deprojection_bias(self):
+        if self.clb is None:
+            raise ValueError("No noise deprojection bias calculated "
+                             "for this field")
+        return self.clb
