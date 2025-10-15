@@ -992,6 +992,14 @@ class NmtFieldCatalog(NmtField):
             self.field *= weights
 
         # 3. Contaminant deprojection
+        # 3.1 check templates
+        if isinstance(templates, (list, tuple, np.ndarray)):
+            templates = np.array(templates, dtype=np.float64)
+        else:
+            if templates is not None:
+                raise ValueError("Input templates can only be an array "
+                                 " or None")
+        # 3.2 deproject
         if templates is not None:
             ntemp = len(templates)
             self.n_temp = ntemp
@@ -1241,6 +1249,14 @@ class NmtFieldCatalogClustering(NmtField):
         self.alm_mask = self.alm_mask[0]
 
         # Contaminant deprojection
+        # Check templates
+        if isinstance(templates, (list, tuple, np.ndarray)):
+            templates = np.array(templates, dtype=np.float64)
+        else:
+            if templates is not None:
+                raise ValueError("Input templates can only be an array "
+                                 " or None")
+        # Deproject
         if templates is not None:
             # Default to field lmax if not provided
             if lmax_deproj is None:

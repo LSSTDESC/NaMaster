@@ -339,6 +339,8 @@ def test_field_catalog_clustering_deproj():
     pos_ran = np.array([np.arccos(-1+2*np.random.rand(4*npix)),
                         2*np.pi*np.random.rand(4*npix)])
     w_ran = np.ones(4*npix)
+    ipix_ran = hp.ang2pix(nside, pos_ran[0], pos_ran[1])
+    depth_ran = depth_var[ipix_ran]
 
     # Create dummy field for workspaces
     b = nmt.NmtBin.from_nside_linear(nside, 4)
@@ -364,11 +366,11 @@ def test_field_catalog_clustering_deproj():
         cls_biased.append(w.decouple_cell(nmt.compute_coupled_cell(f, f)))
         f = nmt.NmtFieldCatalogClustering(pos_dat, w_dat, pos_ran, w_ran,
                                           lmax=3*nside-1,
-                                          templates=[[depth_var]])
+                                          templates=[depth_ran])
         cls_deproj_cat.append(w.decouple_cell(nmt.compute_coupled_cell(f, f)))
         f = nmt.NmtFieldCatalogClustering(pos_dat, w_dat, None, None,
                                           lmax=3*nside-1, mask=np.ones(npix),
-                                          templates=[[depth_var]])
+                                          templates=[depth_var])
         cls_deproj_msk.append(w.decouple_cell(nmt.compute_coupled_cell(f, f)))
     cls_biased = np.array(cls_biased).squeeze()
     cls_deproj_cat = np.array(cls_deproj_cat).squeeze()
