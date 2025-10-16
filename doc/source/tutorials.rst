@@ -9,3 +9,4 @@ Below is a list of tutorials, in the form of jupyter notebooks, that guide you t
 * `Covariances <../3Covariances.html>`_
 * `Catalog-based fields <../4Catalogs.html>`_
 * `Anisotropic weights <../5AnisotropicWeighting.html>`_
+* `Deprojection for catalog-based fields <../6CatalogsDeprojection.html>`_
