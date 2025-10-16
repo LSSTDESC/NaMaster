@@ -1117,7 +1117,20 @@ class NmtFieldCatalogClustering(NmtField):
         wcs (`WCS`): A WCS object if using rectangular (CAR) pixels (see
             `the astropy documentation
             <http://docs.astropy.org/en/stable/wcs/index.html>`_).
-        templates (`array`): TODO
+        templates (`array`): An array containing either the values of
+            a set of contaminant templates for this field sampled at the
+            positions of the randoms, or the templates themselves. The choice
+            depends on whether the survey footprint is being characterised
+            using a set of randoms, or with a standard mask. If the former,
+            this array should have a shape ``[ntemp, 1, nran]`` where ``ntemp``
+            is the number of templates, and ``nran`` is the number of randoms
+            (i.e. the length of ``weights_rand``). If the latter, it should
+            have shape ``[ntemp, 1, npix]``, where ``npix`` is the number of
+            pixels in each template (all templates must have the same
+            resolution). The best-fit contribution from all contaminants is
+            automatically subtracted (i.e. deprojected) from the density field
+            values for each source. If ``None``, no deprojection is carried
+            out.
         lmax_deproj (:obj:`int`): maximum multipole used for contaminant
             deprojection. If ``None``, ``lmax`` will be used.
         n_iter_temp (:obj:`int`): Number of iterations when computing the
@@ -1135,8 +1148,18 @@ class NmtFieldCatalogClustering(NmtField):
             which can be accessed via
             :meth:`~pymaster.utils.get_default_params`, and modified via
             :meth:`~pymaster.utils.set_tol_pinv_default`.
-        masked_on_input (:obj:`bool`): TODO
-        calculate_noise_dp_bias (:obj:`bool`): TODO
+        masked_on_input (:obj:`bool`): Set to ``True`` if the input templates
+            have already been masked. If ``templates`` is provided as an
+            array of templates sampled at the positions of the randoms, then
+            the templates are considered masked if the sampled values have
+            been multiplied by the weights of the corresponding randoms. If
+            ``templates`` is instead an array containing the templates
+            themselves, then this masking consitutes a pixel-wise
+            multiplication of each template with the mask.
+        calculate_noise_dp_bias (:obj:`bool`): If set to ``True``, will
+            compute and store the bias induced in the shot noise component
+            of the pseudo-:math:`C_\\ell` by template deprojection. This can
+            be retrieved through :func:`get_noise_deprojection_bias`.
     """
     def __init__(self, positions, weights, positions_rand, weights_rand,
                  lmax, lonlat=False,
