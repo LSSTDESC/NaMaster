@@ -1065,6 +1065,13 @@ class NmtFieldCatalog(NmtField):
         self._Nf = np.sum(self.field**2)/(4*np.pi*self.nmaps)
 
     def get_noise_deprojection_bias(self):
+        """ Returns the deprojection bias due to uncorrelated noise
+        for this field. You may only use this function if you
+        provided a `noise_variance` when creating this field.
+
+        Returns:
+            (`array`): noise deprojection bias to the power spectrum.
+        """
         if self.clb is None:
             raise ValueError("No noise deprojection bias calculated "
                              "for this field")
@@ -1414,6 +1421,13 @@ class NmtFieldCatalogClustering(NmtField):
         self._Nf = np.sum(weights**2)/(4*np.pi*self._alpha**2)+self._Nw
 
     def get_noise_deprojection_bias(self):
+        """ Returns the deprojection bias due to uncorrelated shot noise
+        for this field. You may only use this function if you used
+        `calculate_noise_dp_bias=True` when creating this field.
+
+        Returns:
+            (`array`): noise deprojection bias to the power spectrum.
+        """
         if self.clb is None:
             raise ValueError("No noise deprojection bias calculated "
                              "for this field")
