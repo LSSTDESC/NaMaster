@@ -1,9 +1,9 @@
 # NaMaster
-[![Build Status](https://travis-ci.org/LSSTDESC/NaMaster.svg?branch=master)](https://travis-ci.org/LSSTDESC/NaMaster)
+[![Build status](https://github.com/LSSTDESC/NaMaster/actions/workflows/ci.yml/badge.svg)](https://github.com/LSSTDESC/NaMaster/actions/workflows/ci.yml)
 [![Docs Status](https://readthedocs.org/projects/namaster/badge/?version=latest)](http://namaster.readthedocs.io/)
 [![Coverage Status](https://coveralls.io/repos/github/LSSTDESC/NaMaster/badge.svg?branch=master)](https://coveralls.io/github/LSSTDESC/NaMaster?branch=master)
 
-NaMaster is a C library, Python module and standalone program to compute full-sky angular cross-power spectra of masked fields with arbitrary spin and an arbitrary number of known contaminants using a pseudo-Cl (aka MASTER) approach. The code also implements E/B-mode purification and is available in both full-sky and flat-sky modes.
+NaMaster is a Python module to compute full-sky angular cross-power spectra of masked fields with arbitrary spin and an arbitrary number of known contaminants using a pseudo-Cl (aka MASTER) approach. The code also implements E/B-mode purification and is available in both full-sky and flat-sky modes, as well as supporting fields defined at the discrete positions of catalog sources.
 
 
 ## Installation
@@ -45,14 +45,14 @@ You can check that the python installation works by running the unit tests:
 ```
 pytest -vv pymaster
 ```
-Note that the `test` directory, containing all unit tests, also contains all the sample python scripts described in the [documentation](https://namaster.readthedocs.io).
+Note that the `test` directory contains all the sample python scripts described in the [documentation](https://namaster.readthedocs.io). The tutorial notebooks are inside the `doc` directory. The unit tests themselves are in `pymaster/tests/`.
 
 If you installed `pymaster` via `pip`, you can uninstall everything by running
 ```
 pip uninstall pymaster
 ```
 
-***Note that the C library is automatically compiled when installing the python module.*** If you care about the C library at all, or you have trouble compiling it, see the next section.
+***Note that the C library underlying NaMaster is automatically compiled when installing the python module.*** If you care about the C library at all, or you have trouble compiling it, see the next section.
 
 ### 3. Install the C code (optional)
 The script `scripts/install_libnmt.sh` contains the instructions run by `setup.py` to compile the C library (`libnmt.a`). You may have to edit this file or make sure to include any missing compilation flags if `setup.py` encounters issues compiling the library.
