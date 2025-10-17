@@ -156,7 +156,8 @@ html_extra_path = ['1BasicFunctionality.html',
                    '2Spin.html',
                    '3Covariances.html',
                    '4Catalogs.html',
-                   '5AnisotropicWeighting.html']
+                   '5AnisotropicWeighting.html',
+                   '6CatalogsDeprojection.html']
 
 # -- Options for HTMLHelp output ------------------------------------------
 

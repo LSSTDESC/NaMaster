@@ -85,6 +85,11 @@ jobs:
         run: |
           sudo -H apt-get install libcfitsio-dev libfftw3-dev libgsl-dev
 
+      - name: Install other dependencies (ubuntu)
+        if: matrix.label == 'linux-64'
+        run: |
+          conda install healpy
+
       - name: Install other dependencies (mac)
         if: matrix.label == 'osx-64'
         run: |
@@ -113,7 +118,7 @@ jobs:
         if: matrix.label == 'osx-64'
         run: |
           # After migrating to Xcode 15.4, a bunch of things broke, for whatever reason...
-          sudo xcode-select -s "/Applications/Xcode_15.0.1.app"
+          # sudo xcode-select -s "/Applications/Xcode_15.0.1.app"
           # Without the prefixes, it won't compile on mac
           CC=gcc-14 LDFLAGS=-L/opt/homebrew/lib CPPFLAGS=-I/opt/homebrew/include python -m pip install .
 
