@@ -1,3 +1,6 @@
+# v2.5
+- Implementation of mode deprojection for catalog fields complete (#236)
+
 # v2.4
 - Mode deprojection enabled for `NmtFieldCatalogClustering` fields (#227)
 

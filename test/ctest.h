@@ -80,9 +80,9 @@ CTEST_IMPL_DIAG_POP()
 
 #define CTEST_IMPL_MAGIC (0xdeadbeef)
 #ifdef __APPLE__
-#define CTEST_IMPL_SECTION __attribute__ ((used, section ("__DATA, .ctest"), aligned(1)))
+#define CTEST_IMPL_SECTION __attribute__ ((used, section ("__DATA, .ctest"), aligned(8)))
 #else
-#define CTEST_IMPL_SECTION __attribute__ ((used, section (".ctest"), aligned(1)))
+#define CTEST_IMPL_SECTION __attribute__ ((used, section (".ctest"), aligned(8)))
 #endif
 
 #define CTEST_IMPL_STRUCT(sname, tname, tskip, tdata, tsetup, tteardown) \

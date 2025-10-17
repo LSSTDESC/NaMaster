@@ -1,6 +1,7 @@
 import numpy as np
 import healpy as hp
 import pymaster as nmt
+import pytest
 
 
 def test_field_catalog_compatibility():
@@ -235,6 +236,8 @@ def test_field_catalog_errors():
     # Automatically assign spin = 2 for 2 fields
     f = nmt.NmtFieldCatalog([[0., 0.], [1., 1.]], [1., 1.],
                             [[1., 1.], [1., 1.]], 10)
+    with pytest.raises(ValueError):  # No deprojection
+        f.get_noise_deprojection_bias()
     assert (f.spin == 2)
     with pytest.raises(ValueError):  # Spin = 0 but 2 maps
         f = nmt.NmtFieldCatalog([[0., 0.], [1., 1.]], [1., 1.],
@@ -253,7 +256,7 @@ def test_field_catalog_errors():
         nmt.NmtFieldCatalogClustering([[0., 0.], [1., 1.]], [1., 1.],
                                       [[0., 0.], [1., 1.]], [1., 1.], 10)
     nmt.utils.HAVE_DUCC = True
-    # Wrong template size ([1, npix] instead of [1, 1, npix])
+    # Wrong template size ([1, N] instead of [1, 2])
     with pytest.raises(ValueError):
         nmt.NmtFieldCatalogClustering([[0., 0.], [1., 1.]], [1., 1.],
                                       [[0., 0.], [1., 1.]], [1., 1.], 10,
@@ -262,6 +265,24 @@ def test_field_catalog_errors():
         nmt.NmtFieldCatalogClustering([[0., 0.], [1., 1.]], [1., 1.],
                                       [[0., 0.], [1., 1.]], [1., 1.], 10,
                                       templates=-5)
+    with pytest.raises(ValueError):
+        nmt.NmtFieldCatalog([[0., 0.], [1., 1.]], [1., 1.],
+                            [[1., 1.]], 10, templates=-5)
+    with pytest.raises(ValueError):
+        nmt.NmtFieldCatalog([[0., 0.], [1., 1.]], [1., 1.],
+                            [[1., 1.]], 10,
+                            templates=np.zeros([1, 1, 123]))
+
+    with pytest.raises(ValueError):
+        nmt.NmtFieldCatalogClustering([[0., 0.], [1., 1.]], [1., 1.],
+                                      [[0., 0.], [1., 1.]], [1., 1.], 10,
+                                      templates=np.ones([1, 2]),
+                                      lmax_deproj=100)
+    with pytest.raises(ValueError):
+        nmt.NmtFieldCatalogClustering([[0., 0.], [1., 1.]], [1., 1.],
+                                      None, None, lmax=10,
+                                      mask=np.ones(12*2**2),
+                                      templates=np.ones([1, 12*4**2]))
 
 
 def test_field_catalog_clustering_poisson():
@@ -321,7 +342,100 @@ def test_field_catalog_clustering_poisson():
         assert np.all(np.fabs(x) < 5*s)
 
 
+def test_field_sampled_noise_deproj():
+    nside = 128
+    npix = hp.nside2npix(nside)
+    lmax = 3*nside - 1
+
+    pos = np.array([np.arccos(-1+2*np.random.rand(4*npix)),
+                    2*np.pi*np.random.rand(4*npix)])
+    temp = np.cos(pos[0]).reshape([1, 1, -1])
+    w = np.ones(4*npix)
+    noise_std = 1.0
+
+    f = nmt.NmtFieldCatalog(pos, w,
+                            noise_std*np.random.randn(1, 4*npix),
+                            lmax, templates=temp,
+                            noise_variance=noise_std**2)
+    nlb = f.get_noise_deprojection_bias()
+    assert nlb.shape == (1, lmax+1)
+
+
+@pytest.mark.parametrize("randoms", [True, False])
+def test_field_clustering_noise_deproj(randoms):
+    nside = 128
+    npix = hp.nside2npix(nside)
+    lmax = 3*nside - 1
+
+    pos = np.array([np.arccos(-1+2*np.random.rand(4*npix)),
+                    2*np.pi*np.random.rand(4*npix)])
+    w = np.ones(4*npix)
+    if randoms:
+        pos_r = np.array([np.arccos(-1+2*np.random.rand(4*npix)),
+                          2*np.pi*np.random.rand(4*npix)])
+        temp_r = pos_r[0].reshape([1, -1])
+        f = nmt.NmtFieldCatalogClustering(pos, w, pos_r, w,
+                                          lmax=lmax,
+                                          templates=temp_r,
+                                          calculate_noise_dp_bias=True)
+    else:
+        mask = np.ones(npix)
+        temp = hp.pix2ang(nside, np.arange(npix))[0].reshape([1, -1])
+        f = nmt.NmtFieldCatalogClustering(pos, w, None, None,
+                                          lmax=lmax, mask=mask,
+                                          templates=temp,
+                                          calculate_noise_dp_bias=True)
+    nlb = f.get_noise_deprojection_bias()
+    assert nlb.shape == (1, lmax+1)
+
+
+@pytest.mark.parametrize("deproj", [True, False])
+def test_field_sampled(deproj):
+    nside = 128
+    npix = hp.nside2npix(nside)
+    lmax = 3*nside - 1
+    ls = np.arange(lmax+1)
+    cl_in = 1/(ls+10)
+    beam = hp.pixwin(nside)
+
+    pos = np.array([np.arccos(-1+2*np.random.rand(4*npix)),
+                    2*np.pi*np.random.rand(4*npix)])
+    if deproj:
+        temp = np.cos(pos[0]).reshape([1, 1, -1])
+    else:
+        temp = None
+
+    w = np.ones(4*npix)
+    ipix = hp.ang2pix(nside, pos[0], pos[1])
+
+    b = nmt.NmtBin.from_nside_linear(nside, 4)
+    f = nmt.NmtFieldCatalog(pos, w, np.array([w]), lmax)
+    wsp = nmt.NmtWorkspace.from_fields(f, f, b)
+    cl_pred = wsp.decouple_cell(
+        wsp.couple_cell(np.array([cl_in*beam**2]))).squeeze()
+
+    nsims = 10
+    cls = []
+    for i in range(nsims):
+        mp = hp.synfast(cl_in, nside)
+        fld = mp[ipix].reshape([1, -1])
+        f = nmt.NmtFieldCatalog(pos, w, fld, lmax, templates=temp)
+        cl = wsp.decouple_cell(nmt.compute_coupled_cell(f, f))
+        cls.append(cl.squeeze())
+    cls = np.array(cls)
+
+    leff = b.get_effective_ells()
+    good = leff < 2*nside
+    cl_mn = np.mean(cls, axis=0)[good]
+    cl_err = np.std(cls, axis=0)[good]/np.sqrt(nsims)
+    cl_true = cl_pred[good]
+
+    # No fluctuation above 5 sigma
+    assert np.all(np.fabs((cl_mn-cl_true)/cl_err) < 5)
+
+
 def test_field_catalog_clustering_deproj():
+    np.random.seed(1234)
     nside = 128
     npix = hp.nside2npix(nside)
 
@@ -339,6 +453,8 @@ def test_field_catalog_clustering_deproj():
     pos_ran = np.array([np.arccos(-1+2*np.random.rand(4*npix)),
                         2*np.pi*np.random.rand(4*npix)])
     w_ran = np.ones(4*npix)
+    ipix_ran = hp.ang2pix(nside, pos_ran[0], pos_ran[1])
+    depth_ran = depth_var[ipix_ran]
 
     # Create dummy field for workspaces
     b = nmt.NmtBin.from_nside_linear(nside, 4)
@@ -364,11 +480,12 @@ def test_field_catalog_clustering_deproj():
         cls_biased.append(w.decouple_cell(nmt.compute_coupled_cell(f, f)))
         f = nmt.NmtFieldCatalogClustering(pos_dat, w_dat, pos_ran, w_ran,
                                           lmax=3*nside-1,
-                                          templates=[[depth_var]])
+                                          templates=[depth_ran],
+                                          lmax_deproj=100)
         cls_deproj_cat.append(w.decouple_cell(nmt.compute_coupled_cell(f, f)))
         f = nmt.NmtFieldCatalogClustering(pos_dat, w_dat, None, None,
                                           lmax=3*nside-1, mask=np.ones(npix),
-                                          templates=[[depth_var]])
+                                          templates=[depth_var])
         cls_deproj_msk.append(w.decouple_cell(nmt.compute_coupled_cell(f, f)))
     cls_biased = np.array(cls_biased).squeeze()
     cls_deproj_cat = np.array(cls_deproj_cat).squeeze()

@@ -849,6 +849,14 @@ _a2m_d = {'ducc': _alm2map_ducc0,
           'healpy': _alm2map_healpy}
 
 
+def _alm2catalog_ducc0(alms, positions, spin, lmax):
+    alms = np.atleast_2d(alms)
+    values = ducc0.sht.synthesis_general(alm=alms, spin=spin,
+                                         lmax=lmax, loc=positions.T,
+                                         epsilon=1E-5)
+    return values
+
+
 def _catalog2alm_ducc0(values, positions, spin, lmax):
     values = np.atleast_2d(values)
     alm = ducc0.sht.adjoint_synthesis_general(lmax=lmax, map=values,
