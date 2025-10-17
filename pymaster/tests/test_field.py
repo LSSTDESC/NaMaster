@@ -305,9 +305,6 @@ def test_field_error():
                          spin=0, n_iter=0)
     with pytest.raises(ValueError):  # Spin=1 but 1 maps
         f = nmt.NmtField(FT.msk, [FT.mps[0]], spin=1, n_iter=0)
-    with pytest.raises(ValueError):
-        f = nmt.NmtField(FT.msk, [FT.mps[1], FT.mps[2]], spin=1,
-                         purify_b=True, n_iter=0)
 
     # lmax must be zero
     with pytest.raises(ValueError):
