@@ -346,6 +346,9 @@ def master_calculator_free(c):
 def compute_coupling_matrix_anisotropic(spin1, spin2, mask_aniso_1, mask_aniso_2, lmax, lmax_mask, pcl_masks_00, pcl_masks_0e, pcl_masks_e0, pcl_masks_0b, pcl_masks_b0, pcl_masks_ee, pcl_masks_eb, pcl_masks_be, pcl_masks_bb, beam1, beam2, bin, norm_type, w2):
     return _nmtlib.compute_coupling_matrix_anisotropic(spin1, spin2, mask_aniso_1, mask_aniso_2, lmax, lmax_mask, pcl_masks_00, pcl_masks_0e, pcl_masks_e0, pcl_masks_0b, pcl_masks_b0, pcl_masks_ee, pcl_masks_eb, pcl_masks_be, pcl_masks_bb, beam1, beam2, bin, norm_type, w2)
 
+def compute_general_coupling_matrix(lmax, pcl_mask, s1, s2, n1, n2, xi_out):
+    return _nmtlib.compute_general_coupling_matrix(lmax, pcl_mask, s1, s2, n1, n2, xi_out)
+
 def compute_coupling_matrix(spin1, spin2, lmax, lmax_mask, pure_e1, pure_b1, pure_e2, pure_b2, pcl_masks, beam1, beam2, bin, is_teb, l_toeplitz, l_exact, dl_band, norm_type, w2):
     return _nmtlib.compute_coupling_matrix(spin1, spin2, lmax, lmax_mask, pure_e1, pure_b1, pure_e2, pure_b2, pcl_masks, beam1, beam2, bin, is_teb, l_toeplitz, l_exact, dl_band, norm_type, w2)
 
@@ -534,6 +537,9 @@ def comp_coupling_matrix_anisotropic(spin1, spin2, aniso1, aniso2, lmax, lmax_ma
 
 def comp_coupling_matrix(spin1, spin2, lmax, lmax_mask, pure_e_1, pure_b_1, pure_e_2, pure_b_2, norm_type, w2, nlb1, nlb2, nell4, bin, is_teb, l_toeplitz, l_exact, dl_band):
     return _nmtlib.comp_coupling_matrix(spin1, spin2, lmax, lmax_mask, pure_e_1, pure_b_1, pure_e_2, pure_b_2, norm_type, w2, nlb1, nlb2, nell4, bin, is_teb, l_toeplitz, l_exact, dl_band)
+
+def comp_general_coupling_matrix(s1, s2, n1, n2, lmax, nell4, dout):
+    return _nmtlib.comp_general_coupling_matrix(s1, s2, n1, n2, lmax, nell4, dout)
 
 def comp_coupling_matrix_flat(fl1, fl2, bin, lmn_x, lmx_x, lmn_y, lmx_y, is_teb):
     return _nmtlib.comp_coupling_matrix_flat(fl1, fl2, bin, lmn_x, lmx_x, lmn_y, lmx_y, is_teb)

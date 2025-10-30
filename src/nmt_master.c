@@ -994,6 +994,74 @@ nmt_master_calculator *nmt_compute_master_coefficients(int lmax, int lmax_mask,
   return c;
 }
 
+void nmt_compute_general_coupling_matrix(int lmax,
+					 flouble *pcl_mask,
+					 int s1, int s2,
+					 int n1, int n2,
+					 flouble *xi_out)
+{
+  int nls=lmax+1;
+  int sign = ((n1+n2) & 1) ? -1 : 1;
+
+#pragma omp parallel default(none)				\
+  shared(lmax, pcl_mask, s1, s2, n1, n2, xi_out, nls, sign)
+  {
+    int same_sn=(s1 == s2) && (n1 == n2);
+    int ll2,ll3,icc;
+    int lstart=NMT_MAX(s1, s2);
+    flouble *wl_mask=my_malloc((lmax+1)*sizeof(flouble));
+    double *wigner_sn1=NULL,*wigner_sn2=NULL;
+    wigner_sn1=my_malloc(2*(lmax+1)*sizeof(double));
+    if(same_sn)
+      wigner_sn2=wigner_sn1;
+    else
+      wigner_sn2=my_malloc(2*(lmax+1)*sizeof(double));
+
+    for(ll2=0;ll2<=lmax;ll2++)
+      wl_mask[ll2]=pcl_mask[ll2]*(2*ll2+1)/(4*M_PI);
+
+#pragma omp for schedule(dynamic)
+    for(ll2=lstart;ll2<=lmax;ll2++) {
+      for(ll3=lstart;ll3<=lmax;ll3++) {
+        int l1,lmin_here,lmax_here;
+	int lmin_sn1=0,lmax_sn1=2*(lmax+1)+1;
+	int lmin_sn2=0,lmax_sn2=2*(lmax+1)+1;
+	int index=ll3+(lmax+1)*ll2;
+        lmin_here=abs(ll2-ll3);
+        lmax_here=ll2+ll3;
+
+
+	drc3jj(ll2,ll3,n1,-s1,&lmin_sn1,&lmax_sn1,wigner_sn1,2*(lmax+1));
+	if(same_sn) {
+	  wigner_sn2=wigner_sn1;
+	  lmin_sn2=lmin_sn1;
+	  lmax_sn2=lmax_sn1;
+	}
+	else
+	  drc3jj(ll2,ll3,n2,-s2,&lmin_sn2,&lmax_sn2,wigner_sn2,2*(lmax+1));
+
+        for(l1=lmin_here;l1<=lmax_here;l1++) {
+          if(l1<=lmax) {
+	    int jsn1=l1-lmin_sn1;
+	    int jsn2=l1-lmin_sn2;
+	    flouble wsn1=0,wsn2=0;
+	    wsn1=jsn1 < 0 ? 0 : wigner_sn1[jsn1];
+	    wsn2=jsn2 < 0 ? 0 : wigner_sn2[jsn2];
+	    //if(!((l1+ll2+ll3) & 1)) //Even sum
+	    //if((l1+ll2+ll3) & 1) //Even sum
+	    xi_out[index] += wl_mask[l1]*wsn1*wsn2;
+	  }
+	}
+	xi_out[index] *= (2*ll3+1.0); //*sign
+      }
+    } //end omp for
+    free(wl_mask);
+    free(wigner_sn1);
+    if(!same_sn)
+      free(wigner_sn2);
+  } //end omp parallel
+}
+
 void nmt_master_calculator_free(nmt_master_calculator *c)
 {
   int ii, ip, ic;

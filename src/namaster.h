@@ -756,6 +756,12 @@ nmt_workspace *nmt_compute_coupling_matrix_anisotropic(int spin1, int spin2,
 						       nmt_binning_scheme *bin,
 						       int norm_type,flouble w2);
 
+void nmt_compute_general_coupling_matrix(int lmax,
+					 flouble *pcl_mask,
+					 int s1, int s2,
+					 int n1, int n2,
+					 flouble *xi_out);
+
 nmt_workspace *nmt_compute_coupling_matrix(int spin1,int spin2,
 					   int lmax, int lmax_mask,
 					   int pure_e1,int pure_b1,

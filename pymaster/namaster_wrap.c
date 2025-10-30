@@ -3456,6 +3456,16 @@ nmt_workspace *comp_coupling_matrix(int spin1,int spin2,
 				     norm_type, w2);
 }
 
+void comp_general_coupling_matrix(int s1, int s2, int n1, int n2, int lmax,
+				  int nell4,double *f_ell,
+				  double *dout,int ndout)
+{
+  asserting(nell4==lmax+1);
+  asserting(ndout==nell4*nell4);
+  memset(dout,0,ndout*sizeof(double));
+  nmt_compute_general_coupling_matrix(lmax,f_ell,s1,s2,n1,n2,dout);
+}
+
 nmt_workspace_flat *comp_coupling_matrix_flat(nmt_field_flat *fl1,nmt_field_flat *fl2,
 					      nmt_binning_scheme_flat *bin,
 					      double lmn_x,double lmx_x,double lmn_y,double lmx_y,
@@ -11628,6 +11638,75 @@ fail:
 }
 
 
+SWIGINTERN PyObject *_wrap_compute_general_coupling_matrix(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  int arg1 ;
+  flouble *arg2 = (flouble *) 0 ;
+  int arg3 ;
+  int arg4 ;
+  int arg5 ;
+  int arg6 ;
+  flouble *arg7 = (flouble *) 0 ;
+  int val1 ;
+  int ecode1 = 0 ;
+  void *argp2 = 0 ;
+  int res2 = 0 ;
+  int val3 ;
+  int ecode3 = 0 ;
+  int val4 ;
+  int ecode4 = 0 ;
+  int val5 ;
+  int ecode5 = 0 ;
+  int val6 ;
+  int ecode6 = 0 ;
+  void *argp7 = 0 ;
+  int res7 = 0 ;
+  PyObject *swig_obj[7] ;
+  
+  if (!SWIG_Python_UnpackTuple(args, "compute_general_coupling_matrix", 7, 7, swig_obj)) SWIG_fail;
+  ecode1 = SWIG_AsVal_int(swig_obj[0], &val1);
+  if (!SWIG_IsOK(ecode1)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "compute_general_coupling_matrix" "', argument " "1"" of type '" "int""'");
+  } 
+  arg1 = (int)(val1);
+  res2 = SWIG_ConvertPtr(swig_obj[1], &argp2,SWIGTYPE_p_double, 0 |  0 );
+  if (!SWIG_IsOK(res2)) {
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "compute_general_coupling_matrix" "', argument " "2"" of type '" "flouble *""'"); 
+  }
+  arg2 = (flouble *)(argp2);
+  ecode3 = SWIG_AsVal_int(swig_obj[2], &val3);
+  if (!SWIG_IsOK(ecode3)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "compute_general_coupling_matrix" "', argument " "3"" of type '" "int""'");
+  } 
+  arg3 = (int)(val3);
+  ecode4 = SWIG_AsVal_int(swig_obj[3], &val4);
+  if (!SWIG_IsOK(ecode4)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "compute_general_coupling_matrix" "', argument " "4"" of type '" "int""'");
+  } 
+  arg4 = (int)(val4);
+  ecode5 = SWIG_AsVal_int(swig_obj[4], &val5);
+  if (!SWIG_IsOK(ecode5)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode5), "in method '" "compute_general_coupling_matrix" "', argument " "5"" of type '" "int""'");
+  } 
+  arg5 = (int)(val5);
+  ecode6 = SWIG_AsVal_int(swig_obj[5], &val6);
+  if (!SWIG_IsOK(ecode6)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode6), "in method '" "compute_general_coupling_matrix" "', argument " "6"" of type '" "int""'");
+  } 
+  arg6 = (int)(val6);
+  res7 = SWIG_ConvertPtr(swig_obj[6], &argp7,SWIGTYPE_p_double, 0 |  0 );
+  if (!SWIG_IsOK(res7)) {
+    SWIG_exception_fail(SWIG_ArgError(res7), "in method '" "compute_general_coupling_matrix" "', argument " "7"" of type '" "flouble *""'"); 
+  }
+  arg7 = (flouble *)(argp7);
+  nmt_compute_general_coupling_matrix(arg1,arg2,arg3,arg4,arg5,arg6,arg7);
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
 SWIGINTERN PyObject *_wrap_compute_coupling_matrix(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   int arg1 ;
@@ -16756,6 +16835,116 @@ fail:
 }
 
 
+SWIGINTERN PyObject *_wrap_comp_general_coupling_matrix(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  int arg1 ;
+  int arg2 ;
+  int arg3 ;
+  int arg4 ;
+  int arg5 ;
+  int arg6 ;
+  double *arg7 = (double *) 0 ;
+  double *arg8 = (double *) 0 ;
+  int arg9 ;
+  int val1 ;
+  int ecode1 = 0 ;
+  int val2 ;
+  int ecode2 = 0 ;
+  int val3 ;
+  int ecode3 = 0 ;
+  int val4 ;
+  int ecode4 = 0 ;
+  int val5 ;
+  int ecode5 = 0 ;
+  PyArrayObject *array6 = NULL ;
+  int is_new_object6 = 0 ;
+  PyObject *array8 = NULL ;
+  PyObject *swig_obj[7] ;
+  
+  if (!SWIG_Python_UnpackTuple(args, "comp_general_coupling_matrix", 7, 7, swig_obj)) SWIG_fail;
+  ecode1 = SWIG_AsVal_int(swig_obj[0], &val1);
+  if (!SWIG_IsOK(ecode1)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "comp_general_coupling_matrix" "', argument " "1"" of type '" "int""'");
+  } 
+  arg1 = (int)(val1);
+  ecode2 = SWIG_AsVal_int(swig_obj[1], &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "comp_general_coupling_matrix" "', argument " "2"" of type '" "int""'");
+  } 
+  arg2 = (int)(val2);
+  ecode3 = SWIG_AsVal_int(swig_obj[2], &val3);
+  if (!SWIG_IsOK(ecode3)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "comp_general_coupling_matrix" "', argument " "3"" of type '" "int""'");
+  } 
+  arg3 = (int)(val3);
+  ecode4 = SWIG_AsVal_int(swig_obj[3], &val4);
+  if (!SWIG_IsOK(ecode4)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "comp_general_coupling_matrix" "', argument " "4"" of type '" "int""'");
+  } 
+  arg4 = (int)(val4);
+  ecode5 = SWIG_AsVal_int(swig_obj[4], &val5);
+  if (!SWIG_IsOK(ecode5)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode5), "in method '" "comp_general_coupling_matrix" "', argument " "5"" of type '" "int""'");
+  } 
+  arg5 = (int)(val5);
+  {
+    npy_intp size[1] = {
+      -1
+    };
+    array6 = obj_to_array_contiguous_allow_conversion(swig_obj[5],
+      NPY_DOUBLE,
+      &is_new_object6);
+    if (!array6 || !require_dimensions(array6, 1) ||
+      !require_size(array6, size, 1)) SWIG_fail;
+    arg6 = (int) array_size(array6,0);
+    arg7 = (double*) array_data(array6);
+  }
+  {
+    npy_intp dims[1];
+    if (!PyInt_Check(swig_obj[6]))
+    {
+      const char* typestring = pytype_string(swig_obj[6]);
+      PyErr_Format(PyExc_TypeError,
+        "Int dimension expected.  '%s' given.",
+        typestring);
+      SWIG_fail;
+    }
+    arg9 = (int) PyInt_AsLong(swig_obj[6]);
+    dims[0] = (npy_intp) arg9;
+    array8 = PyArray_SimpleNew(1, dims, NPY_DOUBLE);
+    if (!array8) SWIG_fail;
+    arg8 = (double*) array_data(array8);
+  }
+  {
+    try {
+      comp_general_coupling_matrix(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9);
+    }
+    finally {
+      SWIG_exception(SWIG_RuntimeError,nmt_error_message);
+    }
+  }
+  resultobj = SWIG_Py_Void();
+  {
+    resultobj = SWIG_Python_AppendOutput(resultobj,(PyObject*)array8);
+  }
+  {
+    if (is_new_object6 && array6)
+    {
+      Py_DECREF(array6); 
+    }
+  }
+  return resultobj;
+fail:
+  {
+    if (is_new_object6 && array6)
+    {
+      Py_DECREF(array6); 
+    }
+  }
+  return NULL;
+}
+
+
 SWIGINTERN PyObject *_wrap_comp_coupling_matrix_flat(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   nmt_field_flat *arg1 = (nmt_field_flat *) 0 ;
@@ -19356,6 +19545,7 @@ static PyMethodDef SwigMethods[] = {
 	 { "compute_master_coefficients", _wrap_compute_master_coefficients, METH_VARARGS, NULL},
 	 { "master_calculator_free", _wrap_master_calculator_free, METH_O, NULL},
 	 { "compute_coupling_matrix_anisotropic", _wrap_compute_coupling_matrix_anisotropic, METH_VARARGS, NULL},
+	 { "compute_general_coupling_matrix", _wrap_compute_general_coupling_matrix, METH_VARARGS, NULL},
 	 { "compute_coupling_matrix", _wrap_compute_coupling_matrix, METH_VARARGS, NULL},
 	 { "update_coupling_matrix", _wrap_update_coupling_matrix, METH_VARARGS, NULL},
 	 { "workspace_update_binning", _wrap_workspace_update_binning, METH_VARARGS, NULL},
@@ -19453,6 +19643,7 @@ static PyMethodDef SwigMethods[] = {
 	 { "synfast_new_flat", _wrap_synfast_new_flat, METH_VARARGS, NULL},
 	 { "comp_coupling_matrix_anisotropic", _wrap_comp_coupling_matrix_anisotropic, METH_VARARGS, NULL},
 	 { "comp_coupling_matrix", _wrap_comp_coupling_matrix, METH_VARARGS, NULL},
+	 { "comp_general_coupling_matrix", _wrap_comp_general_coupling_matrix, METH_VARARGS, NULL},
 	 { "comp_coupling_matrix_flat", _wrap_comp_coupling_matrix_flat, METH_VARARGS, NULL},
 	 { "read_workspace", _wrap_read_workspace, METH_VARARGS, NULL},
 	 { "write_workspace", _wrap_write_workspace, METH_VARARGS, NULL},

@@ -1169,3 +1169,17 @@ def compute_full_master_flat(f1, f2, b, cl_noise=None, cl_guess=None,
     clout = np.reshape(cl1d, [len(cln), b.bin.n_bands])
 
     return clout
+
+
+def get_general_coupling_matrix(pcl_mask, s1, s2, n1, n2):
+    """ Returns a general mode-coupling matrix
+    TODO
+    """
+
+    lmax = len(pcl_mask)-1
+    xi = lib.comp_general_coupling_matrix(
+        int(s1), int(s2), int(n1),
+        int(n2), int(lmax),
+        pcl_mask, int((lmax+1)**2))
+    xi = xi.reshape([lmax+1, lmax+1])
+    return xi

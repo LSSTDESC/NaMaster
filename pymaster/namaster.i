@@ -489,6 +489,16 @@ nmt_workspace *comp_coupling_matrix(int spin1,int spin2,
 				     norm_type, w2);
 }
 
+void comp_general_coupling_matrix(int s1, int s2, int n1, int n2, int lmax,
+				  int nell4,double *f_ell,
+				  double *dout,int ndout)
+{
+  asserting(nell4==lmax+1);
+  asserting(ndout==nell4*nell4);
+  memset(dout,0,ndout*sizeof(double));
+  nmt_compute_general_coupling_matrix(lmax,f_ell,s1,s2,n1,n2,dout);
+}
+
 nmt_workspace_flat *comp_coupling_matrix_flat(nmt_field_flat *fl1,nmt_field_flat *fl2,
 					      nmt_binning_scheme_flat *bin,
 					      double lmn_x,double lmx_x,double lmn_y,double lmx_y,
