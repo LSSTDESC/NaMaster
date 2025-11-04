@@ -767,3 +767,36 @@ def test_fkp_normalization_errors():
     # Two potentially different catalog fields
     with pytest.raises(ValueError):
         nmt.NmtWorkspace.from_fields(fc, fcb, b, normalization='FKP')
+
+
+def test_general_mcmc():
+    # Create disc mask
+    nside = 256
+    nell = 3*nside
+    npix = hp.nside2npix(nside)
+    mask = np.zeros(npix)
+    mask[hp.query_disc(nside, [1, 0, 0], np.radians(30))] = 1
+
+    f0 = nmt.NmtField(mask, None, spin=0)
+    f2 = nmt.NmtField(mask, None, spin=2)
+    b = nmt.NmtBin.from_nside_linear(nside, nlb=10)
+    w00 = nmt.NmtWorkspace.from_fields(f0, f0, b)
+    w02 = nmt.NmtWorkspace.from_fields(f0, f2, b)
+    w22 = nmt.NmtWorkspace.from_fields(f2, f2, b)
+
+    mcm00 = w00.get_coupling_matrix()
+    mcm02 = w02.get_coupling_matrix().reshape([nell, 2, nell, 2])
+    mcm02 = mcm02[:, 0, :, 0]
+    mcm22 = w22.get_coupling_matrix().reshape([nell, 4, nell, 4])
+    mcmee_ee = mcm22[:, 0, :, 0]
+    mcmee_bb = mcm22[:, 0, :, 3]
+    mcm22 = mcmee_ee + mcmee_bb
+
+    pclm = hp.anafast(mask)
+    m00 = nmt.get_general_coupling_matrix(pclm, 0, 0, 0, 0)
+    m02 = nmt.get_general_coupling_matrix(pclm, 0, 2, 0, 2)
+    m22 = nmt.get_general_coupling_matrix(pclm, 2, 2, 2, 2)
+
+    assert np.amax(np.fabs(m00-mcm00)/np.amax(mcm00)) < 1E-10
+    assert np.amax(np.fabs(m02-mcm02)/np.amax(mcm02)) < 1E-10
+    assert np.amax(np.fabs(m22-mcm22)/np.amax(mcm22)) < 1E-10

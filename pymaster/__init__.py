@@ -99,6 +99,7 @@ from pymaster.workspaces import (  # noqa
     compute_coupled_cell_flat,
     compute_full_master_flat,
     uncorr_noise_deprojection_bias,
+    get_general_coupling_matrix,
 )
 from pymaster.covariance import (  # noqa
     NmtCovarianceWorkspace,
