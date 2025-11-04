@@ -1172,8 +1172,33 @@ def compute_full_master_flat(f1, f2, b, cl_noise=None, cl_guess=None,
 
 
 def get_general_coupling_matrix(pcl_mask, s1, s2, n1, n2):
-    """ Returns a general mode-coupling matrix
-    TODO
+    """ Returns a general mode-coupling matrix of the form
+
+    .. math::
+      M_{\\ell \\ell'}=\\sum_{\\ell''}
+      \\frac{(2\\ell'+1)(2\\ell''+1)}{4\\pi}
+      \\tilde{C}^{uv}_\\ell
+      \\left(\\begin{array}{ccc}
+      \\ell & \\ell' & \\ell'' \\\\
+      n_1 & -s_1 & s_1-n_1
+      \\end{array}\\right)
+      \\left(\\begin{array}{ccc}
+      \\ell & \\ell' & \\ell'' \\\\
+      n_2 & -s_2 & s_2-n_2
+      \\end{array}\\right)
+
+    Args:
+        pcl_mask (`array`): 1D array containing the power spectrum
+          of the masks :math:`\\tilde{C}_\\ell^{uw}`.
+        s1 (:obj:`int`): spin index :math:`s_1` above.
+        s2 (:obj:`int`): spin index :math:`s_2` above.
+        n1 (:obj:`int`): spin index :math:`n_1` above.
+        n2 (:obj:`int`): spin index :math:`n_2` above.
+
+    Returns:
+        (`array`): 2D array of shape ``[nl, nl]``, where ``nl`` is
+        the size of ``pcl_mask``, containing the mode-coupling
+        matrix for multipoles from 0 to ``nl-1``.
     """
 
     lmax = len(pcl_mask)-1
