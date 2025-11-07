@@ -8,12 +8,12 @@ class CARTester(object):
         from astropy.io import fits
         from astropy.wcs import WCS
 
-        hdul = fits.open("test/benchmarks/msk_car_b.fits")
+        hdul = fits.open("test/benchmarks/msk_car.fits")
         self.msk = hdul[0].data
         self.wcs = WCS(hdul[0].header)
         hdul.close()
 
-        hdul = fits.open("test/benchmarks/mps_car_b.fits")
+        hdul = fits.open("test/benchmarks/mps_car.fits")
         self.mp = hdul[0].data
         hdul.close()
 
