@@ -92,6 +92,30 @@ mask=getmaskapoana_car(wcs,20.,0.4,dec0=90.)
 #write_flat_map("msk_car_small.fits",mask,wcs,"mask")
 
 
+
+from pixell import enmap, utils, enplot, curvedsky
+
+shape, wcs = enmap.fullsky_geometry(res=np.deg2rad(0.5))
+lmax = 100
+ls = np.arange(lmax+1)
+cl_in = 1/(ls+10)
+
+mp = curvedsky.rand_map(shape, wcs, ps=cl_in)
+b = nmt.NmtBin.from_lmax_linear(lmax, nlb=5)
+cl1 = b.bin_cell(hp.alm2cl(curvedsky.map2alm(mp, lmax=lmax)))
+
+mp.write("mps_car_b.fits")
+
+msk = enmap.ones(shape, wcs)
+msk.write("msk_car_b.fits")
+
+np.savetxt("bm_car.txt",
+           np.transpose([b.get_effective_ells(), cl1]))
+
+
+
+
+
 ##########################
 # Flat-sky stuff
 wcs,msk=read_flat_map("msk_flat.fits")
