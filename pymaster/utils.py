@@ -239,6 +239,9 @@ class _SHTInfo(object):
         else:  # Weight is constant in healpix
             return m*self.weight
 
+    def map_integral(self, m):
+        return np.sum(self.times_weight(m))
+
     def dot_map(self, m1, m2):
         return np.sum(self.times_weight(m1*m2))
 

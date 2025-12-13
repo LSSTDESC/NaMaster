@@ -1236,10 +1236,10 @@ class NmtFieldCatalogClustering(NmtField):
             self._alpha = np.sum(weights)/np.sum(weights_rand)
 
             # Compute mask shot noise
-            self._Nw = np.sum(weights_rand**2.)/(4.*np.pi)
+            self._Nw = self._alpha**2*np.sum(weights_rand**2.)/(4.*np.pi)
 
             # Compute mask alms
-            self.alm_mask = ut._catalog2alm_ducc0(weights_rand,
+            self.alm_mask = ut._catalog2alm_ducc0(weights_rand*self._alpha,
                                                   positions_rand,
                                                   spin=0, lmax=lmax_mask)
             if lmax_mask == lmax:
@@ -1249,30 +1249,25 @@ class NmtFieldCatalogClustering(NmtField):
                                                      positions_rand,
                                                      spin=0, lmax=lmax)
         else:  # If mask provided, ignore/replace randoms-related quantities
-            # Get the number of pixels in the mask and convert to NSIDE
-            # NOTE: assumes HealPIX format for now
-            npix = len(mask)
-            # Pixel area in steradians
-            Apix = 4. * np.pi / npix
-
             # Initialisation of parameters related to the mask
             if n_iter_mask is None:
                 n_iter_mask = ut.nmt_params.n_iter_default
-            # No randoms, so set alpha to 1
-            self._alpha = np.sum(weights) / (Apix * np.sum(mask))
+            self._alpha = np.sum(weights) / self.minfo.si.map_integral(mask)
             # No shot noise for map-based masks
             self._Nw = 0.
 
             # Get spatial info from the mask
             self.mask = self.minfo.reform_map(mask)
+            npix = len(self.mask)
+
             # Compute mask alms
-            self.alm_mask = ut.map2alm(np.array([mask]), 0,
+            self.alm_mask = ut.map2alm(np.array([self.mask]), 0,
                                        self.minfo, self.ainfo_mask,
                                        n_iter=n_iter_mask)
             if lmax_mask == lmax:
                 alm_mask_sub = self.alm_mask
             else:
-                alm_mask_sub = ut.map2alm(np.array([mask]), 0,
+                alm_mask_sub = ut.map2alm(np.array([self.mask]), 0,
                                           self.minfo, self.ainfo,
                                           n_iter=n_iter_mask)
 
@@ -1409,8 +1404,9 @@ class NmtFieldCatalogClustering(NmtField):
                                           for fr in fFilt_r]
                                          for fj in fFilt_r])
                 else:
-                    prod_ff = np.array([[np.sum(fj*fr*mask/self._alpha)*Apix
+                    prod_ff = np.array([[self.minfo.si.map_integral(fj*fr*mask)
                                          for fr in fFilt] for fj in fFilt])
+                    prod_ff = prod_ff / self._alpha
                 premat = np.einsum('ij,jr,rs', self.iM, prod_ff, self.iM)
                 clb += np.einsum('is,isklm', premat, pcl_ff)
                 clb = clb.reshape([self.nmaps*self.nmaps, self.ainfo.lmax+1])
@@ -1432,3 +1428,143 @@ class NmtFieldCatalogClustering(NmtField):
             raise ValueError("No noise deprojection bias calculated "
                              "for this field")
         return self.clb
+
+
+class NmtFieldCatalogMomentum(NmtField):
+    """ An :obj:`NmtFieldCatalogClustering` object contains all the
+    information describing a field weighted by the local density of sources.
+    A typical application of such a field is in the analysis of kSZ-galaxy
+    correlations, where one must construct the radial galaxy momentum field
+    (see Harscouet et al. 2025 for details). The mean density of sources in
+    the sample is characterised by a set of random points or through a
+    standard mask.
+
+    .. note::
+        The ordering of arguments for this class will change in the next
+        major version of NaMaster.
+
+    Args:
+        positions (`array`): Source positions, provided as a list or array
+            of 2 arrays. If ``lonlat`` is True, the arrays should contain the
+            longitude and latitude of the sources, in this order, and in
+            degrees (e.g. R.A. and Dec. if using Equatorial coordinates).
+            Otherwise, the arrays should contain the colatitude and
+            longitude of each source in radians (i.e. the spherical
+            coordinates :math:`(\\theta,\\phi)`).
+        weights (`array`): An array containing the weight assigned to
+            each source.
+        field (`array`): An array containing the field values at the source
+            positions.
+        positions_rand (`array`): As ``positions`` for the random catalog.
+        weights_rand (`array`): As ``weights`` for the random catalog.
+        lmax (:obj:`int`): Maximum multipole up to which the spherical
+            harmonics of this field will be computed.
+        mask (`array`): Array containing a map corresponding to the
+            field's mask. Should be 1-dimensional for a HEALPix map or
+            2-dimensional for a map with rectangular (CAR) pixelization.
+            If not ``None``, the random catalogue (``positions_rand`` and
+            ``weights_rand``) will be ignored.
+        lonlat (:obj:`bool`): If ``True``, longitude and latitude in degrees
+            are provided as input. If ``False``, colatitude and longitude in
+            radians are provided instead.
+        n_iter_mask (:obj:`int`): Number of iterations when computing the
+            :math:`a_{\\ell m}` s of the input mask. See the documentation of
+            :meth:`~pymaster.utils.map2alm`. If ``None``, it will default to
+            the internal value (see documentation of
+            :class:`~pymaster.utils.NmtParams`), which can be accessed via
+            :meth:`~pymaster.utils.get_default_params`, and modified via
+            :meth:`~pymaster.utils.set_n_iter_default`. Only needed if
+            ``mask`` is not ``None``.
+        wcs (`WCS`): A WCS object if using rectangular (CAR) pixels (see
+            `the astropy documentation
+            <http://docs.astropy.org/en/stable/wcs/index.html>`_).
+    """
+    def __init__(self, positions, weights, vel_rec,
+                 positions_rand, weights_rand, lmax,
+                 lonlat=False, mask=None, n_iter_mask=None,
+                 wcs=None, tol_pinv=None):
+        # Preliminary initializations
+        if ut.HAVE_DUCC:
+            self.sht_calculator = 'ducc'
+        else:
+            raise ValueError("DUCC is needed, but currently not installed.")
+
+        # These first attributes are compulsory for all fields
+        self.lite = True
+        self.mask = mask
+        self.beam = np.ones(lmax+1)
+        self.n_iter = None
+        self.n_iter_mask = n_iter_mask
+        self.pure_e = False
+        self.pure_b = False
+        self.alm = None
+        self.alm_mask = None
+        self._Nw = 0.
+        self._Nf = 0.
+        self.ainfo = ut.NmtAlmInfo(lmax)
+        self._alpha = 0
+        self.spin = 0
+        self.nmaps = 1
+        self.is_catalog = True
+
+        # These attributes only required if templates provided for deprojection
+        self.temp = None
+        self.alm_temp = None
+        # The remaining attributes are only required for non-lite maps
+        self.maps = None
+        self.minfo = None
+        self.n_temp = 0
+        self.anisotropic_mask = False
+        self.mask_a = None
+        self.alm_mask_a = None
+
+        # Sanity checks on positions and weights
+        positions, weights = _process_pos_w(positions, weights,
+                                            lonlat, "data")
+
+        # Initialize map object if using a map as mask
+        if mask is not None:
+            self.minfo = ut.NmtMapInfo(wcs, mask.shape)
+
+        # Define alm info for mask using same lmax as field
+        self.ainfo_mask = ut.NmtAlmInfo(lmax)
+
+        # Check if mask provided, use randoms if not
+        if mask is None:
+            positions_rand, weights_rand = _process_pos_w(positions_rand,
+                                                          weights_rand,
+                                                          lonlat,
+                                                          "random")
+            # Compute alpha
+            self._alpha = np.sum(weights)/np.sum(weights_rand)
+
+            # Compute mask shot noise
+            self._Nw = self._alpha**2*np.sum(weights_rand**2.)/(4.*np.pi)
+
+            # Compute mask alms
+            self.alm_mask = ut._catalog2alm_ducc0(weights_rand*self._alpha,
+                                                  positions_rand,
+                                                  spin=0, lmax=lmax)
+        else:  # If mask provided, ignore/replace randoms-related quantities
+            # Initialisation of parameters related to the mask
+            if n_iter_mask is None:
+                n_iter_mask = ut.nmt_params.n_iter_default
+            self._alpha = np.sum(weights) / self.minfo.si.map_integral(mask)
+            # No shot noise for map-based masks
+            self._Nw = 0.
+
+            # Use mask to estimate expected mean number density in each pixel
+            self.mask = self.minfo.reform_map(mask)
+
+            # Compute mask alms
+            self.alm_mask = ut.map2alm(np.array([self.mask]), 0,
+                                       self.minfo, self.ainfo_mask,
+                                       n_iter=n_iter_mask)
+
+        # Compute field alms
+        self.alm = ut._catalog2alm_ducc0(weights*vel_rec/self._alpha,
+                                         positions, spin=0, lmax=lmax)
+        self.alm_mask = self.alm_mask[0]
+
+        # Compute field shot noise
+        self._Nf = np.sum(weights**2 * vel_rec**2)/(4*np.pi*self._alpha**2)
