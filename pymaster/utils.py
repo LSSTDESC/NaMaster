@@ -243,7 +243,7 @@ class _SHTInfo(object):
         return np.sum(self.times_weight(m))
 
     def dot_map(self, m1, m2):
-        return np.sum(self.times_weight(m1*m2))
+        return self.map_integral(m1*m2)
 
 
 class NmtMapInfo(object):

@@ -86,7 +86,9 @@ from pymaster.utils import (  # noqa
 )
 from pymaster.field import (  # noqa
     NmtField, NmtFieldFlat,
-    NmtFieldCatalog, NmtFieldCatalogClustering
+    NmtFieldCatalog,
+    NmtFieldCatalogClustering,
+    NmtFieldCatalogMomentum
 )
 from pymaster.bins import NmtBin, NmtBinFlat  # noqa
 from pymaster.workspaces import (  # noqa
