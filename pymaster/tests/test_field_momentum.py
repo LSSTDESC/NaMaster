@@ -147,7 +147,6 @@ def test_field_momentum_errors():
     w = np.ones(len(ipix))
     f = np.ones(len(ipix))
 
-
     # This is fine
     nmt.NmtFieldCatalogMomentum(pos, w, f,
                                 None, None, lmax,
