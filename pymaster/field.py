@@ -1236,10 +1236,10 @@ class NmtFieldCatalogClustering(NmtField):
             self._alpha = np.sum(weights)/np.sum(weights_rand)
 
             # Compute mask shot noise
-            self._Nw = self._alpha**2*np.sum(weights_rand**2.)/(4.*np.pi)
+            self._Nw = np.sum(weights_rand**2.)/(4.*np.pi)
 
             # Compute mask alms
-            self.alm_mask = ut._catalog2alm_ducc0(weights_rand*self._alpha,
+            self.alm_mask = ut._catalog2alm_ducc0(weights_rand,
                                                   positions_rand,
                                                   spin=0, lmax=lmax_mask)
             if lmax_mask == lmax:
@@ -1256,9 +1256,7 @@ class NmtFieldCatalogClustering(NmtField):
             # No shot noise for map-based masks
             self._Nw = 0.
 
-            # Get spatial info from the mask
             self.mask = self.minfo.reform_map(mask)
-            npix = len(self.mask)
 
             # Compute mask alms
             self.alm_mask = ut.map2alm(np.array([self.mask]), 0,
@@ -1321,11 +1319,12 @@ class NmtFieldCatalogClustering(NmtField):
                 if n_iter_temp is None:
                     n_iter_temp = ut.nmt_params.n_iter_default
 
-                if templates.shape != (ntemp, npix):
-                    raise ValueError("Templates should have shape "
-                                     f"{(ntemp, npix)}")
+                if len(templates[0].flatten()) != self.minfo.npix:
+                    raise ValueError("Templates should have total size "
+                                     f"{self.minfo.npix}")
+                templates = self.minfo.reform_map(templates)
                 if not masked_on_input:
-                    templates = templates * mask
+                    templates = templates * self.mask
 
                 flms = np.array([ut.map2alm(np.array([t]), 0,
                                             self.minfo, self.ainfo,
@@ -1382,7 +1381,7 @@ class NmtFieldCatalogClustering(NmtField):
                             weights_rand**2*fFilt_r[j], positions_rand,
                             spin=0, lmax=lmax)
                     else:
-                        fwj = ut.map2alm(fF*mask/self._alpha, 0,
+                        fwj = ut.map2alm(fF*self.mask/self._alpha, 0,
                                          self.minfo, self.ainfo,
                                          n_iter=n_iter_temp)
                     for i, fi in enumerate(flms):
@@ -1404,9 +1403,9 @@ class NmtFieldCatalogClustering(NmtField):
                                           for fr in fFilt_r]
                                          for fj in fFilt_r])
                 else:
-                    prod_ff = np.array([[self.minfo.si.map_integral(fj*fr*mask)
-                                         for fr in fFilt] for fj in fFilt])
-                    prod_ff = prod_ff / self._alpha
+                    prod_ff = np.array([[
+                        self.minfo.si.map_integral(fj*fr*self.mask/self._alpha)
+                        for fr in fFilt] for fj in fFilt])
                 premat = np.einsum('ij,jr,rs', self.iM, prod_ff, self.iM)
                 clb += np.einsum('is,isklm', premat, pcl_ff)
                 clb = clb.reshape([self.nmaps*self.nmaps, self.ainfo.lmax+1])
@@ -1431,7 +1430,7 @@ class NmtFieldCatalogClustering(NmtField):
 
 
 class NmtFieldCatalogMomentum(NmtField):
-    """ An :obj:`NmtFieldCatalogClustering` object contains all the
+    """ An :obj:`NmtFieldCatalogMomentum` object contains all the
     information describing a field weighted by the local density of sources.
     A typical application of such a field is in the analysis of kSZ-galaxy
     correlations, where one must construct the radial galaxy momentum field
@@ -1453,8 +1452,9 @@ class NmtFieldCatalogMomentum(NmtField):
             coordinates :math:`(\\theta,\\phi)`).
         weights (`array`): An array containing the weight assigned to
             each source.
-        field (`array`): An array containing the field values at the source
-            positions.
+        field (`array`): An array containing the field values (e.g. the
+            reconstructed galaxy velocities, in the case of a galaxy
+            momentum field) at the source positions.
         positions_rand (`array`): As ``positions`` for the random catalog.
         weights_rand (`array`): As ``weights`` for the random catalog.
         lmax (:obj:`int`): Maximum multipole up to which the spherical
@@ -1464,6 +1464,11 @@ class NmtFieldCatalogMomentum(NmtField):
             2-dimensional for a map with rectangular (CAR) pixelization.
             If not ``None``, the random catalogue (``positions_rand`` and
             ``weights_rand``) will be ignored.
+        lmax_mask (:obj:`int`): Maximum multipole up to which the power
+            spectrum of the mask will be computed. If ``None``, ``lmax``
+            will be used if ``mask`` is ``None``. If a mask is provided as
+            a map, the maximum multipole given the map resolution will be
+            used (e.g. :math:`3N_{\\rm side}-1` for HEALPix maps).
         lonlat (:obj:`bool`): If ``True``, longitude and latitude in degrees
             are provided as input. If ``False``, colatitude and longitude in
             radians are provided instead.
@@ -1479,9 +1484,9 @@ class NmtFieldCatalogMomentum(NmtField):
             `the astropy documentation
             <http://docs.astropy.org/en/stable/wcs/index.html>`_).
     """
-    def __init__(self, positions, weights, vel_rec,
+    def __init__(self, positions, weights, field,
                  positions_rand, weights_rand, lmax,
-                 lonlat=False, mask=None, n_iter_mask=None,
+                 lonlat=False, mask=None, lmax_mask=None, n_iter_mask=None,
                  wcs=None, tol_pinv=None):
         # Preliminary initializations
         if ut.HAVE_DUCC:
@@ -1504,14 +1509,14 @@ class NmtFieldCatalogMomentum(NmtField):
         self.ainfo = ut.NmtAlmInfo(lmax)
         self._alpha = 0
         self.spin = 0
-        self.nmaps = 1
         self.is_catalog = True
+        self.nmaps = 1
+        self.clb = None
 
         # These attributes only required if templates provided for deprojection
+        self.maps = None
         self.temp = None
         self.alm_temp = None
-        # The remaining attributes are only required for non-lite maps
-        self.maps = None
         self.minfo = None
         self.n_temp = 0
         self.anisotropic_mask = False
@@ -1521,13 +1526,20 @@ class NmtFieldCatalogMomentum(NmtField):
         # Sanity checks on positions and weights
         positions, weights = _process_pos_w(positions, weights,
                                             lonlat, "data")
+        if field.shape != weights.shape:
+            raise ValueError(f"Field shape must be {weights.shape}")
 
         # Initialize map object if using a map as mask
         if mask is not None:
             self.minfo = ut.NmtMapInfo(wcs, mask.shape)
 
-        # Define alm info for mask using same lmax as field
-        self.ainfo_mask = ut.NmtAlmInfo(lmax)
+        # Determine lmax for mask
+        if lmax_mask is None:
+            if mask is None:
+                lmax_mask = lmax
+            else:
+                lmax_mask = self.minfo.get_lmax()
+        self.ainfo_mask = ut.NmtAlmInfo(lmax_mask)
 
         # Check if mask provided, use randoms if not
         if mask is None:
@@ -1539,12 +1551,12 @@ class NmtFieldCatalogMomentum(NmtField):
             self._alpha = np.sum(weights)/np.sum(weights_rand)
 
             # Compute mask shot noise
-            self._Nw = self._alpha**2*np.sum(weights_rand**2.)/(4.*np.pi)
+            self._Nw = np.sum(weights_rand**2.)/(4.*np.pi)
 
             # Compute mask alms
-            self.alm_mask = ut._catalog2alm_ducc0(weights_rand*self._alpha,
+            self.alm_mask = ut._catalog2alm_ducc0(weights_rand,
                                                   positions_rand,
-                                                  spin=0, lmax=lmax)
+                                                  spin=0, lmax=lmax_mask)
         else:  # If mask provided, ignore/replace randoms-related quantities
             # Initialisation of parameters related to the mask
             if n_iter_mask is None:
@@ -1553,7 +1565,6 @@ class NmtFieldCatalogMomentum(NmtField):
             # No shot noise for map-based masks
             self._Nw = 0.
 
-            # Use mask to estimate expected mean number density in each pixel
             self.mask = self.minfo.reform_map(mask)
 
             # Compute mask alms
@@ -1562,9 +1573,9 @@ class NmtFieldCatalogMomentum(NmtField):
                                        n_iter=n_iter_mask)
 
         # Compute field alms
-        self.alm = ut._catalog2alm_ducc0(weights*vel_rec/self._alpha,
+        self.alm = ut._catalog2alm_ducc0(weights*field/self._alpha,
                                          positions, spin=0, lmax=lmax)
         self.alm_mask = self.alm_mask[0]
 
         # Compute field shot noise
-        self._Nf = np.sum(weights**2 * vel_rec**2)/(4*np.pi*self._alpha**2)
+        self._Nf = np.sum((weights*field)**2)/(4*np.pi*self._alpha**2)
