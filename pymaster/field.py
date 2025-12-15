@@ -1532,6 +1532,7 @@ class NmtFieldCatalogMomentum(NmtField):
         # Initialize map object if using a map as mask
         if mask is not None:
             self.minfo = ut.NmtMapInfo(wcs, mask.shape)
+            self.mask = self.minfo.reform_map(mask)
 
         # Determine lmax for mask
         if lmax_mask is None:
@@ -1556,26 +1557,25 @@ class NmtFieldCatalogMomentum(NmtField):
             # Compute mask alms
             self.alm_mask = ut._catalog2alm_ducc0(weights_rand,
                                                   positions_rand,
-                                                  spin=0, lmax=lmax_mask)
+                                                  spin=0, lmax=lmax_mask)[0]
         else:  # If mask provided, ignore/replace randoms-related quantities
             # Initialisation of parameters related to the mask
             if n_iter_mask is None:
                 n_iter_mask = ut.nmt_params.n_iter_default
-            self._alpha = np.sum(weights) / self.minfo.si.map_integral(mask)
+            mask_area = self.minfo.si.map_integral(self.mask)
+            self._alpha = np.sum(weights) / mask_area
+
             # No shot noise for map-based masks
             self._Nw = 0.
-
-            self.mask = self.minfo.reform_map(mask)
 
             # Compute mask alms
             self.alm_mask = ut.map2alm(np.array([self.mask]), 0,
                                        self.minfo, self.ainfo_mask,
-                                       n_iter=n_iter_mask)
+                                       n_iter=n_iter_mask)[0]
 
         # Compute field alms
         self.alm = ut._catalog2alm_ducc0(weights*field/self._alpha,
                                          positions, spin=0, lmax=lmax)
-        self.alm_mask = self.alm_mask[0]
 
         # Compute field shot noise
         self._Nf = np.sum((weights*field)**2)/(4*np.pi*self._alpha**2)
