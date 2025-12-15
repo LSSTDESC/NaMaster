@@ -19,6 +19,25 @@ def _gen_random(nsrc, mask):
     return positions, ipix[good]
 
 
+def test_field_momentum_init_CAR():
+    from astropy.io import fits
+    from astropy.wcs import WCS
+
+    hdul = fits.open("test/benchmarks/msk_car.fits")
+    wcs = WCS(hdul[0].header)
+    hdul.close()
+    mask = fits.open("test/benchmarks/msk_car.fits")[0].data
+
+    nsrc = 1E5
+    pos, ipix = _gen_random(nsrc, np.ones(12*64**2))
+    w = np.ones(len(ipix))
+
+    # Test that we can initialise just fine
+    nmt.NmtFieldCatalogMomentum(pos, w, w,
+                                None, None, 3*64-1,
+                                mask=mask, wcs=wcs)
+
+
 def test_field_momentum_Nw_Nf():
     nside = 128
     lmax = 3*nside-1

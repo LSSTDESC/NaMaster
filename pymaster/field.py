@@ -1531,6 +1531,10 @@ class NmtFieldCatalogMomentum(NmtField):
 
         # Initialize map object if using a map as mask
         if mask is not None:
+            # This ensures the mask will have the right type
+            # and endianness (can cause issues when read from
+            # some FITS files).
+            mask = mask.astype(np.float64)
             self.minfo = ut.NmtMapInfo(wcs, mask.shape)
             self.mask = self.minfo.reform_map(mask)
 
