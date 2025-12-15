@@ -106,3 +106,18 @@ def test_synfast_errors():
 @pytest.mark.parametrize('spin', [1, 2])
 def test_synfast_spin(spin):
     ST.synfast_stats(spin)
+
+
+def test_synfast_car():
+    from astropy.io import fits
+    from astropy.wcs import WCS
+
+    hdul = fits.open("test/benchmarks/msk_car.fits")
+    wcs = WCS(hdul[0].header)
+    hdul.close()
+    mask = fits.open("test/benchmarks/msk_car.fits")[0].data
+
+    mps = nmt.synfast_spherical(None, ST.cl12, [0, 2], wcs=wcs)
+
+    assert len(mps) == 3
+    assert mps.shape[1:] == mask.shape
