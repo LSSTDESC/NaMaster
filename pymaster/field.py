@@ -2,6 +2,7 @@ from pymaster import nmtlib as lib
 import numpy as np
 import healpy as hp
 import pymaster.utils as ut
+from scipy.special import binom
 
 
 class NmtField(object):
@@ -235,8 +236,6 @@ class NmtField(object):
         maps = self.minfo.reform_map(maps)
 
         pure_any = self.pure_e or self.pure_b
-        if pure_any and self.spin != 2:
-            raise ValueError("Purification only implemented for spin-2 fields")
 
         # 2.1 Check that no bells nor whistles are requested for anisotropic
         # masks, since these are not supported.
@@ -465,67 +464,67 @@ class NmtField(object):
             raise ValueError("Input templates unavailable for this field")
         return self.temp
 
+    def _beta(self, ll, s, inv=False):
+        ls = np.atleast_1d(ll)
+        bad_ell = ls < s
+
+        beta = np.ones_like(ls)
+        for n in range(1, 2*s+1):
+            beta *= (ls-s+n)
+        beta = np.sqrt(beta)
+        if not inv:
+            beta[~bad_ell] = 1/beta[~bad_ell]
+        beta[bad_ell] = 0
+
+        if np.ndim(ll) == 0:
+            beta = np.squeeze(beta)
+        return beta
+
     def _purify(self, mask, alm_mask, maps_u, n_iter, task=[False, True],
                 return_maps=True):
         # 1. Spin-0 mask bit
         # Multiply by mask
         maps = maps_u*mask[None, :]
         # Compute alms
-        alms = ut.map2alm(maps, 2, self.minfo,
+        alms = ut.map2alm(maps, self.spin, self.minfo,
                           self.ainfo_mask, n_iter=n_iter)
 
-        # 2. Spin-1 mask bit
-        # Compute spin-1 mask
-        ls = np.arange(self.ainfo_mask.lmax+1)
-        # The minus sign is because of the definition of E-modes
-        fl = -np.sqrt((ls+1.0)*ls)
-        walm = hp.almxfl(alm_mask, fl,
-                         mmax=self.ainfo_mask.mmax)
-        walm = np.array([walm, walm*0])
-        wmap = ut.alm2map(walm, 1, self.minfo, self.ainfo_mask)
-        # Product with spin-1 mask
-        maps = np.array([wmap[0]*maps_u[0]+wmap[1]*maps_u[1],
-                         wmap[0]*maps_u[1]-wmap[1]*maps_u[0]])
-        # Compute SHT, multiply by
-        # 2*sqrt((l+1)!(l-2)!/((l-1)!(l+2)!)) and add to alms
-        palm = ut.map2alm(maps, 1, self.minfo,
-                          self.ainfo, n_iter=n_iter)
-        fl[2:] = 2/np.sqrt((ls[2:]+2.0)*(ls[2:]-1.0))
-        fl[:2] = 0
-        for ipol, purify in enumerate(task):
-            if purify:
-                alms[ipol] += hp.almxfl(palm[ipol],
-                                        fl[:self.ainfo.lmax+1],
-                                        mmax=self.ainfo.mmax)
-
-        # 3. Spin-2 mask bit
-        # Compute spin-0 mask
-        # The extra minus sign is because of the scalar SHT below
-        # (E-mode definition for spin=0).
-        fl[2:] = -np.sqrt((ls[2:]+2.0)*(ls[2:]-1.0))
-        fl[:2] = 0
-        walm[0] = hp.almxfl(walm[0], fl, mmax=self.ainfo_mask.mmax)
-        wmap = ut.alm2map(walm, 2, self.minfo, self.ainfo_mask)
-        # Product with spin-2 mask
-        maps = np.array([wmap[0]*maps_u[0]+wmap[1]*maps_u[1],
-                         wmap[0]*maps_u[1]-wmap[1]*maps_u[0]])
-        # Compute SHT, multiply by
-        # sqrt((l-2)!/(l+2)!) and add to alms
-        palm = np.array([ut.map2alm(np.array([m]), 0, self.minfo,
-                                    self.ainfo, n_iter=n_iter)[0]
-                         for m in maps])
-        fl[2:] = 1/np.sqrt((ls[2:]+2.0)*(ls[2:]+1.0) *
-                           ls[2:]*(ls[2:]-1))
-        fl[:2] = 0
-        for ipol, purify in enumerate(task):
-            if purify:
-                alms[ipol] += hp.almxfl(palm[ipol],
-                                        fl[:self.ainfo.lmax+1],
-                                        mmax=self.ainfo.mmax)
+        for n in range(self.spin):
+            # 2. Spin-(s-n) mask bit
+            # Compute spin-(s-n) mask
+            ls = np.arange(self.ainfo_mask.lmax+1)
+            # The minus sign is because of the definition of E-modes
+            fl = -self._beta(ls, self.spin-n, inv=True)
+            walm = hp.almxfl(alm_mask, fl,
+                             mmax=self.ainfo_mask.mmax)
+            walm = np.array([walm, walm*0])
+            wmap = ut.alm2map(walm, self.spin-n, self.minfo, self.ainfo_mask)
+            # Product with spin-(s-n) mask
+            maps = np.array([wmap[0]*maps_u[0]+wmap[1]*maps_u[1],
+                             wmap[0]*maps_u[1]-wmap[1]*maps_u[0]])
+            # Compute SHT, multiply by (s n) beta_{l,s}/beta_{l,n}
+            # and add to alms
+            if n == 0:  # This is the spin-s mask case
+                # The - sign here is to compensate for the default sign
+                # of E/B modes for spin=0 (which is inconsistent with
+                # general spins).
+                palm = -np.array([ut.map2alm(np.array([m]), n, self.minfo,
+                                             self.ainfo, n_iter=n_iter)[0]
+                                  for m in maps])
+            else:
+                palm = ut.map2alm(maps, n, self.minfo,
+                                  self.ainfo, n_iter=n_iter)
+            bnm = binom(self.spin, n)
+            fl = bnm*self._beta(ls, self.spin)*self._beta(ls, n, inv=True)
+            for ipol, purify in enumerate(task):
+                if purify:
+                    alms[ipol] += hp.almxfl(palm[ipol],
+                                            fl[:self.ainfo.lmax+1],
+                                            mmax=self.ainfo.mmax)
 
         if return_maps:
-            # 4. Compute purified map if needed
-            maps = ut.alm2map(alms, 2, self.minfo, self.ainfo)
+            # 3. Compute purified map if needed
+            maps = ut.alm2map(alms, self.spin, self.minfo, self.ainfo)
             return alms, maps
         return alms
 
