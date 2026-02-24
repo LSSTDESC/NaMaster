@@ -1458,8 +1458,9 @@ class NmtFieldCatalogMomentum(NmtField):
         weights (`array`): An array containing the weight assigned to
             each source.
         field (`array`): An array containing the field values (e.g. the
-            reconstructed galaxy velocities, in the case of a galaxy
-            momentum field) at the source positions.
+            reconstructed galaxy radial velocities, in the case of a radial
+            galaxy momentum field, or the transverse velocity vector in the
+            case of transverse momentum) at the source positions.
         positions_rand (`array`): As ``positions`` for the random catalog.
         weights_rand (`array`): As ``weights`` for the random catalog.
         lmax (:obj:`int`): Maximum multipole up to which the spherical
@@ -1474,6 +1475,12 @@ class NmtFieldCatalogMomentum(NmtField):
             will be used if ``mask`` is ``None``. If a mask is provided as
             a map, the maximum multipole given the map resolution will be
             used (e.g. :math:`3N_{\\rm side}-1` for HEALPix maps).
+        spin (:obj:`int`): Spin of this field. If ``None`` it will
+            default to 0 or 2 if ``field`` contains 1 or 2 arrays,
+            respectively.
+        field_is_weighted (:obj:`bool`): Set to ``True`` if the input field has
+            already been multiplied by the source weights. The same will also
+            be assumed of the contaminant templates (see ``templates``).
         lonlat (:obj:`bool`): If ``True``, longitude and latitude in degrees
             are provided as input. If ``False``, colatitude and longitude in
             radians are provided instead.
@@ -1491,7 +1498,8 @@ class NmtFieldCatalogMomentum(NmtField):
     """
     def __init__(self, positions, weights, field,
                  positions_rand, weights_rand, lmax,
-                 lonlat=False, mask=None, lmax_mask=None, n_iter_mask=None,
+                 lonlat=False, mask=None, lmax_mask=None, spin=None,
+                 field_is_weighted=False, n_iter_mask=None,
                  wcs=None, tol_pinv=None):
         # Preliminary initializations
         if ut.HAVE_DUCC:
@@ -1513,9 +1521,7 @@ class NmtFieldCatalogMomentum(NmtField):
         self._Nf = 0.
         self.ainfo = ut.NmtAlmInfo(lmax)
         self._alpha = 0
-        self.spin = 0
         self.is_catalog = True
-        self.nmaps = 1
         self.clb = None
 
         # These attributes only required if templates provided for deprojection
@@ -1531,8 +1537,6 @@ class NmtFieldCatalogMomentum(NmtField):
         # Sanity checks on positions and weights
         positions, weights = _process_pos_w(positions, weights,
                                             lonlat, "data")
-        if field.shape != weights.shape:
-            raise ValueError(f"Field shape must be {weights.shape}")
 
         # Initialize map object if using a map as mask
         if mask is not None:
@@ -1582,9 +1586,30 @@ class NmtFieldCatalogMomentum(NmtField):
                                        self.minfo, self.ainfo_mask,
                                        n_iter=n_iter_mask)[0]
 
+        # Sanity checks on field
+        if field is None:
+            if spin is None:
+                raise ValueError("If field is None, spin needs to be "
+                                 "provided.")
+            self.spin = spin
+            return
+
+        # Ensure it's 2D
+        self.field = np.atleast_2d(np.array(field, dtype=np.float64))
+        # Set spin
+        if spin is None:
+            spin = 0 if len(self.field) == 1 else 2
+        self.spin = spin
+        self.nmaps = 2 if spin else 1
+        nsrcs = len(weights)
+        if self.field.shape != (self.nmaps, nsrcs):
+            raise ValueError(f"Field should have shape {(self.nmaps, nsrcs)}.")
+        if not field_is_weighted:
+            self.field *= weights
+
         # Compute field alms
-        self.alm = ut._catalog2alm_ducc0(weights*field/self._alpha,
-                                         positions, spin=0, lmax=lmax)
+        self.alm = ut._catalog2alm_ducc0(self.field/self._alpha,
+                                         positions, spin=spin, lmax=lmax)
 
         # Compute field shot noise
-        self._Nf = np.sum((weights*field)**2)/(4*np.pi*self._alpha**2)
+        self._Nf = np.sum(self.field**2)/(4*np.pi*self._alpha**2*self.nmaps)
