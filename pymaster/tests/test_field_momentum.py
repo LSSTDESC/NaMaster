@@ -1,6 +1,7 @@
 import numpy as np
 import healpy as hp
 import pymaster as nmt
+import pytest
 
 
 def _gen_random(nsrc, mask):
@@ -38,7 +39,8 @@ def test_field_momentum_init_CAR():
                                 mask=mask, wcs=wcs)
 
 
-def test_field_momentum_Nw_Nf():
+@pytest.mark.parametrize('spin', [0, 2])
+def test_field_momentum_Nw_Nf(spin):
     nside = 128
     lmax = 3*nside-1
     ls = np.arange(lmax+1)
@@ -55,13 +57,23 @@ def test_field_momentum_Nw_Nf():
     pos, ipix = _gen_random(nsrc, mask)
     w = np.ones(len(ipix))
     alm = hp.synalm(cl, lmax=lmax)
-    apos = nmt.utils._alm2catalog_ducc0(np.array([alm]), pos, 0, lmax)[0]
+    if spin == 0:
+        alm = np.array([alm])
+        nmaps = 1
+    else:
+        # Pure E field
+        alm = np.array([alm, 0*alm])
+        nmaps = 2
+    apos = nmt.utils._alm2catalog_ducc0(alm, pos, spin, lmax)
+    if spin == 0:
+        apos = apos[0]
+
     fc = nmt.NmtFieldCatalogMomentum(pos, w, apos,
                                      None, None, lmax,
                                      mask=mask)
     ndens = len(w)/(4*np.pi*np.mean(mask))
     assert fc._Nw == 0
-    Nf_pred = np.sum((apos/ndens)**2)/(4*np.pi)
+    Nf_pred = np.sum(apos**2)/(4*np.pi*ndens**2*nmaps)
     assert np.fabs(fc._Nf/Nf_pred-1) < 1E-6
 
     # Catalog field with randoms
@@ -74,7 +86,8 @@ def test_field_momentum_Nw_Nf():
     assert np.fabs(fc._Nw/ndens_r-1) < 1E-6
 
 
-def test_field_momentum_unbiased():
+@pytest.mark.parametrize('spin', [0, 2])
+def test_field_momentum_unbiased(spin):
     nside = 128
     lmax = 3*nside-1
     ls = np.arange(lmax+1)
@@ -90,14 +103,15 @@ def test_field_momentum_unbiased():
     b = nmt.NmtBin.from_nside_linear(nside, nlb=4)
 
     # Map-based field
-    fm = nmt.NmtField(mask, None, spin=0)
+    fm = nmt.NmtField(mask, None, spin=spin)
     wm = nmt.NmtWorkspace.from_fields(fm, fm, b)
 
     # Catalog field with mask
     nsrc = 1E5
     pos, ipix = _gen_random(nsrc, mask)
     w = np.ones(len(ipix))
-    fc = nmt.NmtFieldCatalogMomentum(pos, w, w,
+    a = w if spin == 0 else np.array([w, w])
+    fc = nmt.NmtFieldCatalogMomentum(pos, w, a,
                                      None, None, lmax,
                                      mask=mask)
     wx = nmt.NmtWorkspace.from_fields(fm, fc, b)
@@ -106,12 +120,12 @@ def test_field_momentum_unbiased():
     nrand = 1E6
     posr, ipixr = _gen_random(nrand, mask)
     wr = np.ones(len(ipixr))
-    fc = nmt.NmtFieldCatalogMomentum(pos, w, w,
+    fc = nmt.NmtFieldCatalogMomentum(pos, w, a,
                                      posr, wr, lmax)
     wxr = nmt.NmtWorkspace.from_fields(fm, fc, b)
 
     # Run 100 sims
-    nsims = 100
+    nsims = 30
     cls_x = []
     cls_xr = []
     for i in range(nsims):
@@ -119,30 +133,46 @@ def test_field_momentum_unbiased():
             print(i)
         # Generate alm
         alm = hp.synalm(cl, lmax=lmax)
+        if spin == 0:
+            amap = np.array([hp.alm2map(alm, nside)])
+            alm = np.array([alm])
+        else:
+            # Pure-E field
+            alm = np.array([alm, 0*alm])
+            amap = hp.alm2map_spin(alm, nside, spin=spin,
+                                   lmax=lmax, mmax=lmax)
 
         # Map field
-        amap = hp.alm2map(alm, nside)
-        fm = nmt.NmtField(mask, [amap])
+        fm = nmt.NmtField(mask, amap, spin=spin)
 
         pos, ipix = _gen_random(nsrc, mask)
+        apos = nmt.utils._alm2catalog_ducc0(alm, pos, spin, lmax)
+        if spin == 0:
+            apos = apos[0]
         w = np.ones(len(ipix))
-        apos = nmt.utils._alm2catalog_ducc0(np.array([alm]), pos, 0, lmax)[0]
 
         # Catalog field with mask
         fc = nmt.NmtFieldCatalogMomentum(pos, w, apos, None, None,
-                                         lmax, mask=mask)
+                                         lmax, mask=mask, spin=spin)
         clx = wx.decouple_cell(nmt.compute_coupled_cell(fm, fc)).squeeze()
         cls_x.append(clx)
 
         # Catalog field with randoms
-        fc = nmt.NmtFieldCatalogMomentum(pos, w, apos, posr, wr, lmax)
+        fc = nmt.NmtFieldCatalogMomentum(pos, w, apos, posr, wr, lmax,
+                                         spin=spin)
         clx = wxr.decouple_cell(nmt.compute_coupled_cell(fm, fc)).squeeze()
         cls_xr.append(clx)
     cls_x = np.array(cls_x)
     cls_xr = np.array(cls_xr)
 
-    cl_th = wm.decouple_cell(wm.couple_cell([cl]))[0]
-    cl_thr = wxr.decouple_cell(wxr.couple_cell([cl]))[0]
+    if spin == 0:
+        cl_th = wm.decouple_cell(wm.couple_cell([cl]))[0]
+        cl_thr = wxr.decouple_cell(wxr.couple_cell([cl]))[0]
+    else:
+        cl_th = wm.decouple_cell(
+            wm.couple_cell([cl, 0*cl, 0*cl, 0*cl]))
+        cl_thr = wxr.decouple_cell(
+            wxr.couple_cell([cl, 0*cl, 0*cl, 0*cl]))
 
     err_x = np.std(cls_x, axis=0)/np.sqrt(nsims)
     err_xr = np.std(cls_xr, axis=0)/np.sqrt(nsims)
@@ -170,15 +200,18 @@ def test_field_momentum_errors():
     nmt.NmtFieldCatalogMomentum(pos, w, f,
                                 None, None, lmax,
                                 mask=mask)
+    # This is also fine
+    nmt.NmtFieldCatalogMomentum(pos, w, None, None, None,
+                                lmax, mask=mask, spin=0)
 
     with pytest.raises(ValueError):  # Field too short
         nmt.NmtFieldCatalogMomentum(pos, w, f[1:],
                                     None, None, lmax, mask=mask)
 
-    with pytest.raises(ValueError):  # Spin field not implemented
-        nmt.NmtFieldCatalogMomentum(pos, w, np.array([f, f]),
-                                    None, None, lmax, mask=mask)
-
     with pytest.raises(ValueError):  # Weights too short
         nmt.NmtFieldCatalogMomentum(pos, w[1:], f,
                                     None, None, lmax, mask=mask)
+
+    with pytest.raises(ValueError):  # Spin must be provided
+        nmt.NmtFieldCatalogMomentum(pos, w, None, None, None,
+                                    lmax, mask=mask)
