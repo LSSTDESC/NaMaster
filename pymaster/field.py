@@ -2,6 +2,7 @@ from pymaster import nmtlib as lib
 import numpy as np
 import healpy as hp
 import pymaster.utils as ut
+import warnings
 
 
 class NmtField(object):
@@ -840,6 +841,29 @@ def _process_pos_w(pos, w, lonlat, kind):
     return pos, w
 
 
+def _get_theta_ipd(pos, w, nside):
+    """ Returns the median inter-particle distance on
+    the sphere for a given catalog. It does so by
+    estimating the local weighted number density in
+    pixels of resolution ``nside``, and assigning an
+    inter-particle distance to each object in the
+    catalog equal to the inverse square root of this
+    density. The median of the resulting distances
+    is returned.
+    """
+    nsource = len(w)
+    npix = hp.nside2npix(nside)
+    if nsource < npix:
+        warnings.warn("There are fewer sources than there are pixels "
+                      "on the sphere. You should select a higher Nside "
+                      "to calculate the median inter-particle distance.")
+    Om_p = 4*np.pi/npix
+    ipix = hp.ang2pix(nside, *pos)
+    nmap = np.bincount(ipix, minlength=npix, weights=w)
+    th_ipds = np.sqrt(Om_p/nmap[ipix])
+    return np.median(th_ipds)
+
+
 class NmtFieldCatalog(NmtField):
     """ An :obj:`NmtFieldCatalog` object contains all the information
     describing a field sampled at the discrete positions of
@@ -905,10 +929,13 @@ class NmtFieldCatalog(NmtField):
         noise_variance (`array`): estimate of the noise variance per source.
             Needed to correct for additional uncorrelated noise bias due to
             deprojection. If ``None``, no additional correction is computed.
+        nside_ipd (`int`): HEALPix `Nside` parameter used to calculate the
+            median inter-particle distance for this catalog.
     """
     def __init__(self, positions, weights, field, lmax, lmax_mask=None,
                  spin=None, beam=None, field_is_weighted=False, lonlat=False,
-                 templates=None, tol_pinv=None, noise_variance=None):
+                 templates=None, tol_pinv=None, noise_variance=None,
+                 nside_ipd=16):
         # 0. Preliminary initializations
         if ut.HAVE_DUCC:
             self.sht_calculator = 'ducc'
@@ -931,6 +958,8 @@ class NmtFieldCatalog(NmtField):
         self._alpha = None
         self.is_catalog = True
         self.clb = None
+        self.nside_ipd = nside_ipd
+        self.theta_ipd = None
 
         # The remaining attributes are only required for non-lite maps
         self.maps = None
@@ -944,6 +973,8 @@ class NmtFieldCatalog(NmtField):
 
         positions, weights = _process_pos_w(positions, weights,
                                             lonlat, 'source')
+        self.theta_ipd = _get_theta_ipd(positions, weights,
+                                        self.nside_ipd)
 
         # Compute mask shot noise
         self._Nw = np.sum(weights**2.)/(4.*np.pi)
@@ -1167,13 +1198,15 @@ class NmtFieldCatalogClustering(NmtField):
             compute and store the bias induced in the shot noise component
             of the pseudo-:math:`C_\\ell` by template deprojection. This can
             be retrieved through :func:`get_noise_deprojection_bias`.
+        nside_ipd (`int`): HEALPix `Nside` parameter used to calculate the
+            median inter-particle distance for this catalog.
     """
     def __init__(self, positions, weights, positions_rand, weights_rand,
                  lmax, lonlat=False,
                  mask=None, lmax_mask=None, n_iter_mask=None,
                  wcs=None, templates=None, lmax_deproj=None, n_iter_temp=None,
                  tol_pinv=None, masked_on_input=False,
-                 calculate_noise_dp_bias=False):
+                 calculate_noise_dp_bias=False, nside_ipd=16):
         # Preliminary initializations
         if ut.HAVE_DUCC:
             self.sht_calculator = 'ducc'
@@ -1198,6 +1231,8 @@ class NmtFieldCatalogClustering(NmtField):
         self.is_catalog = True
         self.nmaps = 1
         self.clb = None
+        self.nside_ipd = nside_ipd
+        self.theta_ipd = None
 
         # The remaining attributes are only required for non-lite maps
         self.maps = None
@@ -1235,6 +1270,8 @@ class NmtFieldCatalogClustering(NmtField):
                                                           weights_rand,
                                                           lonlat,
                                                           "random")
+            self.theta_ipd = _get_theta_ipd(positions_rand,
+                                            weights_rand, self.nside_ipd)
             nrand = len(weights_rand)
 
             # Compute alpha
@@ -1495,12 +1532,14 @@ class NmtFieldCatalogMomentum(NmtField):
         wcs (`WCS`): A WCS object if using rectangular (CAR) pixels (see
             `the astropy documentation
             <http://docs.astropy.org/en/stable/wcs/index.html>`_).
+        nside_ipd (`int`): HEALPix `Nside` parameter used to calculate the
+            median inter-particle distance for this catalog.
     """
     def __init__(self, positions, weights, field,
                  positions_rand, weights_rand, lmax,
                  lonlat=False, mask=None, lmax_mask=None, spin=None,
                  field_is_weighted=False, n_iter_mask=None,
-                 wcs=None, tol_pinv=None):
+                 wcs=None, tol_pinv=None, nside_ipd=16):
         # Preliminary initializations
         if ut.HAVE_DUCC:
             self.sht_calculator = 'ducc'
@@ -1523,6 +1562,8 @@ class NmtFieldCatalogMomentum(NmtField):
         self._alpha = 0
         self.is_catalog = True
         self.clb = None
+        self.nside_ipd = nside_ipd
+        self.theta_ipd = None
 
         # These attributes only required if templates provided for deprojection
         self.maps = None
@@ -1561,6 +1602,9 @@ class NmtFieldCatalogMomentum(NmtField):
                                                           weights_rand,
                                                           lonlat,
                                                           "random")
+            self.theta_ipd = _get_theta_ipd(positions_rand,
+                                            weights_rand, self.nside_ipd)
+
             # Compute alpha
             self._alpha = np.sum(weights)/np.sum(weights_rand)
 
