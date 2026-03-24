@@ -855,7 +855,7 @@ def _get_theta_ipd(pos, w, nside):
     npix = hp.nside2npix(nside)
     if nsource < npix:
         warnings.warn("There are fewer sources than there are pixels "
-                      "on the sphere. You should select a higher Nside "
+                      "on the sphere. You should select a lower Nside "
                       "to calculate the median inter-particle distance.")
     Om_p = 4*np.pi/npix
     ipix = hp.ang2pix(nside, *pos)
@@ -1092,7 +1092,6 @@ class NmtFieldCatalog(NmtField):
                                          spin=spin, lmax=lmax)
 
         # 4. Compute field noise bias on mask pseudo-C_ell
-        # TODO: add clb?
         self._Nf = np.sum(self.field**2)/(4*np.pi*self.nmaps)
 
     def get_noise_deprojection_bias(self):
@@ -1532,6 +1531,45 @@ class NmtFieldCatalogMomentum(NmtField):
         wcs (`WCS`): A WCS object if using rectangular (CAR) pixels (see
             `the astropy documentation
             <http://docs.astropy.org/en/stable/wcs/index.html>`_).
+        templates (`array`): An array containing either the values of
+            a set of contaminant templates for this field sampled at the
+            positions of the randoms, or the templates themselves. The choice
+            depends on whether the survey footprint is being characterised
+            using a set of randoms, or with a standard mask. If the former,
+            this array should have a shape ``[ntemp, 1, nran]`` where ``ntemp``
+            is the number of templates, and ``nran`` is the number of randoms
+            (i.e. the length of ``weights_rand``). If the latter, it should
+            have shape ``[ntemp, 1, npix]``, where ``npix`` is the number of
+            pixels in each template (all templates must have the same
+            resolution). The best-fit contribution from all contaminants is
+            automatically subtracted (i.e. deprojected) from the density field
+            values for each source. If ``None``, no deprojection is carried
+            out.
+        lmax_deproj (:obj:`int`): maximum multipole used for contaminant
+            deprojection. If ``None``, ``lmax`` will be used.
+        n_iter_temp (:obj:`int`): Number of iterations when computing the
+            spherical harmonic transform of the templates. Note that this
+            is only relevant if a mask is provided. If ``None``, it will
+            default to the internal value (see documentation of
+            :class:`~pymaster.utils.NmtParams`), which can be accessed via
+            :meth:`~pymaster.utils.get_default_params`,
+            and modified via :meth:`~pymaster.utils.set_n_iter_default`.
+        tol_pinv (:obj:`float`): When computing the pseudo-inverse of the
+            contaminant covariance matrix. See documentation of
+            :meth:`~pymaster.utils.moore_penrose_pinvh`. Only relevant if
+            passing contaminant templates that are likely to be highly
+            correlated. If ``None``, it will default to the internal value,
+            which can be accessed via
+            :meth:`~pymaster.utils.get_default_params`, and modified via
+            :meth:`~pymaster.utils.set_tol_pinv_default`.
+        masked_on_input (:obj:`bool`): Set to ``True`` if the input templates
+            have already been masked. If ``templates`` is provided as an
+            array of templates sampled at the positions of the randoms, then
+            the templates are considered masked if the sampled values have
+            been multiplied by the weights of the corresponding randoms. If
+            ``templates`` is instead an array containing the templates
+            themselves, then this masking consitutes a pixel-wise
+            multiplication of each template with the mask.
         nside_ipd (`int`): HEALPix `Nside` parameter used to calculate the
             median inter-particle distance for this catalog.
     """
@@ -1539,7 +1577,9 @@ class NmtFieldCatalogMomentum(NmtField):
                  positions_rand, weights_rand, lmax,
                  lonlat=False, mask=None, lmax_mask=None, spin=None,
                  field_is_weighted=False, n_iter_mask=None,
-                 wcs=None, tol_pinv=None, nside_ipd=16):
+                 wcs=None, templates=None, lmax_deproj=None,
+                 n_iter_temp=None, tol_pinv=None, masked_on_input=False,
+                 nside_ipd=16):
         # Preliminary initializations
         if ut.HAVE_DUCC:
             self.sht_calculator = 'ducc'
@@ -1575,6 +1615,9 @@ class NmtFieldCatalogMomentum(NmtField):
         self.mask_a = None
         self.alm_mask_a = None
 
+        # If field is None, then we're doing galaxy clustering
+        self.is_clustering = field is None
+
         # Sanity checks on positions and weights
         positions, weights = _process_pos_w(positions, weights,
                                             lonlat, "data")
@@ -1604,6 +1647,7 @@ class NmtFieldCatalogMomentum(NmtField):
                                                           "random")
             self.theta_ipd = _get_theta_ipd(positions_rand,
                                             weights_rand, self.nside_ipd)
+            nrand = len(weights_rand)
 
             # Compute alpha
             self._alpha = np.sum(weights)/np.sum(weights_rand)
@@ -1614,7 +1658,14 @@ class NmtFieldCatalogMomentum(NmtField):
             # Compute mask alms
             self.alm_mask = ut._catalog2alm_ducc0(weights_rand,
                                                   positions_rand,
-                                                  spin=0, lmax=lmax_mask)[0]
+                                                  spin=0, lmax=lmax_mask)
+            if self.is_clustering:
+                if lmax_mask == lmax:
+                    alm_mask_sub = self.alm_mask
+                else:
+                    alm_mask_sub = ut._catalog2alm_ducc0(weights_rand,
+                                                         positions_rand,
+                                                         spin=0, lmax=lmax)
         else:  # If mask provided, ignore/replace randoms-related quantities
             # Initialisation of parameters related to the mask
             if n_iter_mask is None:
@@ -1628,23 +1679,28 @@ class NmtFieldCatalogMomentum(NmtField):
             # Compute mask alms
             self.alm_mask = ut.map2alm(np.array([self.mask]), 0,
                                        self.minfo, self.ainfo_mask,
-                                       n_iter=n_iter_mask)[0]
+                                       n_iter=n_iter_mask)
+            if self.is_clustering:
+                if lmax_mask == lmax:
+                    alm_mask_sub = self.alm_mask
+                else:
+                    alm_mask_sub = ut.map2alm(np.array([self.mask]), 0,
+                                              self.minfo, self.ainfo,
+                                              n_iter=n_iter_mask)
 
-        # Sanity checks on field
-        if field is None:
+        if self.is_clustering:
+            self.field = np.atleast_2d(weights)
+            field_is_weighted = True
+            self.spin = 0
+        else:
+            # Ensure it's 2D
+            self.field = np.atleast_2d(np.array(field, dtype=np.float64))
+            # Set spin
             if spin is None:
-                raise ValueError("If field is None, spin needs to be "
-                                 "provided.")
+                spin = 0 if len(self.field) == 1 else 2
             self.spin = spin
-            return
+        self.nmaps = 2 if self.spin else 1
 
-        # Ensure it's 2D
-        self.field = np.atleast_2d(np.array(field, dtype=np.float64))
-        # Set spin
-        if spin is None:
-            spin = 0 if len(self.field) == 1 else 2
-        self.spin = spin
-        self.nmaps = 2 if spin else 1
         nsrcs = len(weights)
         if self.field.shape != (self.nmaps, nsrcs):
             raise ValueError(f"Field should have shape {(self.nmaps, nsrcs)}.")
@@ -1653,7 +1709,95 @@ class NmtFieldCatalogMomentum(NmtField):
 
         # Compute field alms
         self.alm = ut._catalog2alm_ducc0(self.field/self._alpha,
-                                         positions, spin=spin, lmax=lmax)
+                                         positions, spin=self.spin, lmax=lmax)
+        if self.is_clustering:
+            self.alm = self.alm - alm_mask_sub
+        self.alm_mask = self.alm_mask[0]
+
+        # Contaminant deprojection
+        # Check templates
+        if isinstance(templates, (list, tuple, np.ndarray)):
+            templates = np.array(templates, dtype=np.float64)
+        else:
+            if templates is not None:
+                raise ValueError("Input templates can only be an array "
+                                 " or None")
+        # Deproject
+        if templates is not None:
+            # Default to field lmax if not provided
+            if lmax_deproj is None:
+                lmax_deproj = lmax
+            else:
+                if lmax_deproj > lmax:
+                    raise ValueError("lmax_deproj shouldn't be larger "
+                                     f"than lmax. {lmax_deproj} > {lmax}.")
+            ntemp = len(templates)
+            self.n_temp = ntemp
+
+            if tol_pinv is None:
+                tol_pinv = ut.nmt_params.tol_pinv_default
+
+            ls = np.arange(lmax_deproj+1)
+
+            M_zerop = np.zeros([ntemp, ntemp])
+            prods_zerop = np.zeros(ntemp)
+            if mask is None:
+                if templates.shape != (ntemp, self.nmaps, nrand):
+                    raise ValueError("Templates should have shape "
+                                     f"{(ntemp, self.nmaps, nrand)}")
+                if not masked_on_input:
+                    templates = templates * weights_rand
+
+                flms = np.array([ut._catalog2alm_ducc0(t,
+                                                       positions_rand,
+                                                       spin=self.spin,
+                                                       lmax=lmax)
+                                 for t in templates])
+                M_zerop = np.array([[np.sum(fi*fj)/(4*np.pi)
+                                     for fi in templates]
+                                    for fj in templates])
+                if self.is_clustering:
+                    prods_zerop = np.array([-np.sum(fi*weights_rand)/(4*np.pi)
+                                            for fi in templates])
+            else:
+                if n_iter_temp is None:
+                    n_iter_temp = ut.nmt_params.n_iter_default
+
+                if len(templates[0].flatten()) != self.nmaps*self.minfo.npix:
+                    raise ValueError("Templates should have total size "
+                                     f"{self.nmaps*self.minfo.npix}")
+                templates = self.minfo.reform_map(templates)
+                if not masked_on_input:
+                    templates = templates * self.mask
+
+                flms = np.array([ut.map2alm(t, self.spin,
+                                            self.minfo, self.ainfo,
+                                            n_iter=n_iter_temp)
+                                 for t in templates])
+            clffs = np.array([[
+                np.sum(np.array([hp.alm2cl(f1[p], f2[p],
+                                           lmax_out=lmax_deproj)
+                                 for p in range(self.nmaps)]),
+                       axis=0)
+                for f2 in flms] for f1 in flms])
+
+            M = np.sum((2*ls+1)[None, None, :] *
+                       (clffs - M_zerop[:, :, None]), axis=-1)
+            iM = ut.moore_penrose_pinvh(M, tol_pinv)
+            clafs = np.array([
+                np.sum(np.array([hp.alm2cl(self.alm[p], f1[p],
+                                           lmax_out=lmax_deproj)
+                                 for p in range(self.nmaps)]),
+                       axis=0)
+                for f1 in flms])
+            prods = np.sum((2*ls+1)[None, :] *
+                           (clafs - prods_zerop[:, None]), axis=-1)
+            alphas = np.dot(iM, prods)
+            self.iM = iM
+            self.alphas = alphas
+            self.alm = self.alm - np.sum(alphas[:, None, None]*flms, axis=0)
 
         # Compute field shot noise
         self._Nf = np.sum(self.field**2)/(4*np.pi*self._alpha**2*self.nmaps)
+        if self.is_clustering:
+            self._Nf = self._Nf + self._Nw

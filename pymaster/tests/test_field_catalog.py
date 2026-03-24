@@ -24,7 +24,7 @@ def test_field_catalog_ipd():
         assert np.fabs(f.theta_ipd/theta_ipd_naive-1) < 0.1
 
 
-def atest_field_catalog_compatibility():
+def test_field_catalog_compatibility():
     # Different field values
     nside = 64
     ncat = hp.nside2npix(nside)
@@ -57,7 +57,7 @@ def atest_field_catalog_compatibility():
     assert not f0.is_compatible(f1)
 
 
-def atest_field_catalog_init():
+def test_field_catalog_init():
     # Checks correct initialization of positions (lon/lat and theta/phi),
     # weights, fields, different spins.
     Ncat = 100
@@ -90,7 +90,7 @@ def atest_field_catalog_init():
         assert np.all(np.absolute(f1.alm_mask - f2.alm_mask)[:4*lmax] < 1E-7)
 
 
-def atest_field_catalog_Nw():
+def test_field_catalog_Nw():
     # Check if Nw matches mask pcl in noise-dominated regime.
     Ncat = 100
     lmax = 100
@@ -121,7 +121,7 @@ def atest_field_catalog_Nw():
     assert all(np.logical_and(v < 5, v > -5) for v in y/yerr)
 
 
-def atest_field_catalog_Nf():
+def test_field_catalog_Nf():
     # Check if Nf is mathematically correct and only subtracted
     # for equal fields.
     Ncat = 100
@@ -150,7 +150,7 @@ def atest_field_catalog_Nf():
         assert not np.any(np.fabs(cl2 - cl1 - diff_true) > 1.e-6)
 
 
-def atest_field_catalog_alm():
+def test_field_catalog_alm():
     # Compare catalog-based alms with analytical input and make sure they
     # are equal up to numerical accuracy.
     nside = 32
@@ -185,7 +185,7 @@ def atest_field_catalog_alm():
     assert np.all(np.absolute(alms_cat - alms_in) < 1.e-3)
 
 
-def atest_field_catalog_errors():
+def test_field_catalog_errors():
     import pytest
 
     with pytest.raises(ValueError):  # Incorrect field size
@@ -305,7 +305,7 @@ def atest_field_catalog_errors():
                                       templates=np.ones([1, 12*4**2]))
 
 
-def atest_field_catalog_clustering_poisson():
+def test_field_catalog_clustering_poisson():
     # Checks that a purely Poisson catalog has a power spectrum
     # that is close to zero.
 
@@ -362,7 +362,7 @@ def atest_field_catalog_clustering_poisson():
         assert np.all(np.fabs(x) < 5*s)
 
 
-def atest_field_sampled_noise_deproj():
+def test_field_sampled_noise_deproj():
     nside = 128
     npix = hp.nside2npix(nside)
     lmax = 3*nside - 1
@@ -382,7 +382,7 @@ def atest_field_sampled_noise_deproj():
 
 
 @pytest.mark.parametrize("randoms", [True, False])
-def atest_field_clustering_noise_deproj(randoms):
+def test_field_clustering_noise_deproj(randoms):
     nside = 128
     npix = hp.nside2npix(nside)
     lmax = 3*nside - 1
@@ -410,7 +410,7 @@ def atest_field_clustering_noise_deproj(randoms):
 
 
 @pytest.mark.parametrize("deproj", [True, False])
-def atest_field_sampled(deproj):
+def test_field_sampled(deproj):
     nside = 128
     npix = hp.nside2npix(nside)
     lmax = 3*nside - 1
@@ -454,7 +454,7 @@ def atest_field_sampled(deproj):
     assert np.all(np.fabs((cl_mn-cl_true)/cl_err) < 5)
 
 
-def atest_field_catalog_clustering_deproj():
+def test_field_catalog_clustering_deproj():
     np.random.seed(1234)
     nside = 128
     npix = hp.nside2npix(nside)
