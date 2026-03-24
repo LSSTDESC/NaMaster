@@ -304,10 +304,12 @@ def test_field_catalog_clustering_poisson():
     # that is close to zero.
 
     # Create random catalog
+    np.random.seed(1234)
     nside = 64
     npix = hp.nside2npix(nside)
     pos_ran = np.array([np.arccos(-1+2*np.random.rand(4*npix)),
                         2*np.pi*np.random.rand(4*npix)])
+
     w_ran = np.ones(4*npix)
     # We'll do a full-sky version and a half-sky version
     goodhalfran = pos_ran[0] <= np.pi/2
@@ -357,6 +359,7 @@ def test_field_catalog_clustering_poisson():
 
 
 def test_field_sampled_noise_deproj():
+    np.random.seed(1234)
     nside = 128
     npix = hp.nside2npix(nside)
     lmax = 3*nside - 1
@@ -396,6 +399,7 @@ def test_field_sampled_noise_deproj():
 
 @pytest.mark.parametrize("randoms", [True, False])
 def test_field_clustering_noise_deproj(randoms):
+    np.random.seed(1234)
     nside = 128
     npix = hp.nside2npix(nside)
     lmax = 3*nside - 1
