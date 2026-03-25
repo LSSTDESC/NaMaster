@@ -24,8 +24,8 @@ nmt_covar_workspace *nmt_covar_workspace_init(int spin_a1, int spin_a2,
   cw->xi02_1221=NULL;
   cw->xi22p_1122=NULL;
   cw->xi22p_1221=NULL;
-  cw->xi22p_1122=NULL;
-  cw->xi22p_1221=NULL;
+  cw->xi22m_1122=NULL;
+  cw->xi22m_1221=NULL;
 
   flouble **cl_masks=my_malloc(2*sizeof(flouble));
   cl_masks[0]=my_malloc((cw->lmax_mask+1)*sizeof(flouble));
@@ -143,7 +143,7 @@ nmt_covar_workspace *nmt_covar_workspace_init(int spin_a1, int spin_a2,
     if(auto_any)
       cw->xi00_1221=cw->xi00_1122;
     else
-      cw->xi02_1221=c->xi_00[1];
+      cw->xi00_1221=c->xi_00[1];
     free(c->xi_00);
     free(c->lfac);
     free(c);
@@ -220,7 +220,6 @@ double _pick_xi(nmt_covar_workspace *cw,
 }
 
 void  nmt_compute_gaussian_covariance_coupled(nmt_covar_workspace *cw,
-                                              int spin_a,int spin_b,int spin_c,int spin_d,
                                               nmt_workspace *wa,nmt_workspace *wb,
                                               flouble **clac,flouble **clad,
                                               flouble **clbc,flouble **clbd,
@@ -230,16 +229,15 @@ void  nmt_compute_gaussian_covariance_coupled(nmt_covar_workspace *cw,
     report_error(NMT_ERROR_COVAR,"Coupling coefficients only computed up to l=%d, but you require "
 		 "lmax=%d. Recompute this workspace with a larger lmax\n",cw->lmax,wa->bin->ell_max);
 
-  int nmaps_a=spin_a ? 2 : 1;
-  int nmaps_b=spin_b ? 2 : 1;
-  int nmaps_c=spin_c ? 2 : 1;
-  int nmaps_d=spin_d ? 2 : 1;
+  int nmaps_a=cw->spin_a1 ? 2 : 1;
+  int nmaps_b=cw->spin_a2 ? 2 : 1;
+  int nmaps_c=cw->spin_b1 ? 2 : 1;
+  int nmaps_d=cw->spin_b2 ? 2 : 1;
   if((wa->ncls!=nmaps_a*nmaps_b) || (wb->ncls!=nmaps_c*nmaps_d))
     report_error(NMT_ERROR_COVAR,"Input spins don't match input workspaces\n");
 
 #pragma omp parallel default(none)			\
-  shared(cw,spin_a,spin_b,spin_c,spin_d)                \
-  shared(wa,wb,clac,clad,clbc,clbd)			\
+  shared(cw,wa,wb,clac,clad,clbc,clbd)			\
   shared(nmaps_a,nmaps_b,nmaps_c,nmaps_d,covar_out)
   {
     int band_a;
@@ -304,7 +302,6 @@ void  nmt_compute_gaussian_covariance_coupled(nmt_covar_workspace *cw,
 }
 
 void  nmt_compute_gaussian_covariance(nmt_covar_workspace *cw,
-				      int spin_a,int spin_b,int spin_c,int spin_d,
 				      nmt_workspace *wa,nmt_workspace *wb,
 				      flouble **clac,flouble **clad,
 				      flouble **clbc,flouble **clbd,
@@ -314,18 +311,17 @@ void  nmt_compute_gaussian_covariance(nmt_covar_workspace *cw,
     report_error(NMT_ERROR_COVAR,"Coupling coefficients only computed up to l=%d, but you require "
 		 "lmax=%d. Recompute this workspace with a larger lmax\n",cw->lmax,wa->bin->ell_max);
 
-  int nmaps_a=spin_a ? 2 : 1;
-  int nmaps_b=spin_b ? 2 : 1;
-  int nmaps_c=spin_c ? 2 : 1;
-  int nmaps_d=spin_d ? 2 : 1;
+  int nmaps_a=cw->spin_a1 ? 2 : 1;
+  int nmaps_b=cw->spin_a2 ? 2 : 1;
+  int nmaps_c=cw->spin_b1 ? 2 : 1;
+  int nmaps_d=cw->spin_b2 ? 2 : 1;
   if((wa->ncls!=nmaps_a*nmaps_b) || (wb->ncls!=nmaps_c*nmaps_d))
     report_error(NMT_ERROR_COVAR,"Input spins don't match input workspaces\n");
 
   gsl_matrix *covar_binned=gsl_matrix_alloc(wa->ncls*wa->bin->n_bands,wb->ncls*wb->bin->n_bands);
 
 #pragma omp parallel default(none)			\
-  shared(cw,spin_a,spin_b,spin_c,spin_d)                \
-  shared(wa,wb,clac,clad,clbc,clbd)			\
+  shared(cw,wa,wb,clac,clad,clbc,clbd)			\
   shared(nmaps_a,nmaps_b,nmaps_c,nmaps_d,covar_binned)
   {
     int band_a;

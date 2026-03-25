@@ -48,37 +48,32 @@ class NmtCovarianceWorkspace(object):
         fname (:obj:`str`): Input file name. If not `None`, the values of
             all input fields will be ignored, and all mode-coupling
             coefficients will be read from file.
-        force_spin_only (:obj:`bool`): If ``True``, only spin-0
-            combinations of the mode-coupling coefficients will
-            be read and stored.
     """
-    def __init__(self, fla1=None, fla2=None, flb1=None, flb2=None,
+    def __init__(self, fla1, fla2, flb1=None, flb2=None, *,
                  l_toeplitz=-1, l_exact=-1, dl_band=-1,
                  fname=None):
-        self.wsp = None
+        if flb1 is None:
+            flb1 = fla1
+        if flb2 is None:
+            flb2 = fla2
 
-        if ((fla1 is None) and (fla2 is None) and (fname is None)):
-            warnings.warn("The bare constructor for `NmtCovarianceWorkspace` "
-                          "objects is deprecated and will be removed "
-                          "in future versions of NaMaster. Consider "
-                          "using the class methods "
-                          "`from_fields` and `from_file`, or pass "
-                          "the necessary arguments to the constructor.",
-                          category=DeprecationWarning)
-            return
+        self.wsp = None
+        self.spin_a1=fla1.spin
+        self.spin_a2=fla2.spin
+        self.spin_b1=flb1.spin
+        self.spin_b2=flb2.spin
 
         if (fname is not None):
             self.read_from(fname)
             return
 
-        self.compute_coupling_coefficients(fla1, fla2,
-                                           flb1=flb1, flb2=flb2,
-                                           l_toeplitz=l_toeplitz,
-                                           l_exact=l_exact,
-                                           dl_band=dl_band)
+        self._compute_coupling_coefficients(fla1, fla2, flb1, flb2,
+                                            l_toeplitz=l_toeplitz,
+                                            l_exact=l_exact,
+                                            dl_band=dl_band)
 
     @classmethod
-    def from_fields(cls, fla1, fla2, flb1=None, flb2=None,
+    def from_fields(cls, fla1, fla2, flb1=None, flb2=None, *,
                     l_toeplitz=-1, l_exact=-1, dl_band=-1):
         """ Creates an :obj:`NmtCovarianceWorkspace` object containing the
         mode-coupling coefficients of the Gaussian covariance
@@ -148,10 +143,10 @@ class NmtCovarianceWorkspace(object):
             self.wsp = None
         self.wsp = lib.read_covar_workspace(fname)
 
-    def compute_coupling_coefficients(self, fla1, fla2,
-                                      flb1=None, flb2=None, *,
-                                      l_toeplitz=-1,
-                                      l_exact=-1, dl_band=-1):
+    def _compute_coupling_coefficients(self, fla1, fla2,
+                                       flb1, flb2, *,
+                                       l_toeplitz=-1,
+                                       l_exact=-1, dl_band=-1):
         """ Computes coupling coefficients of the Gaussian covariance
         between the power spectra of two pairs of
         :class:`~pymaster.field.NmtField` objects (``fla1``, ``fla2``,
@@ -236,8 +231,6 @@ class NmtCovarianceWorkspace(object):
         Args:
             fname (:obj:`str`): Output file name.
         """
-        if self.wsp is None:
-            raise ValueError("Must initialize workspace before writing")
         lib.write_covar_workspace(self.wsp, "!"+fname)
 
 
@@ -335,9 +328,8 @@ class NmtCovarianceWorkspaceFlat(object):
         lib.write_covar_workspace_flat(self.wsp, "!"+fname)
 
 
-def gaussian_covariance(cw, spin_a1, spin_a2, spin_b1, spin_b2,
-                        cla1b1, cla1b2, cla2b1, cla2b2, wa, wb=None,
-                        coupled=False):
+def gaussian_covariance(cw, cla1b1, cla1b2, cla2b1, cla2b2,
+                        wa, wb=None, coupled=False):
     """ Computes the Gaussian covariance matrix for power spectra using the
     information precomputed in cw (a :class:`NmtCovarianceWorkspace`
     object). ``cw`` should have been initialized using four
@@ -370,10 +362,6 @@ def gaussian_covariance(cw, spin_a1, spin_a2, spin_b1, spin_b2,
     Args:
         cw (:obj:`NmtCovarianceWorkspace`): Workspace containing the
             precomputed coupling coefficients.
-        spin_a1 (:obj:`int`): Spin of field `a1`.
-        spin_a2 (:obj:`int`): Spin of field `a2`.
-        spin_b1 (:obj:`int`): Spin of field `b1`.
-        spin_b2 (:obj:`int`): Spin of field `b2`.
         cla1b1 (`array`): Prediction for the cross-power spectrum
             between fields `a1` and `b1`.
         cla1b2 (`array`): As `cla1b1` for fields `a1` and `b2`.
@@ -390,22 +378,22 @@ def gaussian_covariance(cw, spin_a1, spin_a2, spin_b1, spin_b2,
             computed. Otherwise it'll be the covariance of
             mode-decoupled bandpowers.
     """
-    nm_a1 = 2 if spin_a1 else 1
-    nm_a2 = 2 if spin_a2 else 1
-    nm_b1 = 2 if spin_b1 else 1
-    nm_b2 = 2 if spin_b2 else 1
+    nm_a1 = 2 if cw.spin_a1 else 1
+    nm_a2 = 2 if cw.spin_a2 else 1
+    nm_b1 = 2 if cw.spin_b1 else 1
+    nm_b2 = 2 if cw.spin_b2 else 1
 
     if wb is None:
         wb = wa
 
     if (wa.wsp.ncls != nm_a1*nm_a2) or (wb.wsp.ncls != nm_b1*nm_b2):
-        raise ValueError("Input spins do not match input workspaces")
+        raise ValueError("Field spins do not match input workspaces")
 
     if (len(cla1b1) != nm_a1*nm_b1) or \
        (len(cla1b2) != nm_a1*nm_b2) or \
        (len(cla2b1) != nm_a2*nm_b1) or \
        (len(cla2b2) != nm_a2*nm_b2):
-        raise ValueError("Input spins do not match input power"
+        raise ValueError("Field spins do not match input power"
                          "spectrum shapes")
 
     if (len(cla1b1[0]) < cw.wsp.lmax + 1) or \
@@ -424,16 +412,16 @@ def gaussian_covariance(cw, spin_a1, spin_a2, spin_b1, spin_b2,
         wb.check_unbinned()
 
         covar = lib.comp_gaussian_covariance_coupled(
-            cw.wsp, spin_a1, spin_a2, spin_b1, spin_b2,
-            wa.wsp, wb.wsp, cla1b1, cla1b2, cla2b1, cla2b2, len_a * len_b
+            cw.wsp, wa.wsp, wb.wsp,
+            cla1b1, cla1b2, cla2b1, cla2b2, len_a * len_b
         )
     else:
         len_a = wa.wsp.ncls * wa.wsp.bin.n_bands
         len_b = wb.wsp.ncls * wb.wsp.bin.n_bands
 
         covar = lib.comp_gaussian_covariance(
-            cw.wsp, spin_a1, spin_a2, spin_b1, spin_b2,
-            wa.wsp, wb.wsp, cla1b1, cla1b2, cla2b1, cla2b2, len_a * len_b
+            cw.wsp, wa.wsp, wb.wsp,
+            cla1b1, cla1b2, cla2b1, cla2b2, len_a * len_b
         )
 
     return covar.reshape([len_a, len_b])
