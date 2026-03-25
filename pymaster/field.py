@@ -1059,6 +1059,10 @@ class NmtFieldCatalog(NmtField):
             self.pos = positions
             self.weights = weights
             self.field = field
+            # Consider noise variance
+            if noise_variance is not None:
+                noise_variance = np.array(noise_variance,
+                                          dtype=np.float64)
             self.noise_variance = noise_variance
             if templates is not None:
                 self.temp = templates
@@ -1487,6 +1491,9 @@ class NmtFieldCatalogMomentum(NmtField):
                                      "clustering.")
                 self.noise_variance = np.ones_like(self.weights)
             else:
+                if noise_variance is not None:
+                    noise_variance = np.array(noise_variance,
+                                              dtype=np.float64)
                 self.noise_variance = noise_variance
             if templates is not None:
                 self.temp = templates
@@ -1513,7 +1520,8 @@ class NmtFieldCatalogMomentum(NmtField):
 
         # No bias if no deprojection or no noise variance
         if (self.temp is None) or (self.noise_variance is None):
-            self._nl_deproj = clb
+            self._nl_deproj = clb.reshape([self.nmaps*self.nmaps,
+                                           self.ainfo.lmax+1])
             return self._nl_deproj
 
         # Otherwise, calculate
