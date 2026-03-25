@@ -45,8 +45,6 @@ class NmtCovarianceWorkspace(object):
         dl_band (:obj:`int`): If ``l_toeplitz>0``, this quantity
             corresponds to :math:`\\Delta \\ell_{\\rm band}` in Fig.
             3 of the paper. Ignored if ``l_toeplitz<=0``.
-        spin0_only (:obj:`bool`): If ``True``, only spin-0 combinations
-            of the mode-coupling coefficients will be computed and stored.
         fname (:obj:`str`): Input file name. If not `None`, the values of
             all input fields will be ignored, and all mode-coupling
             coefficients will be read from file.
@@ -56,7 +54,7 @@ class NmtCovarianceWorkspace(object):
     """
     def __init__(self, fla1=None, fla2=None, flb1=None, flb2=None,
                  l_toeplitz=-1, l_exact=-1, dl_band=-1,
-                 spin0_only=False, fname=None, force_spin0_only=False):
+                 fname=None):
         self.wsp = None
 
         if ((fla1 is None) and (fla2 is None) and (fname is None)):
@@ -70,20 +68,18 @@ class NmtCovarianceWorkspace(object):
             return
 
         if (fname is not None):
-            self.read_from(fname, force_spin0_only=force_spin0_only)
+            self.read_from(fname)
             return
 
         self.compute_coupling_coefficients(fla1, fla2,
                                            flb1=flb1, flb2=flb2,
                                            l_toeplitz=l_toeplitz,
                                            l_exact=l_exact,
-                                           dl_band=dl_band,
-                                           spin0_only=spin0_only)
+                                           dl_band=dl_band)
 
     @classmethod
     def from_fields(cls, fla1, fla2, flb1=None, flb2=None,
-                    l_toeplitz=-1, l_exact=-1, dl_band=-1,
-                    spin0_only=False):
+                    l_toeplitz=-1, l_exact=-1, dl_band=-1):
         """ Creates an :obj:`NmtCovarianceWorkspace` object containing the
         mode-coupling coefficients of the Gaussian covariance
         between the power spectra of two pairs of
@@ -118,26 +114,21 @@ class NmtCovarianceWorkspace(object):
             dl_band (:obj:`int`): If ``l_toeplitz>0``, this quantity
                 corresponds to :math:`\\Delta \\ell_{\\rm band}` in Fig.
                 3 of the paper. Ignored if ``l_toeplitz<=0``.
-            spin0_only (:obj:`bool`): If ``True``, only spin-0 combinations
-                of the mode-coupling coefficients will be computed and stored.
         """
         return cls(fla1=fla1, fla2=fla2, flb1=flb1, flb2=flb2,
                    l_toeplitz=l_toeplitz, l_exact=l_exact,
-                   dl_band=dl_band, spin0_only=spin0_only)
+                   dl_band=dl_band)
 
     @classmethod
-    def from_file(cls, fname, force_spin0_only=False):
+    def from_file(cls, fname):
         """ Creates an :obj:`NmtCovarianceWorkspace` object from the
         mode-coupling coefficients stored in a FITS file.
         See :meth:`write_to`.
 
         Args:
             fname (:obj:`str`): Input file name.
-            force_spin_only (:obj:`bool`): If ``True``, only spin-0
-                combinations of the mode-coupling coefficients will
-                be read and stored.
         """
-        return cls(fname=fname, force_spin0_only=force_spin0_only)
+        return cls(fname=fname)
 
     def __del__(self):
         if self.wsp is not None:
@@ -145,27 +136,22 @@ class NmtCovarianceWorkspace(object):
                 lib.covar_workspace_free(self.wsp)
             self.wsp = None
 
-    def read_from(self, fname, force_spin0_only=False):
+    def read_from(self, fname):
         """ Reads the contents of an :obj:`NmtCovarianceWorkspace`
         object from a FITS file.
 
         Args:
             fname (:obj:`str`): Input file name.
-            force_spin_only (:obj:`bool`): If ``True``, only spin-0
-                combinations of the mode-coupling coefficients will
-                be read and stored.
         """
         if self.wsp is not None:
             lib.covar_workspace_free(self.wsp)
             self.wsp = None
-        self.wsp = lib.read_covar_workspace(fname,
-                                            int(force_spin0_only))
+        self.wsp = lib.read_covar_workspace(fname)
 
     def compute_coupling_coefficients(self, fla1, fla2,
                                       flb1=None, flb2=None, *,
                                       l_toeplitz=-1,
-                                      l_exact=-1, dl_band=-1,
-                                      spin0_only=False):
+                                      l_exact=-1, dl_band=-1):
         """ Computes coupling coefficients of the Gaussian covariance
         between the power spectra of two pairs of
         :class:`~pymaster.field.NmtField` objects (``fla1``, ``fla2``,
@@ -199,8 +185,6 @@ class NmtCovarianceWorkspace(object):
             dl_band (:obj:`int`): If ``l_toeplitz>0``, this quantity
                 corresponds to :math:`\\Delta \\ell_{\\rm band}` in Fig.
                 3 of the paper. Ignored if ``l_toeplitz<=0``.
-            spin0_only (:obj:`bool`): If ``True``, only spin-0 combinations
-                of the mode-coupling coefficients will be computed and stored.
         """
         if flb1 is None:
             flb1 = fla1
@@ -237,12 +221,13 @@ class NmtCovarianceWorkspace(object):
 
         pcl_mask_11_22 = get_mask_prod_cl(fla1, flb1, fla2, flb2)
         pcl_mask_12_21 = get_mask_prod_cl(fla1, flb2, fla2, flb1)
-        self.wsp = lib.covar_workspace_init_py(pcl_mask_11_22,
+        self.wsp = lib.covar_workspace_init_py(int(fla1.spin), int(fla2.spin),
+                                               int(flb1.spin), int(flb2.spin),
+                                               pcl_mask_11_22,
                                                pcl_mask_12_21,
                                                int(fla1.ainfo.lmax),
                                                int(fla1.ainfo_mask.lmax),
-                                               l_toeplitz, l_exact, dl_band,
-                                               int(spin0_only))
+                                               l_toeplitz, l_exact, dl_band)
 
     def write_to(self, fname):
         """ Writes the contents of an :obj:`NmtCovarianceWorkspace`

@@ -578,21 +578,24 @@ void write_covar_workspace(nmt_covar_workspace *cw,char *fname)
   nmt_covar_workspace_write_fits(cw,fname);
 }
 
-nmt_covar_workspace *read_covar_workspace(char *fname,int force_spin0)
+nmt_covar_workspace *read_covar_workspace(char *fname)
 {
-  return nmt_covar_workspace_read_fits(fname,force_spin0);
+  return nmt_covar_workspace_read_fits(fname);
 }
 
-nmt_covar_workspace *covar_workspace_init_py(int nlb1, double *beam1,
+nmt_covar_workspace *covar_workspace_init_py(int spin_a1, int spin_a2,
+					     int spin_b1, int spin_b2,
+					     int nlb1, double *beam1,
 					     int nlb2, double *beam2,
 					     int lmax, int lmax_mask,
 					     int l_toeplitz, int l_exact,
-					     int dl_band,int spin0_only)
+					     int dl_band)
 {
   asserting(nlb1==lmax_mask+1);
   asserting(nlb2==lmax_mask+1);
-  return nmt_covar_workspace_init(beam1,beam2,lmax,lmax_mask,
-				  l_toeplitz,l_exact,dl_band,spin0_only);
+  return nmt_covar_workspace_init(spin_a1, spin_a2, spin_b1, spin_b2, 0,
+				  lmax,lmax_mask,
+				  l_toeplitz,l_exact,dl_band);
 }
 
 void write_covar_workspace_flat(nmt_covar_workspace_flat *cw,char *fname)

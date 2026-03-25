@@ -938,7 +938,10 @@ void nmt_compute_gaussian_covariance_flat(nmt_covar_workspace_flat *cw,
 typedef struct {
   int lmax; //!< Maximum multipole for the first set of power spectra
   int lmax_mask; //!< Maximum multipole for the first set of power spectra
-  int spin0_only; //!< Whether this only stores the spin-0 MCMs
+  int spin_a1;
+  int spin_a2;
+  int spin_b1;
+  int spin_b2;
   flouble **xi00_1122; //!< First (a1b1-a2b2), 00, mode coupling matrix (see scientific documentation)
   flouble **xi00_1221; //!< Second (a1b2-a2b1), 00, mode coupling matrix (see scientific documentation)
   flouble **xi02_1122; //!< First (a1b1-a2b2), 02, mode coupling matrix (see scientific documentation)
@@ -951,11 +954,13 @@ typedef struct {
 
 void nmt_covar_workspace_free(nmt_covar_workspace *cw);
 
-nmt_covar_workspace *nmt_covar_workspace_init(flouble *cl_masks_11_22,
+nmt_covar_workspace *nmt_covar_workspace_init(int spin_a1, int spin_a2,
+					      int spin_b1, int spin_b2,
+					      int auto_any,
+					      flouble *cl_masks_11_22,
 					      flouble *cl_masks_12_21,
 					      int lmax,int lmax_mask,
-                                              int l_toeplitz,int l_exact,int dl_band,
-					      int spin0_only);
+                                              int l_toeplitz,int l_exact,int dl_band);
 
 /**
  * @brief Compute full-sky Gaussian covariance matrix
@@ -1080,9 +1085,8 @@ void nmt_covar_workspace_write_fits(nmt_covar_workspace *cw,char *fname);
  * future covariance matrix computations. The same workspace can be used on any pair of power spectra
  * between fields with the same masks.
  * @param fname Path to input file.
- * @param force_spin0 Read and store only the spin-0 combinations
  */
-nmt_covar_workspace *nmt_covar_workspace_read_fits(char *fname,int force_spin0);
+nmt_covar_workspace *nmt_covar_workspace_read_fits(char *fname);
 
 /**
  * @brief Saves nmt_covar_workspace_flat structure to file
