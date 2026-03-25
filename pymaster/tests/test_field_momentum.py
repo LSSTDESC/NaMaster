@@ -211,7 +211,3 @@ def test_field_momentum_errors():
     with pytest.raises(ValueError):  # Weights too short
         nmt.NmtFieldCatalogMomentum(pos, w[1:], f,
                                     None, None, lmax, mask=mask)
-
-    with pytest.raises(ValueError):  # Spin must be provided
-        nmt.NmtFieldCatalogMomentum(pos, w, None, None, None,
-                                    lmax, mask=mask)

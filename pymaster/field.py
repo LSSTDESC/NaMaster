@@ -2,6 +2,7 @@ from pymaster import nmtlib as lib
 import numpy as np
 import healpy as hp
 import pymaster.utils as ut
+import warnings
 
 
 class NmtField(object):
@@ -840,6 +841,29 @@ def _process_pos_w(pos, w, lonlat, kind):
     return pos, w
 
 
+def _get_theta_ipd(pos, w, nside):
+    """ Returns the median inter-particle distance on
+    the sphere for a given catalog. It does so by
+    estimating the local weighted number density in
+    pixels of resolution ``nside``, and assigning an
+    inter-particle distance to each object in the
+    catalog equal to the inverse square root of this
+    density. The median of the resulting distances
+    is returned.
+    """
+    nsource = len(w)
+    npix = hp.nside2npix(nside)
+    if nsource < npix:
+        warnings.warn("There are fewer sources than there are pixels "
+                      "on the sphere. You should select a lower Nside "
+                      "to calculate the median inter-particle distance.")
+    Om_p = 4*np.pi/npix
+    ipix = hp.ang2pix(nside, *pos)
+    nmap = np.bincount(ipix, minlength=npix, weights=w)
+    th_ipds = np.sqrt(Om_p/nmap[ipix])
+    return np.median(th_ipds)
+
+
 class NmtFieldCatalog(NmtField):
     """ An :obj:`NmtFieldCatalog` object contains all the information
     describing a field sampled at the discrete positions of
@@ -873,12 +897,6 @@ class NmtFieldCatalog(NmtField):
         spin (:obj:`int`): Spin of this field. If ``None`` it will
             default to 0 or 2 if ``field`` contains 1 or 2 arrays,
             respectively.
-        beam (`array`): Spherical harmonic transform of the instrumental beam
-            (assumed to be rotationally symmetric - i.e. no :math:`m`
-            dependence) associated with any smoothing that the field that
-            was sampled on these catalog sources may have undergone. If
-            ``None``, no beam will be corrected for. Otherwise, this array
-            should have at least of size ``lmax+1``.
         field_is_weighted (:obj:`bool`): Set to ``True`` if the input field has
             already been multiplied by the source weights. The same will also
             be assumed of the contaminant templates (see ``templates``).
@@ -905,10 +923,18 @@ class NmtFieldCatalog(NmtField):
         noise_variance (`array`): estimate of the noise variance per source.
             Needed to correct for additional uncorrelated noise bias due to
             deprojection. If ``None``, no additional correction is computed.
+        retain_catalog (`bool`): if ``True``, this object will retain a copy
+            of the catalog positions, weights, and field values in memory,
+            which can be used to estimate covariance matrices and deprojection
+            noise biases.
+        nside_ipd (`int`): HEALPix `Nside` parameter used to calculate the
+            median inter-particle distance for this catalog.
     """
-    def __init__(self, positions, weights, field, lmax, lmax_mask=None,
-                 spin=None, beam=None, field_is_weighted=False, lonlat=False,
-                 templates=None, tol_pinv=None, noise_variance=None):
+    def __init__(self, positions, weights, field, lmax,
+                 lmax_mask=None, spin=None, field_is_weighted=False,
+                 lonlat=False, templates=None, tol_pinv=None,
+                 noise_variance=None, retain_catalog=False,
+                 nside_ipd=16):
         # 0. Preliminary initializations
         if ut.HAVE_DUCC:
             self.sht_calculator = 'ducc'
@@ -916,9 +942,9 @@ class NmtFieldCatalog(NmtField):
             raise ValueError("DUCC is needed, but currently not installed.")
 
         # These first attributes are compulsory for all fields
-        self.lite = True
+        self.lite = not retain_catalog
         self.mask = None
-        self.beam = None
+        self.beam = np.ones(lmax+1)
         self.n_iter = None
         self.n_iter_mask = None
         self.pure_e = False
@@ -930,7 +956,8 @@ class NmtFieldCatalog(NmtField):
         self.ainfo = ut.NmtAlmInfo(lmax)
         self._alpha = None
         self.is_catalog = True
-        self.clb = None
+        self.nside_ipd = nside_ipd
+        self.theta_ipd = None
 
         # The remaining attributes are only required for non-lite maps
         self.maps = None
@@ -941,9 +968,19 @@ class NmtFieldCatalog(NmtField):
         self.anisotropic_mask = False
         self.mask_a = None
         self.alm_mask_a = None
+        self._nl_deproj = None
+
+        # Additional catalog-level quantities
+        # (None unless retain_catalog = True)
+        self.pos = None
+        self.weights = None
+        self.field = None
+        self.noise_variance = None
 
         positions, weights = _process_pos_w(positions, weights,
                                             lonlat, 'source')
+        self.theta_ipd = _get_theta_ipd(positions, weights,
+                                        self.nside_ipd)
 
         # Compute mask shot noise
         self._Nw = np.sum(weights**2.)/(4.*np.pi)
@@ -956,19 +993,6 @@ class NmtFieldCatalog(NmtField):
         # Mask alms
         self.alm_mask = ut._catalog2alm_ducc0(weights, positions,
                                               spin=0, lmax=lmax_mask)[0]
-        # Beam
-        if isinstance(beam, (list, tuple, np.ndarray)):
-            if len(beam) <= lmax:
-                raise ValueError("Input beam must have at least %d elements "
-                                 "given the input maximum "
-                                 "multipole" % (lmax+1))
-            beam_use = beam
-        else:
-            if beam is None:
-                beam_use = np.ones(lmax+1)
-            else:
-                raise ValueError("Input beam can only be an array or None\n")
-        self.beam = beam_use
 
         # 2. Compute field alms
         # If only positions and weights, just return here
@@ -980,17 +1004,17 @@ class NmtFieldCatalog(NmtField):
             return
 
         # Ensure it's 2D
-        self.field = np.atleast_2d(np.array(field, dtype=np.float64))
+        field = np.atleast_2d(np.array(field, dtype=np.float64))
         # Set spin
         if spin is None:
-            spin = 0 if len(self.field) == 1 else 2
+            spin = 0 if len(field) == 1 else 2
         self.spin = spin
         self.nmaps = 2 if spin else 1
         nsrcs = len(weights)
-        if self.field.shape != (self.nmaps, nsrcs):
+        if field.shape != (self.nmaps, nsrcs):
             raise ValueError(f"Field should have shape {(self.nmaps, nsrcs)}.")
         if not field_is_weighted:
-            self.field *= weights
+            field *= weights
 
         # 3. Contaminant deprojection
         # 3.1 check templates
@@ -1017,52 +1041,31 @@ class NmtFieldCatalog(NmtField):
                           for t2 in templates])
             iM = ut.moore_penrose_pinvh(M, tol_pinv)
 
-            prods = np.array([np.sum(t*self.field)
+            prods = np.array([np.sum(t*field)
                               for t in templates])
             alphas = np.dot(iM, prods)
 
             self.iM = iM
             self.alphas = alphas
-            self.field = self.field - np.sum(alphas[:, None, None]*templates,
-                                             axis=0)
+            field = field - np.sum(alphas[:, None, None]*templates, axis=0)
 
-            if noise_variance is not None:
-                clb = np.zeros((self.nmaps, self.nmaps, self.ainfo.lmax+1))
-                pcl_ff = np.zeros((self.n_temp, self.n_temp,
-                                   self.nmaps, self.nmaps,
-                                   self.ainfo.lmax+1))
-                flms = np.array([ut._catalog2alm_ducc0(t, positions,
-                                                       spin=spin, lmax=lmax)
-                                 for t in templates])
-                for j, fj in enumerate(templates):
-                    fwj = ut._catalog2alm_ducc0(fj*weights**2*noise_variance,
-                                                positions, spin=spin,
-                                                lmax=lmax)
-                    for i, fi in enumerate(flms):
-                        cl = np.array([[hp.alm2cl(a1, a2, lmax=self.ainfo.lmax)
-                                        for a1 in fi]
-                                       for a2 in fwj])
-                        pcl_ff[i, j, :, :, :] = cl
-                clb -= 2*np.einsum('ij,ijklm', self.iM, pcl_ff)
-
-                pcl_ff = np.array([[[[hp.alm2cl(a1, a2, lmax=self.ainfo.lmax)
-                                      for a2 in fs]
-                                     for a1 in fi]
-                                    for fs in flms]
-                                   for fi in flms])
-                prod_ff = np.array([[np.sum(weights**2*noise_variance*fj*fr)
-                                     for fr in templates] for fj in templates])
-                premat = np.einsum('ij,jr,rs', self.iM, prod_ff, self.iM)
-                clb += np.einsum('is,isklm', premat, pcl_ff)
-                clb = clb.reshape([self.nmaps*self.nmaps, self.ainfo.lmax+1])
-                self.clb = clb
-
-        self.alm = ut._catalog2alm_ducc0(self.field, positions,
+        self.alm = ut._catalog2alm_ducc0(field, positions,
                                          spin=spin, lmax=lmax)
 
         # 4. Compute field noise bias on mask pseudo-C_ell
-        # TODO: add clb?
-        self._Nf = np.sum(self.field**2)/(4*np.pi*self.nmaps)
+        self._Nf = np.sum(field**2)/(4*np.pi*self.nmaps)
+
+        if retain_catalog:
+            self.pos = positions
+            self.weights = weights
+            self.field = field
+            # Consider noise variance
+            if noise_variance is not None:
+                noise_variance = np.array(noise_variance,
+                                          dtype=np.float64)
+            self.noise_variance = noise_variance
+            if templates is not None:
+                self.temp = templates
 
     def get_noise_deprojection_bias(self):
         """ Returns the deprojection bias due to uncorrelated noise
@@ -1072,13 +1075,510 @@ class NmtFieldCatalog(NmtField):
         Returns:
             (`array`): noise deprojection bias to the power spectrum.
         """
-        if self.clb is None:
-            raise ValueError("No noise deprojection bias calculated "
-                             "for this field")
-        return self.clb
+        if self.lite:
+            raise ValueError("Cannot compute noise deprojection bias "
+                             "for lightweight field. "
+                             "Use `retain_catalog=True` when initialising "
+                             "the field to preserve all needed quantities.")
+
+        if self._nl_deproj is not None:
+            return self._nl_deproj
+
+        clb = np.zeros((self.nmaps, self.nmaps, self.ainfo.lmax+1))
+
+        # No bias if no deprojection or no noise variance
+        if (self.temp is None) or (self.noise_variance is None):
+            self._nl_deproj = clb.reshape([self.nmaps*self.nmaps,
+                                           self.ainfo.lmax+1])
+            return self._nl_deproj
+
+        # Otherwise, calculate
+        pcl_ff = np.zeros((self.n_temp, self.n_temp,
+                           self.nmaps, self.nmaps,
+                           self.ainfo.lmax+1))
+        self.alm_temp = np.array([ut._catalog2alm_ducc0(t, self.pos,
+                                                        spin=self.spin,
+                                                        lmax=self.ainfo.lmax)
+                                  for t in self.temp])
+        for j, fj in enumerate(self.temp):
+            fwj = ut._catalog2alm_ducc0(
+                fj*self.weights**2*self.noise_variance,
+                self.pos, spin=self.spin, lmax=self.ainfo.lmax)
+            for i, fi in enumerate(self.alm_temp):
+                cl = np.array([[hp.alm2cl(a1, a2, lmax=self.ainfo.lmax)
+                                for a1 in fi]
+                               for a2 in fwj])
+                pcl_ff[i, j, :, :, :] = cl
+        clb -= 2*np.einsum('ij,ijklm', self.iM, pcl_ff)
+
+        pcl_ff = np.array([[[[hp.alm2cl(a1, a2, lmax=self.ainfo.lmax)
+                              for a2 in fs]
+                             for a1 in fi]
+                            for fs in self.alm_temp]
+                           for fi in self.alm_temp])
+        prod_ff = np.array([[
+            np.sum(self.weights**2*self.noise_variance*fj*fr)
+            for fr in self.temp] for fj in self.temp])
+        premat = np.einsum('ij,jr,rs', self.iM, prod_ff, self.iM)
+        clb += np.einsum('is,isklm', premat, pcl_ff)
+        clb = clb.reshape([self.nmaps*self.nmaps, self.ainfo.lmax+1])
+
+        self._nl_deproj = clb
+        return self._nl_deproj
 
 
-class NmtFieldCatalogClustering(NmtField):
+class NmtFieldCatalogMomentum(NmtField):
+    """ An :obj:`NmtFieldCatalogMomentum` object contains all the
+    information describing a field weighted by the local density of sources.
+    A typical application of such a field is in the analysis of kSZ-galaxy
+    correlations, where one must construct the radial galaxy momentum field
+    (see Harscouet et al. 2025 for details). The mean density of sources in
+    the sample is characterised by a set of random points or through a
+    standard mask.
+
+    .. note::
+        The ordering of arguments for this class will change in the next
+        major version of NaMaster.
+
+    Args:
+        positions (`array`): Source positions, provided as a list or array
+            of 2 arrays. If ``lonlat`` is True, the arrays should contain the
+            longitude and latitude of the sources, in this order, and in
+            degrees (e.g. R.A. and Dec. if using Equatorial coordinates).
+            Otherwise, the arrays should contain the colatitude and
+            longitude of each source in radians (i.e. the spherical
+            coordinates :math:`(\\theta,\\phi)`).
+        weights (`array`): An array containing the weight assigned to
+            each source.
+        field (`array`): An array containing the field values (e.g. the
+            reconstructed galaxy radial velocities, in the case of a radial
+            galaxy momentum field, or the transverse velocity vector in the
+            case of transverse momentum) at the source positions.
+        positions_rand (`array`): As ``positions`` for the random catalog.
+        weights_rand (`array`): As ``weights`` for the random catalog.
+        lmax (:obj:`int`): Maximum multipole up to which the spherical
+            harmonics of this field will be computed.
+        lmax_mask (:obj:`int`): Maximum multipole up to which the power
+            spectrum of the mask will be computed. If ``None``, ``lmax``
+            will be used if ``mask`` is ``None``. If a mask is provided as
+            a map, the maximum multipole given the map resolution will be
+            used (e.g. :math:`3N_{\\rm side}-1` for HEALPix maps).
+        spin (:obj:`int`): Spin of this field. If ``None`` it will
+            default to 0 or 2 if ``field`` contains 1 or 2 arrays,
+            respectively.
+        field_is_weighted (:obj:`bool`): Set to ``True`` if the input field has
+            already been multiplied by the source weights. The same will also
+            be assumed of the contaminant templates (see ``templates``).
+        lonlat (:obj:`bool`): If ``True``, longitude and latitude in degrees
+            are provided as input. If ``False``, colatitude and longitude in
+            radians are provided instead.
+        mask (`array`): Array containing a map corresponding to the
+            field's mask. Should be 1-dimensional for a HEALPix map or
+            2-dimensional for a map with rectangular (CAR) pixelization.
+            If not ``None``, the random catalogue (``positions_rand`` and
+            ``weights_rand``) will be ignored.
+        n_iter_mask (:obj:`int`): Number of iterations when computing the
+            :math:`a_{\\ell m}` s of the input mask. See the documentation of
+            :meth:`~pymaster.utils.map2alm`. If ``None``, it will default to
+            the internal value (see documentation of
+            :class:`~pymaster.utils.NmtParams`), which can be accessed via
+            :meth:`~pymaster.utils.get_default_params`, and modified via
+            :meth:`~pymaster.utils.set_n_iter_default`. Only needed if
+            ``mask`` is not ``None``.
+        wcs (`WCS`): A WCS object if using rectangular (CAR) pixels (see
+            `the astropy documentation
+            <http://docs.astropy.org/en/stable/wcs/index.html>`_).
+        templates (`array`): An array containing either the values of
+            a set of contaminant templates for this field sampled at the
+            positions of the randoms, or the templates themselves. The choice
+            depends on whether the survey footprint is being characterised
+            using a set of randoms, or with a standard mask. If the former,
+            this array should have a shape ``[ntemp, 1, nran]`` where ``ntemp``
+            is the number of templates, and ``nran`` is the number of randoms
+            (i.e. the length of ``weights_rand``). If the latter, it should
+            have shape ``[ntemp, 1, npix]``, where ``npix`` is the number of
+            pixels in each template (all templates must have the same
+            resolution). The best-fit contribution from all contaminants is
+            automatically subtracted (i.e. deprojected) from the density field
+            values for each source. If ``None``, no deprojection is carried
+            out.
+        tol_pinv (:obj:`float`): When computing the pseudo-inverse of the
+            contaminant covariance matrix. See documentation of
+            :meth:`~pymaster.utils.moore_penrose_pinvh`. Only relevant if
+            passing contaminant templates that are likely to be highly
+            correlated. If ``None``, it will default to the internal value,
+            which can be accessed via
+            :meth:`~pymaster.utils.get_default_params`, and modified via
+            :meth:`~pymaster.utils.set_tol_pinv_default`.
+        lmax_deproj (:obj:`int`): maximum multipole used for contaminant
+            deprojection. If ``None``, ``lmax`` will be used.
+        n_iter_temp (:obj:`int`): Number of iterations when computing the
+            spherical harmonic transform of the templates. Note that this
+            is only relevant if a mask is provided. If ``None``, it will
+            default to the internal value (see documentation of
+            :class:`~pymaster.utils.NmtParams`), which can be accessed via
+            :meth:`~pymaster.utils.get_default_params`,
+            and modified via :meth:`~pymaster.utils.set_n_iter_default`.
+        masked_on_input (:obj:`bool`): Set to ``True`` if the input templates
+            have already been masked. If ``templates`` is provided as an
+            array of templates sampled at the positions of the randoms, then
+            the templates are considered masked if the sampled values have
+            been multiplied by the weights of the corresponding randoms. If
+            ``templates`` is instead an array containing the templates
+            themselves, then this masking consitutes a pixel-wise
+            multiplication of each template with the mask.
+        noise_variance (`array`): estimate of the noise variance per source.
+            Needed to correct for additional uncorrelated noise bias due to
+            deprojection. If ``None``, no additional correction is computed.
+        retain_catalog (`bool`): if ``True``, this object will retain a copy
+            of the catalog positions, weights, and field values in memory,
+            which can be used to estimate covariance matrices and deprojection
+            noise biases.
+        nside_ipd (`int`): HEALPix `Nside` parameter used to calculate the
+            median inter-particle distance for this catalog.
+    """
+    def __init__(self, positions, weights, field,
+                 positions_rand, weights_rand, lmax,
+                 lmax_mask=None, spin=None, field_is_weighted=False,
+                 lonlat=False, mask=None, n_iter_mask=None,
+                 wcs=None, templates=None, tol_pinv=None,
+                 lmax_deproj=None, n_iter_temp=None, masked_on_input=False,
+                 noise_variance=None, retain_catalog=False, nside_ipd=16):
+        # Preliminary initializations
+        if ut.HAVE_DUCC:
+            self.sht_calculator = 'ducc'
+        else:
+            raise ValueError("DUCC is needed, but currently not installed.")
+
+        # These first attributes are compulsory for all fields
+        self.lite = not retain_catalog
+        self.mask = None
+        self.beam = np.ones(lmax+1)
+        self.n_iter = None
+        self.n_iter_mask = n_iter_mask
+        self.pure_e = False
+        self.pure_b = False
+        self.alm = None
+        self.alm_mask = None
+        self._Nw = 0.
+        self._Nf = 0.
+        self.ainfo = ut.NmtAlmInfo(lmax)
+        self._alpha = 0
+        self.is_catalog = True
+        self.nside_ipd = nside_ipd
+        self.theta_ipd = None
+
+        # These attributes only required if templates provided for deprojection
+        self.maps = None
+        self.temp = None
+        self.alm_temp = None
+        self.minfo = None
+        self.n_temp = 0
+        self.anisotropic_mask = False
+        self.mask_a = None
+        self.alm_mask_a = None
+        self.lmax_deproj = None
+        self._nl_deproj = None
+
+        # Additional catalog-level quantities
+        # (None unless retain_catalog = True)
+        self.pos = None
+        self.weights = None
+        self.field = None
+        self.pos_r = None
+        self.weights_r = None
+        self.noise_variance = None
+
+        # If field is None, then we're doing galaxy clustering
+        self.is_clustering = field is None
+
+        # Sanity checks on positions and weights
+        positions, weights = _process_pos_w(positions, weights,
+                                            lonlat, "data")
+
+        # Initialize map object if using a map as mask
+        if mask is not None:
+            # This ensures the mask will have the right type
+            # and endianness (can cause issues when read from
+            # some FITS files).
+            mask = mask.astype(np.float64)
+            self.minfo = ut.NmtMapInfo(wcs, mask.shape)
+            self.mask = self.minfo.reform_map(mask)
+
+        # Determine lmax for mask
+        if lmax_mask is None:
+            if mask is None:
+                lmax_mask = lmax
+            else:
+                lmax_mask = self.minfo.get_lmax()
+        self.ainfo_mask = ut.NmtAlmInfo(lmax_mask)
+
+        # Check if mask provided, use randoms if not
+        if mask is None:
+            positions_rand, weights_rand = _process_pos_w(positions_rand,
+                                                          weights_rand,
+                                                          lonlat,
+                                                          "random")
+            self.theta_ipd = _get_theta_ipd(positions_rand,
+                                            weights_rand, self.nside_ipd)
+            nrand = len(weights_rand)
+
+            # Compute alpha
+            self._alpha = np.sum(weights)/np.sum(weights_rand)
+
+            # Compute mask shot noise
+            self._Nw = np.sum(weights_rand**2.)/(4.*np.pi)
+
+            # Compute mask alms
+            self.alm_mask = ut._catalog2alm_ducc0(weights_rand,
+                                                  positions_rand,
+                                                  spin=0, lmax=lmax_mask)
+            if self.is_clustering:
+                if lmax_mask == lmax:
+                    alm_mask_sub = self.alm_mask
+                else:
+                    alm_mask_sub = ut._catalog2alm_ducc0(weights_rand,
+                                                         positions_rand,
+                                                         spin=0, lmax=lmax)
+        else:  # If mask provided, ignore/replace randoms-related quantities
+            # Initialisation of parameters related to the mask
+            if n_iter_mask is None:
+                n_iter_mask = ut.nmt_params.n_iter_default
+            mask_area = self.minfo.si.map_integral(self.mask)
+            self._alpha = np.sum(weights) / mask_area
+
+            # No shot noise for map-based masks
+            self._Nw = 0.
+
+            # Compute mask alms
+            self.alm_mask = ut.map2alm(np.array([self.mask]), 0,
+                                       self.minfo, self.ainfo_mask,
+                                       n_iter=n_iter_mask)
+            if self.is_clustering:
+                if lmax_mask == lmax:
+                    alm_mask_sub = self.alm_mask
+                else:
+                    alm_mask_sub = ut.map2alm(np.array([self.mask]), 0,
+                                              self.minfo, self.ainfo,
+                                              n_iter=n_iter_mask)
+
+        if self.is_clustering:
+            field = np.atleast_2d(weights)
+            field_is_weighted = True
+            self.spin = 0
+        else:
+            # Ensure it's 2D
+            field = np.atleast_2d(np.array(field, dtype=np.float64))
+            # Set spin
+            if spin is None:
+                spin = 0 if len(field) == 1 else 2
+            self.spin = spin
+        self.nmaps = 2 if self.spin else 1
+
+        nsrcs = len(weights)
+        if field.shape != (self.nmaps, nsrcs):
+            raise ValueError(f"Field should have shape {(self.nmaps, nsrcs)}.")
+        if not field_is_weighted:
+            field *= weights
+
+        # Compute field alms
+        self.alm = ut._catalog2alm_ducc0(field/self._alpha,
+                                         positions, spin=self.spin, lmax=lmax)
+        if self.is_clustering:
+            self.alm = self.alm - alm_mask_sub
+        self.alm_mask = self.alm_mask[0]
+
+        # Contaminant deprojection
+        # Check templates
+        if isinstance(templates, (list, tuple, np.ndarray)):
+            templates = np.array(templates, dtype=np.float64)
+        else:
+            if templates is not None:
+                raise ValueError("Input templates can only be an array "
+                                 " or None")
+        # Deproject
+        if templates is not None:
+            # Default to field lmax if not provided
+            if lmax_deproj is None:
+                lmax_deproj = lmax
+            else:
+                if lmax_deproj > lmax:
+                    raise ValueError("lmax_deproj shouldn't be larger "
+                                     f"than lmax. {lmax_deproj} > {lmax}.")
+            self.lmax_deproj = lmax_deproj
+            ntemp = len(templates)
+            self.n_temp = ntemp
+
+            if tol_pinv is None:
+                tol_pinv = ut.nmt_params.tol_pinv_default
+
+            ls = np.arange(self.lmax_deproj+1)
+
+            M_zerop = np.zeros([ntemp, ntemp])
+            prods_zerop = np.zeros(ntemp)
+            if mask is None:
+                if templates.shape != (ntemp, self.nmaps, nrand):
+                    raise ValueError("Templates should have shape "
+                                     f"{(ntemp, self.nmaps, nrand)}")
+                if not masked_on_input:
+                    templates = templates * weights_rand
+
+                flms = np.array([ut._catalog2alm_ducc0(t,
+                                                       positions_rand,
+                                                       spin=self.spin,
+                                                       lmax=lmax)
+                                 for t in templates])
+                M_zerop = np.array([[np.sum(fi*fj)/(4*np.pi)
+                                     for fi in templates]
+                                    for fj in templates])
+                if self.is_clustering:
+                    prods_zerop = np.array([-np.sum(fi*weights_rand)/(4*np.pi)
+                                            for fi in templates])
+            else:
+                if n_iter_temp is None:
+                    n_iter_temp = ut.nmt_params.n_iter_default
+
+                if len(templates[0].flatten()) != self.nmaps*self.minfo.npix:
+                    raise ValueError("Templates should have total size "
+                                     f"{self.nmaps*self.minfo.npix}")
+                templates = self.minfo.reform_map(templates)
+                if not masked_on_input:
+                    templates = templates * self.mask
+
+                flms = np.array([ut.map2alm(t, self.spin,
+                                            self.minfo, self.ainfo,
+                                            n_iter=n_iter_temp)
+                                 for t in templates])
+            clffs = np.array([[
+                np.sum(np.array([hp.alm2cl(f1[p], f2[p],
+                                           lmax_out=self.lmax_deproj)
+                                 for p in range(self.nmaps)]),
+                       axis=0)
+                for f2 in flms] for f1 in flms])
+
+            M = np.sum((2*ls+1)[None, None, :] *
+                       (clffs - M_zerop[:, :, None]), axis=-1)
+            iM = ut.moore_penrose_pinvh(M, tol_pinv)
+            clafs = np.array([
+                np.sum(np.array([hp.alm2cl(self.alm[p], f1[p],
+                                           lmax_out=self.lmax_deproj)
+                                 for p in range(self.nmaps)]),
+                       axis=0)
+                for f1 in flms])
+            prods = np.sum((2*ls+1)[None, :] *
+                           (clafs - prods_zerop[:, None]), axis=-1)
+            alphas = np.dot(iM, prods)
+            self.iM = iM
+            self.alphas = alphas
+            self.alm = self.alm - np.sum(alphas[:, None, None]*flms, axis=0)
+
+        # Compute field shot noise
+        self._Nf = np.sum(field**2)/(4*np.pi*self._alpha**2*self.nmaps)
+        if self.is_clustering:
+            self._Nf = self._Nf + self._Nw
+
+        if retain_catalog:
+            self.pos = positions
+            self.weights = weights
+            self.field = field
+            self.pos_r = positions_rand
+            self.weights_r = weights_rand
+            # Consider noise variance
+            if self.is_clustering:
+                if noise_variance is not None:
+                    raise ValueError("The noise variance is fixed "
+                                     "to the Poisson value for source "
+                                     "clustering.")
+                self.noise_variance = np.ones_like(self.weights)
+            else:
+                if noise_variance is not None:
+                    noise_variance = np.array(noise_variance,
+                                              dtype=np.float64)
+                self.noise_variance = noise_variance
+            if templates is not None:
+                self.temp = templates
+                self.alm_temp = flms
+
+    def get_noise_deprojection_bias(self):
+        """ Returns the deprojection bias due to uncorrelated noise
+        for this field. You may only use this function if you
+        provided a `noise_variance` when creating this field.
+
+        Returns:
+            (`array`): noise deprojection bias to the power spectrum.
+        """
+        if self.lite:
+            raise ValueError("Cannot compute noise deprojection bias "
+                             "for lightweight field. "
+                             "Use `retain_catalog=True` when initialising "
+                             "the field to preserve all needed quantities.")
+
+        if self._nl_deproj is not None:
+            return self._nl_deproj
+
+        clb = np.zeros((self.nmaps, self.nmaps, self.ainfo.lmax+1))
+
+        # No bias if no deprojection or no noise variance
+        if (self.temp is None) or (self.noise_variance is None):
+            self._nl_deproj = clb.reshape([self.nmaps*self.nmaps,
+                                           self.ainfo.lmax+1])
+            return self._nl_deproj
+
+        # Otherwise, calculate
+        pcl_ff = np.zeros((self.n_temp, self.n_temp,
+                           self.nmaps, self.nmaps,
+                           self.ainfo.lmax+1))
+        # Filter template maps to ell <= lmax_deproj
+        filt = (np.arange(self.ainfo.lmax+1)
+                <= self.lmax_deproj).astype(float)
+        fFilt = []
+        fFilt_r = []
+        for flm in self.alm_temp:
+            flmfilt = np.array([hp.almxfl(ff, filt) for ff in flm])
+            fFilt.append(ut._alm2catalog_ducc0(
+                flmfilt, self.pos,
+                spin=0, lmax=self.ainfo.lmax))
+            if self.mask is None:
+                fFilt_r.append(ut._alm2catalog_ducc0(
+                    flmfilt, self.pos_r,
+                    spin=0, lmax=self.ainfo.lmax))
+
+        for j, fF in enumerate(fFilt):
+            fwj = ut._catalog2alm_ducc0(
+                (self.weights/self._alpha)**2*fF*self.noise_variance,
+                self.pos, spin=self.spin, lmax=self.ainfo.lmax)
+            if self.is_clustering and (self.mask is None):
+                fwj += ut._catalog2alm_ducc0(
+                    self.weights_r**2*fFilt_r[j], self.pos_r,
+                    spin=self.spin, lmax=self.ainfo.lmax)
+            for i, fi in enumerate(self.alm_temp):
+                cl = np.array([[hp.alm2cl(a1, a2, lmax=self.ainfo.lmax)
+                                for a1 in fi]
+                               for a2 in fwj])
+                pcl_ff[i, j, :, :, :] = cl
+        clb -= 2*np.einsum('ij,ijklm', self.iM, pcl_ff)
+
+        pcl_ff = np.array([[[[hp.alm2cl(a1, a2, lmax=self.ainfo.lmax)
+                              for a2 in fs]
+                             for a1 in fi]
+                            for fs in self.alm_temp]
+                           for fi in self.alm_temp])
+        prod_ff = np.array([[
+            np.sum((self.weights/self._alpha)**2*self.noise_variance*fj*fr)
+            for fr in fFilt] for fj in fFilt])
+        if self.is_clustering and (self.mask is None):
+            prod_ff += np.array([[np.sum(self.weights_r**2*fj*fr)
+                                  for fr in fFilt_r]
+                                 for fj in fFilt_r])
+        premat = np.einsum('ij,jr,rs', self.iM, prod_ff, self.iM)
+        clb += np.einsum('is,isklm', premat, pcl_ff)
+        clb = clb.reshape([self.nmaps*self.nmaps, self.ainfo.lmax+1])
+
+        self._nl_deproj = clb
+        return self._nl_deproj
+
+
+class NmtFieldCatalogClustering(NmtFieldCatalogMomentum):
     """ An :obj:`NmtFieldCatalogClustering` object contains all the
     information describing a field represented by the position and density
     of discrete sources, with a survey footprint characterised by a set of
@@ -1163,453 +1663,25 @@ class NmtFieldCatalogClustering(NmtField):
             ``templates`` is instead an array containing the templates
             themselves, then this masking consitutes a pixel-wise
             multiplication of each template with the mask.
-        calculate_noise_dp_bias (:obj:`bool`): If set to ``True``, will
-            compute and store the bias induced in the shot noise component
-            of the pseudo-:math:`C_\\ell` by template deprojection. This can
-            be retrieved through :func:`get_noise_deprojection_bias`.
+        retain_catalog (`bool`): if ``True``, this object will retain a copy
+            of the catalog positions, weights, and field values in memory,
+            which can be used to estimate covariance matrices and deprojection
+            noise biases.
+        nside_ipd (`int`): HEALPix `Nside` parameter used to calculate the
+            median inter-particle distance for this catalog.
     """
     def __init__(self, positions, weights, positions_rand, weights_rand,
-                 lmax, lonlat=False,
-                 mask=None, lmax_mask=None, n_iter_mask=None,
-                 wcs=None, templates=None, lmax_deproj=None, n_iter_temp=None,
-                 tol_pinv=None, masked_on_input=False,
-                 calculate_noise_dp_bias=False):
-        # Preliminary initializations
-        if ut.HAVE_DUCC:
-            self.sht_calculator = 'ducc'
-        else:
-            raise ValueError("DUCC is needed, but currently not installed.")
-
-        # These first attributes are compulsory for all fields
-        self.lite = True
-        self.mask = None
-        self.beam = np.ones(lmax+1)
-        self.n_iter = None
-        self.n_iter_mask = n_iter_mask
-        self.pure_e = False
-        self.pure_b = False
-        self.alm = None
-        self.alm_mask = None
-        self._Nw = 0.
-        self._Nf = 0.
-        self.ainfo = ut.NmtAlmInfo(lmax)
-        self._alpha = 0
-        self.spin = 0
-        self.is_catalog = True
-        self.nmaps = 1
-        self.clb = None
-
-        # The remaining attributes are only required for non-lite maps
-        self.maps = None
-        self.temp = None
-        self.alm_temp = None
-        self.minfo = None
-        self.n_temp = 0
-        self.anisotropic_mask = False
-        self.mask_a = None
-        self.alm_mask_a = None
-
-        positions, weights = _process_pos_w(positions, weights,
-                                            lonlat, "data")
-
-        # Initialize map object if using a map as mask
-        if mask is not None:
-            # This ensures the mask will have the right type
-            # and endianness (can cause issues when read from
-            # some FITS files).
-            mask = mask.astype(np.float64)
-            self.minfo = ut.NmtMapInfo(wcs, mask.shape)
-            self.mask = self.minfo.reform_map(mask)
-
-        # Determine lmax for mask
-        if lmax_mask is None:
-            if mask is None:
-                lmax_mask = lmax
-            else:
-                lmax_mask = self.minfo.get_lmax()
-        self.ainfo_mask = ut.NmtAlmInfo(lmax_mask)
-
-        # Check if mask provided, use randoms if not
-        if mask is None:
-            positions_rand, weights_rand = _process_pos_w(positions_rand,
-                                                          weights_rand,
-                                                          lonlat,
-                                                          "random")
-            nrand = len(weights_rand)
-
-            # Compute alpha
-            self._alpha = np.sum(weights)/np.sum(weights_rand)
-
-            # Compute mask shot noise
-            self._Nw = np.sum(weights_rand**2.)/(4.*np.pi)
-
-            # Compute mask alms
-            self.alm_mask = ut._catalog2alm_ducc0(weights_rand,
-                                                  positions_rand,
-                                                  spin=0, lmax=lmax_mask)
-            if lmax_mask == lmax:
-                alm_mask_sub = self.alm_mask
-            else:
-                alm_mask_sub = ut._catalog2alm_ducc0(weights_rand,
-                                                     positions_rand,
-                                                     spin=0, lmax=lmax)
-        else:  # If mask provided, ignore/replace randoms-related quantities
-            # Initialisation of parameters related to the mask
-            if n_iter_mask is None:
-                n_iter_mask = ut.nmt_params.n_iter_default
-            mask_area = self.minfo.si.map_integral(self.mask)
-            self._alpha = np.sum(weights) / mask_area
-
-            # No shot noise for map-based masks
-            self._Nw = 0.
-
-            # Compute mask alms
-            self.alm_mask = ut.map2alm(np.array([self.mask]), 0,
-                                       self.minfo, self.ainfo_mask,
-                                       n_iter=n_iter_mask)
-            if lmax_mask == lmax:
-                alm_mask_sub = self.alm_mask
-            else:
-                alm_mask_sub = ut.map2alm(np.array([self.mask]), 0,
-                                          self.minfo, self.ainfo,
-                                          n_iter=n_iter_mask)
-
-        # Compute field alms
-        self.alm = ut._catalog2alm_ducc0(weights/self._alpha, positions,
-                                         spin=0, lmax=lmax)-alm_mask_sub
-        self.alm_mask = self.alm_mask[0]
-
-        # Contaminant deprojection
-        # Check templates
-        if isinstance(templates, (list, tuple, np.ndarray)):
-            templates = np.array(templates, dtype=np.float64)
-        else:
-            if templates is not None:
-                raise ValueError("Input templates can only be an array "
-                                 " or None")
-        # Deproject
-        if templates is not None:
-            # Default to field lmax if not provided
-            if lmax_deproj is None:
-                lmax_deproj = lmax
-            else:
-                if lmax_deproj > lmax:
-                    raise ValueError("lmax_deproj shouldn't be larger "
-                                     f"than lmax. {lmax_deproj} > {lmax}.")
-            ntemp = len(templates)
-            self.n_temp = ntemp
-
-            if tol_pinv is None:
-                tol_pinv = ut.nmt_params.tol_pinv_default
-
-            ls = np.arange(lmax_deproj+1)
-
-            if mask is None:
-                if templates.shape != (ntemp, nrand):
-                    raise ValueError("Templates should have shape "
-                                     f"{(ntemp, nrand)}")
-                if not masked_on_input:
-                    templates = templates * weights_rand
-
-                flms = np.array([ut._catalog2alm_ducc0(t,
-                                                       positions_rand,
-                                                       spin=0, lmax=lmax)
-                                 for t in templates])
-                M_zerop = np.array([[np.sum(fi*fj)/(4*np.pi)
-                                     for fi in templates]
-                                    for fj in templates])
-                prods_zerop = np.array([-np.sum(fi*weights_rand)/(4*np.pi)
-                                        for fi in templates])
-            else:
-                if n_iter_temp is None:
-                    n_iter_temp = ut.nmt_params.n_iter_default
-
-                if len(templates[0].flatten()) != self.minfo.npix:
-                    raise ValueError("Templates should have total size "
-                                     f"{self.minfo.npix}")
-                templates = self.minfo.reform_map(templates)
-                if not masked_on_input:
-                    templates = templates * self.mask
-
-                flms = np.array([ut.map2alm(np.array([t]), 0,
-                                            self.minfo, self.ainfo,
-                                            n_iter=n_iter_temp)
-                                 for t in templates])
-                M_zerop = np.zeros([ntemp, ntemp])
-                prods_zerop = np.zeros(ntemp)
-            M = np.array([[np.sum((2*ls+1) *
-                                  (hp.alm2cl(flms[i1], flms[i2],
-                                             lmax_out=lmax_deproj) -
-                                   M_zerop[i1, i2]))
-                           for i1 in range(ntemp)]
-                          for i2 in range(ntemp)])
-            iM = ut.moore_penrose_pinvh(M, tol_pinv)
-            prods = np.array([np.sum((2*ls+1) *
-                                     (hp.alm2cl(self.alm, flms[i],
-                                                lmax_out=lmax_deproj) -
-                                      prods_zerop[i]))
-                              for i in range(ntemp)])
-            alphas = np.dot(iM, prods)
-            self.iM = iM
-            self.alphas = alphas
-            self.alm = self.alm - np.sum(alphas[:, None, None]*flms, axis=0)
-
-            if calculate_noise_dp_bias:
-                clb = np.zeros((self.nmaps, self.nmaps, self.ainfo.lmax+1))
-                pcl_ff = np.zeros((self.n_temp, self.n_temp,
-                                   self.nmaps, self.nmaps,
-                                   self.ainfo.lmax+1))
-                # Filter template maps to ell <= lmax_deproj
-                filt = (np.arange(self.ainfo.lmax+1)
-                        <= lmax_deproj).astype(float)
-                fFilt = []
-                fFilt_r = []
-                for flm in flms:
-                    flmfilt = np.array([hp.almxfl(ff, filt) for ff in flm])
-                    if mask is None:
-                        fFilt.append(ut._alm2catalog_ducc0(
-                            flmfilt, positions,
-                            spin=0, lmax=self.ainfo.lmax))
-                        fFilt_r.append(ut._alm2catalog_ducc0(
-                            flmfilt, positions_rand,
-                            spin=0, lmax=self.ainfo.lmax))
-                    else:
-                        fFilt.append(ut.alm2map(flmfilt, 0, self.minfo,
-                                                self.ainfo))
-
-                for j, fF in enumerate(fFilt):
-                    if mask is None:
-                        fwj = ut._catalog2alm_ducc0(
-                            (weights/self._alpha)**2*fF, positions,
-                            spin=0, lmax=lmax)
-                        fwj += ut._catalog2alm_ducc0(
-                            weights_rand**2*fFilt_r[j], positions_rand,
-                            spin=0, lmax=lmax)
-                    else:
-                        fwj = ut.map2alm(fF*self.mask/self._alpha, 0,
-                                         self.minfo, self.ainfo,
-                                         n_iter=n_iter_temp)
-                    for i, fi in enumerate(flms):
-                        cl = np.array([[hp.alm2cl(a1, a2, lmax=self.ainfo.lmax)
-                                        for a1 in fi]
-                                       for a2 in fwj])
-                        pcl_ff[i, j, :, :, :] = cl
-                clb -= 2*np.einsum('ij,ijklm', self.iM, pcl_ff)
-
-                pcl_ff = np.array([[[[hp.alm2cl(a1, a2, lmax=self.ainfo.lmax)
-                                      for a2 in fs]
-                                     for a1 in fi]
-                                    for fs in flms]
-                                   for fi in flms])
-                if mask is None:
-                    prod_ff = np.array([[np.sum((weights/self._alpha)**2*fj*fr)
-                                         for fr in fFilt] for fj in fFilt])
-                    prod_ff += np.array([[np.sum(weights_rand**2*fj*fr)
-                                          for fr in fFilt_r]
-                                         for fj in fFilt_r])
-                else:
-                    prod_ff = np.array([[
-                        self.minfo.si.map_integral(fj*fr*self.mask/self._alpha)
-                        for fr in fFilt] for fj in fFilt])
-                premat = np.einsum('ij,jr,rs', self.iM, prod_ff, self.iM)
-                clb += np.einsum('is,isklm', premat, pcl_ff)
-                clb = clb.reshape([self.nmaps*self.nmaps, self.ainfo.lmax+1])
-                self.clb = clb
-
-        # Compute field shot noise
-        # TODO: add clb?
-        self._Nf = np.sum(weights**2)/(4*np.pi*self._alpha**2)+self._Nw
-
-    def get_noise_deprojection_bias(self):
-        """ Returns the deprojection bias due to uncorrelated shot noise
-        for this field. You may only use this function if you used
-        `calculate_noise_dp_bias=True` when creating this field.
-
-        Returns:
-            (`array`): noise deprojection bias to the power spectrum.
-        """
-        if self.clb is None:
-            raise ValueError("No noise deprojection bias calculated "
-                             "for this field")
-        return self.clb
-
-
-class NmtFieldCatalogMomentum(NmtField):
-    """ An :obj:`NmtFieldCatalogMomentum` object contains all the
-    information describing a field weighted by the local density of sources.
-    A typical application of such a field is in the analysis of kSZ-galaxy
-    correlations, where one must construct the radial galaxy momentum field
-    (see Harscouet et al. 2025 for details). The mean density of sources in
-    the sample is characterised by a set of random points or through a
-    standard mask.
-
-    .. note::
-        The ordering of arguments for this class will change in the next
-        major version of NaMaster.
-
-    Args:
-        positions (`array`): Source positions, provided as a list or array
-            of 2 arrays. If ``lonlat`` is True, the arrays should contain the
-            longitude and latitude of the sources, in this order, and in
-            degrees (e.g. R.A. and Dec. if using Equatorial coordinates).
-            Otherwise, the arrays should contain the colatitude and
-            longitude of each source in radians (i.e. the spherical
-            coordinates :math:`(\\theta,\\phi)`).
-        weights (`array`): An array containing the weight assigned to
-            each source.
-        field (`array`): An array containing the field values (e.g. the
-            reconstructed galaxy radial velocities, in the case of a radial
-            galaxy momentum field, or the transverse velocity vector in the
-            case of transverse momentum) at the source positions.
-        positions_rand (`array`): As ``positions`` for the random catalog.
-        weights_rand (`array`): As ``weights`` for the random catalog.
-        lmax (:obj:`int`): Maximum multipole up to which the spherical
-            harmonics of this field will be computed.
-        mask (`array`): Array containing a map corresponding to the
-            field's mask. Should be 1-dimensional for a HEALPix map or
-            2-dimensional for a map with rectangular (CAR) pixelization.
-            If not ``None``, the random catalogue (``positions_rand`` and
-            ``weights_rand``) will be ignored.
-        lmax_mask (:obj:`int`): Maximum multipole up to which the power
-            spectrum of the mask will be computed. If ``None``, ``lmax``
-            will be used if ``mask`` is ``None``. If a mask is provided as
-            a map, the maximum multipole given the map resolution will be
-            used (e.g. :math:`3N_{\\rm side}-1` for HEALPix maps).
-        spin (:obj:`int`): Spin of this field. If ``None`` it will
-            default to 0 or 2 if ``field`` contains 1 or 2 arrays,
-            respectively.
-        field_is_weighted (:obj:`bool`): Set to ``True`` if the input field has
-            already been multiplied by the source weights. The same will also
-            be assumed of the contaminant templates (see ``templates``).
-        lonlat (:obj:`bool`): If ``True``, longitude and latitude in degrees
-            are provided as input. If ``False``, colatitude and longitude in
-            radians are provided instead.
-        n_iter_mask (:obj:`int`): Number of iterations when computing the
-            :math:`a_{\\ell m}` s of the input mask. See the documentation of
-            :meth:`~pymaster.utils.map2alm`. If ``None``, it will default to
-            the internal value (see documentation of
-            :class:`~pymaster.utils.NmtParams`), which can be accessed via
-            :meth:`~pymaster.utils.get_default_params`, and modified via
-            :meth:`~pymaster.utils.set_n_iter_default`. Only needed if
-            ``mask`` is not ``None``.
-        wcs (`WCS`): A WCS object if using rectangular (CAR) pixels (see
-            `the astropy documentation
-            <http://docs.astropy.org/en/stable/wcs/index.html>`_).
-    """
-    def __init__(self, positions, weights, field,
-                 positions_rand, weights_rand, lmax,
-                 lonlat=False, mask=None, lmax_mask=None, spin=None,
-                 field_is_weighted=False, n_iter_mask=None,
-                 wcs=None, tol_pinv=None):
-        # Preliminary initializations
-        if ut.HAVE_DUCC:
-            self.sht_calculator = 'ducc'
-        else:
-            raise ValueError("DUCC is needed, but currently not installed.")
-
-        # These first attributes are compulsory for all fields
-        self.lite = True
-        self.mask = None
-        self.beam = np.ones(lmax+1)
-        self.n_iter = None
-        self.n_iter_mask = n_iter_mask
-        self.pure_e = False
-        self.pure_b = False
-        self.alm = None
-        self.alm_mask = None
-        self._Nw = 0.
-        self._Nf = 0.
-        self.ainfo = ut.NmtAlmInfo(lmax)
-        self._alpha = 0
-        self.is_catalog = True
-        self.clb = None
-
-        # These attributes only required if templates provided for deprojection
-        self.maps = None
-        self.temp = None
-        self.alm_temp = None
-        self.minfo = None
-        self.n_temp = 0
-        self.anisotropic_mask = False
-        self.mask_a = None
-        self.alm_mask_a = None
-
-        # Sanity checks on positions and weights
-        positions, weights = _process_pos_w(positions, weights,
-                                            lonlat, "data")
-
-        # Initialize map object if using a map as mask
-        if mask is not None:
-            # This ensures the mask will have the right type
-            # and endianness (can cause issues when read from
-            # some FITS files).
-            mask = mask.astype(np.float64)
-            self.minfo = ut.NmtMapInfo(wcs, mask.shape)
-            self.mask = self.minfo.reform_map(mask)
-
-        # Determine lmax for mask
-        if lmax_mask is None:
-            if mask is None:
-                lmax_mask = lmax
-            else:
-                lmax_mask = self.minfo.get_lmax()
-        self.ainfo_mask = ut.NmtAlmInfo(lmax_mask)
-
-        # Check if mask provided, use randoms if not
-        if mask is None:
-            positions_rand, weights_rand = _process_pos_w(positions_rand,
-                                                          weights_rand,
-                                                          lonlat,
-                                                          "random")
-            # Compute alpha
-            self._alpha = np.sum(weights)/np.sum(weights_rand)
-
-            # Compute mask shot noise
-            self._Nw = np.sum(weights_rand**2.)/(4.*np.pi)
-
-            # Compute mask alms
-            self.alm_mask = ut._catalog2alm_ducc0(weights_rand,
-                                                  positions_rand,
-                                                  spin=0, lmax=lmax_mask)[0]
-        else:  # If mask provided, ignore/replace randoms-related quantities
-            # Initialisation of parameters related to the mask
-            if n_iter_mask is None:
-                n_iter_mask = ut.nmt_params.n_iter_default
-            mask_area = self.minfo.si.map_integral(self.mask)
-            self._alpha = np.sum(weights) / mask_area
-
-            # No shot noise for map-based masks
-            self._Nw = 0.
-
-            # Compute mask alms
-            self.alm_mask = ut.map2alm(np.array([self.mask]), 0,
-                                       self.minfo, self.ainfo_mask,
-                                       n_iter=n_iter_mask)[0]
-
-        # Sanity checks on field
-        if field is None:
-            if spin is None:
-                raise ValueError("If field is None, spin needs to be "
-                                 "provided.")
-            self.spin = spin
-            return
-
-        # Ensure it's 2D
-        self.field = np.atleast_2d(np.array(field, dtype=np.float64))
-        # Set spin
-        if spin is None:
-            spin = 0 if len(self.field) == 1 else 2
-        self.spin = spin
-        self.nmaps = 2 if spin else 1
-        nsrcs = len(weights)
-        if self.field.shape != (self.nmaps, nsrcs):
-            raise ValueError(f"Field should have shape {(self.nmaps, nsrcs)}.")
-        if not field_is_weighted:
-            self.field *= weights
-
-        # Compute field alms
-        self.alm = ut._catalog2alm_ducc0(self.field/self._alpha,
-                                         positions, spin=spin, lmax=lmax)
-
-        # Compute field shot noise
-        self._Nf = np.sum(self.field**2)/(4*np.pi*self._alpha**2*self.nmaps)
+                 lmax, lmax_mask=None, lonlat=False, mask=None,
+                 n_iter_mask=None, wcs=None, templates=None,
+                 tol_pinv=None, lmax_deproj=None, n_iter_temp=None,
+                 masked_on_input=False, retain_catalog=False,
+                 nside_ipd=16):
+        super().__init__(positions, weights, None,
+                         positions_rand, weights_rand, lmax,
+                         lmax_mask=lmax_mask, field_is_weighted=False,
+                         lonlat=lonlat, mask=mask, n_iter_mask=n_iter_mask,
+                         wcs=wcs, templates=templates, tol_pinv=tol_pinv,
+                         lmax_deproj=lmax_deproj, n_iter_temp=n_iter_temp,
+                         masked_on_input=masked_on_input,
+                         retain_catalog=retain_catalog,
+                         nside_ipd=nside_ipd)
