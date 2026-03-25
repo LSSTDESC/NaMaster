@@ -594,7 +594,7 @@ nmt_covar_workspace *covar_workspace_init_py(int spin_a1, int spin_a2,
   asserting(nlb1==lmax_mask+1);
   asserting(nlb2==lmax_mask+1);
   return nmt_covar_workspace_init(spin_a1, spin_a2, spin_b1, spin_b2, 0,
-				  lmax,lmax_mask,
+				  beam1, beam2, lmax,lmax_mask,
 				  l_toeplitz,l_exact,dl_band);
 }
 

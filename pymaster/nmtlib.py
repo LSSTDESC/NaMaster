@@ -406,7 +406,10 @@ class covar_workspace(object):
     __repr__ = _swig_repr
     lmax = property(_nmtlib.covar_workspace_lmax_get, _nmtlib.covar_workspace_lmax_set)
     lmax_mask = property(_nmtlib.covar_workspace_lmax_mask_get, _nmtlib.covar_workspace_lmax_mask_set)
-    spin0_only = property(_nmtlib.covar_workspace_spin0_only_get, _nmtlib.covar_workspace_spin0_only_set)
+    spin_a1 = property(_nmtlib.covar_workspace_spin_a1_get, _nmtlib.covar_workspace_spin_a1_set)
+    spin_a2 = property(_nmtlib.covar_workspace_spin_a2_get, _nmtlib.covar_workspace_spin_a2_set)
+    spin_b1 = property(_nmtlib.covar_workspace_spin_b1_get, _nmtlib.covar_workspace_spin_b1_set)
+    spin_b2 = property(_nmtlib.covar_workspace_spin_b2_get, _nmtlib.covar_workspace_spin_b2_set)
     xi00_1122 = property(_nmtlib.covar_workspace_xi00_1122_get, _nmtlib.covar_workspace_xi00_1122_set)
     xi00_1221 = property(_nmtlib.covar_workspace_xi00_1221_get, _nmtlib.covar_workspace_xi00_1221_set)
     xi02_1122 = property(_nmtlib.covar_workspace_xi02_1122_get, _nmtlib.covar_workspace_xi02_1122_set)
@@ -427,8 +430,8 @@ _nmtlib.covar_workspace_swigregister(covar_workspace)
 def covar_workspace_free(cw):
     return _nmtlib.covar_workspace_free(cw)
 
-def covar_workspace_init(cl_masks_11_22, cl_masks_12_21, lmax, lmax_mask, l_toeplitz, l_exact, dl_band, spin0_only):
-    return _nmtlib.covar_workspace_init(cl_masks_11_22, cl_masks_12_21, lmax, lmax_mask, l_toeplitz, l_exact, dl_band, spin0_only)
+def covar_workspace_init(spin_a1, spin_a2, spin_b1, spin_b2, auto_any, cl_masks_11_22, cl_masks_12_21, lmax, lmax_mask, l_toeplitz, l_exact, dl_band):
+    return _nmtlib.covar_workspace_init(spin_a1, spin_a2, spin_b1, spin_b2, auto_any, cl_masks_11_22, cl_masks_12_21, lmax, lmax_mask, l_toeplitz, l_exact, dl_band)
 
 def compute_gaussian_covariance(cw, spin_a, spin_b, spin_c, spin_d, wa, wb, clac, clad, clbc, clbd, covar_out):
     return _nmtlib.compute_gaussian_covariance(cw, spin_a, spin_b, spin_c, spin_d, wa, wb, clac, clad, clbc, clbd, covar_out)
@@ -451,8 +454,8 @@ def workspace_flat_write_fits(w, fname):
 def covar_workspace_write_fits(cw, fname):
     return _nmtlib.covar_workspace_write_fits(cw, fname)
 
-def covar_workspace_read_fits(fname, force_spin0):
-    return _nmtlib.covar_workspace_read_fits(fname, force_spin0)
+def covar_workspace_read_fits(fname):
+    return _nmtlib.covar_workspace_read_fits(fname)
 
 def covar_workspace_flat_write_fits(cw, fname):
     return _nmtlib.covar_workspace_flat_write_fits(cw, fname)
@@ -562,11 +565,11 @@ def comp_deproj_bias_flat(fl1, fl2, bin, lmn_x, lmx_x, lmn_y, lmx_y, nell3, ncl1
 def write_covar_workspace(cw, fname):
     return _nmtlib.write_covar_workspace(cw, fname)
 
-def read_covar_workspace(fname, force_spin0):
-    return _nmtlib.read_covar_workspace(fname, force_spin0)
+def read_covar_workspace(fname):
+    return _nmtlib.read_covar_workspace(fname)
 
-def covar_workspace_init_py(nlb1, nlb2, lmax, lmax_mask, l_toeplitz, l_exact, dl_band, spin0_only):
-    return _nmtlib.covar_workspace_init_py(nlb1, nlb2, lmax, lmax_mask, l_toeplitz, l_exact, dl_band, spin0_only)
+def covar_workspace_init_py(spin_a1, spin_a2, spin_b1, spin_b2, nlb1, nlb2, lmax, lmax_mask, l_toeplitz, l_exact, dl_band):
+    return _nmtlib.covar_workspace_init_py(spin_a1, spin_a2, spin_b1, spin_b2, nlb1, nlb2, lmax, lmax_mask, l_toeplitz, l_exact, dl_band)
 
 def write_covar_workspace_flat(cw, fname):
     return _nmtlib.write_covar_workspace_flat(cw, fname)
