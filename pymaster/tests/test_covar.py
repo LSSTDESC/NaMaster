@@ -223,6 +223,9 @@ def test_workspace_covar_errors():
     with pytest.raises(ValueError):  # Incompatible resolutions
         nmt.NmtCovarianceWorkspace.from_fields(CT.f0, CT.f0_half)
 
+    with pytest.raises(ValueError):  # Incompatible fields
+        nmt.get_iNKA_cell(CT.f0, CT.f0_half)
+
 
 def test_covar_rectangular():
     nside = 64
