@@ -151,3 +151,18 @@ def test_workspace_covar_flat_errors():
     with pytest.raises(RuntimeError):  # Incompatible bandpowers
         cw.compute_coupling_coefficients(CT.f0, CT.f0, CT.b,
                                          CT.f0, CT.f0, CT.b_half)
+
+
+def test_covar_deprecated():
+    cw = nmt.NmtCovarianceWorkspaceFlat()
+    cw.compute_coupling_coefficients(CT.f0, CT.f0, CT.b)
+
+    covar1 = cw.gaussian_covariance(0, 0, 0, 0, CT.ll,
+                                    [CT.cltt], [CT.cltt],
+                                    [CT.cltt], [CT.cltt],
+                                    CT.w)
+    covar2 = nmt.gaussian_covariance_flat(cw, 0, 0, 0, 0, CT.ll,
+                                          [CT.cltt], [CT.cltt],
+                                          [CT.cltt], [CT.cltt],
+                                          CT.w)
+    assert np.all((covar1 == covar2).flatten())

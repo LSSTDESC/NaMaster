@@ -10,7 +10,6 @@ Submodules
    pymaster.bins
    pymaster.covariance
    pymaster.field
-   pymaster.field_bak
    pymaster.utils
    pymaster.workspaces
 

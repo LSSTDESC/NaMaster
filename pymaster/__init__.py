@@ -16,6 +16,7 @@ and a number of functions
 - :func:`pymaster.workspaces.compute_full_master`
 - :func:`pymaster.utils.mask_apodization`
 - :func:`pymaster.utils.synfast_spherical`
+- :func:`pymaster.covariance.get_iNKA_cell`
 
 :mod:`pymaster` also comes with a flat-sky version with \
     most of the same functionality:
@@ -107,4 +108,7 @@ from pymaster.workspaces import (  # noqa
 from pymaster.covariance import (  # noqa
     NmtCovarianceWorkspace,
     NmtCovarianceWorkspaceFlat,
+    get_iNKA_cell,
+    gaussian_covariance,
+    gaussian_covariance_flat,
 )
