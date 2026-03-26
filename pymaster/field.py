@@ -872,7 +872,7 @@ class NmtFieldCatalog(NmtField):
     spectra directly from catalogs, use :obj:`NmtFieldCatalogClustering`
     instead. The mathematical background for these fields was laid out
     in `Baleato & White 2024 <https://arxiv.org/abs/2312.12285>`_ , and
-    expanded in Wolz et al. 2024.
+    expanded in `Wolz et al. 2024 <https://arxiv.org/abs/2407.21013>`_.
 
     Args:
         positions (`array`): Source positions, provided as a list or array
@@ -1133,9 +1133,9 @@ class NmtFieldCatalogMomentum(NmtField):
     information describing a field weighted by the local density of sources.
     A typical application of such a field is in the analysis of kSZ-galaxy
     correlations, where one must construct the radial galaxy momentum field
-    (see Harscouet et al. 2025 for details). The mean density of sources in
-    the sample is characterised by a set of random points or through a
-    standard mask.
+    (see `Harscouet et al. 2025 <https://arxiv.org/abs/2512.14625>`_ ).
+    The mean density of sources in the sample is characterised by a set of
+    random points or through a standard mask.
 
     .. note::
         The ordering of arguments for this class will change in the next
@@ -1186,7 +1186,7 @@ class NmtFieldCatalogMomentum(NmtField):
             :meth:`~pymaster.utils.get_default_params`, and modified via
             :meth:`~pymaster.utils.set_n_iter_default`. Only needed if
             ``mask`` is not ``None``.
-        wcs (`WCS`): A WCS object if using rectangular (CAR) pixels (see
+        wcs (:obj:`WCS`): A WCS object if using rectangular (CAR) pixels (see
             `the astropy documentation
             <http://docs.astropy.org/en/stable/wcs/index.html>`_).
         templates (`array`): An array containing either the values of
@@ -1503,7 +1503,7 @@ class NmtFieldCatalogMomentum(NmtField):
     def get_noise_deprojection_bias(self):
         """ Returns the deprojection bias due to uncorrelated noise
         for this field. You may only use this function if you
-        provided a `noise_variance` when creating this field.
+        provided a ``noise_variance`` when creating this field.
 
         Returns:
             (`array`): noise deprojection bias to the power spectrum.
@@ -1622,7 +1622,7 @@ class NmtFieldCatalogClustering(NmtFieldCatalogMomentum):
             :class:`~pymaster.utils.NmtParams`), which can be accessed via
             :meth:`~pymaster.utils.get_default_params`,
             and modified via :meth:`~pymaster.utils.set_n_iter_default`.
-        wcs (`WCS`): A WCS object if using rectangular (CAR) pixels (see
+        wcs (:obj:`WCS`): A WCS object if using rectangular (CAR) pixels (see
             `the astropy documentation
             <http://docs.astropy.org/en/stable/wcs/index.html>`_).
         templates (`array`): An array containing either the values of
