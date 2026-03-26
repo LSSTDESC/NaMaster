@@ -14,6 +14,7 @@ class CovarTester(object):
             warnings.simplefilter("ignore", ResourceWarning)
 
         self.nside = 64
+        self.lmax = 3*self.nside-1
         self.nlb = 16
         self.npix = hp.nside2npix(self.nside)
         msk = hp.read_map("test/benchmarks/msk.fits",
@@ -239,3 +240,41 @@ def test_covar_rectangular():
     n1, n2 = cov.shape
     assert n1 == b1.get_n_bands()
     assert n2 == b2.get_n_bands()
+
+
+def test_covar_inka_cl():
+    ls = np.arange(CT.lmax+1)
+    cl = 1/(10+ls)
+    w = nmt.NmtWorkspace.from_fields(CT.f0, CT.f0, CT.b)
+    msk = CT.f0.get_mask()
+    pcl_d = nmt.compute_coupled_cell(CT.f0, CT.f0)
+    pcl_t = w.couple_cell(np.array([cl]))
+    cl_inka_d = pcl_d/np.mean(msk**2)
+    cl_inka_t = pcl_t/np.mean(msk**2)
+
+    # Data-based, compatible fields
+    cld = nmt.get_iNKA_cell(CT.f0, CT.f0)
+    assert np.all(np.fabs(cl_inka_d/cld-1) < 1E-4)
+
+    # Theory-based, no workspace
+    clt = nmt.get_iNKA_cell(CT.f0, CT.f0,
+                            cl_guess=np.array([cl]))
+    assert np.all(np.fabs(cl_inka_t/clt-1) < 1E-4)
+
+    # Theory-based, with workspace
+    clt = nmt.get_iNKA_cell(CT.f0, CT.f0,
+                            cl_guess=np.array([cl]), w=w)
+    assert np.all(np.fabs(cl_inka_t/clt-1) < 1E-4)
+
+    # Data-based, incompatible fields
+    nside_hi = 2*CT.nside
+    msk_hi = hp.ud_grade(msk, nside_out=nside_hi)
+    m = np.random.randn(CT.npix)
+    m_hi = hp.ud_grade(m, nside_out=nside_hi)
+    f = nmt.NmtField(msk, [m], lmax=CT.lmax, lmax_mask=CT.lmax)
+    f_hi = nmt.NmtField(msk_hi, [m_hi],
+                        lmax=CT.lmax, lmax_mask=CT.lmax)
+    pcl_d = nmt.compute_coupled_cell(f, f_hi)
+    cl_inka_d = pcl_d/np.mean(msk**2)
+    cld = nmt.get_iNKA_cell(f, f_hi)
+    assert np.all(np.fabs(cl_inka_d/cld-1) < 1E-4)

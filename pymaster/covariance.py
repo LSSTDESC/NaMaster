@@ -2,6 +2,7 @@ import numpy as np
 import healpy as hp
 from pymaster import nmtlib as lib
 import pymaster.utils as ut
+from pymaster import compute_coupled_cell, NmtBin, NmtWorkspace
 
 
 class NmtCovarianceWorkspace(object):
@@ -271,15 +272,17 @@ class NmtCovarianceWorkspace(object):
         .. note::
             Note that, as suggested in
             `Nicola et al. 2020 <https://arxiv.org/abs/2010.09717>`_
-            (the so-called "improved narrow-kernel approximation"), an
-            optimal choice for the input power spectra would be the
+            (the so-called "improved narrow-kernel approximation" - iNKA),
+            an optimal choice for the input power spectra would be the
             mode-coupled version of the true power spectra of the
             corresponding fields divided by the average of the product
             of the associated masks across the sky (Eq. 2.36 in the paper).
             Often, a good substitute for this can be obtained as the
             pseudo-:math:`C_\\ell` of the associated maps (e.g. computed via
             :meth:`~pymaster.workspaces.compute_coupled_cell`), divided
-            by the same mean mask product.
+            by the same mean mask product. The convenience function
+            :meth:`get_iNKA_cell` may be used to calculate this
+            spectrum under the iNKA.
 
         Args:
             cla1b1 (`array`): Prediction for the cross-power spectrum
@@ -515,3 +518,146 @@ class NmtCovarianceWorkspaceFlat(object):
 
         covar = np.reshape(covar1d, [len_a, len_b])
         return covar
+
+
+def gaussian_covariance(cw, spin_a1, spin_a2, spin_b1, spin_b2,
+                        cla1b1, cla1b2, cla2b1, cla2b2, wa, wb=None,
+                        coupled=False):
+    """ Computes the Gaussian covariance matrix for power spectra using the
+    information precomputed in cw (a :class:`NmtCovarianceWorkspace`
+    object). ``cw`` should have been initialized using four
+    :class:`~pymaster.field.NmtField` objects (let's call them `a1`,
+    `a2`, `b1`, and `b2`), corresponding to the two pairs of fields
+    whose power spectra we want the covariance of. These power spectra
+    should have been computed using two
+    :class:`~pymaster.workspaces.NmtWorkspace` objects, ``wa`` and
+    ``wb``, which must be passed as arguments of this function (the
+    power spectrum for fields `a1` and `a2` was computed with ``wa``,
+    and that of `b1` and `b2` with ``wb``). Using the same notation,
+    ``clXnYm`` should be a prediction for the power spectrum between
+    fields `Xn` and `Ym`. These predicted input power spectra should
+    be defined for all multipoles :math:`\\ell` up to the
+    :math:`\\ell_{\\rm max}` with which all fields were constructed.
+
+    .. warning::
+        This function is deprecated and will be removed in a future
+        version of NaMaster. Use the
+        :meth:`NmtCovarianceWorkspace.gaussian_covariance` method
+        instead.
+
+    Args:
+        cw (:obj:`NmtCovarianceWorkspace`): Workspace containing the
+            precomputed coupling coefficients.
+        spin_a1 (:obj:`int`): Spin of field `a1`.
+        spin_a2 (:obj:`int`): Spin of field `a2`.
+        spin_b1 (:obj:`int`): Spin of field `b1`.
+        spin_b2 (:obj:`int`): Spin of field `b2`.
+        cla1b1 (`array`): Prediction for the cross-power spectrum
+            between fields `a1` and `b1`.
+        cla1b2 (`array`): As `cla1b1` for fields `a1` and `b2`.
+        cla2b1 (`array`): As `cla1b1` for fields `a2` and `b1`.
+        cla2b2 (`array`): As `cla1b1` for fields `a2` and `b2`.
+        wa (:class:`~pymaster.workspaces.NmtWorkspace`): Workspace
+            containing the mode-coupling matrix for the first power
+            spectrum (that of fields `a1` and `a2`).
+        wb (:class:`~pymaster.workspaces.NmtWorkspace`): As ``wa``
+            for the second power spectrum (that of fields `b1` and
+            `b2`). If ``None``, ``wa`` will be used instead.
+        coupled (:obj:`bool`): If ``True``, the covariance matrix
+            of the mode-coupled pseudo-:math:`C_\\ell` s will be
+            computed. Otherwise it'll be the covariance of
+            mode-decoupled bandpowers.
+    """
+    return cw.gaussian_covariance(cla1b1, cla1b2, cla2b1, cla2b2,
+                                  wa, wb=wb, coupled=coupled,
+                                  spins=[spin_a1, spin_a2,
+                                         spin_b1, spin_b2])
+
+
+def gaussian_covariance_flat(cw, spin_a1, spin_a2, spin_b1, spin_b2, larr,
+                             cla1b1, cla1b2, cla2b1, cla2b2, wa, wb=None):
+    """ As :meth:`gaussian_covariance` but for the flat-sky versions of all
+    quantities involved. The only difference with :meth:`gaussian_covariance`
+    is that all power spectra must have been sampled at the input
+    multipoles ``larr``.
+
+    .. warning::
+        This function is deprecated and will be removed in a future
+        version of NaMaster. Use the
+        :meth:`NmtCovarianceWorkspaceFlat.gaussian_covariance` method
+        instead.
+    """
+    return cw.gaussian_covariance(spin_a1, spin_a2, spin_b1, spin_b2,
+                                  larr, cla1b1, cla1b2, cla2b1, cla2b2,
+                                  wa, wb=wb)
+
+
+def get_iNKA_cell(fla, flb, cl_guess=None, w=None):
+    """ Returns the power spectrum that should be used in the
+    calculation of the Gaussian covariance matrix according to the
+    improved Narrow-Kernel Approximation (iNKA) of
+    `Nicola et al. 2020 <https://arxiv.org/abs/2010.09717>`_. This
+    can then be used, for instance, as input for
+    :meth:`NmtCovarianceWorkspace.gaussian_covariance`.
+
+    The two fields whose power spectra we need must be compatible.
+    This means that, at least, they must be represented in harmonic
+    space up to the same maximum multipole. If they are also
+    compatible at the map level, the effective sky fraction used in
+    the iNKA will be calculated from the product of their masks.
+    Otherwise, their harmonic-space spectrum will be used.
+
+    Args:
+        fla (:class:`~pymaster.field.NmtField`): First field whose
+            power spectrum we want to calculate.
+        flb (:class:`~pymaster.field.NmtField`): Second field whose
+            power spectrum we want to calculate.
+        cl_guess (`array`): A guess for the true power spectra between
+            ``fla`` and ``flb``. The number of power spectra must
+            correspond to the spins of the two fields in question. If
+            ``None``, the pseudo-:math:`C_\\ell` between the two fields
+            will be used instead.
+        w (:class:`~pymaster.workspaces.NmtWorkspace`): Workspace
+            containing the mode-coupling matrix for these two fields.
+            This is only required if ``cl_guess`` is not ``None``.
+            If needed but ``None``, the mode-coupling matrix will be
+            calculated on the fly.
+
+    Returns:
+        (`array`): power spectrum to be used in covariance calculations.
+    """
+    if not fla.is_compatible(flb, strict=False):
+        raise ValueError("Fields have incompatible pixelizations")
+
+    # 1. Compute fsky as the mean of the mask product.
+
+    # If both fields are compatible at the map level, just take
+    # the product of their maps and average. Otherwise use
+    # Parseval's theorem and do it from their harmonic spectrum.
+    use_map_product = fla.is_compatible(flb)
+
+    if use_map_product:
+        wawb = np.mean(fla.get_mask()*flb.get_mask())
+    else:
+        walm = fla.get_mask_alms()
+        wblm = flb.get_mask_alms()
+        clw = hp.alm2cl(walm, wblm, lmax=fla.ainfo_mask.lmax)
+        ls = np.arange(fla.ainfo_mask.lmax+1)
+        wawb = np.sum((2*ls+1)*clw)/(4*np.pi)
+
+    # 2. Compute pseudo-Cl
+
+    # If no guess Cl is provided, compute it from the data.
+    if cl_guess is None:
+        pcl_ab = compute_coupled_cell(fla, flb)
+    else:
+        # We'll need to calculate the MCM if not available
+        if w is None:
+            # Just some token bins that go to the right lmax
+            b = NmtBin.from_lmax_linear(
+                fla.ainfo.lmax, nlb=int(fla.ainfo.lmax//10))
+            w = NmtWorkspace.from_fields(fla, flb, b)
+        pcl_ab = w.couple_cell(cl_guess)
+
+    # 3. Return ratio
+    return pcl_ab / wawb
