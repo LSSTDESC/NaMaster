@@ -796,6 +796,7 @@ void nmt_covar_workspace_write_fits(nmt_covar_workspace *cw,char *fname)
   fits_write_key(fptr,TSTRING,"EXTNAME","CWSP_PRIMARY",NULL,&status);
   fits_write_key(fptr,TINT,"LMAX",&(cw->lmax),NULL,&status);
   fits_write_key(fptr,TINT,"LMAX_MASK",&(cw->lmax_mask),NULL,&status);
+  fits_write_key(fptr,TINT,"ALL_SPINS",&(cw->all_spins),NULL,&status);
   fits_write_key(fptr,TINT,"SPIN_A1",&(cw->spin_a1),NULL,&status);
   fits_write_key(fptr,TINT,"SPIN_A2",&(cw->spin_a2),NULL,&status);
   fits_write_key(fptr,TINT,"SPIN_B1",&(cw->spin_b1),NULL,&status);
@@ -852,27 +853,22 @@ nmt_covar_workspace *nmt_covar_workspace_read_fits(char *fname)
     cw->lmax_mask = cw->lmax;
     status=0;
   }
-  fits_read_key(fptr,TINT,"SPIN_A1",&(cw->spin_a1),NULL,&status);
-  if(status) {
-    cw->spin_a1 = -1;
+  fits_read_key(fptr,TINT,"ALL_SPINS",&(cw->all_spins),NULL,&status);
+  if(status) { // We're reading an old-format file
+    cw->all_spins = 1;
+    cw->spin_a1 = 0;
+    cw->spin_a2 = 0;
+    cw->spin_b1 = 0;
+    cw->spin_b2 = 0;
     status=0;
   }
-  fits_read_key(fptr,TINT,"SPIN_A2",&(cw->spin_a2),NULL,&status);
-  if(status) {
-    cw->spin_a2 = -1;
-    status=0;
+  else {
+    fits_read_key(fptr,TINT,"SPIN_A1",&(cw->spin_a1),NULL,&status);
+    fits_read_key(fptr,TINT,"SPIN_A2",&(cw->spin_a2),NULL,&status);
+    fits_read_key(fptr,TINT,"SPIN_B1",&(cw->spin_b1),NULL,&status);
+    fits_read_key(fptr,TINT,"SPIN_B2",&(cw->spin_b2),NULL,&status);
   }
-  fits_read_key(fptr,TINT,"SPIN_B1",&(cw->spin_b1),NULL,&status);
-  if(status) {
-    cw->spin_b1 = -1;
-    status=0;
-  }
-  fits_read_key(fptr,TINT,"SPIN_B2",&(cw->spin_b2),NULL,&status);
-  if(status) {
-    cw->spin_b2 = -1;
-    status=0;
-  }
-
+  
   cw->xi00_1122=nmt_covar_coeffs_fromhdus(fptr,cw->lmax+1,"XI00_1122",&status);
   check_fits(status,fname,1);
   cw->xi00_1221=nmt_covar_coeffs_fromhdus(fptr,cw->lmax+1,"XI00_1221",&status);

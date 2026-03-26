@@ -3,7 +3,7 @@
 
 nmt_covar_workspace *nmt_covar_workspace_init(int spin_a1, int spin_a2,
 					      int spin_b1, int spin_b2,
-					      int auto_any,
+					      int all_spins, int auto_any,
 					      flouble *cl_masks_11_22,
 					      flouble *cl_masks_12_21,
 					      int lmax, int lmax_mask,
@@ -14,6 +14,7 @@ nmt_covar_workspace *nmt_covar_workspace_init(int spin_a1, int spin_a2,
   nmt_covar_workspace *cw=my_malloc(sizeof(nmt_covar_workspace));
   cw->lmax=lmax;
   cw->lmax_mask=lmax_mask;
+  cw->all_spins=all_spins;
   cw->spin_a1=spin_a1;
   cw->spin_a2=spin_a2;
   cw->spin_b1=spin_b1;
@@ -51,8 +52,33 @@ nmt_covar_workspace *nmt_covar_workspace_init(int spin_a1, int spin_a2,
   nmt_master_calculator *c;
   int ncls=auto_any ? 1 : 2;
 
-  // Case (0,s)-(0,s)
-  if(is_0s_0s) {  // For the  (0,s)-(0,s) covariance we need both Xi00 and Xi0s
+  if(all_spins) {
+    c=nmt_compute_master_coefficients(cw->lmax, cw->lmax_mask,
+				      2, cl_masks,
+				      0, 2, 0, 0, 0, 0, 1,
+				      l_toeplitz,l_exact,dl_band);
+    cw->xi00_1122=c->xi_00[0];
+    cw->xi00_1221=c->xi_00[1];
+    cw->xi02_1122=c->xi_0s[0][0];
+    cw->xi02_1221=c->xi_0s[1][0];
+    cw->xi22p_1122=c->xi_pp[0][0];
+    cw->xi22p_1221=c->xi_pp[1][0];
+    cw->xi22m_1122=c->xi_mm[0][0];
+    cw->xi22m_1221=c->xi_mm[1][0];
+    free(c->xi_0s[0]);
+    free(c->xi_0s[1]);
+    free(c->xi_0s);
+    free(c->xi_pp[0]);
+    free(c->xi_pp[1]);
+    free(c->xi_pp);
+    free(c->xi_mm[0]);
+    free(c->xi_mm[1]);
+    free(c->xi_mm);
+    free(c->xi_00);
+    free(c->lfac);
+    free(c);
+  }
+  else if(is_0s_0s) {  // For the  (0,s)-(0,s) covariance we need both Xi00 and Xi0s
     int i00ss = spin_a1 == spin_b1 ? 0 : 1;
     int i0s0s = i00ss == 0 ? 1 : 0;
 
@@ -220,6 +246,7 @@ double _pick_xi(nmt_covar_workspace *cw,
 }
 
 void  nmt_compute_gaussian_covariance_coupled(nmt_covar_workspace *cw,
+					      int spin_a,int spin_b,int spin_c,int spin_d,
                                               nmt_workspace *wa,nmt_workspace *wb,
                                               flouble **clac,flouble **clad,
                                               flouble **clbc,flouble **clbd,
@@ -229,10 +256,24 @@ void  nmt_compute_gaussian_covariance_coupled(nmt_covar_workspace *cw,
     report_error(NMT_ERROR_COVAR,"Coupling coefficients only computed up to l=%d, but you require "
 		 "lmax=%d. Recompute this workspace with a larger lmax\n",cw->lmax,wa->bin->ell_max);
 
-  int nmaps_a=cw->spin_a1 ? 2 : 1;
-  int nmaps_b=cw->spin_a2 ? 2 : 1;
-  int nmaps_c=cw->spin_b1 ? 2 : 1;
-  int nmaps_d=cw->spin_b2 ? 2 : 1;
+  int sa, sb, sc, sd;
+  if(cw->all_spins) {
+    sa=spin_a;
+    sb=spin_b;
+    sc=spin_c;
+    sd=spin_d;
+  }
+  else {
+    sa=cw->spin_a1;
+    sb=cw->spin_a2;
+    sc=cw->spin_b1;
+    sd=cw->spin_b2;
+  }
+  int nmaps_a=sa ? 2 : 1;
+  int nmaps_b=sb ? 2 : 1;
+  int nmaps_c=sc ? 2 : 1;
+  int nmaps_d=sd ? 2 : 1;
+
   if((wa->ncls!=nmaps_a*nmaps_b) || (wb->ncls!=nmaps_c*nmaps_d))
     report_error(NMT_ERROR_COVAR,"Input spins don't match input workspaces\n");
 
@@ -302,6 +343,7 @@ void  nmt_compute_gaussian_covariance_coupled(nmt_covar_workspace *cw,
 }
 
 void  nmt_compute_gaussian_covariance(nmt_covar_workspace *cw,
+				      int spin_a,int spin_b,int spin_c,int spin_d,
 				      nmt_workspace *wa,nmt_workspace *wb,
 				      flouble **clac,flouble **clad,
 				      flouble **clbc,flouble **clbd,
@@ -311,10 +353,23 @@ void  nmt_compute_gaussian_covariance(nmt_covar_workspace *cw,
     report_error(NMT_ERROR_COVAR,"Coupling coefficients only computed up to l=%d, but you require "
 		 "lmax=%d. Recompute this workspace with a larger lmax\n",cw->lmax,wa->bin->ell_max);
 
-  int nmaps_a=cw->spin_a1 ? 2 : 1;
-  int nmaps_b=cw->spin_a2 ? 2 : 1;
-  int nmaps_c=cw->spin_b1 ? 2 : 1;
-  int nmaps_d=cw->spin_b2 ? 2 : 1;
+  int sa, sb, sc, sd;
+  if(cw->all_spins) {
+    sa=spin_a;
+    sb=spin_b;
+    sc=spin_c;
+    sd=spin_d;
+  }
+  else {
+    sa=cw->spin_a1;
+    sb=cw->spin_a2;
+    sc=cw->spin_b1;
+    sd=cw->spin_b2;
+  }
+  int nmaps_a=sa ? 2 : 1;
+  int nmaps_b=sb ? 2 : 1;
+  int nmaps_c=sc ? 2 : 1;
+  int nmaps_d=sd ? 2 : 1;
   if((wa->ncls!=nmaps_a*nmaps_b) || (wb->ncls!=nmaps_c*nmaps_d))
     report_error(NMT_ERROR_COVAR,"Input spins don't match input workspaces\n");
 

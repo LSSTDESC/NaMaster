@@ -2,7 +2,6 @@ import numpy as np
 import healpy as hp
 from pymaster import nmtlib as lib
 import pymaster.utils as ut
-import warnings
 
 
 class NmtCovarianceWorkspace(object):
@@ -34,6 +33,12 @@ class NmtCovarianceWorkspace(object):
         flb2 (:class:`~pymaster.field.NmtField`): As ``fla2`` for the
             second power spectrum. If ``None``, it will be set to
             ``fla2``.
+        all_spins (:obj:`bool`): If ``True``, coupling coefficients for
+            all spin combinations will be calculated. Otherwise, only the
+            spin combination determined by the input fields will be
+            considered. The default value is ``True``, but setting it
+            to ``False`` will generally lead to faster results and
+            better memory usage (at the expense of some flexibility).
         l_toeplitz (:obj:`int`): If a positive number, the Toeplitz
             approximation described in `Louis et al. 2020
             <https://arxiv.org/abs/2010.14344>`_ will be used.
@@ -50,8 +55,8 @@ class NmtCovarianceWorkspace(object):
             coefficients will be read from file.
     """
     def __init__(self, fla1, fla2, flb1=None, flb2=None,
-                 l_toeplitz=-1, l_exact=-1, dl_band=-1,
-                 fname=None):
+                 all_spins=True, l_toeplitz=-1, l_exact=-1,
+                 dl_band=-1, fname=None):
         self.wsp = None
         if (fname is not None):
             self._read_from(fname)
@@ -62,19 +67,22 @@ class NmtCovarianceWorkspace(object):
         if flb2 is None:
             flb2 = fla2
 
+        self.all_spins = all_spins
         self.spin_a1 = fla1.spin
         self.spin_a2 = fla2.spin
         self.spin_b1 = flb1.spin
         self.spin_b2 = flb2.spin
 
         self._compute_coupling_coefficients(fla1, fla2, flb1, flb2,
+                                            all_spins=all_spins,
                                             l_toeplitz=l_toeplitz,
                                             l_exact=l_exact,
                                             dl_band=dl_band)
 
     @classmethod
     def from_fields(cls, fla1, fla2, flb1=None, flb2=None, *,
-                    l_toeplitz=-1, l_exact=-1, dl_band=-1):
+                    all_spins=True, l_toeplitz=-1, l_exact=-1,
+                    dl_band=-1):
         """ Creates an :obj:`NmtCovarianceWorkspace` object containing the
         mode-coupling coefficients of the Gaussian covariance
         between the power spectra of two pairs of
@@ -98,6 +106,10 @@ class NmtCovarianceWorkspace(object):
             flb2 (:class:`~pymaster.field.NmtField`): As ``fla2`` for the
                 second power spectrum. If ``None``, it will be set to
                 ``fla2``.
+            all_spins (:obj:`bool`): If ``True``, coupling coefficients for
+                all spin combinations will be calculated. Otherwise, only the
+                spin combination determined by the input fields will be
+                considered.
             l_toeplitz (:obj:`int`): If a positive number, the Toeplitz
                 approximation described in `Louis et al. 2020
                 <https://arxiv.org/abs/2010.14344>`_ will be used.
@@ -111,8 +123,8 @@ class NmtCovarianceWorkspace(object):
                 3 of the paper. Ignored if ``l_toeplitz<=0``.
         """
         return cls(fla1=fla1, fla2=fla2, flb1=flb1, flb2=flb2,
-                   l_toeplitz=l_toeplitz, l_exact=l_exact,
-                   dl_band=dl_band)
+                   all_spins=all_spins, l_toeplitz=l_toeplitz,
+                   l_exact=l_exact, dl_band=dl_band)
 
     @classmethod
     def from_file(cls, fname):
@@ -142,41 +154,15 @@ class NmtCovarianceWorkspace(object):
             lib.covar_workspace_free(self.wsp)
             self.wsp = None
         self.wsp = lib.read_covar_workspace(fname)
-        if ((self.wsp.spin_a1 == -1) or
-                (self.wsp.spin_a2 == -1) or
-                (self.wsp.spin_b1 == -1) or
-                (self.wsp.spin_b2 == -1)):
-            warnings.warn("You are reading a CovarianceWorkspace "
-                          "from an file using the old file format "
-                          "take care to use `correct_spins_old` to "
-                          "determine the spins all four fields.")
-
-    def correct_spins_old(self, spin_a1, spin_a2, spin_b1, spin_b2):
-        """ Use this function to set the spins of all fields for
-        this ``NmtCovarianceWorkspace`` object when you have read
-        it from a FITS file using the old file format (in which the
-        field spins were not saved). Do NOT use this function if
-        the field was created on the fly, or if you read it from a
-        file using the new format (you will have seen a warning
-        otherwise).
-
-        Args:
-            spin_a1 (:obj:`int`): spin of field `a1`.
-            spin_a2 (:obj:`int`): spin of field `a2`.
-            spin_b1 (:obj:`int`): spin of field `b1`.
-            spin_b2 (:obj:`int`): spin of field `b2`.
-        """
-        self.spin_a1 = spin_a1
-        self.wsp.spin_a1 = spin_a1
-        self.spin_a2 = spin_a2
-        self.wsp.spin_a2 = spin_a2
-        self.spin_b1 = spin_b1
-        self.wsp.spin_b1 = spin_b1
-        self.spin_b2 = spin_b2
-        self.wsp.spin_b2 = spin_b2
+        self.all_spins = bool(self.wsp.all_spins)
+        self.spin_a1 = self.wsp.spin_a1
+        self.spin_a2 = self.wsp.spin_a2
+        self.spin_b1 = self.wsp.spin_b1
+        self.spin_b2 = self.wsp.spin_b2
 
     def _compute_coupling_coefficients(self, fla1, fla2,
                                        flb1, flb2, *,
+                                       all_spins=True,
                                        l_toeplitz=-1,
                                        l_exact=-1, dl_band=-1):
         """ Computes coupling coefficients of the Gaussian covariance
@@ -201,6 +187,10 @@ class NmtCovarianceWorkspace(object):
             flb2 (:class:`~pymaster.field.NmtField`): As ``fla2`` for the
                 second power spectrum. If ``None``, it will be set to
                 ``fla2``.
+            all_spins (:obj:`bool`): If ``True``, coupling coefficients for
+                all spin combinations will be calculated. Otherwise, only the
+                spin combination determined by the input fields will be
+                considered.
             l_toeplitz (:obj:`int`): If a positive number, the Toeplitz
                 approximation described in `Louis et al. 2020
                 <https://arxiv.org/abs/2010.14344>`_ will be used.
@@ -252,6 +242,7 @@ class NmtCovarianceWorkspace(object):
                                                int(flb1.spin), int(flb2.spin),
                                                pcl_mask_11_22,
                                                pcl_mask_12_21,
+                                               int(all_spins),
                                                int(fla1.ainfo.lmax),
                                                int(fla1.ainfo_mask.lmax),
                                                l_toeplitz, l_exact, dl_band)
@@ -266,7 +257,8 @@ class NmtCovarianceWorkspace(object):
         lib.write_covar_workspace(self.wsp, "!"+fname)
 
     def gaussian_covariance(self, cla1b1, cla1b2, cla2b1, cla2b2,
-                            wa, wb=None, coupled=False):
+                            wa, wb=None, coupled=False,
+                            spins=None):
         """ Computes the Gaussian covariance matrix for power spectra
         using the information precomputed in this
         :class:`NmtCovarianceWorkspace` object). Let us call the four
@@ -312,11 +304,38 @@ class NmtCovarianceWorkspace(object):
                 of the mode-coupled pseudo-:math:`C_\\ell` s will be
                 computed. Otherwise it'll be the covariance of
                 mode-decoupled bandpowers.
+            spins (`array`): A list of 4 integers containing the
+                spins of the fields whose power spectrum covariance
+                one wishes to calculate. Note that you can only select
+                arbitrary spin combinations if you created this object
+                using ``all_spins=True``. If ``None``, the spin
+                combination is determined by the fields used to
+                create this object.
         """
-        nm_a1 = 2 if self.spin_a1 else 1
-        nm_a2 = 2 if self.spin_a2 else 1
-        nm_b1 = 2 if self.spin_b1 else 1
-        nm_b2 = 2 if self.spin_b2 else 1
+        if spins is not None:
+            if not self.all_spins:
+                if ((spins[0] != self.spin_a1) or
+                        (spins[1] != self.spin_a2) or
+                        (spins[2] != self.spin_b1) or
+                        (spins[3] != self.spin_b2)):
+                    raise ValueError(
+                        "The input spins do not coincide with those of "
+                        "the fields used to initialise this object. If "
+                        "you want to use arbitrary spin combinations, "
+                        "use `all_spins=True` when initialising this "
+                        "class.")
+            if len(spins) != 4:
+                raise ValueError("`spins` must have 4 elements.")
+            spin_a1, spin_a2, spin_b1, spin_b2 = spins
+        else:
+            spin_a1 = self.spin_a1
+            spin_a2 = self.spin_a2
+            spin_b1 = self.spin_b1
+            spin_b2 = self.spin_b2
+        nm_a1 = 2 if spin_a1 else 1
+        nm_a2 = 2 if spin_a2 else 1
+        nm_b1 = 2 if spin_b1 else 1
+        nm_b2 = 2 if spin_b2 else 1
 
         if wb is None:
             wb = wa
@@ -347,7 +366,8 @@ class NmtCovarianceWorkspace(object):
             wb.check_unbinned()
 
             covar = lib.comp_gaussian_covariance_coupled(
-                self.wsp, wa.wsp, wb.wsp,
+                self.wsp, int(spin_a1), int(spin_a2),
+                int(spin_b1), int(spin_b2), wa.wsp, wb.wsp,
                 cla1b1, cla1b2, cla2b1, cla2b2, len_a * len_b
             )
         else:
@@ -355,7 +375,8 @@ class NmtCovarianceWorkspace(object):
             len_b = wb.wsp.ncls * wb.wsp.bin.n_bands
 
             covar = lib.comp_gaussian_covariance(
-                self.wsp, wa.wsp, wb.wsp,
+                self.wsp, int(spin_a1), int(spin_a2),
+                int(spin_b1), int(spin_b2), wa.wsp, wb.wsp,
                 cla1b1, cla1b2, cla2b1, cla2b2, len_a * len_b
             )
 

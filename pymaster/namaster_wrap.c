@@ -3554,13 +3554,15 @@ nmt_covar_workspace *covar_workspace_init_py(int spin_a1, int spin_a2,
 					     int spin_b1, int spin_b2,
 					     int nlb1, double *beam1,
 					     int nlb2, double *beam2,
+					     int all_spins,
 					     int lmax, int lmax_mask,
 					     int l_toeplitz, int l_exact,
 					     int dl_band)
 {
   asserting(nlb1==lmax_mask+1);
   asserting(nlb2==lmax_mask+1);
-  return nmt_covar_workspace_init(spin_a1, spin_a2, spin_b1, spin_b2, 0,
+  return nmt_covar_workspace_init(spin_a1, spin_a2, spin_b1, spin_b2,
+				  all_spins, 0,
 				  beam1, beam2, lmax,lmax_mask,
 				  l_toeplitz,l_exact,dl_band);
 }
@@ -3584,6 +3586,7 @@ nmt_covar_workspace_flat *covar_workspace_flat_init_py(nmt_field_flat *fa1,nmt_f
 }
 
 void comp_gaussian_covariance(nmt_covar_workspace *cw,
+			      int spin_a1, int spin_a2, int spin_b1, int spin_b2,
 			      nmt_workspace *wa,nmt_workspace *wb,
 			      int ncl11,int nell11,double *c11,
 			      int ncl12,int nell12,double *c12,
@@ -3607,12 +3610,15 @@ void comp_gaussian_covariance(nmt_covar_workspace *cw,
   double **c22p=malloc(ncl22*sizeof(double *));
   for(i=0;i<ncl22;i++)
     c22p[i]=&(c22[i*nell22]);
-  nmt_compute_gaussian_covariance(cw,wa,wb,
+  nmt_compute_gaussian_covariance(cw,
+				  spin_a1, spin_a2, spin_b1, spin_b2,
+				  wa,wb,
 				  c11p,c12p,c21p,c22p,dout);
   free(c11p); free(c12p); free(c21p); free(c22p);
 }
 
 void comp_gaussian_covariance_coupled(nmt_covar_workspace *cw,
+				      int spin_a1, int spin_a2, int spin_b1, int spin_b2,
                                       nmt_workspace *wa,nmt_workspace *wb,
                                       int ncl11,int nell11,double *c11,
                                       int ncl12,int nell12,double *c12,
@@ -3636,7 +3642,9 @@ void comp_gaussian_covariance_coupled(nmt_covar_workspace *cw,
   double **c22p=malloc(ncl22*sizeof(double *));
   for(i=0;i<ncl22;i++)
     c22p[i]=&(c22[i*nell22]);
-  nmt_compute_gaussian_covariance_coupled(cw,wa,wb,
+  nmt_compute_gaussian_covariance_coupled(cw,
+					  spin_a1, spin_a2, spin_b1, spin_b2,
+					  wa,wb,
                                           c11p,c12p,c21p,c22p,dout);
   free(c11p); free(c12p); free(c21p); free(c22p);
 }
@@ -12967,6 +12975,58 @@ fail:
 }
 
 
+SWIGINTERN PyObject *_wrap_covar_workspace_all_spins_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_covar_workspace *arg1 = (nmt_covar_workspace *) 0 ;
+  int arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int val2 ;
+  int ecode2 = 0 ;
+  PyObject *swig_obj[2] ;
+  
+  if (!SWIG_Python_UnpackTuple(args, "covar_workspace_all_spins_set", 2, 2, swig_obj)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_nmt_covar_workspace, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "covar_workspace_all_spins_set" "', argument " "1"" of type '" "nmt_covar_workspace *""'"); 
+  }
+  arg1 = (nmt_covar_workspace *)(argp1);
+  ecode2 = SWIG_AsVal_int(swig_obj[1], &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "covar_workspace_all_spins_set" "', argument " "2"" of type '" "int""'");
+  } 
+  arg2 = (int)(val2);
+  if (arg1) (arg1)->all_spins = arg2;
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_covar_workspace_all_spins_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_covar_workspace *arg1 = (nmt_covar_workspace *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject *swig_obj[1] ;
+  int result;
+  
+  if (!args) SWIG_fail;
+  swig_obj[0] = args;
+  res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_nmt_covar_workspace, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "covar_workspace_all_spins_get" "', argument " "1"" of type '" "nmt_covar_workspace *""'"); 
+  }
+  arg1 = (nmt_covar_workspace *)(argp1);
+  result = (int) ((arg1)->all_spins);
+  resultobj = SWIG_From_int((int)(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
 SWIGINTERN PyObject *_wrap_covar_workspace_spin_a1_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   nmt_covar_workspace *arg1 = (nmt_covar_workspace *) 0 ;
@@ -13680,13 +13740,14 @@ SWIGINTERN PyObject *_wrap_covar_workspace_init(PyObject *SWIGUNUSEDPARM(self), 
   int arg3 ;
   int arg4 ;
   int arg5 ;
-  flouble *arg6 = (flouble *) 0 ;
+  int arg6 ;
   flouble *arg7 = (flouble *) 0 ;
-  int arg8 ;
+  flouble *arg8 = (flouble *) 0 ;
   int arg9 ;
   int arg10 ;
   int arg11 ;
   int arg12 ;
+  int arg13 ;
   int val1 ;
   int ecode1 = 0 ;
   int val2 ;
@@ -13697,12 +13758,12 @@ SWIGINTERN PyObject *_wrap_covar_workspace_init(PyObject *SWIGUNUSEDPARM(self), 
   int ecode4 = 0 ;
   int val5 ;
   int ecode5 = 0 ;
-  void *argp6 = 0 ;
-  int res6 = 0 ;
+  int val6 ;
+  int ecode6 = 0 ;
   void *argp7 = 0 ;
   int res7 = 0 ;
-  int val8 ;
-  int ecode8 = 0 ;
+  void *argp8 = 0 ;
+  int res8 = 0 ;
   int val9 ;
   int ecode9 = 0 ;
   int val10 ;
@@ -13711,10 +13772,12 @@ SWIGINTERN PyObject *_wrap_covar_workspace_init(PyObject *SWIGUNUSEDPARM(self), 
   int ecode11 = 0 ;
   int val12 ;
   int ecode12 = 0 ;
-  PyObject *swig_obj[12] ;
+  int val13 ;
+  int ecode13 = 0 ;
+  PyObject *swig_obj[13] ;
   nmt_covar_workspace *result = 0 ;
   
-  if (!SWIG_Python_UnpackTuple(args, "covar_workspace_init", 12, 12, swig_obj)) SWIG_fail;
+  if (!SWIG_Python_UnpackTuple(args, "covar_workspace_init", 13, 13, swig_obj)) SWIG_fail;
   ecode1 = SWIG_AsVal_int(swig_obj[0], &val1);
   if (!SWIG_IsOK(ecode1)) {
     SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "covar_workspace_init" "', argument " "1"" of type '" "int""'");
@@ -13740,21 +13803,21 @@ SWIGINTERN PyObject *_wrap_covar_workspace_init(PyObject *SWIGUNUSEDPARM(self), 
     SWIG_exception_fail(SWIG_ArgError(ecode5), "in method '" "covar_workspace_init" "', argument " "5"" of type '" "int""'");
   } 
   arg5 = (int)(val5);
-  res6 = SWIG_ConvertPtr(swig_obj[5], &argp6,SWIGTYPE_p_double, 0 |  0 );
-  if (!SWIG_IsOK(res6)) {
-    SWIG_exception_fail(SWIG_ArgError(res6), "in method '" "covar_workspace_init" "', argument " "6"" of type '" "flouble *""'"); 
-  }
-  arg6 = (flouble *)(argp6);
+  ecode6 = SWIG_AsVal_int(swig_obj[5], &val6);
+  if (!SWIG_IsOK(ecode6)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode6), "in method '" "covar_workspace_init" "', argument " "6"" of type '" "int""'");
+  } 
+  arg6 = (int)(val6);
   res7 = SWIG_ConvertPtr(swig_obj[6], &argp7,SWIGTYPE_p_double, 0 |  0 );
   if (!SWIG_IsOK(res7)) {
     SWIG_exception_fail(SWIG_ArgError(res7), "in method '" "covar_workspace_init" "', argument " "7"" of type '" "flouble *""'"); 
   }
   arg7 = (flouble *)(argp7);
-  ecode8 = SWIG_AsVal_int(swig_obj[7], &val8);
-  if (!SWIG_IsOK(ecode8)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode8), "in method '" "covar_workspace_init" "', argument " "8"" of type '" "int""'");
-  } 
-  arg8 = (int)(val8);
+  res8 = SWIG_ConvertPtr(swig_obj[7], &argp8,SWIGTYPE_p_double, 0 |  0 );
+  if (!SWIG_IsOK(res8)) {
+    SWIG_exception_fail(SWIG_ArgError(res8), "in method '" "covar_workspace_init" "', argument " "8"" of type '" "flouble *""'"); 
+  }
+  arg8 = (flouble *)(argp8);
   ecode9 = SWIG_AsVal_int(swig_obj[8], &val9);
   if (!SWIG_IsOK(ecode9)) {
     SWIG_exception_fail(SWIG_ArgError(ecode9), "in method '" "covar_workspace_init" "', argument " "9"" of type '" "int""'");
@@ -13775,7 +13838,12 @@ SWIGINTERN PyObject *_wrap_covar_workspace_init(PyObject *SWIGUNUSEDPARM(self), 
     SWIG_exception_fail(SWIG_ArgError(ecode12), "in method '" "covar_workspace_init" "', argument " "12"" of type '" "int""'");
   } 
   arg12 = (int)(val12);
-  result = (nmt_covar_workspace *)nmt_covar_workspace_init(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12);
+  ecode13 = SWIG_AsVal_int(swig_obj[12], &val13);
+  if (!SWIG_IsOK(ecode13)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode13), "in method '" "covar_workspace_init" "', argument " "13"" of type '" "int""'");
+  } 
+  arg13 = (int)(val13);
+  result = (nmt_covar_workspace *)nmt_covar_workspace_init(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13);
   resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_nmt_covar_workspace, 0 |  0 );
   return resultobj;
 fail:
@@ -13786,73 +13854,105 @@ fail:
 SWIGINTERN PyObject *_wrap_compute_gaussian_covariance(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   nmt_covar_workspace *arg1 = (nmt_covar_workspace *) 0 ;
-  nmt_workspace *arg2 = (nmt_workspace *) 0 ;
-  nmt_workspace *arg3 = (nmt_workspace *) 0 ;
-  flouble **arg4 = (flouble **) 0 ;
-  flouble **arg5 = (flouble **) 0 ;
-  flouble **arg6 = (flouble **) 0 ;
-  flouble **arg7 = (flouble **) 0 ;
-  flouble *arg8 = (flouble *) 0 ;
+  int arg2 ;
+  int arg3 ;
+  int arg4 ;
+  int arg5 ;
+  nmt_workspace *arg6 = (nmt_workspace *) 0 ;
+  nmt_workspace *arg7 = (nmt_workspace *) 0 ;
+  flouble **arg8 = (flouble **) 0 ;
+  flouble **arg9 = (flouble **) 0 ;
+  flouble **arg10 = (flouble **) 0 ;
+  flouble **arg11 = (flouble **) 0 ;
+  flouble *arg12 = (flouble *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
-  void *argp2 = 0 ;
-  int res2 = 0 ;
-  void *argp3 = 0 ;
-  int res3 = 0 ;
-  void *argp4 = 0 ;
-  int res4 = 0 ;
-  void *argp5 = 0 ;
-  int res5 = 0 ;
+  int val2 ;
+  int ecode2 = 0 ;
+  int val3 ;
+  int ecode3 = 0 ;
+  int val4 ;
+  int ecode4 = 0 ;
+  int val5 ;
+  int ecode5 = 0 ;
   void *argp6 = 0 ;
   int res6 = 0 ;
   void *argp7 = 0 ;
   int res7 = 0 ;
   void *argp8 = 0 ;
   int res8 = 0 ;
-  PyObject *swig_obj[8] ;
+  void *argp9 = 0 ;
+  int res9 = 0 ;
+  void *argp10 = 0 ;
+  int res10 = 0 ;
+  void *argp11 = 0 ;
+  int res11 = 0 ;
+  void *argp12 = 0 ;
+  int res12 = 0 ;
+  PyObject *swig_obj[12] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "compute_gaussian_covariance", 8, 8, swig_obj)) SWIG_fail;
+  if (!SWIG_Python_UnpackTuple(args, "compute_gaussian_covariance", 12, 12, swig_obj)) SWIG_fail;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_nmt_covar_workspace, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "compute_gaussian_covariance" "', argument " "1"" of type '" "nmt_covar_workspace *""'"); 
   }
   arg1 = (nmt_covar_workspace *)(argp1);
-  res2 = SWIG_ConvertPtr(swig_obj[1], &argp2,SWIGTYPE_p_nmt_workspace, 0 |  0 );
-  if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "compute_gaussian_covariance" "', argument " "2"" of type '" "nmt_workspace *""'"); 
-  }
-  arg2 = (nmt_workspace *)(argp2);
-  res3 = SWIG_ConvertPtr(swig_obj[2], &argp3,SWIGTYPE_p_nmt_workspace, 0 |  0 );
-  if (!SWIG_IsOK(res3)) {
-    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "compute_gaussian_covariance" "', argument " "3"" of type '" "nmt_workspace *""'"); 
-  }
-  arg3 = (nmt_workspace *)(argp3);
-  res4 = SWIG_ConvertPtr(swig_obj[3], &argp4,SWIGTYPE_p_p_double, 0 |  0 );
-  if (!SWIG_IsOK(res4)) {
-    SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "compute_gaussian_covariance" "', argument " "4"" of type '" "flouble **""'"); 
-  }
-  arg4 = (flouble **)(argp4);
-  res5 = SWIG_ConvertPtr(swig_obj[4], &argp5,SWIGTYPE_p_p_double, 0 |  0 );
-  if (!SWIG_IsOK(res5)) {
-    SWIG_exception_fail(SWIG_ArgError(res5), "in method '" "compute_gaussian_covariance" "', argument " "5"" of type '" "flouble **""'"); 
-  }
-  arg5 = (flouble **)(argp5);
-  res6 = SWIG_ConvertPtr(swig_obj[5], &argp6,SWIGTYPE_p_p_double, 0 |  0 );
+  ecode2 = SWIG_AsVal_int(swig_obj[1], &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "compute_gaussian_covariance" "', argument " "2"" of type '" "int""'");
+  } 
+  arg2 = (int)(val2);
+  ecode3 = SWIG_AsVal_int(swig_obj[2], &val3);
+  if (!SWIG_IsOK(ecode3)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "compute_gaussian_covariance" "', argument " "3"" of type '" "int""'");
+  } 
+  arg3 = (int)(val3);
+  ecode4 = SWIG_AsVal_int(swig_obj[3], &val4);
+  if (!SWIG_IsOK(ecode4)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "compute_gaussian_covariance" "', argument " "4"" of type '" "int""'");
+  } 
+  arg4 = (int)(val4);
+  ecode5 = SWIG_AsVal_int(swig_obj[4], &val5);
+  if (!SWIG_IsOK(ecode5)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode5), "in method '" "compute_gaussian_covariance" "', argument " "5"" of type '" "int""'");
+  } 
+  arg5 = (int)(val5);
+  res6 = SWIG_ConvertPtr(swig_obj[5], &argp6,SWIGTYPE_p_nmt_workspace, 0 |  0 );
   if (!SWIG_IsOK(res6)) {
-    SWIG_exception_fail(SWIG_ArgError(res6), "in method '" "compute_gaussian_covariance" "', argument " "6"" of type '" "flouble **""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res6), "in method '" "compute_gaussian_covariance" "', argument " "6"" of type '" "nmt_workspace *""'"); 
   }
-  arg6 = (flouble **)(argp6);
-  res7 = SWIG_ConvertPtr(swig_obj[6], &argp7,SWIGTYPE_p_p_double, 0 |  0 );
+  arg6 = (nmt_workspace *)(argp6);
+  res7 = SWIG_ConvertPtr(swig_obj[6], &argp7,SWIGTYPE_p_nmt_workspace, 0 |  0 );
   if (!SWIG_IsOK(res7)) {
-    SWIG_exception_fail(SWIG_ArgError(res7), "in method '" "compute_gaussian_covariance" "', argument " "7"" of type '" "flouble **""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res7), "in method '" "compute_gaussian_covariance" "', argument " "7"" of type '" "nmt_workspace *""'"); 
   }
-  arg7 = (flouble **)(argp7);
-  res8 = SWIG_ConvertPtr(swig_obj[7], &argp8,SWIGTYPE_p_double, 0 |  0 );
+  arg7 = (nmt_workspace *)(argp7);
+  res8 = SWIG_ConvertPtr(swig_obj[7], &argp8,SWIGTYPE_p_p_double, 0 |  0 );
   if (!SWIG_IsOK(res8)) {
-    SWIG_exception_fail(SWIG_ArgError(res8), "in method '" "compute_gaussian_covariance" "', argument " "8"" of type '" "flouble *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res8), "in method '" "compute_gaussian_covariance" "', argument " "8"" of type '" "flouble **""'"); 
   }
-  arg8 = (flouble *)(argp8);
-  nmt_compute_gaussian_covariance(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8);
+  arg8 = (flouble **)(argp8);
+  res9 = SWIG_ConvertPtr(swig_obj[8], &argp9,SWIGTYPE_p_p_double, 0 |  0 );
+  if (!SWIG_IsOK(res9)) {
+    SWIG_exception_fail(SWIG_ArgError(res9), "in method '" "compute_gaussian_covariance" "', argument " "9"" of type '" "flouble **""'"); 
+  }
+  arg9 = (flouble **)(argp9);
+  res10 = SWIG_ConvertPtr(swig_obj[9], &argp10,SWIGTYPE_p_p_double, 0 |  0 );
+  if (!SWIG_IsOK(res10)) {
+    SWIG_exception_fail(SWIG_ArgError(res10), "in method '" "compute_gaussian_covariance" "', argument " "10"" of type '" "flouble **""'"); 
+  }
+  arg10 = (flouble **)(argp10);
+  res11 = SWIG_ConvertPtr(swig_obj[10], &argp11,SWIGTYPE_p_p_double, 0 |  0 );
+  if (!SWIG_IsOK(res11)) {
+    SWIG_exception_fail(SWIG_ArgError(res11), "in method '" "compute_gaussian_covariance" "', argument " "11"" of type '" "flouble **""'"); 
+  }
+  arg11 = (flouble **)(argp11);
+  res12 = SWIG_ConvertPtr(swig_obj[11], &argp12,SWIGTYPE_p_double, 0 |  0 );
+  if (!SWIG_IsOK(res12)) {
+    SWIG_exception_fail(SWIG_ArgError(res12), "in method '" "compute_gaussian_covariance" "', argument " "12"" of type '" "flouble *""'"); 
+  }
+  arg12 = (flouble *)(argp12);
+  nmt_compute_gaussian_covariance(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12);
   resultobj = SWIG_Py_Void();
   return resultobj;
 fail:
@@ -13863,73 +13963,105 @@ fail:
 SWIGINTERN PyObject *_wrap_compute_gaussian_covariance_coupled(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   nmt_covar_workspace *arg1 = (nmt_covar_workspace *) 0 ;
-  nmt_workspace *arg2 = (nmt_workspace *) 0 ;
-  nmt_workspace *arg3 = (nmt_workspace *) 0 ;
-  flouble **arg4 = (flouble **) 0 ;
-  flouble **arg5 = (flouble **) 0 ;
-  flouble **arg6 = (flouble **) 0 ;
-  flouble **arg7 = (flouble **) 0 ;
-  flouble *arg8 = (flouble *) 0 ;
+  int arg2 ;
+  int arg3 ;
+  int arg4 ;
+  int arg5 ;
+  nmt_workspace *arg6 = (nmt_workspace *) 0 ;
+  nmt_workspace *arg7 = (nmt_workspace *) 0 ;
+  flouble **arg8 = (flouble **) 0 ;
+  flouble **arg9 = (flouble **) 0 ;
+  flouble **arg10 = (flouble **) 0 ;
+  flouble **arg11 = (flouble **) 0 ;
+  flouble *arg12 = (flouble *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
-  void *argp2 = 0 ;
-  int res2 = 0 ;
-  void *argp3 = 0 ;
-  int res3 = 0 ;
-  void *argp4 = 0 ;
-  int res4 = 0 ;
-  void *argp5 = 0 ;
-  int res5 = 0 ;
+  int val2 ;
+  int ecode2 = 0 ;
+  int val3 ;
+  int ecode3 = 0 ;
+  int val4 ;
+  int ecode4 = 0 ;
+  int val5 ;
+  int ecode5 = 0 ;
   void *argp6 = 0 ;
   int res6 = 0 ;
   void *argp7 = 0 ;
   int res7 = 0 ;
   void *argp8 = 0 ;
   int res8 = 0 ;
-  PyObject *swig_obj[8] ;
+  void *argp9 = 0 ;
+  int res9 = 0 ;
+  void *argp10 = 0 ;
+  int res10 = 0 ;
+  void *argp11 = 0 ;
+  int res11 = 0 ;
+  void *argp12 = 0 ;
+  int res12 = 0 ;
+  PyObject *swig_obj[12] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "compute_gaussian_covariance_coupled", 8, 8, swig_obj)) SWIG_fail;
+  if (!SWIG_Python_UnpackTuple(args, "compute_gaussian_covariance_coupled", 12, 12, swig_obj)) SWIG_fail;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_nmt_covar_workspace, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "compute_gaussian_covariance_coupled" "', argument " "1"" of type '" "nmt_covar_workspace *""'"); 
   }
   arg1 = (nmt_covar_workspace *)(argp1);
-  res2 = SWIG_ConvertPtr(swig_obj[1], &argp2,SWIGTYPE_p_nmt_workspace, 0 |  0 );
-  if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "compute_gaussian_covariance_coupled" "', argument " "2"" of type '" "nmt_workspace *""'"); 
-  }
-  arg2 = (nmt_workspace *)(argp2);
-  res3 = SWIG_ConvertPtr(swig_obj[2], &argp3,SWIGTYPE_p_nmt_workspace, 0 |  0 );
-  if (!SWIG_IsOK(res3)) {
-    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "compute_gaussian_covariance_coupled" "', argument " "3"" of type '" "nmt_workspace *""'"); 
-  }
-  arg3 = (nmt_workspace *)(argp3);
-  res4 = SWIG_ConvertPtr(swig_obj[3], &argp4,SWIGTYPE_p_p_double, 0 |  0 );
-  if (!SWIG_IsOK(res4)) {
-    SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "compute_gaussian_covariance_coupled" "', argument " "4"" of type '" "flouble **""'"); 
-  }
-  arg4 = (flouble **)(argp4);
-  res5 = SWIG_ConvertPtr(swig_obj[4], &argp5,SWIGTYPE_p_p_double, 0 |  0 );
-  if (!SWIG_IsOK(res5)) {
-    SWIG_exception_fail(SWIG_ArgError(res5), "in method '" "compute_gaussian_covariance_coupled" "', argument " "5"" of type '" "flouble **""'"); 
-  }
-  arg5 = (flouble **)(argp5);
-  res6 = SWIG_ConvertPtr(swig_obj[5], &argp6,SWIGTYPE_p_p_double, 0 |  0 );
+  ecode2 = SWIG_AsVal_int(swig_obj[1], &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "compute_gaussian_covariance_coupled" "', argument " "2"" of type '" "int""'");
+  } 
+  arg2 = (int)(val2);
+  ecode3 = SWIG_AsVal_int(swig_obj[2], &val3);
+  if (!SWIG_IsOK(ecode3)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "compute_gaussian_covariance_coupled" "', argument " "3"" of type '" "int""'");
+  } 
+  arg3 = (int)(val3);
+  ecode4 = SWIG_AsVal_int(swig_obj[3], &val4);
+  if (!SWIG_IsOK(ecode4)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "compute_gaussian_covariance_coupled" "', argument " "4"" of type '" "int""'");
+  } 
+  arg4 = (int)(val4);
+  ecode5 = SWIG_AsVal_int(swig_obj[4], &val5);
+  if (!SWIG_IsOK(ecode5)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode5), "in method '" "compute_gaussian_covariance_coupled" "', argument " "5"" of type '" "int""'");
+  } 
+  arg5 = (int)(val5);
+  res6 = SWIG_ConvertPtr(swig_obj[5], &argp6,SWIGTYPE_p_nmt_workspace, 0 |  0 );
   if (!SWIG_IsOK(res6)) {
-    SWIG_exception_fail(SWIG_ArgError(res6), "in method '" "compute_gaussian_covariance_coupled" "', argument " "6"" of type '" "flouble **""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res6), "in method '" "compute_gaussian_covariance_coupled" "', argument " "6"" of type '" "nmt_workspace *""'"); 
   }
-  arg6 = (flouble **)(argp6);
-  res7 = SWIG_ConvertPtr(swig_obj[6], &argp7,SWIGTYPE_p_p_double, 0 |  0 );
+  arg6 = (nmt_workspace *)(argp6);
+  res7 = SWIG_ConvertPtr(swig_obj[6], &argp7,SWIGTYPE_p_nmt_workspace, 0 |  0 );
   if (!SWIG_IsOK(res7)) {
-    SWIG_exception_fail(SWIG_ArgError(res7), "in method '" "compute_gaussian_covariance_coupled" "', argument " "7"" of type '" "flouble **""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res7), "in method '" "compute_gaussian_covariance_coupled" "', argument " "7"" of type '" "nmt_workspace *""'"); 
   }
-  arg7 = (flouble **)(argp7);
-  res8 = SWIG_ConvertPtr(swig_obj[7], &argp8,SWIGTYPE_p_double, 0 |  0 );
+  arg7 = (nmt_workspace *)(argp7);
+  res8 = SWIG_ConvertPtr(swig_obj[7], &argp8,SWIGTYPE_p_p_double, 0 |  0 );
   if (!SWIG_IsOK(res8)) {
-    SWIG_exception_fail(SWIG_ArgError(res8), "in method '" "compute_gaussian_covariance_coupled" "', argument " "8"" of type '" "flouble *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res8), "in method '" "compute_gaussian_covariance_coupled" "', argument " "8"" of type '" "flouble **""'"); 
   }
-  arg8 = (flouble *)(argp8);
-  nmt_compute_gaussian_covariance_coupled(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8);
+  arg8 = (flouble **)(argp8);
+  res9 = SWIG_ConvertPtr(swig_obj[8], &argp9,SWIGTYPE_p_p_double, 0 |  0 );
+  if (!SWIG_IsOK(res9)) {
+    SWIG_exception_fail(SWIG_ArgError(res9), "in method '" "compute_gaussian_covariance_coupled" "', argument " "9"" of type '" "flouble **""'"); 
+  }
+  arg9 = (flouble **)(argp9);
+  res10 = SWIG_ConvertPtr(swig_obj[9], &argp10,SWIGTYPE_p_p_double, 0 |  0 );
+  if (!SWIG_IsOK(res10)) {
+    SWIG_exception_fail(SWIG_ArgError(res10), "in method '" "compute_gaussian_covariance_coupled" "', argument " "10"" of type '" "flouble **""'"); 
+  }
+  arg10 = (flouble **)(argp10);
+  res11 = SWIG_ConvertPtr(swig_obj[10], &argp11,SWIGTYPE_p_p_double, 0 |  0 );
+  if (!SWIG_IsOK(res11)) {
+    SWIG_exception_fail(SWIG_ArgError(res11), "in method '" "compute_gaussian_covariance_coupled" "', argument " "11"" of type '" "flouble **""'"); 
+  }
+  arg11 = (flouble **)(argp11);
+  res12 = SWIG_ConvertPtr(swig_obj[11], &argp12,SWIGTYPE_p_double, 0 |  0 );
+  if (!SWIG_IsOK(res12)) {
+    SWIG_exception_fail(SWIG_ArgError(res12), "in method '" "compute_gaussian_covariance_coupled" "', argument " "12"" of type '" "flouble *""'"); 
+  }
+  arg12 = (flouble *)(argp12);
+  nmt_compute_gaussian_covariance_coupled(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12);
   resultobj = SWIG_Py_Void();
   return resultobj;
 fail:
@@ -17542,6 +17674,7 @@ SWIGINTERN PyObject *_wrap_covar_workspace_init_py(PyObject *SWIGUNUSEDPARM(self
   int arg11 ;
   int arg12 ;
   int arg13 ;
+  int arg14 ;
   int val1 ;
   int ecode1 = 0 ;
   int val2 ;
@@ -17564,10 +17697,12 @@ SWIGINTERN PyObject *_wrap_covar_workspace_init_py(PyObject *SWIGUNUSEDPARM(self
   int ecode12 = 0 ;
   int val13 ;
   int ecode13 = 0 ;
-  PyObject *swig_obj[11] ;
+  int val14 ;
+  int ecode14 = 0 ;
+  PyObject *swig_obj[12] ;
   nmt_covar_workspace *result = 0 ;
   
-  if (!SWIG_Python_UnpackTuple(args, "covar_workspace_init_py", 11, 11, swig_obj)) SWIG_fail;
+  if (!SWIG_Python_UnpackTuple(args, "covar_workspace_init_py", 12, 12, swig_obj)) SWIG_fail;
   ecode1 = SWIG_AsVal_int(swig_obj[0], &val1);
   if (!SWIG_IsOK(ecode1)) {
     SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "covar_workspace_init_py" "', argument " "1"" of type '" "int""'");
@@ -17637,9 +17772,14 @@ SWIGINTERN PyObject *_wrap_covar_workspace_init_py(PyObject *SWIGUNUSEDPARM(self
     SWIG_exception_fail(SWIG_ArgError(ecode13), "in method '" "covar_workspace_init_py" "', argument " "13"" of type '" "int""'");
   } 
   arg13 = (int)(val13);
+  ecode14 = SWIG_AsVal_int(swig_obj[11], &val14);
+  if (!SWIG_IsOK(ecode14)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode14), "in method '" "covar_workspace_init_py" "', argument " "14"" of type '" "int""'");
+  } 
+  arg14 = (int)(val14);
   {
     try {
-      result = (nmt_covar_workspace *)covar_workspace_init_py(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13);
+      result = (nmt_covar_workspace *)covar_workspace_init_py(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13,arg14);
     }
     finally {
       SWIG_exception(SWIG_RuntimeError,nmt_error_message);
@@ -17820,126 +17960,158 @@ fail:
 SWIGINTERN PyObject *_wrap_comp_gaussian_covariance(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   nmt_covar_workspace *arg1 = (nmt_covar_workspace *) 0 ;
-  nmt_workspace *arg2 = (nmt_workspace *) 0 ;
-  nmt_workspace *arg3 = (nmt_workspace *) 0 ;
+  int arg2 ;
+  int arg3 ;
   int arg4 ;
   int arg5 ;
-  double *arg6 = (double *) 0 ;
-  int arg7 ;
+  nmt_workspace *arg6 = (nmt_workspace *) 0 ;
+  nmt_workspace *arg7 = (nmt_workspace *) 0 ;
   int arg8 ;
-  double *arg9 = (double *) 0 ;
-  int arg10 ;
+  int arg9 ;
+  double *arg10 = (double *) 0 ;
   int arg11 ;
-  double *arg12 = (double *) 0 ;
-  int arg13 ;
+  int arg12 ;
+  double *arg13 = (double *) 0 ;
   int arg14 ;
-  double *arg15 = (double *) 0 ;
+  int arg15 ;
   double *arg16 = (double *) 0 ;
   int arg17 ;
+  int arg18 ;
+  double *arg19 = (double *) 0 ;
+  double *arg20 = (double *) 0 ;
+  int arg21 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
-  void *argp2 = 0 ;
-  int res2 = 0 ;
-  void *argp3 = 0 ;
-  int res3 = 0 ;
-  PyArrayObject *array4 = NULL ;
-  int is_new_object4 = 0 ;
-  PyArrayObject *array7 = NULL ;
-  int is_new_object7 = 0 ;
-  PyArrayObject *array10 = NULL ;
-  int is_new_object10 = 0 ;
-  PyArrayObject *array13 = NULL ;
-  int is_new_object13 = 0 ;
-  PyObject *array16 = NULL ;
-  PyObject *swig_obj[8] ;
+  int val2 ;
+  int ecode2 = 0 ;
+  int val3 ;
+  int ecode3 = 0 ;
+  int val4 ;
+  int ecode4 = 0 ;
+  int val5 ;
+  int ecode5 = 0 ;
+  void *argp6 = 0 ;
+  int res6 = 0 ;
+  void *argp7 = 0 ;
+  int res7 = 0 ;
+  PyArrayObject *array8 = NULL ;
+  int is_new_object8 = 0 ;
+  PyArrayObject *array11 = NULL ;
+  int is_new_object11 = 0 ;
+  PyArrayObject *array14 = NULL ;
+  int is_new_object14 = 0 ;
+  PyArrayObject *array17 = NULL ;
+  int is_new_object17 = 0 ;
+  PyObject *array20 = NULL ;
+  PyObject *swig_obj[12] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "comp_gaussian_covariance", 8, 8, swig_obj)) SWIG_fail;
+  if (!SWIG_Python_UnpackTuple(args, "comp_gaussian_covariance", 12, 12, swig_obj)) SWIG_fail;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_nmt_covar_workspace, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "comp_gaussian_covariance" "', argument " "1"" of type '" "nmt_covar_workspace *""'"); 
   }
   arg1 = (nmt_covar_workspace *)(argp1);
-  res2 = SWIG_ConvertPtr(swig_obj[1], &argp2,SWIGTYPE_p_nmt_workspace, 0 |  0 );
-  if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "comp_gaussian_covariance" "', argument " "2"" of type '" "nmt_workspace *""'"); 
+  ecode2 = SWIG_AsVal_int(swig_obj[1], &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "comp_gaussian_covariance" "', argument " "2"" of type '" "int""'");
+  } 
+  arg2 = (int)(val2);
+  ecode3 = SWIG_AsVal_int(swig_obj[2], &val3);
+  if (!SWIG_IsOK(ecode3)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "comp_gaussian_covariance" "', argument " "3"" of type '" "int""'");
+  } 
+  arg3 = (int)(val3);
+  ecode4 = SWIG_AsVal_int(swig_obj[3], &val4);
+  if (!SWIG_IsOK(ecode4)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "comp_gaussian_covariance" "', argument " "4"" of type '" "int""'");
+  } 
+  arg4 = (int)(val4);
+  ecode5 = SWIG_AsVal_int(swig_obj[4], &val5);
+  if (!SWIG_IsOK(ecode5)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode5), "in method '" "comp_gaussian_covariance" "', argument " "5"" of type '" "int""'");
+  } 
+  arg5 = (int)(val5);
+  res6 = SWIG_ConvertPtr(swig_obj[5], &argp6,SWIGTYPE_p_nmt_workspace, 0 |  0 );
+  if (!SWIG_IsOK(res6)) {
+    SWIG_exception_fail(SWIG_ArgError(res6), "in method '" "comp_gaussian_covariance" "', argument " "6"" of type '" "nmt_workspace *""'"); 
   }
-  arg2 = (nmt_workspace *)(argp2);
-  res3 = SWIG_ConvertPtr(swig_obj[2], &argp3,SWIGTYPE_p_nmt_workspace, 0 |  0 );
-  if (!SWIG_IsOK(res3)) {
-    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "comp_gaussian_covariance" "', argument " "3"" of type '" "nmt_workspace *""'"); 
+  arg6 = (nmt_workspace *)(argp6);
+  res7 = SWIG_ConvertPtr(swig_obj[6], &argp7,SWIGTYPE_p_nmt_workspace, 0 |  0 );
+  if (!SWIG_IsOK(res7)) {
+    SWIG_exception_fail(SWIG_ArgError(res7), "in method '" "comp_gaussian_covariance" "', argument " "7"" of type '" "nmt_workspace *""'"); 
   }
-  arg3 = (nmt_workspace *)(argp3);
+  arg7 = (nmt_workspace *)(argp7);
   {
     npy_intp size[2] = {
       -1, -1 
     };
-    array4 = obj_to_array_contiguous_allow_conversion(swig_obj[3],
+    array8 = obj_to_array_contiguous_allow_conversion(swig_obj[7],
       NPY_DOUBLE,
-      &is_new_object4);
-    if (!array4 || !require_dimensions(array4, 2) ||
-      !require_size(array4, size, 2)) SWIG_fail;
-    arg4 = (int) array_size(array4,0);
-    arg5 = (int) array_size(array4,1);
-    arg6 = (double*) array_data(array4);
-  }
-  {
-    npy_intp size[2] = {
-      -1, -1 
-    };
-    array7 = obj_to_array_contiguous_allow_conversion(swig_obj[4],
-      NPY_DOUBLE,
-      &is_new_object7);
-    if (!array7 || !require_dimensions(array7, 2) ||
-      !require_size(array7, size, 2)) SWIG_fail;
-    arg7 = (int) array_size(array7,0);
-    arg8 = (int) array_size(array7,1);
-    arg9 = (double*) array_data(array7);
-  }
-  {
-    npy_intp size[2] = {
-      -1, -1 
-    };
-    array10 = obj_to_array_contiguous_allow_conversion(swig_obj[5],
-      NPY_DOUBLE,
-      &is_new_object10);
-    if (!array10 || !require_dimensions(array10, 2) ||
-      !require_size(array10, size, 2)) SWIG_fail;
-    arg10 = (int) array_size(array10,0);
-    arg11 = (int) array_size(array10,1);
-    arg12 = (double*) array_data(array10);
+      &is_new_object8);
+    if (!array8 || !require_dimensions(array8, 2) ||
+      !require_size(array8, size, 2)) SWIG_fail;
+    arg8 = (int) array_size(array8,0);
+    arg9 = (int) array_size(array8,1);
+    arg10 = (double*) array_data(array8);
   }
   {
     npy_intp size[2] = {
       -1, -1 
     };
-    array13 = obj_to_array_contiguous_allow_conversion(swig_obj[6],
+    array11 = obj_to_array_contiguous_allow_conversion(swig_obj[8],
       NPY_DOUBLE,
-      &is_new_object13);
-    if (!array13 || !require_dimensions(array13, 2) ||
-      !require_size(array13, size, 2)) SWIG_fail;
-    arg13 = (int) array_size(array13,0);
-    arg14 = (int) array_size(array13,1);
-    arg15 = (double*) array_data(array13);
+      &is_new_object11);
+    if (!array11 || !require_dimensions(array11, 2) ||
+      !require_size(array11, size, 2)) SWIG_fail;
+    arg11 = (int) array_size(array11,0);
+    arg12 = (int) array_size(array11,1);
+    arg13 = (double*) array_data(array11);
+  }
+  {
+    npy_intp size[2] = {
+      -1, -1 
+    };
+    array14 = obj_to_array_contiguous_allow_conversion(swig_obj[9],
+      NPY_DOUBLE,
+      &is_new_object14);
+    if (!array14 || !require_dimensions(array14, 2) ||
+      !require_size(array14, size, 2)) SWIG_fail;
+    arg14 = (int) array_size(array14,0);
+    arg15 = (int) array_size(array14,1);
+    arg16 = (double*) array_data(array14);
+  }
+  {
+    npy_intp size[2] = {
+      -1, -1 
+    };
+    array17 = obj_to_array_contiguous_allow_conversion(swig_obj[10],
+      NPY_DOUBLE,
+      &is_new_object17);
+    if (!array17 || !require_dimensions(array17, 2) ||
+      !require_size(array17, size, 2)) SWIG_fail;
+    arg17 = (int) array_size(array17,0);
+    arg18 = (int) array_size(array17,1);
+    arg19 = (double*) array_data(array17);
   }
   {
     npy_intp dims[1];
-    if (!PyInt_Check(swig_obj[7]))
+    if (!PyInt_Check(swig_obj[11]))
     {
-      const char* typestring = pytype_string(swig_obj[7]);
+      const char* typestring = pytype_string(swig_obj[11]);
       PyErr_Format(PyExc_TypeError,
         "Int dimension expected.  '%s' given.",
         typestring);
       SWIG_fail;
     }
-    arg17 = (int) PyInt_AsLong(swig_obj[7]);
-    dims[0] = (npy_intp) arg17;
-    array16 = PyArray_SimpleNew(1, dims, NPY_DOUBLE);
-    if (!array16) SWIG_fail;
-    arg16 = (double*) array_data(array16);
+    arg21 = (int) PyInt_AsLong(swig_obj[11]);
+    dims[0] = (npy_intp) arg21;
+    array20 = PyArray_SimpleNew(1, dims, NPY_DOUBLE);
+    if (!array20) SWIG_fail;
+    arg20 = (double*) array_data(array20);
   }
   {
     try {
-      comp_gaussian_covariance(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13,arg14,arg15,arg16,arg17);
+      comp_gaussian_covariance(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13,arg14,arg15,arg16,arg17,arg18,arg19,arg20,arg21);
     }
     finally {
       SWIG_exception(SWIG_RuntimeError,nmt_error_message);
@@ -17947,56 +18119,56 @@ SWIGINTERN PyObject *_wrap_comp_gaussian_covariance(PyObject *SWIGUNUSEDPARM(sel
   }
   resultobj = SWIG_Py_Void();
   {
-    resultobj = SWIG_Python_AppendOutput(resultobj,(PyObject*)array16);
+    resultobj = SWIG_Python_AppendOutput(resultobj,(PyObject*)array20);
   }
   {
-    if (is_new_object4 && array4)
+    if (is_new_object8 && array8)
     {
-      Py_DECREF(array4); 
+      Py_DECREF(array8); 
     }
   }
   {
-    if (is_new_object7 && array7)
+    if (is_new_object11 && array11)
     {
-      Py_DECREF(array7); 
+      Py_DECREF(array11); 
     }
   }
   {
-    if (is_new_object10 && array10)
+    if (is_new_object14 && array14)
     {
-      Py_DECREF(array10); 
+      Py_DECREF(array14); 
     }
   }
   {
-    if (is_new_object13 && array13)
+    if (is_new_object17 && array17)
     {
-      Py_DECREF(array13); 
+      Py_DECREF(array17); 
     }
   }
   return resultobj;
 fail:
   {
-    if (is_new_object4 && array4)
+    if (is_new_object8 && array8)
     {
-      Py_DECREF(array4); 
+      Py_DECREF(array8); 
     }
   }
   {
-    if (is_new_object7 && array7)
+    if (is_new_object11 && array11)
     {
-      Py_DECREF(array7); 
+      Py_DECREF(array11); 
     }
   }
   {
-    if (is_new_object10 && array10)
+    if (is_new_object14 && array14)
     {
-      Py_DECREF(array10); 
+      Py_DECREF(array14); 
     }
   }
   {
-    if (is_new_object13 && array13)
+    if (is_new_object17 && array17)
     {
-      Py_DECREF(array13); 
+      Py_DECREF(array17); 
     }
   }
   return NULL;
@@ -18006,126 +18178,158 @@ fail:
 SWIGINTERN PyObject *_wrap_comp_gaussian_covariance_coupled(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   nmt_covar_workspace *arg1 = (nmt_covar_workspace *) 0 ;
-  nmt_workspace *arg2 = (nmt_workspace *) 0 ;
-  nmt_workspace *arg3 = (nmt_workspace *) 0 ;
+  int arg2 ;
+  int arg3 ;
   int arg4 ;
   int arg5 ;
-  double *arg6 = (double *) 0 ;
-  int arg7 ;
+  nmt_workspace *arg6 = (nmt_workspace *) 0 ;
+  nmt_workspace *arg7 = (nmt_workspace *) 0 ;
   int arg8 ;
-  double *arg9 = (double *) 0 ;
-  int arg10 ;
+  int arg9 ;
+  double *arg10 = (double *) 0 ;
   int arg11 ;
-  double *arg12 = (double *) 0 ;
-  int arg13 ;
+  int arg12 ;
+  double *arg13 = (double *) 0 ;
   int arg14 ;
-  double *arg15 = (double *) 0 ;
+  int arg15 ;
   double *arg16 = (double *) 0 ;
   int arg17 ;
+  int arg18 ;
+  double *arg19 = (double *) 0 ;
+  double *arg20 = (double *) 0 ;
+  int arg21 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
-  void *argp2 = 0 ;
-  int res2 = 0 ;
-  void *argp3 = 0 ;
-  int res3 = 0 ;
-  PyArrayObject *array4 = NULL ;
-  int is_new_object4 = 0 ;
-  PyArrayObject *array7 = NULL ;
-  int is_new_object7 = 0 ;
-  PyArrayObject *array10 = NULL ;
-  int is_new_object10 = 0 ;
-  PyArrayObject *array13 = NULL ;
-  int is_new_object13 = 0 ;
-  PyObject *array16 = NULL ;
-  PyObject *swig_obj[8] ;
+  int val2 ;
+  int ecode2 = 0 ;
+  int val3 ;
+  int ecode3 = 0 ;
+  int val4 ;
+  int ecode4 = 0 ;
+  int val5 ;
+  int ecode5 = 0 ;
+  void *argp6 = 0 ;
+  int res6 = 0 ;
+  void *argp7 = 0 ;
+  int res7 = 0 ;
+  PyArrayObject *array8 = NULL ;
+  int is_new_object8 = 0 ;
+  PyArrayObject *array11 = NULL ;
+  int is_new_object11 = 0 ;
+  PyArrayObject *array14 = NULL ;
+  int is_new_object14 = 0 ;
+  PyArrayObject *array17 = NULL ;
+  int is_new_object17 = 0 ;
+  PyObject *array20 = NULL ;
+  PyObject *swig_obj[12] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "comp_gaussian_covariance_coupled", 8, 8, swig_obj)) SWIG_fail;
+  if (!SWIG_Python_UnpackTuple(args, "comp_gaussian_covariance_coupled", 12, 12, swig_obj)) SWIG_fail;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_nmt_covar_workspace, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "comp_gaussian_covariance_coupled" "', argument " "1"" of type '" "nmt_covar_workspace *""'"); 
   }
   arg1 = (nmt_covar_workspace *)(argp1);
-  res2 = SWIG_ConvertPtr(swig_obj[1], &argp2,SWIGTYPE_p_nmt_workspace, 0 |  0 );
-  if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "comp_gaussian_covariance_coupled" "', argument " "2"" of type '" "nmt_workspace *""'"); 
+  ecode2 = SWIG_AsVal_int(swig_obj[1], &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "comp_gaussian_covariance_coupled" "', argument " "2"" of type '" "int""'");
+  } 
+  arg2 = (int)(val2);
+  ecode3 = SWIG_AsVal_int(swig_obj[2], &val3);
+  if (!SWIG_IsOK(ecode3)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "comp_gaussian_covariance_coupled" "', argument " "3"" of type '" "int""'");
+  } 
+  arg3 = (int)(val3);
+  ecode4 = SWIG_AsVal_int(swig_obj[3], &val4);
+  if (!SWIG_IsOK(ecode4)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "comp_gaussian_covariance_coupled" "', argument " "4"" of type '" "int""'");
+  } 
+  arg4 = (int)(val4);
+  ecode5 = SWIG_AsVal_int(swig_obj[4], &val5);
+  if (!SWIG_IsOK(ecode5)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode5), "in method '" "comp_gaussian_covariance_coupled" "', argument " "5"" of type '" "int""'");
+  } 
+  arg5 = (int)(val5);
+  res6 = SWIG_ConvertPtr(swig_obj[5], &argp6,SWIGTYPE_p_nmt_workspace, 0 |  0 );
+  if (!SWIG_IsOK(res6)) {
+    SWIG_exception_fail(SWIG_ArgError(res6), "in method '" "comp_gaussian_covariance_coupled" "', argument " "6"" of type '" "nmt_workspace *""'"); 
   }
-  arg2 = (nmt_workspace *)(argp2);
-  res3 = SWIG_ConvertPtr(swig_obj[2], &argp3,SWIGTYPE_p_nmt_workspace, 0 |  0 );
-  if (!SWIG_IsOK(res3)) {
-    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "comp_gaussian_covariance_coupled" "', argument " "3"" of type '" "nmt_workspace *""'"); 
+  arg6 = (nmt_workspace *)(argp6);
+  res7 = SWIG_ConvertPtr(swig_obj[6], &argp7,SWIGTYPE_p_nmt_workspace, 0 |  0 );
+  if (!SWIG_IsOK(res7)) {
+    SWIG_exception_fail(SWIG_ArgError(res7), "in method '" "comp_gaussian_covariance_coupled" "', argument " "7"" of type '" "nmt_workspace *""'"); 
   }
-  arg3 = (nmt_workspace *)(argp3);
+  arg7 = (nmt_workspace *)(argp7);
   {
     npy_intp size[2] = {
       -1, -1 
     };
-    array4 = obj_to_array_contiguous_allow_conversion(swig_obj[3],
+    array8 = obj_to_array_contiguous_allow_conversion(swig_obj[7],
       NPY_DOUBLE,
-      &is_new_object4);
-    if (!array4 || !require_dimensions(array4, 2) ||
-      !require_size(array4, size, 2)) SWIG_fail;
-    arg4 = (int) array_size(array4,0);
-    arg5 = (int) array_size(array4,1);
-    arg6 = (double*) array_data(array4);
-  }
-  {
-    npy_intp size[2] = {
-      -1, -1 
-    };
-    array7 = obj_to_array_contiguous_allow_conversion(swig_obj[4],
-      NPY_DOUBLE,
-      &is_new_object7);
-    if (!array7 || !require_dimensions(array7, 2) ||
-      !require_size(array7, size, 2)) SWIG_fail;
-    arg7 = (int) array_size(array7,0);
-    arg8 = (int) array_size(array7,1);
-    arg9 = (double*) array_data(array7);
-  }
-  {
-    npy_intp size[2] = {
-      -1, -1 
-    };
-    array10 = obj_to_array_contiguous_allow_conversion(swig_obj[5],
-      NPY_DOUBLE,
-      &is_new_object10);
-    if (!array10 || !require_dimensions(array10, 2) ||
-      !require_size(array10, size, 2)) SWIG_fail;
-    arg10 = (int) array_size(array10,0);
-    arg11 = (int) array_size(array10,1);
-    arg12 = (double*) array_data(array10);
+      &is_new_object8);
+    if (!array8 || !require_dimensions(array8, 2) ||
+      !require_size(array8, size, 2)) SWIG_fail;
+    arg8 = (int) array_size(array8,0);
+    arg9 = (int) array_size(array8,1);
+    arg10 = (double*) array_data(array8);
   }
   {
     npy_intp size[2] = {
       -1, -1 
     };
-    array13 = obj_to_array_contiguous_allow_conversion(swig_obj[6],
+    array11 = obj_to_array_contiguous_allow_conversion(swig_obj[8],
       NPY_DOUBLE,
-      &is_new_object13);
-    if (!array13 || !require_dimensions(array13, 2) ||
-      !require_size(array13, size, 2)) SWIG_fail;
-    arg13 = (int) array_size(array13,0);
-    arg14 = (int) array_size(array13,1);
-    arg15 = (double*) array_data(array13);
+      &is_new_object11);
+    if (!array11 || !require_dimensions(array11, 2) ||
+      !require_size(array11, size, 2)) SWIG_fail;
+    arg11 = (int) array_size(array11,0);
+    arg12 = (int) array_size(array11,1);
+    arg13 = (double*) array_data(array11);
+  }
+  {
+    npy_intp size[2] = {
+      -1, -1 
+    };
+    array14 = obj_to_array_contiguous_allow_conversion(swig_obj[9],
+      NPY_DOUBLE,
+      &is_new_object14);
+    if (!array14 || !require_dimensions(array14, 2) ||
+      !require_size(array14, size, 2)) SWIG_fail;
+    arg14 = (int) array_size(array14,0);
+    arg15 = (int) array_size(array14,1);
+    arg16 = (double*) array_data(array14);
+  }
+  {
+    npy_intp size[2] = {
+      -1, -1 
+    };
+    array17 = obj_to_array_contiguous_allow_conversion(swig_obj[10],
+      NPY_DOUBLE,
+      &is_new_object17);
+    if (!array17 || !require_dimensions(array17, 2) ||
+      !require_size(array17, size, 2)) SWIG_fail;
+    arg17 = (int) array_size(array17,0);
+    arg18 = (int) array_size(array17,1);
+    arg19 = (double*) array_data(array17);
   }
   {
     npy_intp dims[1];
-    if (!PyInt_Check(swig_obj[7]))
+    if (!PyInt_Check(swig_obj[11]))
     {
-      const char* typestring = pytype_string(swig_obj[7]);
+      const char* typestring = pytype_string(swig_obj[11]);
       PyErr_Format(PyExc_TypeError,
         "Int dimension expected.  '%s' given.",
         typestring);
       SWIG_fail;
     }
-    arg17 = (int) PyInt_AsLong(swig_obj[7]);
-    dims[0] = (npy_intp) arg17;
-    array16 = PyArray_SimpleNew(1, dims, NPY_DOUBLE);
-    if (!array16) SWIG_fail;
-    arg16 = (double*) array_data(array16);
+    arg21 = (int) PyInt_AsLong(swig_obj[11]);
+    dims[0] = (npy_intp) arg21;
+    array20 = PyArray_SimpleNew(1, dims, NPY_DOUBLE);
+    if (!array20) SWIG_fail;
+    arg20 = (double*) array_data(array20);
   }
   {
     try {
-      comp_gaussian_covariance_coupled(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13,arg14,arg15,arg16,arg17);
+      comp_gaussian_covariance_coupled(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13,arg14,arg15,arg16,arg17,arg18,arg19,arg20,arg21);
     }
     finally {
       SWIG_exception(SWIG_RuntimeError,nmt_error_message);
@@ -18133,56 +18337,56 @@ SWIGINTERN PyObject *_wrap_comp_gaussian_covariance_coupled(PyObject *SWIGUNUSED
   }
   resultobj = SWIG_Py_Void();
   {
-    resultobj = SWIG_Python_AppendOutput(resultobj,(PyObject*)array16);
+    resultobj = SWIG_Python_AppendOutput(resultobj,(PyObject*)array20);
   }
   {
-    if (is_new_object4 && array4)
+    if (is_new_object8 && array8)
     {
-      Py_DECREF(array4); 
+      Py_DECREF(array8); 
     }
   }
   {
-    if (is_new_object7 && array7)
+    if (is_new_object11 && array11)
     {
-      Py_DECREF(array7); 
+      Py_DECREF(array11); 
     }
   }
   {
-    if (is_new_object10 && array10)
+    if (is_new_object14 && array14)
     {
-      Py_DECREF(array10); 
+      Py_DECREF(array14); 
     }
   }
   {
-    if (is_new_object13 && array13)
+    if (is_new_object17 && array17)
     {
-      Py_DECREF(array13); 
+      Py_DECREF(array17); 
     }
   }
   return resultobj;
 fail:
   {
-    if (is_new_object4 && array4)
+    if (is_new_object8 && array8)
     {
-      Py_DECREF(array4); 
+      Py_DECREF(array8); 
     }
   }
   {
-    if (is_new_object7 && array7)
+    if (is_new_object11 && array11)
     {
-      Py_DECREF(array7); 
+      Py_DECREF(array11); 
     }
   }
   {
-    if (is_new_object10 && array10)
+    if (is_new_object14 && array14)
     {
-      Py_DECREF(array10); 
+      Py_DECREF(array14); 
     }
   }
   {
-    if (is_new_object13 && array13)
+    if (is_new_object17 && array17)
     {
-      Py_DECREF(array13); 
+      Py_DECREF(array17); 
     }
   }
   return NULL;
@@ -19654,6 +19858,8 @@ static PyMethodDef SwigMethods[] = {
 	 { "covar_workspace_lmax_get", _wrap_covar_workspace_lmax_get, METH_O, NULL},
 	 { "covar_workspace_lmax_mask_set", _wrap_covar_workspace_lmax_mask_set, METH_VARARGS, NULL},
 	 { "covar_workspace_lmax_mask_get", _wrap_covar_workspace_lmax_mask_get, METH_O, NULL},
+	 { "covar_workspace_all_spins_set", _wrap_covar_workspace_all_spins_set, METH_VARARGS, NULL},
+	 { "covar_workspace_all_spins_get", _wrap_covar_workspace_all_spins_get, METH_O, NULL},
 	 { "covar_workspace_spin_a1_set", _wrap_covar_workspace_spin_a1_set, METH_VARARGS, NULL},
 	 { "covar_workspace_spin_a1_get", _wrap_covar_workspace_spin_a1_get, METH_O, NULL},
 	 { "covar_workspace_spin_a2_set", _wrap_covar_workspace_spin_a2_set, METH_VARARGS, NULL},

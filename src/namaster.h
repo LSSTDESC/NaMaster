@@ -938,6 +938,7 @@ void nmt_compute_gaussian_covariance_flat(nmt_covar_workspace_flat *cw,
 typedef struct {
   int lmax; //!< Maximum multipole for the first set of power spectra
   int lmax_mask; //!< Maximum multipole for the first set of power spectra
+  int all_spins;
   int spin_a1;
   int spin_a2;
   int spin_b1;
@@ -956,7 +957,7 @@ void nmt_covar_workspace_free(nmt_covar_workspace *cw);
 
 nmt_covar_workspace *nmt_covar_workspace_init(int spin_a1, int spin_a2,
 					      int spin_b1, int spin_b2,
-					      int auto_any,
+					      int all_spins, int auto_any,
 					      flouble *cl_masks_11_22,
 					      flouble *cl_masks_12_21,
 					      int lmax,int lmax_mask,
@@ -969,6 +970,10 @@ nmt_covar_workspace *nmt_covar_workspace_init(int spin_a1, int spin_a2,
  * and a nmt_covar_workspace structure.
  * @param cw nmt_covar_workspace structure containing the information necessary to compute the
           covariance matrix.
+ * @param spin_a field a spin.
+ * @param spin_b field b spin.
+ * @param spin_c field c spin.
+ * @param spin_d field d spin.
  * @param wa nmt_workspace structure containing the mode-coupling matrix for the first power spectra.
  * @param wb nmt_workspace structure containing the mode-coupling matrix for the second power spectra.
  * @param clac Cross-power spectra between field 1 in the first set and field 1 in the second set (ac)
@@ -980,6 +985,7 @@ nmt_covar_workspace *nmt_covar_workspace_init(int spin_a1, int spin_a2,
           where nbpw_X and ncls_X are the number of bandpowers and different power spectra in the X-th set of fields.
  */
 void  nmt_compute_gaussian_covariance(nmt_covar_workspace *cw,
+				      int spin_a,int spin_b,int spin_c,int spin_d,
 				      nmt_workspace *wa,nmt_workspace *wb,
 				      flouble **clac,flouble **clad,
 				      flouble **clbc,flouble **clbd,
@@ -992,6 +998,10 @@ void  nmt_compute_gaussian_covariance(nmt_covar_workspace *cw,
  * and a nmt_covar_workspace structure. Calculation done for the mode-coupled pseudo-Cls.
  * @param cw nmt_covar_workspace structure containing the information necessary to compute the
           covariance matrix.
+ * @param spin_a field a spin.
+ * @param spin_b field b spin.
+ * @param spin_c field c spin.
+ * @param spin_d field d spin.
  * @param wa nmt_workspace structure containing the mode-coupling matrix for the first power spectra.
  * @param wb nmt_workspace structure containing the mode-coupling matrix for the second power spectra.
  * @param clac Cross-power spectra between field 1 in the first set and field 1 in the second set (ac)
@@ -1003,6 +1013,7 @@ void  nmt_compute_gaussian_covariance(nmt_covar_workspace *cw,
           where nbpw_X and ncls_X are the number of bandpowers and different power spectra in the X-th set of fields.
  */
 void  nmt_compute_gaussian_covariance_coupled(nmt_covar_workspace *cw,
+					      int spin_a,int spin_b,int spin_c,int spin_d,
                                               nmt_workspace *wa,nmt_workspace *wb,
                                               flouble **clac,flouble **clad,
                                               flouble **clbc,flouble **clbd,
