@@ -182,11 +182,9 @@ class NmtCovarianceWorkspace(object):
                 to the first power spectrum whose covariance you want to
                 compute.
             flb1 (:class:`~pymaster.field.NmtField`): As ``fla1`` for the
-                second power spectrum. If ``None``, it will be set to
-                ``fla1``.
+                second power spectrum.
             flb2 (:class:`~pymaster.field.NmtField`): As ``fla2`` for the
-                second power spectrum. If ``None``, it will be set to
-                ``fla2``.
+                second power spectrum.
             all_spins (:obj:`bool`): If ``True``, coupling coefficients for
                 all spin combinations will be calculated. Otherwise, only the
                 spin combination determined by the input fields will be
@@ -203,11 +201,6 @@ class NmtCovarianceWorkspace(object):
                 corresponds to :math:`\\Delta \\ell_{\\rm band}` in Fig.
                 3 of the paper. Ignored if ``l_toeplitz<=0``.
         """
-        if flb1 is None:
-            flb1 = fla1
-        if flb2 is None:
-            flb2 = fla2
-
         if np.any([fla1.anisotropic_mask, fla2.anisotropic_mask,
                    flb1.anisotropic_mask, flb2.anisotropic_mask]):
             raise NotImplementedError("Covariance matrix estimation not "

@@ -140,6 +140,26 @@ def test_workspace_covar_benchmark():
     compare_covars(covar, covar_bench)
 
 
+def test_workspace_covar_io():
+    import os
+    fname = 'tmp.fits'
+
+    cw = nmt.NmtCovarianceWorkspace.from_fields(CT.f0, CT.f0,
+                                                all_spins=False)
+    cw.write_to(fname)
+    cw = nmt.NmtCovarianceWorkspace.from_file(fname)
+    assert not cw.all_spins
+    assert cw.spin_a1 == 0
+    assert cw.spin_a2 == 0
+    assert cw.spin_b1 == 0
+    assert cw.spin_b2 == 0
+    os.system('rm ' + fname)
+
+    cw = nmt.NmtCovarianceWorkspace.from_file(
+        'test/benchmarks/bm_nc_np_cw00.fits')  # Correct reading
+    assert cw.all_spins
+
+
 def test_workspace_covar_errors():
     cw = nmt.NmtCovarianceWorkspace.from_fields(CT.f0, CT.f0,
                                                 all_spins=False)  # All good
@@ -169,7 +189,18 @@ def test_workspace_covar_errors():
     assert cw.wsp.lmax == CT.w.wsp.lmax
     assert cw.wsp.lmax == CT.w.wsp.lmax
 
+    # Check that it can be updated via file
+    cw._read_from("test/benchmarks/bm_nc_np_cw00.fits")
+    # or via new fields
+    cw._compute_coupling_coefficients(CT.f0, CT.f0,
+                                      CT.f0, CT.f0)
+
+    cw = nmt.NmtCovarianceWorkspace.from_fields(CT.f0, CT.f0)
     # gaussian_covariance
+    with pytest.raises(ValueError):  # Wrong number of spins
+        cw.gaussian_covariance([CT.cltt], [CT.cltt],
+                               [CT.cltt], [CT.cltt],
+                               CT.w, spins=[0, 0, 0])
     with pytest.raises(ValueError):  # Wrong input cl size
         cw.gaussian_covariance([CT.cltt], [CT.cltt],
                                [CT.cltt], [CT.cltt[:15]],
