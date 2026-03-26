@@ -278,3 +278,16 @@ def test_covar_inka_cl():
     cl_inka_d = pcl_d/np.mean(msk**2)
     cld = nmt.get_iNKA_cell(f, f_hi)
     assert np.all(np.fabs(cl_inka_d/cld-1) < 1E-4)
+
+
+def test_covar_deprecated():
+    cw = nmt.NmtCovarianceWorkspace.from_fields(CT.f0, CT.f0)
+
+    covar1 = cw.gaussian_covariance([CT.cltt], [CT.cltt],
+                                    [CT.cltt], [CT.cltt],
+                                    CT.w)
+    covar2 = nmt.gaussian_covariance(cw, 0, 0, 0, 0,
+                                     [CT.cltt], [CT.cltt],
+                                     [CT.cltt], [CT.cltt],
+                                     CT.w)
+    assert np.all((covar1 == covar2).flatten())
