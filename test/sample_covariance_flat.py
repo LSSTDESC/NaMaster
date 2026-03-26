@@ -86,9 +86,9 @@ if not os.path.isfile("cw_flat.fits"):
     cw.compute_coupling_coefficients(f0, f0, b)
     cw.write_to("cw_flat.fits")
 cw.read_from("cw_flat.fits")
-covar = nmt.gaussian_covariance_flat(cw, 0, 0, 0, 0, larr,
-                                     [clarr], [clarr],
-                                     [clarr], [clarr], w)
+covar = cw.gaussian_covariance(0, 0, 0, 0, larr,
+                               [clarr], [clarr],
+                               [clarr], [clarr], w)
 
 # Let's now compute the sample covariance
 print("Sample covariance")

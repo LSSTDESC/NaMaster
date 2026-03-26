@@ -64,56 +64,52 @@ print("Covariance")
 # First we generate a NmtCovarianceWorkspace object to precompute
 # and store the necessary coupling coefficients
 # This is the time-consuming operation.
-# Note that you only need to do this once,
-# regardless of spin
 cw = nmt.NmtCovarianceWorkspace.from_fields(f0, f0, f0, f0)
 
 # The next few lines show how to extract the covariance matrices
 # for different spin combinations.
-covar_00_00 = nmt.gaussian_covariance(cw,
-                                      0, 0, 0, 0,  # Spins of the 4 fields
-                                      [cl_tt],  # TT
-                                      [cl_tt],  # TT
-                                      [cl_tt],  # TT
-                                      [cl_tt],  # TT
-                                      w00, wb=w00).reshape([n_ell, 1,
-                                                            n_ell, 1])
+covar_00_00 = cw.gaussian_covariance([cl_tt],  # TT
+                                     [cl_tt],  # TT
+                                     [cl_tt],  # TT
+                                     [cl_tt],  # TT
+                                     w00, wb=w00).reshape([n_ell, 1,
+                                                           n_ell, 1])
 covar_TT_TT = covar_00_00[:, 0, :, 0]
-covar_02_02 = nmt.gaussian_covariance(cw, 0, 2, 0, 2,  # Spins of the 4 fields
-                                      [cl_tt],  # TT
-                                      [cl_te, cl_tb],  # TE, TB
-                                      [cl_te, cl_tb],  # ET, BT
-                                      [cl_ee, cl_eb,
-                                       cl_eb, cl_bb],  # EE, EB, BE, BB
-                                      w02, wb=w02).reshape([n_ell, 2,
-                                                            n_ell, 2])
+cw = nmt.NmtCovarianceWorkspace.from_fields(f0, f2, f0, f2)
+covar_02_02 = cw.gaussian_covariance([cl_tt],  # TT
+                                     [cl_te, cl_tb],  # TE, TB
+                                     [cl_te, cl_tb],  # ET, BT
+                                     [cl_ee, cl_eb,
+                                      cl_eb, cl_bb],  # EE, EB, BE, BB
+                                     w02, wb=w02).reshape([n_ell, 2,
+                                                           n_ell, 2])
 covar_TE_TE = covar_02_02[:, 0, :, 0]
 covar_TE_TB = covar_02_02[:, 0, :, 1]
 covar_TB_TE = covar_02_02[:, 1, :, 0]
 covar_TB_TB = covar_02_02[:, 1, :, 1]
 
 
-covar_00_22 = nmt.gaussian_covariance(cw, 0, 0, 2, 2,  # Spins of the 4 fields
-                                      [cl_te, cl_tb],  # TE, TB
-                                      [cl_te, cl_tb],  # TE, TB
-                                      [cl_te, cl_tb],  # TE, TB
-                                      [cl_te, cl_tb],  # TE, TB
-                                      w00, wb=w22).reshape([n_ell, 1,
-                                                            n_ell, 4])
+cw = nmt.NmtCovarianceWorkspace.from_fields(f0, f0, f2, f2)
+covar_00_22 = cw.gaussian_covariance([cl_te, cl_tb],  # TE, TB
+                                     [cl_te, cl_tb],  # TE, TB
+                                     [cl_te, cl_tb],  # TE, TB
+                                     [cl_te, cl_tb],  # TE, TB
+                                     w00, wb=w22).reshape([n_ell, 1,
+                                                           n_ell, 4])
 covar_TT_EE = covar_00_22[:, 0, :, 0]
 covar_TT_EB = covar_00_22[:, 0, :, 1]
 covar_TT_BE = covar_00_22[:, 0, :, 2]
 covar_TT_BB = covar_00_22[:, 0, :, 3]
 
-covar_02_22 = nmt.gaussian_covariance(cw, 0, 2, 2, 2,  # Spins of the 4 fields
-                                      [cl_te, cl_tb],  # TE, TB
-                                      [cl_te, cl_tb],  # TE, TB
-                                      [cl_ee, cl_eb,
-                                       cl_eb, cl_bb],  # EE, EB, BE, BB
-                                      [cl_ee, cl_eb,
-                                       cl_eb, cl_bb],  # EE, EB, BE, BB
-                                      w02, wb=w22).reshape([n_ell, 2,
-                                                            n_ell, 4])
+cw = nmt.NmtCovarianceWorkspace.from_fields(f0, f2, f2, f2)
+covar_02_22 = cw.gaussian_covariance([cl_te, cl_tb],  # TE, TB
+                                     [cl_te, cl_tb],  # TE, TB
+                                     [cl_ee, cl_eb,
+                                      cl_eb, cl_bb],  # EE, EB, BE, BB
+                                     [cl_ee, cl_eb,
+                                      cl_eb, cl_bb],  # EE, EB, BE, BB
+                                     w02, wb=w22).reshape([n_ell, 2,
+                                                           n_ell, 4])
 covar_TE_EE = covar_02_22[:, 0, :, 0]
 covar_TE_EB = covar_02_22[:, 0, :, 1]
 covar_TE_BE = covar_02_22[:, 0, :, 2]
@@ -124,17 +120,17 @@ covar_TB_BE = covar_02_22[:, 1, :, 2]
 covar_TB_BB = covar_02_22[:, 1, :, 3]
 
 
-covar_22_22 = nmt.gaussian_covariance(cw, 2, 2, 2, 2,  # Spins of the 4 fields
-                                      [cl_ee, cl_eb,
-                                       cl_eb, cl_bb],  # EE, EB, BE, BB
-                                      [cl_ee, cl_eb,
-                                       cl_eb, cl_bb],  # EE, EB, BE, BB
-                                      [cl_ee, cl_eb,
-                                       cl_eb, cl_bb],  # EE, EB, BE, BB
-                                      [cl_ee, cl_eb,
-                                       cl_eb, cl_bb],  # EE, EB, BE, BB
-                                      w22, wb=w22).reshape([n_ell, 4,
-                                                            n_ell, 4])
+cw = nmt.NmtCovarianceWorkspace.from_fields(f2, f2, f2, f2)
+covar_22_22 = cw.gaussian_covariance([cl_ee, cl_eb,
+                                      cl_eb, cl_bb],  # EE, EB, BE, BB
+                                     [cl_ee, cl_eb,
+                                      cl_eb, cl_bb],  # EE, EB, BE, BB
+                                     [cl_ee, cl_eb,
+                                      cl_eb, cl_bb],  # EE, EB, BE, BB
+                                     [cl_ee, cl_eb,
+                                      cl_eb, cl_bb],  # EE, EB, BE, BB
+                                     w22, wb=w22).reshape([n_ell, 4,
+                                                           n_ell, 4])
 covar_EE_EE = covar_22_22[:, 0, :, 0]
 covar_EE_EB = covar_22_22[:, 0, :, 1]
 covar_EE_BE = covar_22_22[:, 0, :, 2]

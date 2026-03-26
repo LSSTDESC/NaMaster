@@ -664,6 +664,7 @@ class NmtFieldFlat(object):
                         ((spin == 0) and nmaps != 1)):
                     raise ValueError("Spin-zero fields are "
                                      "associated with a single map")
+        self.spin = spin
 
         if (pure_e or pure_b) and spin != 2:
             raise ValueError("Purification only implemented for spin-2 fields")

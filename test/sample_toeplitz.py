@@ -37,15 +37,13 @@ cl_tpltz = wt.decouple_cell(nmt.compute_coupled_cell(f0, f0))
 # Gaussian covariance matrix. Let's try that here:
 # First, the exact calculation
 cwe = nmt.NmtCovarianceWorkspace.from_fields(f0, f0)
-cov_exact = nmt.gaussian_covariance(cwe, 0, 0, 0, 0,
-                                    [cl_theory], [cl_theory],
+cov_exact = cwe.gaussian_covariance([cl_theory], [cl_theory],
                                     [cl_theory], [cl_theory],
                                     we)
 # Now using the Toeplitz approximation:
 cwt = nmt.NmtCovarianceWorkspace.from_fields(
     f0, f0, l_toeplitz=nside, l_exact=nside//2, dl_band=40)
-cov_tpltz = nmt.gaussian_covariance(cwt, 0, 0, 0, 0,
-                                    [cl_theory], [cl_theory],
+cov_tpltz = cwt.gaussian_covariance([cl_theory], [cl_theory],
                                     [cl_theory], [cl_theory],
                                     wt)
 

@@ -854,22 +854,22 @@ nmt_covar_workspace *nmt_covar_workspace_read_fits(char *fname)
   }
   fits_read_key(fptr,TINT,"SPIN_A1",&(cw->spin_a1),NULL,&status);
   if(status) {
-    cw->spin_a1 = 0;
+    cw->spin_a1 = -1;
     status=0;
   }
   fits_read_key(fptr,TINT,"SPIN_A2",&(cw->spin_a2),NULL,&status);
   if(status) {
-    cw->spin_a2 = 0;
+    cw->spin_a2 = -1;
     status=0;
   }
   fits_read_key(fptr,TINT,"SPIN_B1",&(cw->spin_b1),NULL,&status);
   if(status) {
-    cw->spin_b1 = 0;
+    cw->spin_b1 = -1;
     status=0;
   }
   fits_read_key(fptr,TINT,"SPIN_B2",&(cw->spin_b2),NULL,&status);
   if(status) {
-    cw->spin_b2 = 0;
+    cw->spin_b2 = -1;
     status=0;
   }
 

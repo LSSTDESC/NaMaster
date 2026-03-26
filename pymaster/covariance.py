@@ -49,23 +49,23 @@ class NmtCovarianceWorkspace(object):
             all input fields will be ignored, and all mode-coupling
             coefficients will be read from file.
     """
-    def __init__(self, fla1, fla2, flb1=None, flb2=None, *,
+    def __init__(self, fla1, fla2, flb1=None, flb2=None,
                  l_toeplitz=-1, l_exact=-1, dl_band=-1,
                  fname=None):
+        self.wsp = None
+        if (fname is not None):
+            self._read_from(fname)
+            return
+
         if flb1 is None:
             flb1 = fla1
         if flb2 is None:
             flb2 = fla2
 
-        self.wsp = None
-        self.spin_a1=fla1.spin
-        self.spin_a2=fla2.spin
-        self.spin_b1=flb1.spin
-        self.spin_b2=flb2.spin
-
-        if (fname is not None):
-            self.read_from(fname)
-            return
+        self.spin_a1 = fla1.spin
+        self.spin_a2 = fla2.spin
+        self.spin_b1 = flb1.spin
+        self.spin_b2 = flb2.spin
 
         self._compute_coupling_coefficients(fla1, fla2, flb1, flb2,
                                             l_toeplitz=l_toeplitz,
@@ -123,7 +123,7 @@ class NmtCovarianceWorkspace(object):
         Args:
             fname (:obj:`str`): Input file name.
         """
-        return cls(fname=fname)
+        return cls(None, None, fname=fname)
 
     def __del__(self):
         if self.wsp is not None:
@@ -131,7 +131,7 @@ class NmtCovarianceWorkspace(object):
                 lib.covar_workspace_free(self.wsp)
             self.wsp = None
 
-    def read_from(self, fname):
+    def _read_from(self, fname):
         """ Reads the contents of an :obj:`NmtCovarianceWorkspace`
         object from a FITS file.
 
@@ -142,6 +142,38 @@ class NmtCovarianceWorkspace(object):
             lib.covar_workspace_free(self.wsp)
             self.wsp = None
         self.wsp = lib.read_covar_workspace(fname)
+        if ((self.wsp.spin_a1 == -1) or
+                (self.wsp.spin_a2 == -1) or
+                (self.wsp.spin_b1 == -1) or
+                (self.wsp.spin_b2 == -1)):
+            warnings.warn("You are reading a CovarianceWorkspace "
+                          "from an file using the old file format "
+                          "take care to use `correct_spins_old` to "
+                          "determine the spins all four fields.")
+
+    def correct_spins_old(self, spin_a1, spin_a2, spin_b1, spin_b2):
+        """ Use this function to set the spins of all fields for
+        this ``NmtCovarianceWorkspace`` object when you have read
+        it from a FITS file using the old file format (in which the
+        field spins were not saved). Do NOT use this function if
+        the field was created on the fly, or if you read it from a
+        file using the new format (you will have seen a warning
+        otherwise).
+
+        Args:
+            spin_a1 (:obj:`int`): spin of field `a1`.
+            spin_a2 (:obj:`int`): spin of field `a2`.
+            spin_b1 (:obj:`int`): spin of field `b1`.
+            spin_b2 (:obj:`int`): spin of field `b2`.
+        """
+        self.spin_a1 = spin_a1
+        self.wsp.spin_a1 = spin_a1
+        self.spin_a2 = spin_a2
+        self.wsp.spin_a2 = spin_a2
+        self.spin_b1 = spin_b1
+        self.wsp.spin_b1 = spin_b1
+        self.spin_b2 = spin_b2
+        self.wsp.spin_b2 = spin_b2
 
     def _compute_coupling_coefficients(self, fla1, fla2,
                                        flb1, flb2, *,
@@ -232,6 +264,102 @@ class NmtCovarianceWorkspace(object):
             fname (:obj:`str`): Output file name.
         """
         lib.write_covar_workspace(self.wsp, "!"+fname)
+
+    def gaussian_covariance(self, cla1b1, cla1b2, cla2b1, cla2b2,
+                            wa, wb=None, coupled=False):
+        """ Computes the Gaussian covariance matrix for power spectra
+        using the information precomputed in this
+        :class:`NmtCovarianceWorkspace` object). Let us call the four
+        fields used to initialise this workspace `a1`, `a2`, `b1`, and
+        `b2`, corresponding to the two pairs of fields whose power
+        spectra we want the covariance of. These power spectra should
+        have been computed using two
+        :class:`~pymaster.workspaces.NmtWorkspace` objects, ``wa`` and
+        ``wb``, which must be passed as arguments of this method (the
+        power spectrum for fields `a1` and `a2` was computed with ``wa``,
+        and that of `b1` and `b2` with ``wb``). Using the same notation,
+        ``clXnYm`` should be a prediction for the power spectrum between
+        fields `Xn` and `Ym`. These predicted input power spectra should
+        be defined for all multipoles :math:`\\ell` up to the
+        :math:`\\ell_{\\rm max}` with which all fields were constructed.
+
+        .. note::
+            Note that, as suggested in
+            `Nicola et al. 2020 <https://arxiv.org/abs/2010.09717>`_
+            (the so-called "improved narrow-kernel approximation"), an
+            optimal choice for the input power spectra would be the
+            mode-coupled version of the true power spectra of the
+            corresponding fields divided by the average of the product
+            of the associated masks across the sky (Eq. 2.36 in the paper).
+            Often, a good substitute for this can be obtained as the
+            pseudo-:math:`C_\\ell` of the associated maps (e.g. computed via
+            :meth:`~pymaster.workspaces.compute_coupled_cell`), divided
+            by the same mean mask product.
+
+        Args:
+            cla1b1 (`array`): Prediction for the cross-power spectrum
+                between fields `a1` and `b1`.
+            cla1b2 (`array`): As `cla1b1` for fields `a1` and `b2`.
+            cla2b1 (`array`): As `cla1b1` for fields `a2` and `b1`.
+            cla2b2 (`array`): As `cla1b1` for fields `a2` and `b2`.
+            wa (:class:`~pymaster.workspaces.NmtWorkspace`): Workspace
+                containing the mode-coupling matrix for the first power
+                spectrum (that of fields `a1` and `a2`).
+            wb (:class:`~pymaster.workspaces.NmtWorkspace`): As ``wa``
+                for the second power spectrum (that of fields `b1` and
+                `b2`). If ``None``, ``wa`` will be used instead.
+            coupled (:obj:`bool`): If ``True``, the covariance matrix
+                of the mode-coupled pseudo-:math:`C_\\ell` s will be
+                computed. Otherwise it'll be the covariance of
+                mode-decoupled bandpowers.
+        """
+        nm_a1 = 2 if self.spin_a1 else 1
+        nm_a2 = 2 if self.spin_a2 else 1
+        nm_b1 = 2 if self.spin_b1 else 1
+        nm_b2 = 2 if self.spin_b2 else 1
+
+        if wb is None:
+            wb = wa
+
+        if (wa.wsp.ncls != nm_a1*nm_a2) or (wb.wsp.ncls != nm_b1*nm_b2):
+            raise ValueError("Field spins do not match input workspaces")
+
+        if (len(cla1b1) != nm_a1*nm_b1) or \
+           (len(cla1b2) != nm_a1*nm_b2) or \
+           (len(cla2b1) != nm_a2*nm_b1) or \
+           (len(cla2b2) != nm_a2*nm_b2):
+            raise ValueError("Field spins do not match input power"
+                             "spectrum shapes")
+
+        if (len(cla1b1[0]) < self.wsp.lmax + 1) or \
+           (len(cla1b2[0]) < self.wsp.lmax + 1) or \
+           (len(cla2b1[0]) < self.wsp.lmax + 1) or \
+           (len(cla2b2[0]) < self.wsp.lmax + 1):
+            raise ValueError("Input C_ls have a weird length. "
+                             f"Expected {self.wsp.lmax+1}, but got "
+                             f"({len(cla1b1[0])}, {len(cla1b2[0])}, "
+                             f"{len(cla2b1[0])}, {len(cla2b2[0])}).")
+
+        if coupled:
+            len_a = wa.wsp.ncls * (self.wsp.lmax+1)
+            len_b = wb.wsp.ncls * (self.wsp.lmax+1)
+            wa.check_unbinned()
+            wb.check_unbinned()
+
+            covar = lib.comp_gaussian_covariance_coupled(
+                self.wsp, wa.wsp, wb.wsp,
+                cla1b1, cla1b2, cla2b1, cla2b2, len_a * len_b
+            )
+        else:
+            len_a = wa.wsp.ncls * wa.wsp.bin.n_bands
+            len_b = wb.wsp.ncls * wb.wsp.bin.n_bands
+
+            covar = lib.comp_gaussian_covariance(
+                self.wsp, wa.wsp, wb.wsp,
+                cla1b1, cla1b2, cla2b1, cla2b2, len_a * len_b
+            )
+
+        return covar.reshape([len_a, len_b])
 
 
 class NmtCovarianceWorkspaceFlat(object):
@@ -327,148 +455,49 @@ class NmtCovarianceWorkspaceFlat(object):
             raise ValueError("Must initialize workspace before writing")
         lib.write_covar_workspace_flat(self.wsp, "!"+fname)
 
+    def gaussian_covariance(self,
+                            spin_a1, spin_a2, spin_b1, spin_b2, larr,
+                            cla1b1, cla1b2, cla2b1, cla2b2, wa, wb=None):
+        """ As :meth:`NmtCovarianceWorkspace.gaussian_covariance` but for the
+        flat-sky versions of all quantities involved. The only difference with
+        is that all power spectra must have been sampled at the input
+        multipoles ``larr``, and the spins of all fields must be specified.
+        """
+        nm_a1 = 2 if spin_a1 else 1
+        nm_a2 = 2 if spin_a2 else 1
+        nm_b1 = 2 if spin_b1 else 1
+        nm_b2 = 2 if spin_b2 else 1
 
-def gaussian_covariance(cw, cla1b1, cla1b2, cla2b1, cla2b2,
-                        wa, wb=None, coupled=False):
-    """ Computes the Gaussian covariance matrix for power spectra using the
-    information precomputed in cw (a :class:`NmtCovarianceWorkspace`
-    object). ``cw`` should have been initialized using four
-    :class:`~pymaster.field.NmtField` objects (let's call them `a1`,
-    `a2`, `b1`, and `b2`), corresponding to the two pairs of fields
-    whose power spectra we want the covariance of. These power spectra
-    should have been computed using two
-    :class:`~pymaster.workspaces.NmtWorkspace` objects, ``wa`` and
-    ``wb``, which must be passed as arguments of this function (the
-    power spectrum for fields `a1` and `a2` was computed with ``wa``,
-    and that of `b1` and `b2` with ``wb``). Using the same notation,
-    ``clXnYm`` should be a prediction for the power spectrum between
-    fields `Xn` and `Ym`. These predicted input power spectra should
-    be defined for all multipoles :math:`\\ell` up to the
-    :math:`\\ell_{\\rm max}` with which all fields were constructed.
+        if wb is None:
+            wb = wa
 
-    .. note::
-        Note that, as suggested in
-        `Nicola et al. 2020 <https://arxiv.org/abs/2010.09717>`_
-        (the so-called "improved narrow-kernel approximation"), an
-        optimal choice for the input power spectra would be the
-        mode-coupled version of the true power spectra of the
-        corresponding fields divided by the average of the product
-        of the associated masks across the sky (Eq. 2.36 in the paper).
-        Often, a good substitute for this can be obtained as the
-        pseudo-:math:`C_\\ell` of the associated maps (e.g. computed via
-        :meth:`~pymaster.workspaces.compute_coupled_cell`), divided
-        by the same mean mask product.
+        if (wa.wsp.ncls != nm_a1*nm_a2) or (wb.wsp.ncls != nm_b1*nm_b2):
+            raise ValueError("Input spins do not match input workspaces")
 
-    Args:
-        cw (:obj:`NmtCovarianceWorkspace`): Workspace containing the
-            precomputed coupling coefficients.
-        cla1b1 (`array`): Prediction for the cross-power spectrum
-            between fields `a1` and `b1`.
-        cla1b2 (`array`): As `cla1b1` for fields `a1` and `b2`.
-        cla2b1 (`array`): As `cla1b1` for fields `a2` and `b1`.
-        cla2b2 (`array`): As `cla1b1` for fields `a2` and `b2`.
-        wa (:class:`~pymaster.workspaces.NmtWorkspace`): Workspace
-            containing the mode-coupling matrix for the first power
-            spectrum (that of fields `a1` and `a2`).
-        wb (:class:`~pymaster.workspaces.NmtWorkspace`): As ``wa``
-            for the second power spectrum (that of fields `b1` and
-            `b2`). If ``None``, ``wa`` will be used instead.
-        coupled (:obj:`bool`): If ``True``, the covariance matrix
-            of the mode-coupled pseudo-:math:`C_\\ell` s will be
-            computed. Otherwise it'll be the covariance of
-            mode-decoupled bandpowers.
-    """
-    nm_a1 = 2 if cw.spin_a1 else 1
-    nm_a2 = 2 if cw.spin_a2 else 1
-    nm_b1 = 2 if cw.spin_b1 else 1
-    nm_b2 = 2 if cw.spin_b2 else 1
+        if (len(cla1b1) != nm_a1*nm_b1) or \
+           (len(cla1b2) != nm_a1*nm_b2) or \
+           (len(cla2b1) != nm_a2*nm_b1) or \
+           (len(cla2b2) != nm_a2*nm_b2):
+            raise ValueError("Input spins do not match input power"
+                             "spectrum shapes")
 
-    if wb is None:
-        wb = wa
+        if (
+            (len(cla1b1[0]) != len(larr))
+            or (len(cla1b2[0]) != len(larr))
+            or (len(cla2b1[0]) != len(larr))
+            or (len(cla2b2[0]) != len(larr))
+        ):
+            raise ValueError("Input C_ls have a weird length. "
+                             f"Expected {len(larr)}, but got "
+                             f"({len(cla1b1[0])}, {len(cla1b2[0])}, "
+                             f"{len(cla2b1[0])}, {len(cla2b2[0])}).")
+        len_a = wa.wsp.ncls * self.wsp.bin.n_bands
+        len_b = wb.wsp.ncls * self.wsp.bin.n_bands
 
-    if (wa.wsp.ncls != nm_a1*nm_a2) or (wb.wsp.ncls != nm_b1*nm_b2):
-        raise ValueError("Field spins do not match input workspaces")
+        covar1d = lib.comp_gaussian_covariance_flat(
+            self.wsp, spin_a1, spin_a2, spin_b1, spin_b2,
+            wa.wsp, wb.wsp, larr, cla1b1, cla1b2, cla2b1, cla2b2,
+            len_a * len_b)
 
-    if (len(cla1b1) != nm_a1*nm_b1) or \
-       (len(cla1b2) != nm_a1*nm_b2) or \
-       (len(cla2b1) != nm_a2*nm_b1) or \
-       (len(cla2b2) != nm_a2*nm_b2):
-        raise ValueError("Field spins do not match input power"
-                         "spectrum shapes")
-
-    if (len(cla1b1[0]) < cw.wsp.lmax + 1) or \
-       (len(cla1b2[0]) < cw.wsp.lmax + 1) or \
-       (len(cla2b1[0]) < cw.wsp.lmax + 1) or \
-       (len(cla2b2[0]) < cw.wsp.lmax + 1):
-        raise ValueError("Input C_ls have a weird length. "
-                         f"Expected {cw.wsp.lmax+1}, but got "
-                         f"({len(cla1b1[0])}, {len(cla1b2[0])}, "
-                         f"{len(cla2b1[0])}, {len(cla2b2[0])}).")
-
-    if coupled:
-        len_a = wa.wsp.ncls * (cw.wsp.lmax+1)
-        len_b = wb.wsp.ncls * (cw.wsp.lmax+1)
-        wa.check_unbinned()
-        wb.check_unbinned()
-
-        covar = lib.comp_gaussian_covariance_coupled(
-            cw.wsp, wa.wsp, wb.wsp,
-            cla1b1, cla1b2, cla2b1, cla2b2, len_a * len_b
-        )
-    else:
-        len_a = wa.wsp.ncls * wa.wsp.bin.n_bands
-        len_b = wb.wsp.ncls * wb.wsp.bin.n_bands
-
-        covar = lib.comp_gaussian_covariance(
-            cw.wsp, wa.wsp, wb.wsp,
-            cla1b1, cla1b2, cla2b1, cla2b2, len_a * len_b
-        )
-
-    return covar.reshape([len_a, len_b])
-
-
-def gaussian_covariance_flat(cw, spin_a1, spin_a2, spin_b1, spin_b2, larr,
-                             cla1b1, cla1b2, cla2b1, cla2b2, wa, wb=None):
-    """ As :meth:`gaussian_covariance` but for the flat-sky versions of all
-    quantities involved. The only difference with :meth:`gaussian_covariance`
-    is that all power spectra must have been sampled at the input
-    multipoles ``larr``.
-    """
-    nm_a1 = 2 if spin_a1 else 1
-    nm_a2 = 2 if spin_a2 else 1
-    nm_b1 = 2 if spin_b1 else 1
-    nm_b2 = 2 if spin_b2 else 1
-
-    if wb is None:
-        wb = wa
-
-    if (wa.wsp.ncls != nm_a1*nm_a2) or (wb.wsp.ncls != nm_b1*nm_b2):
-        raise ValueError("Input spins do not match input workspaces")
-
-    if (len(cla1b1) != nm_a1*nm_b1) or \
-       (len(cla1b2) != nm_a1*nm_b2) or \
-       (len(cla2b1) != nm_a2*nm_b1) or \
-       (len(cla2b2) != nm_a2*nm_b2):
-        raise ValueError("Input spins do not match input power"
-                         "spectrum shapes")
-
-    if (
-        (len(cla1b1[0]) != len(larr))
-        or (len(cla1b2[0]) != len(larr))
-        or (len(cla2b1[0]) != len(larr))
-        or (len(cla2b2[0]) != len(larr))
-    ):
-        raise ValueError("Input C_ls have a weird length. "
-                         f"Expected {len(larr)}, but got "
-                         f"({len(cla1b1[0])}, {len(cla1b2[0])}, "
-                         f"{len(cla2b1[0])}, {len(cla2b2[0])}).")
-    len_a = wa.wsp.ncls * cw.wsp.bin.n_bands
-    len_b = wb.wsp.ncls * cw.wsp.bin.n_bands
-
-    covar1d = lib.comp_gaussian_covariance_flat(
-        cw.wsp, spin_a1, spin_a2, spin_b1, spin_b2,
-        wa.wsp, wb.wsp, larr, cla1b1, cla1b2, cla2b1, cla2b2,
-        len_a * len_b
-    )
-    covar = np.reshape(covar1d, [len_a, len_b])
-    return covar
+        covar = np.reshape(covar1d, [len_a, len_b])
+        return covar
