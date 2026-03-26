@@ -1,7 +1,10 @@
 """
-:mod:`pymaster` contains four basic classes:
+:mod:`pymaster` contains a few basic classes:
 
 - :class:`pymaster.field.NmtField`
+- :class:`pymaster.field.NmtFieldCatalog`
+- :class:`pymaster.field.NmtFieldCatalogMomentum`
+- :class:`pymaster.field.NmtFieldCatalogClustering`
 - :class:`pymaster.bins.NmtBin`
 - :class:`pymaster.workspaces.NmtWorkspace`
 - :class:`pymaster.covariance.NmtCovarianceWorkspace`
@@ -11,7 +14,6 @@ and a number of functions
 - :func:`pymaster.workspaces.deprojection_bias`
 - :func:`pymaster.workspaces.compute_coupled_cell`
 - :func:`pymaster.workspaces.compute_full_master`
-- :func:`pymaster.covariance.gaussian_covariance`
 - :func:`pymaster.utils.mask_apodization`
 - :func:`pymaster.utils.synfast_spherical`
 
@@ -26,7 +28,6 @@ and a number of functions
 - :func:`pymaster.workspaces.deprojection_bias_flat`
 - :func:`pymaster.workspaces.compute_coupled_cell_flat`
 - :func:`pymaster.workspaces.compute_full_master_flat`
-- :func:`pymaster.covariance.gaussian_covariance_flat`
 - :func:`pymaster.utils.mask_apodization_flat`
 - :func:`pymaster.utils.synfast_flat`
 
@@ -87,8 +88,8 @@ from pymaster.utils import (  # noqa
 from pymaster.field import (  # noqa
     NmtField, NmtFieldFlat,
     NmtFieldCatalog,
-    NmtFieldCatalogClustering,
-    NmtFieldCatalogMomentum
+    NmtFieldCatalogMomentum,
+    NmtFieldCatalogClustering
 )
 from pymaster.bins import NmtBin, NmtBinFlat  # noqa
 from pymaster.workspaces import (  # noqa
@@ -105,7 +106,5 @@ from pymaster.workspaces import (  # noqa
 )
 from pymaster.covariance import (  # noqa
     NmtCovarianceWorkspace,
-    gaussian_covariance,
     NmtCovarianceWorkspaceFlat,
-    gaussian_covariance_flat,
 )

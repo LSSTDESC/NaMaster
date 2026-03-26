@@ -763,7 +763,11 @@ static double **nmt_covar_coeffs_fromhdus(fitsfile *fptr,
   long ii,n_el;
   long naxes[2],fpixel[2]={1,1};
 
-  fits_movnam_hdu(fptr,IMAGE_HDU,name,0,status);
+  int status_here=0;
+  fits_movnam_hdu(fptr,IMAGE_HDU,name,0,&status_here);
+  if(status_here)  // This coefficient is not stored
+    return NULL;
+
   fits_get_img_size(fptr,2,naxes,status);
   n_el=naxes[0];
   if(n_el!=n_expected)
@@ -791,32 +795,49 @@ void nmt_covar_workspace_write_fits(nmt_covar_workspace *cw,char *fname)
   fits_create_img(fptr,BYTE_IMG,0,NULL,&status);
   fits_write_key(fptr,TSTRING,"EXTNAME","CWSP_PRIMARY",NULL,&status);
   fits_write_key(fptr,TINT,"LMAX",&(cw->lmax),NULL,&status);
-  cw->lmax_mask=cw->lmax;
-  fits_write_key(fptr,TINT,"SPIN0_ONLY",&(cw->spin0_only),NULL,&status);
-  check_fits(status,fname,0);
+  fits_write_key(fptr,TINT,"LMAX_MASK",&(cw->lmax_mask),NULL,&status);
+  fits_write_key(fptr,TINT,"ALL_SPINS",&(cw->all_spins),NULL,&status);
+  fits_write_key(fptr,TINT,"SPIN_A1",&(cw->spin_a1),NULL,&status);
+  fits_write_key(fptr,TINT,"SPIN_A2",&(cw->spin_a2),NULL,&status);
+  fits_write_key(fptr,TINT,"SPIN_B1",&(cw->spin_b1),NULL,&status);
+  fits_write_key(fptr,TINT,"SPIN_B2",&(cw->spin_b2),NULL,&status);
 
-  nmt_covar_coeffs_tohdus(fptr,cw->lmax+1,cw->xi00_1122,"XI00_1122",&status);
-  check_fits(status,fname,0);
-  nmt_covar_coeffs_tohdus(fptr,cw->lmax+1,cw->xi00_1221,"XI00_1221",&status);
-  check_fits(status,fname,0);
-  if(cw->spin0_only == 0) {
+  if(cw->xi00_1122!=NULL) {
+    nmt_covar_coeffs_tohdus(fptr,cw->lmax+1,cw->xi00_1122,"XI00_1122",&status);
+    check_fits(status,fname,0);
+  }
+  if(cw->xi00_1221!=NULL) {
+    nmt_covar_coeffs_tohdus(fptr,cw->lmax+1,cw->xi00_1221,"XI00_1221",&status);
+    check_fits(status,fname,0);
+  }
+  if(cw->xi02_1122!=NULL) {
     nmt_covar_coeffs_tohdus(fptr,cw->lmax+1,cw->xi02_1122,"XI02_1122",&status);
     check_fits(status,fname,0);
+  }
+  if(cw->xi02_1221!=NULL) {
     nmt_covar_coeffs_tohdus(fptr,cw->lmax+1,cw->xi02_1221,"XI02_1221",&status);
     check_fits(status,fname,0);
+  }
+  if(cw->xi22p_1122!=NULL) {
     nmt_covar_coeffs_tohdus(fptr,cw->lmax+1,cw->xi22p_1122,"XI22P_1122",&status);
     check_fits(status,fname,0);
+  }
+  if(cw->xi22p_1221!=NULL) {
     nmt_covar_coeffs_tohdus(fptr,cw->lmax+1,cw->xi22p_1221,"XI22P_1221",&status);
     check_fits(status,fname,0);
+  }
+  if(cw->xi22m_1122!=NULL) {
     nmt_covar_coeffs_tohdus(fptr,cw->lmax+1,cw->xi22m_1122,"XI22M_1122",&status);
     check_fits(status,fname,0);
+  }
+  if(cw->xi22m_1221!=NULL) {
     nmt_covar_coeffs_tohdus(fptr,cw->lmax+1,cw->xi22m_1221,"XI22M_1221",&status);
     check_fits(status,fname,0);
   }
   fits_close_file(fptr,&status);
 }
 
-nmt_covar_workspace *nmt_covar_workspace_read_fits(char *fname, int force_spin0)
+nmt_covar_workspace *nmt_covar_workspace_read_fits(char *fname)
 {
   fitsfile *fptr;
   int status=0;
@@ -827,43 +848,44 @@ nmt_covar_workspace *nmt_covar_workspace_read_fits(char *fname, int force_spin0)
   fits_movnam_hdu(fptr,ANY_HDU,"CWSP_PRIMARY",0,&status);
   fits_read_key(fptr,TINT,"LMAX",&(cw->lmax),NULL,&status);
   check_fits(status,fname,1);
-  if(force_spin0)
-    cw->spin0_only=1;
-  else {
-    fits_read_key(fptr,TINT,"SPIN0_ONLY",&(cw->spin0_only),NULL,&status);
-    if(status) {//Old format, always includes all spins
-      cw->spin0_only=0;
-      status=0;
-    }
+  fits_read_key(fptr,TINT,"LMAX_MASK",&(cw->lmax_mask),NULL,&status);
+  if(status) {  // Safeguard against old fits formats. To be deprecated
+    cw->lmax_mask = cw->lmax;
+    status=0;
   }
-  //Empty primary
-
+  fits_read_key(fptr,TINT,"ALL_SPINS",&(cw->all_spins),NULL,&status);
+  if(status) { // We're reading an old-format file
+    cw->all_spins = 1;
+    cw->spin_a1 = 0;
+    cw->spin_a2 = 0;
+    cw->spin_b1 = 0;
+    cw->spin_b2 = 0;
+    status=0;
+  }
+  else {
+    fits_read_key(fptr,TINT,"SPIN_A1",&(cw->spin_a1),NULL,&status);
+    fits_read_key(fptr,TINT,"SPIN_A2",&(cw->spin_a2),NULL,&status);
+    fits_read_key(fptr,TINT,"SPIN_B1",&(cw->spin_b1),NULL,&status);
+    fits_read_key(fptr,TINT,"SPIN_B2",&(cw->spin_b2),NULL,&status);
+  }
+  
   cw->xi00_1122=nmt_covar_coeffs_fromhdus(fptr,cw->lmax+1,"XI00_1122",&status);
   check_fits(status,fname,1);
   cw->xi00_1221=nmt_covar_coeffs_fromhdus(fptr,cw->lmax+1,"XI00_1221",&status);
   check_fits(status,fname,1);
-  if(cw->spin0_only) {
-    cw->xi02_1122=cw->xi00_1122;
-    cw->xi02_1221=cw->xi00_1221;
-    cw->xi22p_1122=cw->xi00_1122;
-    cw->xi22p_1221=cw->xi00_1221;
-    cw->xi22m_1122=cw->xi00_1122;
-    cw->xi22m_1221=cw->xi00_1221;
-  }
-  else {
-    cw->xi02_1122=nmt_covar_coeffs_fromhdus(fptr,cw->lmax+1,"XI02_1122",&status);
-    check_fits(status,fname,1);
-    cw->xi02_1221=nmt_covar_coeffs_fromhdus(fptr,cw->lmax+1,"XI02_1221",&status);
-    check_fits(status,fname,1);
-    cw->xi22p_1122=nmt_covar_coeffs_fromhdus(fptr,cw->lmax+1,"XI22P_1122",&status);
-    check_fits(status,fname,1);
-    cw->xi22p_1221=nmt_covar_coeffs_fromhdus(fptr,cw->lmax+1,"XI22P_1221",&status);
-    check_fits(status,fname,1);
-    cw->xi22m_1122=nmt_covar_coeffs_fromhdus(fptr,cw->lmax+1,"XI22M_1122",&status);
-    check_fits(status,fname,1);
-    cw->xi22m_1221=nmt_covar_coeffs_fromhdus(fptr,cw->lmax+1,"XI22M_1221",&status);
-    check_fits(status,fname,1);
-  }
+  cw->xi02_1122=nmt_covar_coeffs_fromhdus(fptr,cw->lmax+1,"XI02_1122",&status);
+  check_fits(status,fname,1);
+  cw->xi02_1221=nmt_covar_coeffs_fromhdus(fptr,cw->lmax+1,"XI02_1221",&status);
+  check_fits(status,fname,1);
+  cw->xi22p_1122=nmt_covar_coeffs_fromhdus(fptr,cw->lmax+1,"XI22P_1122",&status);
+  check_fits(status,fname,1);
+  cw->xi22p_1221=nmt_covar_coeffs_fromhdus(fptr,cw->lmax+1,"XI22P_1221",&status);
+  check_fits(status,fname,1);
+  cw->xi22m_1122=nmt_covar_coeffs_fromhdus(fptr,cw->lmax+1,"XI22M_1122",&status);
+  check_fits(status,fname,1);
+  cw->xi22m_1221=nmt_covar_coeffs_fromhdus(fptr,cw->lmax+1,"XI22M_1221",&status);
+  check_fits(status,fname,1);
+
   fits_close_file(fptr,&status);
 
   return cw;

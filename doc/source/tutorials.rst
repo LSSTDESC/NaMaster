@@ -10,3 +10,4 @@ Below is a list of tutorials, in the form of jupyter notebooks, that guide you t
 * `Catalog-based fields <../4Catalogs.html>`_
 * `Anisotropic weights <../5AnisotropicWeighting.html>`_
 * `Deprojection for catalog-based fields <../6CatalogsDeprojection.html>`_
+* `kSZ power spectra and momentum fields <../7kSZSpectra.html>`_

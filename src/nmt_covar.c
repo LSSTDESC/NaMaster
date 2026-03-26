@@ -1,18 +1,32 @@
 #include "config.h"
 #include "utils.h"
 
-nmt_covar_workspace *nmt_covar_workspace_init(flouble *cl_masks_11_22,
+nmt_covar_workspace *nmt_covar_workspace_init(int spin_a1, int spin_a2,
+					      int spin_b1, int spin_b2,
+					      int all_spins, int auto_any,
+					      flouble *cl_masks_11_22,
 					      flouble *cl_masks_12_21,
 					      int lmax, int lmax_mask,
 					      int l_toeplitz,
-					      int l_exact,int dl_band,
-					      int spin0_only)
+					      int l_exact,int dl_band)
 {
   int ii;
   nmt_covar_workspace *cw=my_malloc(sizeof(nmt_covar_workspace));
   cw->lmax=lmax;
   cw->lmax_mask=lmax_mask;
-  cw->spin0_only=spin0_only;
+  cw->all_spins=all_spins;
+  cw->spin_a1=spin_a1;
+  cw->spin_a2=spin_a2;
+  cw->spin_b1=spin_b1;
+  cw->spin_b2=spin_b2;
+  cw->xi00_1122=NULL;
+  cw->xi00_1221=NULL;
+  cw->xi02_1122=NULL;
+  cw->xi02_1221=NULL;
+  cw->xi22p_1122=NULL;
+  cw->xi22p_1221=NULL;
+  cw->xi22m_1122=NULL;
+  cw->xi22m_1221=NULL;
 
   flouble **cl_masks=my_malloc(2*sizeof(flouble));
   cl_masks[0]=my_malloc((cw->lmax_mask+1)*sizeof(flouble));
@@ -22,30 +36,29 @@ nmt_covar_workspace *nmt_covar_workspace_init(flouble *cl_masks_11_22,
     cl_masks[1][ii]=cl_masks_12_21[ii]*(ii+0.5)/(2*M_PI);
   }
 
+  int is_00_a = (spin_a1==0) && (spin_a2==0);
+  int is_00_b = (spin_b1==0) && (spin_b2==0);
+  int is_0s_a = ((spin_a1==0) || (spin_a2==0)) && (spin_a1!=spin_a2);
+  int is_0s_b = ((spin_b1==0) || (spin_b2==0)) && (spin_b1!=spin_b2);
+  int is_ss_a = (spin_a1!=0) && (spin_a2!=0);
+  int is_ss_b = (spin_b1!=0) && (spin_b2!=0);
+  int is_00_00 = is_00_a && is_00_b;
+  int is_00_0s = (is_00_a && is_0s_b) || (is_0s_a && is_00_b);
+  int is_00_ss = (is_00_a && is_ss_b) || (is_ss_a && is_00_b);
+  int is_0s_0s = is_0s_a && is_0s_b;
+  int is_0s_ss = (is_0s_a && is_ss_b) || (is_ss_a && is_0s_b);
+  int is_ss_ss = is_ss_a && is_ss_b;
+
   nmt_master_calculator *c;
-  if(cw->spin0_only) {
-    c=nmt_compute_master_coefficients(cw->lmax, cw->lmax_mask,
-				      2, cl_masks,
-				      0, 0, 0, 0, 0, 0, 0,
-				      l_toeplitz,l_exact,dl_band);
-  }
-  else {
+  int ncls=auto_any ? 1 : 2;
+
+  if(all_spins) {
     c=nmt_compute_master_coefficients(cw->lmax, cw->lmax_mask,
 				      2, cl_masks,
 				      0, 2, 0, 0, 0, 0, 1,
 				      l_toeplitz,l_exact,dl_band);
-  }
-  cw->xi00_1122=c->xi_00[0];
-  cw->xi00_1221=c->xi_00[1];
-  if(cw->spin0_only) {
-    cw->xi02_1122=c->xi_00[0];
-    cw->xi02_1221=c->xi_00[1];
-    cw->xi22p_1122=c->xi_00[0];
-    cw->xi22p_1221=c->xi_00[1];
-    cw->xi22m_1122=c->xi_00[0];
-    cw->xi22m_1221=c->xi_00[1];
-  }
-  else {
+    cw->xi00_1122=c->xi_00[0];
+    cw->xi00_1221=c->xi_00[1];
     cw->xi02_1122=c->xi_0s[0][0];
     cw->xi02_1221=c->xi_0s[1][0];
     cw->xi22p_1122=c->xi_pp[0][0];
@@ -61,35 +74,179 @@ nmt_covar_workspace *nmt_covar_workspace_init(flouble *cl_masks_11_22,
     free(c->xi_mm[0]);
     free(c->xi_mm[1]);
     free(c->xi_mm);
+    free(c->xi_00);
+    free(c->lfac);
+    free(c);
   }
-  free(c->xi_00);
-  free(c);
+  else if(is_0s_0s) {  // For the  (0,s)-(0,s) covariance we need both Xi00 and Xi0s
+    int i00ss = spin_a1 == spin_b1 ? 0 : 1;
+    int i0s0s = i00ss == 0 ? 1 : 0;
+
+    // Compute Xi_02
+    c=nmt_compute_master_coefficients(cw->lmax, cw->lmax_mask,
+				      1, &(cl_masks[i00ss]),
+				      0, 2,
+				      0, 0, 0, 0,
+				      0,
+				      l_toeplitz,l_exact,dl_band);
+    if(i00ss==0)
+      cw->xi02_1122=c->xi_0s[0][0];
+    else
+      cw->xi02_1221=c->xi_0s[0][0];
+    free(c->xi_0s[0]);
+    free(c->xi_0s);
+    free(c->lfac);
+    free(c);
+
+    // Compute Xi_00
+    c=nmt_compute_master_coefficients(cw->lmax, cw->lmax_mask,
+				      1, &(cl_masks[i0s0s]),
+				      0, 0,
+				      0, 0, 0, 0,
+				      0,
+				      l_toeplitz,l_exact,dl_band);
+    if(i0s0s==0)
+      cw->xi00_1122=c->xi_00[0];
+    else
+      cw->xi00_1221=c->xi_00[0];
+    free(c->xi_00);
+    free(c->lfac);
+    free(c);
+  }
+  else if(is_ss_ss) {  // Case (s,s)-(s,s)
+    c=nmt_compute_master_coefficients(cw->lmax, cw->lmax_mask,
+				      ncls, cl_masks,
+				      2, 2,
+				      0, 0, 0, 0,
+				      0,
+				      l_toeplitz,l_exact,dl_band);
+    cw->xi22p_1122=c->xi_pp[0][0];
+    cw->xi22m_1122=c->xi_mm[0][0];
+    if(auto_any) {
+      cw->xi22p_1221=cw->xi22p_1122;
+      cw->xi22m_1221=cw->xi22m_1122;
+    }
+    else {
+      cw->xi22p_1221=c->xi_pp[1][0];
+      cw->xi22m_1221=c->xi_mm[1][0];
+      free(c->xi_pp[1]);
+      free(c->xi_mm[1]);
+    }
+    free(c->xi_pp[0]);
+    free(c->xi_mm[0]);
+    free(c->xi_pp);
+    free(c->xi_mm);
+    free(c->lfac);
+    free(c);
+  }
+  else if(is_0s_ss) { // Case (0,s)-(s,s)
+    c=nmt_compute_master_coefficients(cw->lmax, cw->lmax_mask,
+				      ncls, cl_masks,
+				      0, 2,
+				      0, 0, 0, 0,
+				      0,
+				      l_toeplitz,l_exact,dl_band);
+    cw->xi02_1122=c->xi_0s[0][0];
+    if(auto_any)
+      cw->xi02_1221=cw->xi02_1122;
+    else {
+      cw->xi02_1221=c->xi_0s[1][0];
+      free(c->xi_0s[1]);
+    }
+    free(c->xi_0s[0]);
+    free(c->xi_0s);
+    free(c->lfac);
+    free(c);
+  }
+  else { //Cases (0,0)-(0,0), (0,0)-(0,s), (0,0)-(s,s)
+    c=nmt_compute_master_coefficients(cw->lmax, cw->lmax_mask,
+				      ncls, cl_masks,
+				      0, 0,
+				      0, 0, 0, 0,
+				      0,
+				      l_toeplitz,l_exact,dl_band);
+    cw->xi00_1122=c->xi_00[0];
+    if(auto_any)
+      cw->xi00_1221=cw->xi00_1122;
+    else
+      cw->xi00_1221=c->xi_00[1];
+    free(c->xi_00);
+    free(c->lfac);
+    free(c);
+  }
+
   free(cl_masks[0]);
   free(cl_masks[1]);
   free(cl_masks);
   return cw;
 }
 
+void _free_2d_xi(int lmax, flouble **xi) {
+  if(xi==NULL)
+    return;
+
+  int ii;
+  for(ii=0;ii<=lmax;ii++)
+    free(xi[ii]);
+  free(xi);
+}
+
 void nmt_covar_workspace_free(nmt_covar_workspace *cw)
 {
-  int ii;
-  for(ii=0;ii<=cw->lmax;ii++) {
-    free(cw->xi00_1122[ii]);
-    free(cw->xi00_1221[ii]);
-    if(cw->spin0_only==0) {
-      free(cw->xi02_1122[ii]);
-      free(cw->xi02_1221[ii]);
-      free(cw->xi22p_1122[ii]);
-      free(cw->xi22p_1221[ii]);
-      free(cw->xi22m_1122[ii]);
-      free(cw->xi22m_1221[ii]);
-    }
-  }
+  _free_2d_xi(cw->lmax, cw->xi00_1122);
+  cw->xi00_1122=NULL;
+  _free_2d_xi(cw->lmax, cw->xi00_1221);
+  cw->xi00_1221=NULL;
+  _free_2d_xi(cw->lmax, cw->xi02_1122);
+  cw->xi02_1122=NULL;
+  _free_2d_xi(cw->lmax, cw->xi02_1221);
+  cw->xi02_1221=NULL;
+  _free_2d_xi(cw->lmax, cw->xi22p_1122);
+  cw->xi22p_1122=NULL;
+  _free_2d_xi(cw->lmax, cw->xi22p_1221);
+  cw->xi22p_1221=NULL;
+  _free_2d_xi(cw->lmax, cw->xi22m_1122);
+  cw->xi22m_1122=NULL;
+  _free_2d_xi(cw->lmax, cw->xi22m_1221);
+  cw->xi22m_1221=NULL;
   free(cw);
 }
 
+double _pick_xi(nmt_covar_workspace *cw,
+		int index, int is_1122, int la, int lb)
+{
+  if(index == 5)
+    return 0.;
+
+  flouble **xi;
+  int sign=1;
+
+  if(index == 0)
+    xi = is_1122 ? cw->xi00_1122 : cw->xi00_1221;
+  else if(index == 1)
+    xi = is_1122 ? cw->xi02_1122 : cw->xi02_1221;
+  else if(index == 2)
+    xi = is_1122 ? cw->xi22p_1122 : cw->xi22p_1221;
+  else if(index == 3)
+    xi = is_1122 ? cw->xi22m_1122 : cw->xi22m_1221;
+  else if(index == 4) {
+    xi = is_1122 ? cw->xi22m_1122 : cw->xi22m_1221;
+    sign = -1;
+  }
+  else {
+    report_error(NMT_ERROR_COVAR, "Unknown coupling index %d \n",
+		 index);
+  }
+
+  if(xi==NULL) {
+    report_error(NMT_ERROR_COVAR, "You requested coupling coefficients with index "
+		 "%d, but this has not been calculated.\n", index);
+  }
+  return sign*xi[la][lb];
+}
+
 void  nmt_compute_gaussian_covariance_coupled(nmt_covar_workspace *cw,
-                                              int spin_a,int spin_b,int spin_c,int spin_d,
+					      int spin_a,int spin_b,int spin_c,int spin_d,
                                               nmt_workspace *wa,nmt_workspace *wb,
                                               flouble **clac,flouble **clad,
                                               flouble **clbc,flouble **clbd,
@@ -98,19 +255,30 @@ void  nmt_compute_gaussian_covariance_coupled(nmt_covar_workspace *cw,
   if((cw->lmax<wa->bin->ell_max) || (cw->lmax<wb->bin->ell_max))
     report_error(NMT_ERROR_COVAR,"Coupling coefficients only computed up to l=%d, but you require "
 		 "lmax=%d. Recompute this workspace with a larger lmax\n",cw->lmax,wa->bin->ell_max);
-  if((cw->spin0_only) && (spin_a+spin_b+spin_c+spin_d != 0))
-    report_error(NMT_ERROR_COVAR,"Coupling coefficients only computed for spin=0\n");
 
-  int nmaps_a=spin_a ? 2 : 1;
-  int nmaps_b=spin_b ? 2 : 1;
-  int nmaps_c=spin_c ? 2 : 1;
-  int nmaps_d=spin_d ? 2 : 1;
+  int sa, sb, sc, sd;
+  if(cw->all_spins) {
+    sa=spin_a;
+    sb=spin_b;
+    sc=spin_c;
+    sd=spin_d;
+  }
+  else {
+    sa=cw->spin_a1;
+    sb=cw->spin_a2;
+    sc=cw->spin_b1;
+    sd=cw->spin_b2;
+  }
+  int nmaps_a=sa ? 2 : 1;
+  int nmaps_b=sb ? 2 : 1;
+  int nmaps_c=sc ? 2 : 1;
+  int nmaps_d=sd ? 2 : 1;
+
   if((wa->ncls!=nmaps_a*nmaps_b) || (wb->ncls!=nmaps_c*nmaps_d))
     report_error(NMT_ERROR_COVAR,"Input spins don't match input workspaces\n");
 
 #pragma omp parallel default(none)			\
-  shared(cw,spin_a,spin_b,spin_c,spin_d)                \
-  shared(wa,wb,clac,clad,clbc,clbd)			\
+  shared(cw,wa,wb,clac,clad,clbc,clbd)			\
   shared(nmaps_a,nmaps_b,nmaps_c,nmaps_d,covar_out)
   {
     int band_a;
@@ -136,16 +304,6 @@ void  nmt_compute_gaussian_covariance_coupled(nmt_covar_workspace *cw,
 		  for(ilb=0;ilb<wb->bin->nell_list[band_b];ilb++) {
 		    int iap;
 		    int lb=wb->bin->ell_list[band_b][ilb];
-		    double xis_1122[6]={cw->xi00_1122[la][lb],
-                                        cw->xi02_1122[la][lb],
-                                        cw->xi22p_1122[la][lb],
-					cw->xi22m_1122[la][lb],
-                                        -cw->xi22m_1122[la][lb],0};
-		    double xis_1221[6]={cw->xi00_1221[la][lb],
-                                        cw->xi02_1221[la][lb],
-                                        cw->xi22p_1221[la][lb],
-					cw->xi22m_1221[la][lb],
-                                        -cw->xi22m_1221[la][lb],0};
 		    double prefac_ell=wa->bin->f_ell[band_a][ila]*wb->bin->f_ell[band_b][ilb];
                     double cov_element=0;
 		    for(iap=0;iap<nmaps_a;iap++) {
@@ -166,7 +324,8 @@ void  nmt_compute_gaussian_covariance_coupled(nmt_covar_workspace *cw,
 			    int ind_1221=cov_get_coupling_pair_index(nmaps_a,nmaps_d,nmaps_b,nmaps_c,
 								     ia,iap,id,idp,ib,ibp,ic,icp);
 			    
-                            cov_element+=(xis_1122[ind_1122]*fac_1122+xis_1221[ind_1221]*fac_1221)*prefac_ell;
+                            cov_element+=(_pick_xi(cw, ind_1122, 1, la, lb)*fac_1122+
+					  _pick_xi(cw, ind_1221, 0, la, lb)*fac_1221)*prefac_ell;
 			  }
 			}
 		      }
@@ -193,21 +352,31 @@ void  nmt_compute_gaussian_covariance(nmt_covar_workspace *cw,
   if((cw->lmax<wa->bin->ell_max) || (cw->lmax<wb->bin->ell_max))
     report_error(NMT_ERROR_COVAR,"Coupling coefficients only computed up to l=%d, but you require "
 		 "lmax=%d. Recompute this workspace with a larger lmax\n",cw->lmax,wa->bin->ell_max);
-  if((cw->spin0_only) && (spin_a+spin_b+spin_c+spin_d != 0))
-    report_error(NMT_ERROR_COVAR,"Coupling coefficients only computed for spin=0\n");
 
-  int nmaps_a=spin_a ? 2 : 1;
-  int nmaps_b=spin_b ? 2 : 1;
-  int nmaps_c=spin_c ? 2 : 1;
-  int nmaps_d=spin_d ? 2 : 1;
+  int sa, sb, sc, sd;
+  if(cw->all_spins) {
+    sa=spin_a;
+    sb=spin_b;
+    sc=spin_c;
+    sd=spin_d;
+  }
+  else {
+    sa=cw->spin_a1;
+    sb=cw->spin_a2;
+    sc=cw->spin_b1;
+    sd=cw->spin_b2;
+  }
+  int nmaps_a=sa ? 2 : 1;
+  int nmaps_b=sb ? 2 : 1;
+  int nmaps_c=sc ? 2 : 1;
+  int nmaps_d=sd ? 2 : 1;
   if((wa->ncls!=nmaps_a*nmaps_b) || (wb->ncls!=nmaps_c*nmaps_d))
     report_error(NMT_ERROR_COVAR,"Input spins don't match input workspaces\n");
 
   gsl_matrix *covar_binned=gsl_matrix_alloc(wa->ncls*wa->bin->n_bands,wb->ncls*wb->bin->n_bands);
 
 #pragma omp parallel default(none)			\
-  shared(cw,spin_a,spin_b,spin_c,spin_d)                \
-  shared(wa,wb,clac,clad,clbc,clbd)			\
+  shared(cw,wa,wb,clac,clad,clbc,clbd)			\
   shared(nmaps_a,nmaps_b,nmaps_c,nmaps_d,covar_binned)
   {
     int band_a;
@@ -234,10 +403,6 @@ void  nmt_compute_gaussian_covariance(nmt_covar_workspace *cw,
 		  for(ilb=0;ilb<wb->bin->nell_list[band_b];ilb++) {
 		    int iap;
 		    int lb=wb->bin->ell_list[band_b][ilb];
-		    double xis_1122[6]={cw->xi00_1122[la][lb],cw->xi02_1122[la][lb],cw->xi22p_1122[la][lb],
-					cw->xi22m_1122[la][lb],-cw->xi22m_1122[la][lb],0};
-		    double xis_1221[6]={cw->xi00_1221[la][lb],cw->xi02_1221[la][lb],cw->xi22p_1221[la][lb],
-					cw->xi22m_1221[la][lb],-cw->xi22m_1221[la][lb],0};
 		    double prefac_ell=wa->bin->w_list[band_a][ila]*wa->bin->f_ell[band_a][ila]*
 		      wb->bin->w_list[band_b][ilb]*wb->bin->f_ell[band_b][ilb];
 		    for(iap=0;iap<nmaps_a;iap++) {
@@ -258,7 +423,8 @@ void  nmt_compute_gaussian_covariance(nmt_covar_workspace *cw,
 			    int ind_1221=cov_get_coupling_pair_index(nmaps_a,nmaps_d,nmaps_b,nmaps_c,
 								     ia,iap,id,idp,ib,ibp,ic,icp);
 			    
-			    cbinned+=(xis_1122[ind_1122]*fac_1122+xis_1221[ind_1221]*fac_1221)*prefac_ell;
+			    cbinned+=(_pick_xi(cw, ind_1122, 1, la, lb)*fac_1122 +
+				      _pick_xi(cw, ind_1221, 0, la, lb)*fac_1221)*prefac_ell;
 			  }
 			}
 		      }

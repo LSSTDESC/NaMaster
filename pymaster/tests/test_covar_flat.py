@@ -56,52 +56,52 @@ def test_workspace_covar_flat_benchmark():
     cw.compute_coupling_coefficients(CT.f0, CT.f0, CT.b)
 
     # [0,0 ; 0,0]
-    covar = nmt.gaussian_covariance_flat(cw, 0, 0, 0, 0, CT.ll,
-                                         [CT.cltt], [CT.cltt],
-                                         [CT.cltt], [CT.cltt],
-                                         CT.w)
+    covar = cw.gaussian_covariance(0, 0, 0, 0, CT.ll,
+                                   [CT.cltt], [CT.cltt],
+                                   [CT.cltt], [CT.cltt],
+                                   CT.w)
     covar_bench = np.loadtxt("test/benchmarks/bm_f_nc_np_cov.txt",
                              unpack=True)
     compare_covars(covar, covar_bench)
     # [0,2 ; 0,2]
-    covar = nmt.gaussian_covariance_flat(cw, 0, 2, 0, 2, CT.ll,
-                                         [CT.cltt],
-                                         [CT.clte, 0*CT.clte],
-                                         [CT.clte, 0*CT.clte],
-                                         [CT.clee, 0*CT.clee,
-                                          0*CT.clee, CT.clbb],
-                                         CT.w02, wb=CT.w02)
+    covar = cw.gaussian_covariance(0, 2, 0, 2, CT.ll,
+                                   [CT.cltt],
+                                   [CT.clte, 0*CT.clte],
+                                   [CT.clte, 0*CT.clte],
+                                   [CT.clee, 0*CT.clee,
+                                    0*CT.clee, CT.clbb],
+                                   CT.w02, wb=CT.w02)
     covar_bench = np.loadtxt("test/benchmarks/bm_f_nc_np_cov0202.txt")
     compare_covars(covar, covar_bench)
     # [0,0 ; 0,2]
-    covar = nmt.gaussian_covariance_flat(cw, 0, 0, 0, 2, CT.ll,
-                                         [CT.cltt],
-                                         [CT.clte, 0*CT.clte],
-                                         [CT.cltt],
-                                         [CT.clte, 0*CT.clte],
-                                         CT.w, wb=CT.w02)
+    covar = cw.gaussian_covariance(0, 0, 0, 2, CT.ll,
+                                   [CT.cltt],
+                                   [CT.clte, 0*CT.clte],
+                                   [CT.cltt],
+                                   [CT.clte, 0*CT.clte],
+                                   CT.w, wb=CT.w02)
     covar_bench = np.loadtxt("test/benchmarks/bm_f_nc_np_cov0002.txt")
     compare_covars(covar, covar_bench)
     # [0,0 ; 2,2]
-    covar = nmt.gaussian_covariance_flat(cw, 0, 0, 2, 2, CT.ll,
-                                         [CT.clte, 0*CT.clte],
-                                         [CT.clte, 0*CT.clte],
-                                         [CT.clte, 0*CT.clte],
-                                         [CT.clte, 0*CT.clte],
-                                         CT.w, wb=CT.w22)
+    covar = cw.gaussian_covariance(0, 0, 2, 2, CT.ll,
+                                   [CT.clte, 0*CT.clte],
+                                   [CT.clte, 0*CT.clte],
+                                   [CT.clte, 0*CT.clte],
+                                   [CT.clte, 0*CT.clte],
+                                   CT.w, wb=CT.w22)
     covar_bench = np.loadtxt("test/benchmarks/bm_f_nc_np_cov0022.txt")
     compare_covars(covar, covar_bench)
     # [2,2 ; 2,2]
-    covar = nmt.gaussian_covariance_flat(cw, 2, 2, 2, 2, CT.ll,
-                                         [CT.clee, 0*CT.clee,
-                                          0*CT.clee, CT.clbb],
-                                         [CT.clee, 0*CT.clee,
-                                          0*CT.clee, CT.clbb],
-                                         [CT.clee, 0*CT.clee,
-                                          0*CT.clee, CT.clbb],
-                                         [CT.clee, 0*CT.clee,
-                                          0*CT.clee, CT.clbb],
-                                         CT.w22, wb=CT.w22)
+    covar = cw.gaussian_covariance(2, 2, 2, 2, CT.ll,
+                                   [CT.clee, 0*CT.clee,
+                                    0*CT.clee, CT.clbb],
+                                   [CT.clee, 0*CT.clee,
+                                    0*CT.clee, CT.clbb],
+                                   [CT.clee, 0*CT.clee,
+                                    0*CT.clee, CT.clbb],
+                                   [CT.clee, 0*CT.clee,
+                                    0*CT.clee, CT.clbb],
+                                   CT.w22, wb=CT.w22)
     covar_bench = np.loadtxt("test/benchmarks/bm_f_nc_np_cov2222.txt")
     compare_covars(covar, covar_bench)
 
@@ -123,20 +123,26 @@ def test_workspace_covar_flat_errors():
 
     # gaussian_covariance
     with pytest.raises(ValueError):  # Wrong input power spectra
-        nmt.gaussian_covariance_flat(cw, 0, 0, 0, 0, CT.ll,
-                                     [CT.cltt], [CT.cltt],
-                                     [CT.cltt], [CT.cltt[:15]],
-                                     CT.w)
+        cw = nmt.NmtCovarianceWorkspaceFlat()
+        cw.compute_coupling_coefficients(CT.f0, CT.f0, CT.b)
+        cw.gaussian_covariance(0, 0, 0, 0, CT.ll,
+                               [CT.cltt], [CT.cltt],
+                               [CT.cltt], [CT.cltt[:15]],
+                               CT.w)
     with pytest.raises(ValueError):  # Wrong input power shapes
-        nmt.gaussian_covariance_flat(cw, 0, 0, 0, 0, CT.ll,
-                                     [CT.cltt, CT.cltt],
-                                     [CT.cltt], [CT.cltt],
-                                     [CT.cltt[:15]], CT.w)
+        cw = nmt.NmtCovarianceWorkspaceFlat()
+        cw.compute_coupling_coefficients(CT.f0, CT.f0, CT.b)
+        cw.gaussian_covariance(0, 0, 0, 0, CT.ll,
+                               [CT.cltt, CT.cltt],
+                               [CT.cltt], [CT.cltt],
+                               [CT.cltt[:15]], CT.w)
     with pytest.raises(ValueError):  # Wrong input spins
-        nmt.gaussian_covariance_flat(cw, 0, 2, 0, 0, CT.ll,
-                                     [CT.cltt], [CT.cltt],
-                                     [CT.cltt], [CT.cltt],
-                                     CT.w)
+        cw = nmt.NmtCovarianceWorkspaceFlat()
+        cw.compute_coupling_coefficients(CT.f0, CT.f0, CT.b)
+        cw.gaussian_covariance(0, 0, 0, 2, CT.ll,
+                               [CT.cltt], [CT.cltt],
+                               [CT.cltt], [CT.cltt],
+                               CT.w)
 
     with pytest.raises(RuntimeError):  # Incorrect reading
         cw.read_from('none')
