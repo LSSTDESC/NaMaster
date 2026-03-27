@@ -3,7 +3,69 @@ import healpy as hp
 from pymaster import nmtlib as lib
 import pymaster.utils as ut
 from pymaster import (compute_coupled_cell, NmtBin, NmtWorkspace,
-                      NmtFieldCatalog, NmtFieldCatalogMomentum)
+                      NmtFieldCatalog)
+
+
+def _get_mask_prod_alm(f1, f2):
+    # If we have catalog and map, make sure catalog goes
+    # first
+    fa, fb = (f1, f2) if _is_catalog(f1) else (f2, f1)
+
+    # Check they have the same lmax_mask
+    if not f1.is_compatible(f2, strict=False):
+        raise ValueError("Fields have incompatible pixelizations.")
+
+    # Check which case we are dealing with
+    if _is_catalog(fa):
+        if _is_catalog(fb):
+            option = 'cat_cat'
+        else:
+            option = 'cat_map'
+    else:
+        option = 'map_map'
+
+    if option == 'map_map':
+        if not fa.is_compatible(fb):  # Check they can be multiplied
+            raise ValueError("Fields have incompatible pixelizations.")
+        mask_p = fa.get_mask()*fb.get_mask()
+        minfo = fa.minfo
+    else:
+        # The first field is a catalog
+        mask_a, nside_a = fa.get_catalog_mask_map()
+        minfo = ut.NmtMapInfo(None, [len(mask_a)])
+        if option == 'cat_map':
+            if fb.minfo.is_healpix:
+                mask_b = hp.ud_grade(fb.get_mask(), nside_out=nside_a)
+            else:  # Need to reproject CAR into healpix
+                wlm_b = fb.get_mask_alms()
+                mask_b = ut.alm2map(np.array([wlm_b]), 0, minfo,
+                                    fb.ainfo_mask).squeeze()
+            mask_p = mask_a * mask_b
+        else:  # cat-cat
+            auto = fa is fb
+            if auto:
+                mask_b, nside_b = mask_a, nside_a
+            else:
+                mask_b, nside_b = fb.get_catalog_mask_map()
+            assert nside_a == nside_b
+            mask_p = mask_a * mask_b
+            if auto:  # Subtract self-pair contribution
+                mask2_a, nside2_a = fa.get_catalog_mask_squared_map()
+                assert nside_a == nside2_a
+                mask_p -= mask2_a
+    return mask_p, minfo
+
+
+def _get_mask_prod_cl(f1_p1, f2_p1, f1_p2, f2_p2):
+    mask_p1, minfo_p1 = _get_mask_prod_alm(f1_p1, f2_p1)
+    alm_p1 = ut.map2alm(np.array([mask_p1]), 0,
+                        minfo_p1, f1_p1.ainfo_mask,
+                        n_iter=f1_p1.n_iter_mask)[0]
+    mask_p2, minfo_p2 = _get_mask_prod_alm(f1_p2, f2_p2)
+    alm_p2 = ut.map2alm(np.array([mask_p2]), 0,
+                        minfo_p2, f1_p2.ainfo_mask,
+                        n_iter=f1_p2.n_iter_mask)[0]
+    return hp.alm2cl(alm_p1, alm_p2, lmax=f1_p1.ainfo_mask.lmax)
 
 
 class NmtCovarianceWorkspace(object):
@@ -220,19 +282,8 @@ class NmtCovarianceWorkspace(object):
             lib.covar_workspace_free(self.wsp)
             self.wsp = None
 
-        def get_mask_prod_cl(f1_p1, f2_p1, f1_p2, f2_p2):
-            mask_p1 = f1_p1.get_mask()*f2_p1.get_mask()
-            alm_p1 = ut.map2alm(np.array([mask_p1]), 0,
-                                f1_p1.minfo, f1_p1.ainfo_mask,
-                                n_iter=f1_p1.n_iter_mask)[0]
-            mask_p2 = f1_p2.get_mask()*f2_p2.get_mask()
-            alm_p2 = ut.map2alm(np.array([mask_p2]), 0,
-                                f1_p2.minfo, f1_p2.ainfo_mask,
-                                n_iter=f1_p2.n_iter_mask)[0]
-            return hp.alm2cl(alm_p1, alm_p2, lmax=f1_p1.ainfo_mask.lmax)
-
-        pcl_mask_11_22 = get_mask_prod_cl(fla1, flb1, fla2, flb2)
-        pcl_mask_12_21 = get_mask_prod_cl(fla1, flb2, fla2, flb1)
+        pcl_mask_11_22 = _get_mask_prod_cl(fla1, flb1, fla2, flb2)
+        pcl_mask_12_21 = _get_mask_prod_cl(fla1, flb2, fla2, flb1)
         self.wsp = lib.covar_workspace_init_py(int(fla1.spin), int(fla2.spin),
                                                int(flb1.spin), int(flb2.spin),
                                                pcl_mask_11_22,
@@ -593,6 +644,10 @@ def gaussian_covariance_flat(cw, spin_a1, spin_a2, spin_b1, spin_b2, larr,
                                   wa, wb=wb)
 
 
+def _is_catalog(f):
+    return isinstance(f, NmtFieldCatalog)
+
+
 def get_iNKA_cell(fla, flb, cl_guess=None, w=None):
     """ Returns the power spectrum that should be used in the
     calculation of the Gaussian covariance matrix according to the
@@ -640,7 +695,7 @@ def get_iNKA_cell(fla, flb, cl_guess=None, w=None):
     if use_map_product:
         wawb = np.mean(fla.get_mask()*flb.get_mask())
     else:
-        lmax = fla.ainfo_mask.lmax)
+        lmax = fla.ainfo_mask.lmax
         walm = fla.get_mask_alms()
         wblm = flb.get_mask_alms()
         clw = hp.alm2cl(walm, wblm, lmax=lmax)

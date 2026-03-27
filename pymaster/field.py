@@ -974,7 +974,9 @@ class NmtFieldCatalog(NmtField):
         # Additional catalog-level quantities
         # (None unless retain_catalog = True)
         self.pos = None
+        self.pos_r = None
         self.weights = None
+        self.weights_r = None
         self.field = None
         self.noise_variance = None
 
@@ -1056,7 +1058,9 @@ class NmtFieldCatalog(NmtField):
 
         if retain_catalog:
             self.pos = positions
+            self.pos_r = self.pos
             self.weights = weights
+            self.weights_r = self.weights
             self.field = field
             # Consider noise variance
             if noise_variance is not None:
@@ -1079,11 +1083,11 @@ class NmtFieldCatalog(NmtField):
                              "fields generated with `retain_catalog = False`")
 
         if self.theta_ipd is None:
-            nsrc = len(self.weights)
-            p = int(np.log(0.5*nsrc)/(2*np.log(2)))
+            nsrc = len(self.weights_r)
+            p = int(0.5*np.log2(0.5*nsrc))
             p = min(4, max(p, 0))  # Nside should be between 1 and 6
             nside = int(2**p)
-            self.theta_ipd = _get_theta_ipd(self.pos, self.weights, nside)
+            self.theta_ipd = _get_theta_ipd(self.pos_r, self.weights_r, nside)
         return self.theta_ipd
 
     def get_ipd_kernel(self, lmax):
@@ -1103,6 +1107,58 @@ class NmtFieldCatalog(NmtField):
         th_ipd = self.get_theta_ipd()
         ls = np.arange(lmax+1)
         return np.exp(-0.5*th_ipd**2*ls*(ls+1))
+
+    def get_catalog_mask_map(self):
+        """ Creates a map from this catalog's positions by treating each
+        object as a Gaussian blob with a standard deviation given by
+        the mean inter-particle distance.
+
+        Returns:
+            (`array`): map in HEALPix format
+            (:obj:`int`): HEALPix :math:`N_{\\rm side}` resolution parameter.
+        """
+        lmax = self.ainfo_mask.lmax
+        # Nside associated with lmax
+        p = int(np.ceil(np.log2(lmax/3.0)))
+        nside = int(2**p)
+        assert lmax <= 3*nside
+        # Smooth alms
+        phi_l = self.get_ipd_kernel(lmax)
+        wlm = self.get_mask_alms()
+        wlm = hp.almxfl(wlm, phi_l)
+        # To map
+        minfo = ut.NmtMapInfo(None, [hp.nside2npix(nside)])
+        mask_map = ut.alm2map(np.array([wlm]), 0,
+                              minfo, self.ainfo_mask).squeeze()
+        return mask_map, nside
+
+    def get_catalog_mask_squared_map(self):
+        """ Creates a map from this catalog's positions by treating each
+        object as the square of a Gaussian blob with a standard deviation
+        given by the mean inter-particle distance.
+
+        Returns:
+            (`array`): map in HEALPix format
+            (:obj:`int`): HEALPix :math:`N_{\\rm side}` resolution parameter.
+        """
+        th_ipd = self.get_theta_ipd()
+        lmax = self.ainfo_mask.lmax
+        # Nside associated with lmax
+        p = int(np.ceil(np.log2(lmax/3.0)))
+        nside = int(2**p)
+        assert lmax <= 3*nside
+        # Compute alms of squared mask and smooth them
+        ls = np.arange(lmax+1)
+        phi_l = np.exp(-0.25*th_ipd**2*ls*(ls+1)) / (4*np.pi*th_ipd**2)
+        wlm = ut._catalog2alm_ducc0(self.weights_r**2,
+                                    self.pos_r,
+                                    spin=0, lmax=lmax)[0]
+        wlm = hp.almxfl(wlm, phi_l)
+        # To map
+        minfo = ut.NmtMapInfo(None, [hp.nside2npix(nside)])
+        mask_map = ut.alm2map(np.array([wlm]), 0,
+                              minfo, self.ainfo_mask).squeeze()
+        return mask_map, nside
 
     def get_noise_deprojection_bias(self):
         """ Returns the deprojection bias due to uncorrelated noise
@@ -1164,7 +1220,7 @@ class NmtFieldCatalog(NmtField):
         return self._nl_deproj
 
 
-class NmtFieldCatalogMomentum(NmtField):
+class NmtFieldCatalogMomentum(NmtFieldCatalog):
     """ An :obj:`NmtFieldCatalogMomentum` object contains all the
     information describing a field weighted by the local density of sources.
     A typical application of such a field is in the analysis of kSZ-galaxy
@@ -1533,40 +1589,6 @@ class NmtFieldCatalogMomentum(NmtField):
             if templates is not None:
                 self.temp = templates
                 self.alm_temp = flms
-
-    def get_theta_ipd(self):
-        """ Returns the median inter-particle distance for this
-        field's random catalog. Only possible for fields created with
-        `retain_catalog = True`.
-
-        Returns:
-            (:obj:`float`): median inter-particle distance in radians.
-        """
-        if self.theta_ipd is None:
-            nsrc = len(self.weights_r)
-            p = int(np.log(0.5*nsrc)/(2*np.log(2)))
-            p = min(4, max(p, 0))  # Nside should be between 1 and 6
-            nside = int(2**p)
-            self.theta_ipd = _get_theta_ipd(self.pos_r, self.weights_r, nside)
-        return self.theta_ipd
-
-    def get_ipd_kernel(self, lmax):
-        """ Calculate the harmonic-space smoothing kernel associated
-        with this catalog's median inter-particle distance. This is
-        needed for the calculation of Gaussian covariances, and is only
-        possible for fields created with `retain_catalog = True`. The
-        kernel is an approximate Gaussian with standard deviation given
-        by the median inter-particle distance.
-
-        Args:
-            lmax (:obj:`int`): maximum multipole up to which the kernel
-                is requested.
-        Returns:
-            (`array`): the kernel sampled at all integer ells ``< lmax``.
-        """
-        th_ipd = self.get_theta_ipd()
-        ls = np.arange(lmax+1)
-        return np.exp(-0.5*th_ipd**2*ls*(ls+1))
 
     def get_noise_deprojection_bias(self):
         """ Returns the deprojection bias due to uncorrelated noise
