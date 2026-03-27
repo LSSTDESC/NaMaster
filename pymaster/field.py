@@ -1078,7 +1078,7 @@ class NmtFieldCatalog(NmtField):
         Returns:
             (:obj:`float`): median inter-particle distance in radians.
         """
-        if not self.lite:
+        if self.lite:
             raise ValueError("Cannot compute inter-particle distance for "
                              "fields generated with `retain_catalog = False`")
 

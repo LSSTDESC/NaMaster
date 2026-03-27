@@ -28,18 +28,19 @@ def test_field_catalog_ipd():
     thetas = np.arccos(-1 + 2*np.random.rand(ncat))
     w = np.ones(ncat)
     lmax = 100
-    f1 = nmt.NmtFieldCatalog(np.array([thetas, phis]), w, w, lmax)
+    f1 = nmt.NmtFieldCatalog(np.array([thetas, phis]), w, w, lmax,
+                             retain_catalog=True)
     f2 = nmt.NmtFieldCatalogClustering(np.array([thetas, phis]), w,
                                        np.array([thetas, phis]), w,
-                                       lmax)
+                                       lmax, retain_catalog=True)
     f3 = nmt.NmtFieldCatalogMomentum(np.array([thetas, phis]), w, w,
                                      np.array([thetas, phis]), w,
-                                     lmax)
+                                     lmax, retain_catalog=True)
     theta_ipd_naive = np.sqrt(4*np.pi/ncat)
 
     # Check that they agree to within 10%
     for f in [f1, f2, f3]:
-        assert np.fabs(f.theta_ipd/theta_ipd_naive-1) < 0.1
+        assert np.fabs(f.get_theta_ipd()/theta_ipd_naive-1) < 0.1
 
 
 def test_field_catalog_compatibility():

@@ -270,11 +270,6 @@ class NmtCovarianceWorkspace(object):
             raise NotImplementedError("Covariance matrix estimation not "
                                       "implemented for anisotropic weights.")
 
-        if (not (fla1.is_compatible(fla2) and
-                 fla1.is_compatible(flb1) and
-                 fla1.is_compatible(flb2))):
-            raise ValueError("Fields have incompatible pixelizations.")
-
         ut._toeplitz_sanity(l_toeplitz, l_exact, dl_band,
                             fla1.ainfo.lmax, fla1, flb1)
 
