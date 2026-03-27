@@ -980,8 +980,6 @@ class NmtFieldCatalog(NmtField):
 
         positions, weights = _process_pos_w(positions, weights,
                                             lonlat, 'source')
-        self.theta_ipd = _get_theta_ipd(positions, weights,
-                                        self.nside_ipd)
 
         # Compute mask shot noise
         self._Nw = np.sum(weights**2.)/(4.*np.pi)
@@ -1067,6 +1065,44 @@ class NmtFieldCatalog(NmtField):
             self.noise_variance = noise_variance
             if templates is not None:
                 self.temp = templates
+
+    def get_theta_ipd(self):
+        """ Returns the median inter-particle distance for this
+        catalog. Only possible for fields created with
+        `retain_catalog = True`.
+
+        Returns:
+            (:obj:`float`): median inter-particle distance in radians.
+        """
+        if not self.lite:
+            raise ValueError("Cannot compute inter-particle distance for "
+                             "fields generated with `retain_catalog = False`")
+
+        if self.theta_ipd is None:
+            nsrc = len(self.weights)
+            p = int(np.log(0.5*nsrc)/(2*np.log(2)))
+            p = min(4, max(p, 0))  # Nside should be between 1 and 6
+            nside = int(2**p)
+            self.theta_ipd = _get_theta_ipd(self.pos, self.weights, nside)
+        return self.theta_ipd
+
+    def get_ipd_kernel(self, lmax):
+        """ Calculate the harmonic-space smoothing kernel associated
+        with this catalog's median inter-particle distance. This is
+        needed for the calculation of Gaussian covariances, and is only
+        possible for fields created with `retain_catalog = True`. The
+        kernel is an approximate Gaussian with standard deviation given
+        by the median inter-particle distance.
+
+        Args:
+            lmax (:obj:`int`): maximum multipole up to which the kernel
+                is requested.
+        Returns:
+            (`array`): the kernel sampled at all integer ells ``< lmax``.
+        """
+        th_ipd = self.get_theta_ipd()
+        ls = np.arange(lmax+1)
+        return np.exp(-0.5*th_ipd**2*ls*(ls+1))
 
     def get_noise_deprojection_bias(self):
         """ Returns the deprojection bias due to uncorrelated noise
@@ -1320,8 +1356,6 @@ class NmtFieldCatalogMomentum(NmtField):
                                                           weights_rand,
                                                           lonlat,
                                                           "random")
-            self.theta_ipd = _get_theta_ipd(positions_rand,
-                                            weights_rand, self.nside_ipd)
             nrand = len(weights_rand)
 
             # Compute alpha
@@ -1499,6 +1533,40 @@ class NmtFieldCatalogMomentum(NmtField):
             if templates is not None:
                 self.temp = templates
                 self.alm_temp = flms
+
+    def get_theta_ipd(self):
+        """ Returns the median inter-particle distance for this
+        field's random catalog. Only possible for fields created with
+        `retain_catalog = True`.
+
+        Returns:
+            (:obj:`float`): median inter-particle distance in radians.
+        """
+        if self.theta_ipd is None:
+            nsrc = len(self.weights_r)
+            p = int(np.log(0.5*nsrc)/(2*np.log(2)))
+            p = min(4, max(p, 0))  # Nside should be between 1 and 6
+            nside = int(2**p)
+            self.theta_ipd = _get_theta_ipd(self.pos_r, self.weights_r, nside)
+        return self.theta_ipd
+
+    def get_ipd_kernel(self, lmax):
+        """ Calculate the harmonic-space smoothing kernel associated
+        with this catalog's median inter-particle distance. This is
+        needed for the calculation of Gaussian covariances, and is only
+        possible for fields created with `retain_catalog = True`. The
+        kernel is an approximate Gaussian with standard deviation given
+        by the median inter-particle distance.
+
+        Args:
+            lmax (:obj:`int`): maximum multipole up to which the kernel
+                is requested.
+        Returns:
+            (`array`): the kernel sampled at all integer ells ``< lmax``.
+        """
+        th_ipd = self.get_theta_ipd()
+        ls = np.arange(lmax+1)
+        return np.exp(-0.5*th_ipd**2*ls*(ls+1))
 
     def get_noise_deprojection_bias(self):
         """ Returns the deprojection bias due to uncorrelated noise

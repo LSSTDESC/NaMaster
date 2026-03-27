@@ -2,7 +2,8 @@ import numpy as np
 import healpy as hp
 from pymaster import nmtlib as lib
 import pymaster.utils as ut
-from pymaster import compute_coupled_cell, NmtBin, NmtWorkspace
+from pymaster import (compute_coupled_cell, NmtBin, NmtWorkspace,
+                      NmtFieldCatalog, NmtFieldCatalogMomentum)
 
 
 class NmtCovarianceWorkspace(object):
@@ -639,10 +640,20 @@ def get_iNKA_cell(fla, flb, cl_guess=None, w=None):
     if use_map_product:
         wawb = np.mean(fla.get_mask()*flb.get_mask())
     else:
+        lmax = fla.ainfo_mask.lmax)
         walm = fla.get_mask_alms()
         wblm = flb.get_mask_alms()
-        clw = hp.alm2cl(walm, wblm, lmax=fla.ainfo_mask.lmax)
-        ls = np.arange(fla.ainfo_mask.lmax+1)
+        clw = hp.alm2cl(walm, wblm, lmax=lmax)
+        ls = np.arange(lmax+1)
+        # Correct for catalogs
+        if _is_catalog(fla) and _is_catalog(flb):
+            phi_a = fla.get_ipd_kernel(lmax)
+            phi_b = flb.get_ipd_kernel(lmax)
+            # Subtract shot noise
+            if fla is flb:
+                clw = clw - fla.Nw
+            # Multiply by kernels
+            clw = clw * phi_a * phi_b
         wawb = np.sum((2*ls+1)*clw)/(4*np.pi)
 
     # 2. Compute pseudo-Cl
@@ -650,6 +661,9 @@ def get_iNKA_cell(fla, flb, cl_guess=None, w=None):
     # If no guess Cl is provided, compute it from the data.
     if cl_guess is None:
         pcl_ab = compute_coupled_cell(fla, flb)
+        # Note that we don't need to worry abot catalogs
+        # here, since the function above already subtracts
+        # the shot-noise contribution.
     else:
         # We'll need to calculate the MCM if not available
         if w is None:
