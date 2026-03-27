@@ -3612,7 +3612,7 @@ void comp_gaussian_covariance(nmt_covar_workspace *cw,
     c22p[i]=&(c22[i*nell22]);
   nmt_compute_gaussian_covariance(cw,
 				  spin_a1, spin_a2, spin_b1, spin_b2,
-				  wa,wb,
+				  wa,wb,1,1,
 				  c11p,c12p,c21p,c22p,dout);
   free(c11p); free(c12p); free(c21p); free(c22p);
 }
@@ -3644,7 +3644,7 @@ void comp_gaussian_covariance_coupled(nmt_covar_workspace *cw,
     c22p[i]=&(c22[i*nell22]);
   nmt_compute_gaussian_covariance_coupled(cw,
 					  spin_a1, spin_a2, spin_b1, spin_b2,
-					  wa,wb,
+					  wa,wb,1,1,
                                           c11p,c12p,c21p,c22p,dout);
   free(c11p); free(c12p); free(c21p); free(c22p);
 }
@@ -13860,11 +13860,13 @@ SWIGINTERN PyObject *_wrap_compute_gaussian_covariance(PyObject *SWIGUNUSEDPARM(
   int arg5 ;
   nmt_workspace *arg6 = (nmt_workspace *) 0 ;
   nmt_workspace *arg7 = (nmt_workspace *) 0 ;
-  flouble **arg8 = (flouble **) 0 ;
-  flouble **arg9 = (flouble **) 0 ;
+  int arg8 ;
+  int arg9 ;
   flouble **arg10 = (flouble **) 0 ;
   flouble **arg11 = (flouble **) 0 ;
-  flouble *arg12 = (flouble *) 0 ;
+  flouble **arg12 = (flouble **) 0 ;
+  flouble **arg13 = (flouble **) 0 ;
+  flouble *arg14 = (flouble *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   int val2 ;
@@ -13879,19 +13881,23 @@ SWIGINTERN PyObject *_wrap_compute_gaussian_covariance(PyObject *SWIGUNUSEDPARM(
   int res6 = 0 ;
   void *argp7 = 0 ;
   int res7 = 0 ;
-  void *argp8 = 0 ;
-  int res8 = 0 ;
-  void *argp9 = 0 ;
-  int res9 = 0 ;
+  int val8 ;
+  int ecode8 = 0 ;
+  int val9 ;
+  int ecode9 = 0 ;
   void *argp10 = 0 ;
   int res10 = 0 ;
   void *argp11 = 0 ;
   int res11 = 0 ;
   void *argp12 = 0 ;
   int res12 = 0 ;
-  PyObject *swig_obj[12] ;
+  void *argp13 = 0 ;
+  int res13 = 0 ;
+  void *argp14 = 0 ;
+  int res14 = 0 ;
+  PyObject *swig_obj[14] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "compute_gaussian_covariance", 12, 12, swig_obj)) SWIG_fail;
+  if (!SWIG_Python_UnpackTuple(args, "compute_gaussian_covariance", 14, 14, swig_obj)) SWIG_fail;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_nmt_covar_workspace, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "compute_gaussian_covariance" "', argument " "1"" of type '" "nmt_covar_workspace *""'"); 
@@ -13927,16 +13933,16 @@ SWIGINTERN PyObject *_wrap_compute_gaussian_covariance(PyObject *SWIGUNUSEDPARM(
     SWIG_exception_fail(SWIG_ArgError(res7), "in method '" "compute_gaussian_covariance" "', argument " "7"" of type '" "nmt_workspace *""'"); 
   }
   arg7 = (nmt_workspace *)(argp7);
-  res8 = SWIG_ConvertPtr(swig_obj[7], &argp8,SWIGTYPE_p_p_double, 0 |  0 );
-  if (!SWIG_IsOK(res8)) {
-    SWIG_exception_fail(SWIG_ArgError(res8), "in method '" "compute_gaussian_covariance" "', argument " "8"" of type '" "flouble **""'"); 
-  }
-  arg8 = (flouble **)(argp8);
-  res9 = SWIG_ConvertPtr(swig_obj[8], &argp9,SWIGTYPE_p_p_double, 0 |  0 );
-  if (!SWIG_IsOK(res9)) {
-    SWIG_exception_fail(SWIG_ArgError(res9), "in method '" "compute_gaussian_covariance" "', argument " "9"" of type '" "flouble **""'"); 
-  }
-  arg9 = (flouble **)(argp9);
+  ecode8 = SWIG_AsVal_int(swig_obj[7], &val8);
+  if (!SWIG_IsOK(ecode8)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode8), "in method '" "compute_gaussian_covariance" "', argument " "8"" of type '" "int""'");
+  } 
+  arg8 = (int)(val8);
+  ecode9 = SWIG_AsVal_int(swig_obj[8], &val9);
+  if (!SWIG_IsOK(ecode9)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode9), "in method '" "compute_gaussian_covariance" "', argument " "9"" of type '" "int""'");
+  } 
+  arg9 = (int)(val9);
   res10 = SWIG_ConvertPtr(swig_obj[9], &argp10,SWIGTYPE_p_p_double, 0 |  0 );
   if (!SWIG_IsOK(res10)) {
     SWIG_exception_fail(SWIG_ArgError(res10), "in method '" "compute_gaussian_covariance" "', argument " "10"" of type '" "flouble **""'"); 
@@ -13947,12 +13953,22 @@ SWIGINTERN PyObject *_wrap_compute_gaussian_covariance(PyObject *SWIGUNUSEDPARM(
     SWIG_exception_fail(SWIG_ArgError(res11), "in method '" "compute_gaussian_covariance" "', argument " "11"" of type '" "flouble **""'"); 
   }
   arg11 = (flouble **)(argp11);
-  res12 = SWIG_ConvertPtr(swig_obj[11], &argp12,SWIGTYPE_p_double, 0 |  0 );
+  res12 = SWIG_ConvertPtr(swig_obj[11], &argp12,SWIGTYPE_p_p_double, 0 |  0 );
   if (!SWIG_IsOK(res12)) {
-    SWIG_exception_fail(SWIG_ArgError(res12), "in method '" "compute_gaussian_covariance" "', argument " "12"" of type '" "flouble *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res12), "in method '" "compute_gaussian_covariance" "', argument " "12"" of type '" "flouble **""'"); 
   }
-  arg12 = (flouble *)(argp12);
-  nmt_compute_gaussian_covariance(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12);
+  arg12 = (flouble **)(argp12);
+  res13 = SWIG_ConvertPtr(swig_obj[12], &argp13,SWIGTYPE_p_p_double, 0 |  0 );
+  if (!SWIG_IsOK(res13)) {
+    SWIG_exception_fail(SWIG_ArgError(res13), "in method '" "compute_gaussian_covariance" "', argument " "13"" of type '" "flouble **""'"); 
+  }
+  arg13 = (flouble **)(argp13);
+  res14 = SWIG_ConvertPtr(swig_obj[13], &argp14,SWIGTYPE_p_double, 0 |  0 );
+  if (!SWIG_IsOK(res14)) {
+    SWIG_exception_fail(SWIG_ArgError(res14), "in method '" "compute_gaussian_covariance" "', argument " "14"" of type '" "flouble *""'"); 
+  }
+  arg14 = (flouble *)(argp14);
+  nmt_compute_gaussian_covariance(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13,arg14);
   resultobj = SWIG_Py_Void();
   return resultobj;
 fail:
@@ -13969,11 +13985,13 @@ SWIGINTERN PyObject *_wrap_compute_gaussian_covariance_coupled(PyObject *SWIGUNU
   int arg5 ;
   nmt_workspace *arg6 = (nmt_workspace *) 0 ;
   nmt_workspace *arg7 = (nmt_workspace *) 0 ;
-  flouble **arg8 = (flouble **) 0 ;
-  flouble **arg9 = (flouble **) 0 ;
+  int arg8 ;
+  int arg9 ;
   flouble **arg10 = (flouble **) 0 ;
   flouble **arg11 = (flouble **) 0 ;
-  flouble *arg12 = (flouble *) 0 ;
+  flouble **arg12 = (flouble **) 0 ;
+  flouble **arg13 = (flouble **) 0 ;
+  flouble *arg14 = (flouble *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   int val2 ;
@@ -13988,19 +14006,23 @@ SWIGINTERN PyObject *_wrap_compute_gaussian_covariance_coupled(PyObject *SWIGUNU
   int res6 = 0 ;
   void *argp7 = 0 ;
   int res7 = 0 ;
-  void *argp8 = 0 ;
-  int res8 = 0 ;
-  void *argp9 = 0 ;
-  int res9 = 0 ;
+  int val8 ;
+  int ecode8 = 0 ;
+  int val9 ;
+  int ecode9 = 0 ;
   void *argp10 = 0 ;
   int res10 = 0 ;
   void *argp11 = 0 ;
   int res11 = 0 ;
   void *argp12 = 0 ;
   int res12 = 0 ;
-  PyObject *swig_obj[12] ;
+  void *argp13 = 0 ;
+  int res13 = 0 ;
+  void *argp14 = 0 ;
+  int res14 = 0 ;
+  PyObject *swig_obj[14] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "compute_gaussian_covariance_coupled", 12, 12, swig_obj)) SWIG_fail;
+  if (!SWIG_Python_UnpackTuple(args, "compute_gaussian_covariance_coupled", 14, 14, swig_obj)) SWIG_fail;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_nmt_covar_workspace, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "compute_gaussian_covariance_coupled" "', argument " "1"" of type '" "nmt_covar_workspace *""'"); 
@@ -14036,16 +14058,16 @@ SWIGINTERN PyObject *_wrap_compute_gaussian_covariance_coupled(PyObject *SWIGUNU
     SWIG_exception_fail(SWIG_ArgError(res7), "in method '" "compute_gaussian_covariance_coupled" "', argument " "7"" of type '" "nmt_workspace *""'"); 
   }
   arg7 = (nmt_workspace *)(argp7);
-  res8 = SWIG_ConvertPtr(swig_obj[7], &argp8,SWIGTYPE_p_p_double, 0 |  0 );
-  if (!SWIG_IsOK(res8)) {
-    SWIG_exception_fail(SWIG_ArgError(res8), "in method '" "compute_gaussian_covariance_coupled" "', argument " "8"" of type '" "flouble **""'"); 
-  }
-  arg8 = (flouble **)(argp8);
-  res9 = SWIG_ConvertPtr(swig_obj[8], &argp9,SWIGTYPE_p_p_double, 0 |  0 );
-  if (!SWIG_IsOK(res9)) {
-    SWIG_exception_fail(SWIG_ArgError(res9), "in method '" "compute_gaussian_covariance_coupled" "', argument " "9"" of type '" "flouble **""'"); 
-  }
-  arg9 = (flouble **)(argp9);
+  ecode8 = SWIG_AsVal_int(swig_obj[7], &val8);
+  if (!SWIG_IsOK(ecode8)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode8), "in method '" "compute_gaussian_covariance_coupled" "', argument " "8"" of type '" "int""'");
+  } 
+  arg8 = (int)(val8);
+  ecode9 = SWIG_AsVal_int(swig_obj[8], &val9);
+  if (!SWIG_IsOK(ecode9)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode9), "in method '" "compute_gaussian_covariance_coupled" "', argument " "9"" of type '" "int""'");
+  } 
+  arg9 = (int)(val9);
   res10 = SWIG_ConvertPtr(swig_obj[9], &argp10,SWIGTYPE_p_p_double, 0 |  0 );
   if (!SWIG_IsOK(res10)) {
     SWIG_exception_fail(SWIG_ArgError(res10), "in method '" "compute_gaussian_covariance_coupled" "', argument " "10"" of type '" "flouble **""'"); 
@@ -14056,12 +14078,22 @@ SWIGINTERN PyObject *_wrap_compute_gaussian_covariance_coupled(PyObject *SWIGUNU
     SWIG_exception_fail(SWIG_ArgError(res11), "in method '" "compute_gaussian_covariance_coupled" "', argument " "11"" of type '" "flouble **""'"); 
   }
   arg11 = (flouble **)(argp11);
-  res12 = SWIG_ConvertPtr(swig_obj[11], &argp12,SWIGTYPE_p_double, 0 |  0 );
+  res12 = SWIG_ConvertPtr(swig_obj[11], &argp12,SWIGTYPE_p_p_double, 0 |  0 );
   if (!SWIG_IsOK(res12)) {
-    SWIG_exception_fail(SWIG_ArgError(res12), "in method '" "compute_gaussian_covariance_coupled" "', argument " "12"" of type '" "flouble *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res12), "in method '" "compute_gaussian_covariance_coupled" "', argument " "12"" of type '" "flouble **""'"); 
   }
-  arg12 = (flouble *)(argp12);
-  nmt_compute_gaussian_covariance_coupled(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12);
+  arg12 = (flouble **)(argp12);
+  res13 = SWIG_ConvertPtr(swig_obj[12], &argp13,SWIGTYPE_p_p_double, 0 |  0 );
+  if (!SWIG_IsOK(res13)) {
+    SWIG_exception_fail(SWIG_ArgError(res13), "in method '" "compute_gaussian_covariance_coupled" "', argument " "13"" of type '" "flouble **""'"); 
+  }
+  arg13 = (flouble **)(argp13);
+  res14 = SWIG_ConvertPtr(swig_obj[13], &argp14,SWIGTYPE_p_double, 0 |  0 );
+  if (!SWIG_IsOK(res14)) {
+    SWIG_exception_fail(SWIG_ArgError(res14), "in method '" "compute_gaussian_covariance_coupled" "', argument " "14"" of type '" "flouble *""'"); 
+  }
+  arg14 = (flouble *)(argp14);
+  nmt_compute_gaussian_covariance_coupled(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13,arg14);
   resultobj = SWIG_Py_Void();
   return resultobj;
 fail:

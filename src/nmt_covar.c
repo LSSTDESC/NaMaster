@@ -248,6 +248,7 @@ double _pick_xi(nmt_covar_workspace *cw,
 void  nmt_compute_gaussian_covariance_coupled(nmt_covar_workspace *cw,
 					      int spin_a,int spin_b,int spin_c,int spin_d,
                                               nmt_workspace *wa,nmt_workspace *wb,
+					      int has_1122, int has_1221,
                                               flouble **clac,flouble **clad,
                                               flouble **clbc,flouble **clbd,
                                               flouble *covar_out)
@@ -279,7 +280,8 @@ void  nmt_compute_gaussian_covariance_coupled(nmt_covar_workspace *cw,
 
 #pragma omp parallel default(none)			\
   shared(cw,wa,wb,clac,clad,clbc,clbd)			\
-  shared(nmaps_a,nmaps_b,nmaps_c,nmaps_d,covar_out)
+  shared(nmaps_a,nmaps_b,nmaps_c,nmaps_d,covar_out)	\
+  shared(has_1122,has_1221)
   {
     int band_a;
 
@@ -317,15 +319,18 @@ void  nmt_compute_gaussian_covariance_coupled(nmt_covar_workspace *cw,
 			    double *cl_ad=clad[idp+nmaps_d*iap];
 			    double *cl_bc=clbc[icp+nmaps_c*ibp];
 			    double *cl_bd=clbd[idp+nmaps_d*ibp];
-			    double fac_1122=0.5*(cl_ac[la]*cl_bd[lb]+cl_ac[lb]*cl_bd[la]);
-			    double fac_1221=0.5*(cl_ad[la]*cl_bc[lb]+cl_ad[lb]*cl_bc[la]);
-			    int ind_1122=cov_get_coupling_pair_index(nmaps_a,nmaps_c,nmaps_b,nmaps_d,
-								     ia,iap,ic,icp,ib,ibp,id,idp);
-			    int ind_1221=cov_get_coupling_pair_index(nmaps_a,nmaps_d,nmaps_b,nmaps_c,
-								     ia,iap,id,idp,ib,ibp,ic,icp);
-			    
-                            cov_element+=(_pick_xi(cw, ind_1122, 1, la, lb)*fac_1122+
-					  _pick_xi(cw, ind_1221, 0, la, lb)*fac_1221)*prefac_ell;
+			    if(has_1122) {
+			      double fac_1122=0.5*(cl_ac[la]*cl_bd[lb]+cl_ac[lb]*cl_bd[la]);
+			      int ind_1122=cov_get_coupling_pair_index(nmaps_a,nmaps_c,nmaps_b,nmaps_d,
+								       ia,iap,ic,icp,ib,ibp,id,idp);
+			      cov_element+=_pick_xi(cw, ind_1122, 1, la, lb)*fac_1122*prefac_ell;
+			    }
+			    if(has_1221) {
+			      double fac_1221=0.5*(cl_ad[la]*cl_bc[lb]+cl_ad[lb]*cl_bc[la]);
+			      int ind_1221=cov_get_coupling_pair_index(nmaps_a,nmaps_d,nmaps_b,nmaps_c,
+								       ia,iap,id,idp,ib,ibp,ic,icp);
+			      cov_element+=_pick_xi(cw, ind_1221, 0, la, lb)*fac_1221*prefac_ell;
+			    }
 			  }
 			}
 		      }
@@ -345,6 +350,7 @@ void  nmt_compute_gaussian_covariance_coupled(nmt_covar_workspace *cw,
 void  nmt_compute_gaussian_covariance(nmt_covar_workspace *cw,
 				      int spin_a,int spin_b,int spin_c,int spin_d,
 				      nmt_workspace *wa,nmt_workspace *wb,
+				      int has_1122, int has_1221,
 				      flouble **clac,flouble **clad,
 				      flouble **clbc,flouble **clbd,
 				      flouble *covar_out)
@@ -377,7 +383,8 @@ void  nmt_compute_gaussian_covariance(nmt_covar_workspace *cw,
 
 #pragma omp parallel default(none)			\
   shared(cw,wa,wb,clac,clad,clbc,clbd)			\
-  shared(nmaps_a,nmaps_b,nmaps_c,nmaps_d,covar_binned)
+  shared(nmaps_a,nmaps_b,nmaps_c,nmaps_d,covar_binned)	\
+  shared(has_1122,has_1221)
   {
     int band_a;
 
@@ -416,15 +423,18 @@ void  nmt_compute_gaussian_covariance(nmt_covar_workspace *cw,
 			    double *cl_ad=clad[idp+nmaps_d*iap];
 			    double *cl_bc=clbc[icp+nmaps_c*ibp];
 			    double *cl_bd=clbd[idp+nmaps_d*ibp];
-			    double fac_1122=0.5*(cl_ac[la]*cl_bd[lb]+cl_ac[lb]*cl_bd[la]);
-			    double fac_1221=0.5*(cl_ad[la]*cl_bc[lb]+cl_ad[lb]*cl_bc[la]);
-			    int ind_1122=cov_get_coupling_pair_index(nmaps_a,nmaps_c,nmaps_b,nmaps_d,
-								     ia,iap,ic,icp,ib,ibp,id,idp);
-			    int ind_1221=cov_get_coupling_pair_index(nmaps_a,nmaps_d,nmaps_b,nmaps_c,
-								     ia,iap,id,idp,ib,ibp,ic,icp);
-			    
-			    cbinned+=(_pick_xi(cw, ind_1122, 1, la, lb)*fac_1122 +
-				      _pick_xi(cw, ind_1221, 0, la, lb)*fac_1221)*prefac_ell;
+			    if(has_1122) {
+			      double fac_1122=0.5*(cl_ac[la]*cl_bd[lb]+cl_ac[lb]*cl_bd[la]);
+			      int ind_1122=cov_get_coupling_pair_index(nmaps_a,nmaps_c,nmaps_b,nmaps_d,
+								       ia,iap,ic,icp,ib,ibp,id,idp);
+			      cbinned+=_pick_xi(cw, ind_1122, 1, la, lb)*fac_1122*prefac_ell;
+			    }
+			    if(has_1221) {
+			      double fac_1221=0.5*(cl_ad[la]*cl_bc[lb]+cl_ad[lb]*cl_bc[la]);
+			      int ind_1221=cov_get_coupling_pair_index(nmaps_a,nmaps_d,nmaps_b,nmaps_c,
+								       ia,iap,id,idp,ib,ibp,ic,icp);
+			      cbinned+=_pick_xi(cw, ind_1221, 0, la, lb)*fac_1221*prefac_ell;
+			    }
 			  }
 			}
 		      }
