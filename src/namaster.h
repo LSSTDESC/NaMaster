@@ -958,6 +958,7 @@ void nmt_covar_workspace_free(nmt_covar_workspace *cw);
 nmt_covar_workspace *nmt_covar_workspace_init(int spin_a1, int spin_a2,
 					      int spin_b1, int spin_b2,
 					      int all_spins, int auto_any,
+					      int has_1122, int has_1221,
 					      flouble *cl_masks_11_22,
 					      flouble *cl_masks_12_21,
 					      int lmax,int lmax_mask,

@@ -283,7 +283,7 @@ class NmtCovarianceWorkspace(object):
                                                int(flb1.spin), int(flb2.spin),
                                                pcl_mask_11_22,
                                                pcl_mask_12_21,
-                                               int(all_spins),
+                                               int(all_spins), 0, 1, 1,
                                                int(fla1.ainfo.lmax),
                                                int(fla1.ainfo_mask.lmax),
                                                l_toeplitz, l_exact, dl_band)
@@ -410,7 +410,7 @@ class NmtCovarianceWorkspace(object):
 
             covar = lib.comp_gaussian_covariance_coupled(
                 self.wsp, int(spin_a1), int(spin_a2),
-                int(spin_b1), int(spin_b2), wa.wsp, wb.wsp,
+                int(spin_b1), int(spin_b2), wa.wsp, wb.wsp, 1, 1,
                 cla1b1, cla1b2, cla2b1, cla2b2, len_a * len_b
             )
         else:
@@ -419,7 +419,7 @@ class NmtCovarianceWorkspace(object):
 
             covar = lib.comp_gaussian_covariance(
                 self.wsp, int(spin_a1), int(spin_a2),
-                int(spin_b1), int(spin_b2), wa.wsp, wb.wsp,
+                int(spin_b1), int(spin_b2), wa.wsp, wb.wsp, 1, 1,
                 cla1b1, cla1b2, cla2b1, cla2b2, len_a * len_b
             )
 

@@ -4,6 +4,7 @@
 nmt_covar_workspace *nmt_covar_workspace_init(int spin_a1, int spin_a2,
 					      int spin_b1, int spin_b2,
 					      int all_spins, int auto_any,
+					      int has_1122, int has_1221,
 					      flouble *cl_masks_11_22,
 					      flouble *cl_masks_12_21,
 					      int lmax, int lmax_mask,
@@ -32,9 +33,15 @@ nmt_covar_workspace *nmt_covar_workspace_init(int spin_a1, int spin_a2,
   cl_masks[0]=my_malloc((cw->lmax_mask+1)*sizeof(flouble));
   cl_masks[1]=my_malloc((cw->lmax_mask+1)*sizeof(flouble));
   for(ii=0;ii<=cw->lmax_mask;ii++) {
-    cl_masks[0][ii]=cl_masks_11_22[ii]*(ii+0.5)/(2*M_PI);
-    cl_masks[1][ii]=cl_masks_12_21[ii]*(ii+0.5)/(2*M_PI);
+    int iadd=0;
+    if(has_1122) {
+      cl_masks[iadd][ii]=cl_masks_11_22[ii]*(ii+0.5)/(2*M_PI);
+      iadd++;
+    }
+    if(has_1221)
+      cl_masks[iadd][ii]=cl_masks_12_21[ii]*(ii+0.5)/(2*M_PI);
   }
+  int n_cl_masks=has_1122+has_1221;
 
   int is_00_a = (spin_a1==0) && (spin_a2==0);
   int is_00_b = (spin_b1==0) && (spin_b2==0);
@@ -51,67 +58,107 @@ nmt_covar_workspace *nmt_covar_workspace_init(int spin_a1, int spin_a2,
 
   nmt_master_calculator *c;
   int ncls=auto_any ? 1 : 2;
+  if(n_cl_masks==1)
+    ncls=1;
 
   if(all_spins) {
+    int iadd=0;
     c=nmt_compute_master_coefficients(cw->lmax, cw->lmax_mask,
-				      2, cl_masks,
+				      n_cl_masks, cl_masks,
 				      0, 2, 0, 0, 0, 0, 1,
 				      l_toeplitz,l_exact,dl_band);
-    cw->xi00_1122=c->xi_00[0];
-    cw->xi00_1221=c->xi_00[1];
-    cw->xi02_1122=c->xi_0s[0][0];
-    cw->xi02_1221=c->xi_0s[1][0];
-    cw->xi22p_1122=c->xi_pp[0][0];
-    cw->xi22p_1221=c->xi_pp[1][0];
-    cw->xi22m_1122=c->xi_mm[0][0];
-    cw->xi22m_1221=c->xi_mm[1][0];
-    free(c->xi_0s[0]);
-    free(c->xi_0s[1]);
+    if(has_1122) {
+      cw->xi00_1122=c->xi_00[iadd];
+      cw->xi02_1122=c->xi_0s[iadd][0];
+      cw->xi22p_1122=c->xi_pp[iadd][0];
+      cw->xi22m_1122=c->xi_mm[iadd][0];
+      free(c->xi_0s[iadd]);
+      free(c->xi_pp[iadd]);
+      free(c->xi_mm[iadd]);
+      iadd++;
+    }
+    if(has_1221) {
+      cw->xi00_1221=c->xi_00[iadd];
+      cw->xi02_1221=c->xi_0s[iadd][0];
+      cw->xi22p_1221=c->xi_pp[iadd][0];
+      cw->xi22m_1221=c->xi_mm[iadd][0];
+      free(c->xi_0s[iadd]);
+      free(c->xi_pp[iadd]);
+      free(c->xi_mm[iadd]);
+    }
     free(c->xi_0s);
-    free(c->xi_pp[0]);
-    free(c->xi_pp[1]);
     free(c->xi_pp);
-    free(c->xi_mm[0]);
-    free(c->xi_mm[1]);
     free(c->xi_mm);
     free(c->xi_00);
     free(c->lfac);
     free(c);
   }
   else if(is_0s_0s) {  // For the  (0,s)-(0,s) covariance we need both Xi00 and Xi0s
-    int i00ss = spin_a1 == spin_b1 ? 0 : 1;
-    int i0s0s = i00ss == 0 ? 1 : 0;
+    int i00ss, i0s0s;
 
-    // Compute Xi_02
-    c=nmt_compute_master_coefficients(cw->lmax, cw->lmax_mask,
-				      1, &(cl_masks[i00ss]),
-				      0, 2,
-				      0, 0, 0, 0,
-				      0,
-				      l_toeplitz,l_exact,dl_band);
-    if(i00ss==0)
-      cw->xi02_1122=c->xi_0s[0][0];
-    else
-      cw->xi02_1221=c->xi_0s[0][0];
-    free(c->xi_0s[0]);
-    free(c->xi_0s);
-    free(c->lfac);
-    free(c);
+    if(spin_a1 == spin_b1) {  // Combination is 0s, 0s, so 1122 = 00,22 and 1221 is 02,02
+      if(has_1122) {
+	if(has_1221) {  // has 1122 and 1221
+	  i00ss=0; i0s0s=1;
+	} else { // only has 1122
+	  i00ss=0; i0s0s=-1;
+	}
+      } else {
+	if(has_1221) { // only has 1221
+	  i00ss=-1;
+	  i0s0s=0;
+	} else {  // has neither 1122 nor 1221 (this shouldn't happen)
+	  i00ss=-1;
+	  i0s0s=-1;
+	}
+      }
+    } else { // Combination is 0s, s0 (or vice-versa), so 1122 = 02,02 and 1221 is 00,22
+      if(has_1122) {
+	if(has_1221) {  // has 1122 and 1221
+	  i0s0s=0; i00ss=1;
+	} else { // only has 1122
+	  i0s0s=0; i00ss=-1;
+	}
+      } else {
+	if(has_1221) { // only has 1221
+	  i0s0s=-1; i00ss=0;
+	} else { // has neither 1122 nor 1221 (this shouldn't happen)
+	  i0s0s=-1; i00ss=-1;
+	}
+      }
+    }
 
-    // Compute Xi_00
-    c=nmt_compute_master_coefficients(cw->lmax, cw->lmax_mask,
-				      1, &(cl_masks[i0s0s]),
-				      0, 0,
-				      0, 0, 0, 0,
-				      0,
-				      l_toeplitz,l_exact,dl_band);
-    if(i0s0s==0)
-      cw->xi00_1122=c->xi_00[0];
-    else
-      cw->xi00_1221=c->xi_00[0];
-    free(c->xi_00);
-    free(c->lfac);
-    free(c);
+    if(i00ss != -1) { // Compute Xi_02
+      c=nmt_compute_master_coefficients(cw->lmax, cw->lmax_mask,
+					1, &(cl_masks[i00ss]),
+					0, 2,
+					0, 0, 0, 0,
+					0,
+					l_toeplitz,l_exact,dl_band);
+      if(spin_a1 == spin_b1)  // we're in the 0s, 0s case
+	cw->xi02_1122=c->xi_0s[0][0];
+      else  // we're in the 0s, s0 case
+	cw->xi02_1221=c->xi_0s[0][0];
+      free(c->xi_0s[0]);
+      free(c->xi_0s);
+      free(c->lfac);
+      free(c);
+    }
+    if(i0s0s != -1) { // Compute Xi_00
+      c=nmt_compute_master_coefficients(cw->lmax, cw->lmax_mask,
+					1, &(cl_masks[i0s0s]),
+					0, 0,
+					0, 0, 0, 0,
+					0,
+					l_toeplitz,l_exact,dl_band);
+      if(spin_a1 != spin_b1)  // we're in the 0s, s0 case
+	cw->xi00_1122=c->xi_00[0];
+      else // we're in the 0s, 0s case
+	cw->xi00_1221=c->xi_00[0];
+      free(c->xi_00);
+      free(c->lfac);
+      free(c);
+    }
   }
   else if(is_ss_ss) {  // Case (s,s)-(s,s)
     c=nmt_compute_master_coefficients(cw->lmax, cw->lmax_mask,
@@ -120,20 +167,26 @@ nmt_covar_workspace *nmt_covar_workspace_init(int spin_a1, int spin_a2,
 				      0, 0, 0, 0,
 				      0,
 				      l_toeplitz,l_exact,dl_band);
-    cw->xi22p_1122=c->xi_pp[0][0];
-    cw->xi22m_1122=c->xi_mm[0][0];
-    if(auto_any) {
-      cw->xi22p_1221=cw->xi22p_1122;
-      cw->xi22m_1221=cw->xi22m_1122;
+    int iadd=0;
+    if(has_1122) {
+      cw->xi22p_1122=c->xi_pp[iadd][0];
+      cw->xi22m_1122=c->xi_mm[iadd][0];
+      free(c->xi_pp[iadd]);
+      free(c->xi_mm[iadd]);
+      iadd++;
     }
-    else {
-      cw->xi22p_1221=c->xi_pp[1][0];
-      cw->xi22m_1221=c->xi_mm[1][0];
-      free(c->xi_pp[1]);
-      free(c->xi_mm[1]);
+    if(has_1221) {
+      if(auto_any && has_1122) {
+	cw->xi22p_1221=cw->xi22p_1122;
+	cw->xi22m_1221=cw->xi22m_1122;
+      }
+      else {
+	cw->xi22p_1221=c->xi_pp[iadd][0];
+	cw->xi22m_1221=c->xi_mm[iadd][0];
+	free(c->xi_pp[iadd]);
+	free(c->xi_mm[iadd]);
+      }
     }
-    free(c->xi_pp[0]);
-    free(c->xi_mm[0]);
     free(c->xi_pp);
     free(c->xi_mm);
     free(c->lfac);
@@ -146,14 +199,20 @@ nmt_covar_workspace *nmt_covar_workspace_init(int spin_a1, int spin_a2,
 				      0, 0, 0, 0,
 				      0,
 				      l_toeplitz,l_exact,dl_band);
-    cw->xi02_1122=c->xi_0s[0][0];
-    if(auto_any)
-      cw->xi02_1221=cw->xi02_1122;
-    else {
-      cw->xi02_1221=c->xi_0s[1][0];
-      free(c->xi_0s[1]);
+    int iadd=0;
+    if(has_1122) {
+      cw->xi02_1122=c->xi_0s[0][0];
+      free(c->xi_0s[iadd]);
+      iadd++;
     }
-    free(c->xi_0s[0]);
+    if(has_1221) {
+      if(auto_any)
+	cw->xi02_1221=cw->xi02_1122;
+      else {
+	cw->xi02_1221=c->xi_0s[iadd][0];
+	free(c->xi_0s[iadd]);
+      }
+    }
     free(c->xi_0s);
     free(c->lfac);
     free(c);
@@ -165,11 +224,17 @@ nmt_covar_workspace *nmt_covar_workspace_init(int spin_a1, int spin_a2,
 				      0, 0, 0, 0,
 				      0,
 				      l_toeplitz,l_exact,dl_band);
-    cw->xi00_1122=c->xi_00[0];
-    if(auto_any)
-      cw->xi00_1221=cw->xi00_1122;
-    else
-      cw->xi00_1221=c->xi_00[1];
+    int iadd=0;
+    if(has_1122) {
+      cw->xi00_1122=c->xi_00[iadd];
+      iadd++;
+    }
+    if(has_1221) {
+      if(auto_any)
+	cw->xi00_1221=cw->xi00_1122;
+      else
+	cw->xi00_1221=c->xi_00[iadd];
+    }
     free(c->xi_00);
     free(c->lfac);
     free(c);

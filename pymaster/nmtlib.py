@@ -431,8 +431,8 @@ _nmtlib.covar_workspace_swigregister(covar_workspace)
 def covar_workspace_free(cw):
     return _nmtlib.covar_workspace_free(cw)
 
-def covar_workspace_init(spin_a1, spin_a2, spin_b1, spin_b2, all_spins, auto_any, cl_masks_11_22, cl_masks_12_21, lmax, lmax_mask, l_toeplitz, l_exact, dl_band):
-    return _nmtlib.covar_workspace_init(spin_a1, spin_a2, spin_b1, spin_b2, all_spins, auto_any, cl_masks_11_22, cl_masks_12_21, lmax, lmax_mask, l_toeplitz, l_exact, dl_band)
+def covar_workspace_init(spin_a1, spin_a2, spin_b1, spin_b2, all_spins, auto_any, has_1122, has_1221, cl_masks_11_22, cl_masks_12_21, lmax, lmax_mask, l_toeplitz, l_exact, dl_band):
+    return _nmtlib.covar_workspace_init(spin_a1, spin_a2, spin_b1, spin_b2, all_spins, auto_any, has_1122, has_1221, cl_masks_11_22, cl_masks_12_21, lmax, lmax_mask, l_toeplitz, l_exact, dl_band)
 
 def compute_gaussian_covariance(cw, spin_a, spin_b, spin_c, spin_d, wa, wb, has_1122, has_1221, clac, clad, clbc, clbd, covar_out):
     return _nmtlib.compute_gaussian_covariance(cw, spin_a, spin_b, spin_c, spin_d, wa, wb, has_1122, has_1221, clac, clad, clbc, clbd, covar_out)
@@ -569,8 +569,8 @@ def write_covar_workspace(cw, fname):
 def read_covar_workspace(fname):
     return _nmtlib.read_covar_workspace(fname)
 
-def covar_workspace_init_py(spin_a1, spin_a2, spin_b1, spin_b2, nlb1, nlb2, all_spins, lmax, lmax_mask, l_toeplitz, l_exact, dl_band):
-    return _nmtlib.covar_workspace_init_py(spin_a1, spin_a2, spin_b1, spin_b2, nlb1, nlb2, all_spins, lmax, lmax_mask, l_toeplitz, l_exact, dl_band)
+def covar_workspace_init_py(spin_a1, spin_a2, spin_b1, spin_b2, nlb1, nlb2, all_spins, auto_any, has_1122, has_1221, lmax, lmax_mask, l_toeplitz, l_exact, dl_band):
+    return _nmtlib.covar_workspace_init_py(spin_a1, spin_a2, spin_b1, spin_b2, nlb1, nlb2, all_spins, auto_any, has_1122, has_1221, lmax, lmax_mask, l_toeplitz, l_exact, dl_band)
 
 def write_covar_workspace_flat(cw, fname):
     return _nmtlib.write_covar_workspace_flat(cw, fname)
@@ -581,11 +581,11 @@ def read_covar_workspace_flat(fname):
 def covar_workspace_flat_init_py(fa1, fa2, ba, fb1, fb2, bb):
     return _nmtlib.covar_workspace_flat_init_py(fa1, fa2, ba, fb1, fb2, bb)
 
-def comp_gaussian_covariance(cw, spin_a1, spin_a2, spin_b1, spin_b2, wa, wb, ncl11, ncl12, ncl21, ncl22, dout):
-    return _nmtlib.comp_gaussian_covariance(cw, spin_a1, spin_a2, spin_b1, spin_b2, wa, wb, ncl11, ncl12, ncl21, ncl22, dout)
+def comp_gaussian_covariance(cw, spin_a1, spin_a2, spin_b1, spin_b2, wa, wb, has_1122, has_1221, ncl11, ncl12, ncl21, ncl22, dout):
+    return _nmtlib.comp_gaussian_covariance(cw, spin_a1, spin_a2, spin_b1, spin_b2, wa, wb, has_1122, has_1221, ncl11, ncl12, ncl21, ncl22, dout)
 
-def comp_gaussian_covariance_coupled(cw, spin_a1, spin_a2, spin_b1, spin_b2, wa, wb, ncl11, ncl12, ncl21, ncl22, dout):
-    return _nmtlib.comp_gaussian_covariance_coupled(cw, spin_a1, spin_a2, spin_b1, spin_b2, wa, wb, ncl11, ncl12, ncl21, ncl22, dout)
+def comp_gaussian_covariance_coupled(cw, spin_a1, spin_a2, spin_b1, spin_b2, wa, wb, has_1122, has_1221, ncl11, ncl12, ncl21, ncl22, dout):
+    return _nmtlib.comp_gaussian_covariance_coupled(cw, spin_a1, spin_a2, spin_b1, spin_b2, wa, wb, has_1122, has_1221, ncl11, ncl12, ncl21, ncl22, dout)
 
 def comp_gaussian_covariance_flat(cw, spin_a1, spin_a2, spin_b1, spin_b2, wa, wb, nell3, ncl11, ncl12, ncl21, ncl22, dout):
     return _nmtlib.comp_gaussian_covariance_flat(cw, spin_a1, spin_a2, spin_b1, spin_b2, wa, wb, nell3, ncl11, ncl12, ncl21, ncl22, dout)
