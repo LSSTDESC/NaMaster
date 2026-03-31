@@ -59,12 +59,6 @@ def _get_mask_prod_alm(f1, f2):
     return mask_p_alm, minfo
 
 
-def _get_mask_prod_cl(f1_p1, f2_p1, f1_p2, f2_p2):
-    alm_p1, _ = _get_mask_prod_alm(f1_p1, f2_p1)
-    alm_p2, _ = _get_mask_prod_alm(f1_p2, f2_p2)
-    return hp.alm2cl(alm_p1, alm_p2, lmax=f1_p1.ainfo_mask.lmax)
-
-
 class NmtCovarianceWorkspace(object):
     """ :obj:`NmtCovarianceWorkspace` objects are used to compute and
     store the coupling coefficients needed to calculate the Gaussian
@@ -127,16 +121,8 @@ class NmtCovarianceWorkspace(object):
         self.wsp_NS = None
         self.wsp_NN = None
         if (fname is not None):
-            self._read_from(fname)
-            return
-        if (fname_SN is not None):
-            self._read_from(fname_SN)
-            return
-        if (fname_NS is not None):
-            self._read_from(fname_NS)
-            return
-        if (fname_NN is not None):
-            self._read_from(fname_NN)
+            self._read_from(fname, fname_SN=fname_SN,
+                            fname_NS=fname_NS, fname_NN=fname_NN)
             return
 
         if flb1 is None:
