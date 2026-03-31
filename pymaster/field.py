@@ -1001,6 +1001,9 @@ class NmtFieldCatalog(NmtField):
             if spin is None:
                 raise ValueError("If field is None, spin needs to be "
                                  "provided.")
+            if retain_catalog:
+                raise ValueError("If field is None, `retain_catalog` must "
+                                 "be `False`")
             self.spin = spin
             return
 
