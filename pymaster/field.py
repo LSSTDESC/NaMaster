@@ -360,7 +360,8 @@ class NmtField(object):
                 no pixel-level operations (e.g. map multiplications).
         """
         if strict:
-            if self.minfo != other.minfo:
+            if ((not isinstance(self.minfo, ut.NmtMapInfo)) or
+                    (self.minfo != other.minfo)):
                 return False
         if self.ainfo_mask != other.ainfo_mask:
             return False
@@ -935,19 +936,22 @@ class NmtFieldCatalog(NmtField):
                  lmax_mask=None, spin=None, field_is_weighted=False,
                  lonlat=False, templates=None, tol_pinv=None,
                  noise_variance=None, retain_catalog=False,
-                 nside_ipd=16):
+                 n_iter_mask=None, nside_ipd=16):
         # 0. Preliminary initializations
         if ut.HAVE_DUCC:
             self.sht_calculator = 'ducc'
         else:
             raise ValueError("DUCC is needed, but currently not installed.")
 
+        if n_iter_mask is None:
+            n_iter_mask = ut.nmt_params.n_iter_mask_default
+
         # These first attributes are compulsory for all fields
         self.lite = not retain_catalog
         self.mask = None
         self.beam = np.ones(lmax+1)
         self.n_iter = None
-        self.n_iter_mask = None
+        self.n_iter_mask = n_iter_mask
         self.pure_e = False
         self.pure_b = False
         self.alm = None
@@ -970,6 +974,9 @@ class NmtFieldCatalog(NmtField):
         self.mask_a = None
         self.alm_mask_a = None
         self._nl_deproj = None
+
+        # Standard catalog fields are never clustering
+        self.is_clustering = False
 
         # Additional catalog-level quantities
         # (None unless retain_catalog = True)
@@ -1111,7 +1118,7 @@ class NmtFieldCatalog(NmtField):
         ls = np.arange(lmax+1)
         return np.exp(-0.5*th_ipd**2*ls*(ls+1))
 
-    def get_catalog_variance_map(self):
+    def get_catalog_variance_alm(self):
         """ Creates :math:`a_{\\ell m}`_s for a map of the local field
         variance from this catalog's positions and field value.
 
@@ -1368,6 +1375,11 @@ class NmtFieldCatalogMomentum(NmtFieldCatalog):
         else:
             raise ValueError("DUCC is needed, but currently not installed.")
 
+        if n_iter_mask is None:
+            n_iter_mask = ut.nmt_params.n_iter_mask_default
+        if n_iter_temp is None:
+            n_iter_temp = ut.nmt_params.n_iter_mask_default
+
         # These first attributes are compulsory for all fields
         self.lite = not retain_catalog
         self.mask = None
@@ -1458,8 +1470,6 @@ class NmtFieldCatalogMomentum(NmtFieldCatalog):
                                                          spin=0, lmax=lmax)
         else:  # If mask provided, ignore/replace randoms-related quantities
             # Initialisation of parameters related to the mask
-            if n_iter_mask is None:
-                n_iter_mask = ut.nmt_params.n_iter_default
             mask_area = self.minfo.si.map_integral(self.mask)
             self._alpha = np.sum(weights) / mask_area
 
@@ -1551,9 +1561,6 @@ class NmtFieldCatalogMomentum(NmtFieldCatalog):
                     prods_zerop = np.array([-np.sum(fi*weights_rand)/(4*np.pi)
                                             for fi in templates])
             else:
-                if n_iter_temp is None:
-                    n_iter_temp = ut.nmt_params.n_iter_default
-
                 if len(templates[0].flatten()) != self.nmaps*self.minfo.npix:
                     raise ValueError("Templates should have total size "
                                      f"{self.nmaps*self.minfo.npix}")

@@ -405,20 +405,21 @@ class NmtCovarianceWorkspace(object):
             # Calculate pcl_mask_S12_N21
             pcl_mask_S12_N21 = hp.alm2cl(s12_lm, n22_lm)
 
-        # TODO: we are not taking advantage of cases
-        # when fla1=fla2 or flb1=flb2
-        if has_1122_NS or has_1221_NS:
-            self.wsp_NS = get_wsp(pcl_mask_N11_S22, pcl_mask_N12_S21,
-                                  has_1122_NS, has_1221_NS)
-        if has_1122_SN or has_1221_SN:
-            self.wsp_SN = get_wsp(pcl_mask_S11_N22, pcl_mask_S12_N21,
-                                  has_1122_SN, has_1221_SN)
-        if has_1122_NN or has_1221_NN:
-            self.wsp_NN = get_wsp(pcl_mask_N11_N22, pcl_mask_N12_N21,
-                                  has_1122_NN, has_1221_NN)
         self.has_NS = np.array([has_1122_NS, has_1221_NS])
         self.has_SN = np.array([has_1122_SN, has_1221_SN])
         self.has_NN = np.array([has_1122_NN, has_1221_NN])
+
+        # TODO: we are not taking advantage of cases
+        # when fla1=fla2 or flb1=flb2
+        if self.has_NS.any():
+            self.wsp_NS = get_wsp(pcl_mask_N11_S22, pcl_mask_N12_S21,
+                                  has_1122_NS, has_1221_NS)
+        if self.has_SN.any():
+            self.wsp_SN = get_wsp(pcl_mask_S11_N22, pcl_mask_S12_N21,
+                                  has_1122_SN, has_1221_SN)
+        if self.has_NN.any():
+            self.wsp_NN = get_wsp(pcl_mask_N11_N22, pcl_mask_N12_N21,
+                                  has_1122_NN, has_1221_NN)
 
     def write_to(self, fname, fname_SN=None, fname_NS=None, fname_NN=None):
         """ Writes the contents of an :obj:`NmtCovarianceWorkspace`
