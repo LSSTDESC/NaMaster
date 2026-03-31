@@ -1108,6 +1108,28 @@ class NmtFieldCatalog(NmtField):
         ls = np.arange(lmax+1)
         return np.exp(-0.5*th_ipd**2*ls*(ls+1))
 
+    def get_catalog_variance_map(self):
+        """ Creates :math:`a_{\\ell m}`_s for a map of the local field
+        variance from this catalog's positions and field value.
+
+        Returns:
+            (`array`): :math:`a_{\\ell m}` coefficients.
+        """
+        if self.lite:
+            raise ValueError("Cannot compute variance map for "
+                             "fields generated with `retain_catalog = False`")
+
+        # Remember at this point self.field is already the weighted field
+        var_lms = ut._catalog2alm_ducc0(
+            np.sum(self.field, axis=0)**2/self.nmaps,
+            self.pos, spin=0,
+            lmax=self.ainfo_mask.lmax)
+        if self.is_clustering is None:  # Add randoms variance
+            var_lms += ut._catalog2alm_ducc0(
+                self.weights_r**2, self.pos_r,
+                spin=0, lmax=self.ainfo_mask.lmax)
+        return var_lms.squeeze()
+
     def get_catalog_mask_map(self):
         """ Creates a map from this catalog's positions by treating each
         object as a Gaussian blob with a standard deviation given by

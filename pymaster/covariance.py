@@ -53,18 +53,15 @@ def _get_mask_prod_alm(f1, f2):
                 mask2_a, nside2_a = fa.get_catalog_mask_squared_map()
                 assert nside_a == nside2_a
                 mask_p -= mask2_a
-    return mask_p, minfo
+    mask_p_alm = ut.map2alm(np.array([mask_p]), 0,
+                            minfo, fa.ainfo_mask,
+                            n_iter=fa.n_iter_mask)[0]
+    return mask_p_alm, minfo
 
 
 def _get_mask_prod_cl(f1_p1, f2_p1, f1_p2, f2_p2):
-    mask_p1, minfo_p1 = _get_mask_prod_alm(f1_p1, f2_p1)
-    alm_p1 = ut.map2alm(np.array([mask_p1]), 0,
-                        minfo_p1, f1_p1.ainfo_mask,
-                        n_iter=f1_p1.n_iter_mask)[0]
-    mask_p2, minfo_p2 = _get_mask_prod_alm(f1_p2, f2_p2)
-    alm_p2 = ut.map2alm(np.array([mask_p2]), 0,
-                        minfo_p2, f1_p2.ainfo_mask,
-                        n_iter=f1_p2.n_iter_mask)[0]
+    alm_p1, _ = _get_mask_prod_alm(f1_p1, f2_p1)
+    alm_p2, _ = _get_mask_prod_alm(f1_p2, f2_p2)
     return hp.alm2cl(alm_p1, alm_p2, lmax=f1_p1.ainfo_mask.lmax)
 
 
@@ -117,13 +114,29 @@ class NmtCovarianceWorkspace(object):
         fname (:obj:`str`): Input file name. If not `None`, the values of
             all input fields will be ignored, and all mode-coupling
             coefficients will be read from file.
+        fname_SN TODO
+        fname_NS TODO
+        fname_NN TODO
     """
     def __init__(self, fla1, fla2, flb1=None, flb2=None,
                  all_spins=True, l_toeplitz=-1, l_exact=-1,
-                 dl_band=-1, fname=None):
+                 dl_band=-1, fname=None, fname_SN=None,
+                 fname_NS=None, fname_NN=None):
         self.wsp = None
+        self.wsp_SN = None
+        self.wsp_NS = None
+        self.wsp_NN = None
         if (fname is not None):
             self._read_from(fname)
+            return
+        if (fname_SN is not None):
+            self._read_from(fname_SN)
+            return
+        if (fname_NS is not None):
+            self._read_from(fname_NS)
+            return
+        if (fname_NN is not None):
+            self._read_from(fname_NN)
             return
 
         if flb1 is None:
@@ -191,28 +204,47 @@ class NmtCovarianceWorkspace(object):
                    l_exact=l_exact, dl_band=dl_band)
 
     @classmethod
-    def from_file(cls, fname):
+    def from_file(cls, fname, fname_SN=None, fname_NS=None, fname_NN=None):
         """ Creates an :obj:`NmtCovarianceWorkspace` object from the
         mode-coupling coefficients stored in a FITS file.
         See :meth:`write_to`.
 
         Args:
             fname (:obj:`str`): Input file name.
+            fname_SN TODO
+            fname_NS TODO
+            fname_NN TODO
         """
-        return cls(None, None, fname=fname)
+        return cls(None, None, fname=fname, fname_SN=fname_SN,
+                   fname_NS=fname_NS, fname_NN=fname_NN)
 
     def __del__(self):
         if self.wsp is not None:
             if lib.covar_workspace_free is not None:
                 lib.covar_workspace_free(self.wsp)
             self.wsp = None
+        if self.wsp_SN is not None:
+            if lib.covar_workspace_free is not None:
+                lib.covar_workspace_free(self.wsp_SN)
+            self.wsp_SN = None
+        if self.wsp_NS is not None:
+            if lib.covar_workspace_free is not None:
+                lib.covar_workspace_free(self.wsp_NS)
+            self.wsp_NS = None
+        if self.wsp_NN is not None:
+            if lib.covar_workspace_free is not None:
+                lib.covar_workspace_free(self.wsp_NN)
+            self.wsp_NN = None
 
-    def _read_from(self, fname):
+    def _read_from(self, fname, fname_SN=None, fname_NS=None, fname_NN=None):
         """ Reads the contents of an :obj:`NmtCovarianceWorkspace`
         object from a FITS file.
 
         Args:
             fname (:obj:`str`): Input file name.
+            fname_SN TODO
+            fname_NS TODO
+            fname_NN TODO
         """
         if self.wsp is not None:
             lib.covar_workspace_free(self.wsp)
@@ -223,6 +255,24 @@ class NmtCovarianceWorkspace(object):
         self.spin_a2 = self.wsp.spin_a2
         self.spin_b1 = self.wsp.spin_b1
         self.spin_b2 = self.wsp.spin_b2
+        if fname_SN is not None:
+            if self.wsp_SN is not None:
+                lib.covar_workspace_free(self.wsp_SN)
+                self.wsp_SN = None
+            self.wsp_SN = lib.read_covar_workspace(fname_SN)
+        if fname_NS is not None:
+            if self.wsp_NS is not None:
+                lib.covar_workspace_free(self.wsp_NS)
+                self.wsp_NS = None
+            self.wsp_NS = lib.read_covar_workspace(fname_NS)
+        if fname_NN is not None:
+            if self.wsp_NN is not None:
+                lib.covar_workspace_free(self.wsp_NN)
+                self.wsp_NN = None
+            self.wsp_NN = lib.read_covar_workspace(fname_NN)
+        self.has_SN = np.array([False, False])
+        self.has_NS = np.array([False, False])
+        self.has_NN = np.array([False, False])
 
     def _compute_coupling_coefficients(self, fla1, fla2,
                                        flb1, flb2, *,
@@ -265,37 +315,137 @@ class NmtCovarianceWorkspace(object):
                 corresponds to :math:`\\Delta \\ell_{\\rm band}` in Fig.
                 3 of the paper. Ignored if ``l_toeplitz<=0``.
         """
+        self.has_SN = np.array([False, False])
+        self.has_NS = np.array([False, False])
+        self.has_NN = np.array([False, False])
         if np.any([fla1.anisotropic_mask, fla2.anisotropic_mask,
                    flb1.anisotropic_mask, flb2.anisotropic_mask]):
             raise NotImplementedError("Covariance matrix estimation not "
                                       "implemented for anisotropic weights.")
 
+        lmax = fla1.ainfo.lmax
+        lmax_mask = fla1.ainfo_mask.lmax
         ut._toeplitz_sanity(l_toeplitz, l_exact, dl_band,
-                            fla1.ainfo.lmax, fla1, flb1)
+                            lmax, fla1, flb1)
 
         if self.wsp is not None:
             lib.covar_workspace_free(self.wsp)
             self.wsp = None
 
-        pcl_mask_11_22 = _get_mask_prod_cl(fla1, flb1, fla2, flb2)
-        pcl_mask_12_21 = _get_mask_prod_cl(fla1, flb2, fla2, flb1)
-        self.wsp = lib.covar_workspace_init_py(int(fla1.spin), int(fla2.spin),
-                                               int(flb1.spin), int(flb2.spin),
-                                               pcl_mask_11_22,
-                                               pcl_mask_12_21,
-                                               int(all_spins), 0, 1, 1,
-                                               int(fla1.ainfo.lmax),
-                                               int(fla1.ainfo_mask.lmax),
-                                               l_toeplitz, l_exact, dl_band)
+        def get_wsp(pcl_1122, pcl_1221, has_1122, has_1221):
+            wsp = lib.covar_workspace_init_py(int(fla1.spin), int(fla2.spin),
+                                              int(flb1.spin), int(flb2.spin),
+                                              pcl_1122, pcl_1221,
+                                              int(all_spins), 0,
+                                              int(has_1122), int(has_1221),
+                                              int(fla1.ainfo.lmax),
+                                              int(fla1.ainfo_mask.lmax),
+                                              l_toeplitz, l_exact, dl_band)
+            return wsp
 
-    def write_to(self, fname):
+        s11_lm, _ = _get_mask_prod_alm(fla1, flb1)
+        s22_lm, _ = _get_mask_prod_alm(fla2, flb2)
+        s12_lm, _ = _get_mask_prod_alm(fla1, flb2)
+        s21_lm, _ = _get_mask_prod_alm(fla2, flb1)
+        pcl_mask_S11_S22 = hp.alm2cl(s11_lm, s22_lm, lmax=lmax_mask)
+        pcl_mask_S12_S21 = hp.alm2cl(s12_lm, s21_lm, lmax=lmax_mask)
+
+        self.wsp = get_wsp(pcl_mask_S11_S22, pcl_mask_S12_S21, 1, 1)
+
+        # Compute coupling coefficients for catalog-based field combinations
+        is_catalog_any = (_is_catalog(fla1) or _is_catalog(fla2) or
+                          _is_catalog(flb1) or _is_catalog(flb2))
+        if not is_catalog_any:
+            return
+
+        has_1122_NS = has_1221_NS = has_1122_SN = has_1221_SN = False
+        has_1122_NN = has_1221_NN = False
+        pcl_mask_N11_S22 = np.zeros_like(pcl_mask_S11_S22)
+        pcl_mask_N12_S21 = np.zeros_like(pcl_mask_S11_S22)
+        pcl_mask_S11_N22 = np.zeros_like(pcl_mask_S11_S22)
+        pcl_mask_S12_N21 = np.zeros_like(pcl_mask_S11_S22)
+        pcl_mask_N11_N22 = np.zeros_like(pcl_mask_S11_S22)
+        pcl_mask_N12_N21 = np.zeros_like(pcl_mask_S11_S22)
+
+        lmx = fla1.ainfo_mask.lmax
+        n11_lm = None
+        n22_lm = None
+
+        if (fla1 is flb1) or (fla1 is flb2) and _is_catalog(fla1):
+            n11_lm = fla1.get_catalog_variance_alm()
+        if (fla2 is flb1) or (fla2 is flb2) and _is_catalog(fla2):
+            if (n11_lm is not None) and (fla2 is fla1):
+                n22_lm = n11_lm
+            else:
+                n22_lm = fla2.get_catalog_variance_alm()
+
+        # Here's some horrible combinatorics
+        if fla1 is flb1 and _is_catalog(fla1) and _is_catalog(flb1):
+            has_1122_NS = True
+            # Calculate pcl_mask_N11_S22
+            pcl_mask_N11_S22 = hp.alm2cl(n11_lm, s22_lm, lmax=lmx)
+            if fla2 is flb2 and _is_catalog(fla2) and _is_catalog(flb2):
+                has_1122_NN = True
+                # Calculate pcl_mask_N11_N22
+                pcl_mask_N11_N22 = hp.alm2cl(n11_lm, n22_lm, lmax=lmx)
+        if fla2 is flb2 and _is_catalog(fla2) and _is_catalog(flb2):
+            has_1122_SN = True
+            # Calculate pcl_mask_S11_N22
+            pcl_mask_S11_N22 = hp.alm2cl(s11_lm, n22_lm)
+        if fla1 is flb2 and _is_catalog(fla1) and _is_catalog(flb2):
+            has_1221_NS = True
+            # Calculate pcl_mask_N12_S21
+            pcl_mask_N12_S21 = hp.alm2cl(n11_lm, s21_lm, lmax=lmx)
+            if fla2 is flb1 and _is_catalog(fla2) and _is_catalog(flb1):
+                has_1221_NN = True
+                # Calcuate pcl_mask_N12_N21
+                pcl_mask_N12_N21 = hp.alm2cl(n11_lm, n22_lm, lmax=lmx)
+        if fla2 is flb1 and _is_catalog(fla1) and _is_catalog(flb1):
+            has_1221_SN = True
+            # Calculate pcl_mask_S12_N21
+            pcl_mask_S12_N21 = hp.alm2cl(s12_lm, n22_lm)
+
+        # TODO: we are not taking advantage of cases
+        # when fla1=fla2 or flb1=flb2
+        if has_1122_NS or has_1221_NS:
+            self.wsp_NS = get_wsp(pcl_mask_N11_S22, pcl_mask_N12_S21,
+                                  has_1122_NS, has_1221_NS)
+        if has_1122_SN or has_1221_SN:
+            self.wsp_SN = get_wsp(pcl_mask_S11_N22, pcl_mask_S12_N21,
+                                  has_1122_SN, has_1221_SN)
+        if has_1122_NN or has_1221_NN:
+            self.wsp_NN = get_wsp(pcl_mask_N11_N22, pcl_mask_N12_N21,
+                                  has_1122_NN, has_1221_NN)
+        self.has_NS = np.array([has_1122_NS, has_1221_NS])
+        self.has_SN = np.array([has_1122_SN, has_1221_SN])
+        self.has_NN = np.array([has_1122_NN, has_1221_NN])
+
+    def write_to(self, fname, fname_SN=None, fname_NS=None, fname_NN=None):
         """ Writes the contents of an :obj:`NmtCovarianceWorkspace`
         object to a FITS file.
 
         Args:
             fname (:obj:`str`): Output file name.
+            fname_SN TODO
+            fname_NS TODO
+            fname_NN TODO
         """
         lib.write_covar_workspace(self.wsp, "!"+fname)
+        if fname_SN is not None:
+            if self.wsp_SN is None:
+                raise ValueError("Cannot save inexistent workspace "
+                                 f"to {fname_SN}")
+            lib.write_covar_workspace(self.wsp_SN, "!"+fname_SN)
+        if fname_NS is not None:
+            if self.wsp_NS is None:
+                raise ValueError("Cannot save inexistent workspace "
+                                 f"to {fname_NS}")
+            lib.write_covar_workspace(self.wsp_NS, "!"+fname_NS)
+        if fname_NN is not None:
+            if self.wsp_NN is None:
+                raise ValueError(f"Cannot save inexistent workspace "
+                                 f"to {fname_NN}")
+            lib.write_covar_workspace(self.wsp_NN, "!"+fname_NN)
 
     def gaussian_covariance(self, cla1b1, cla1b2, cla2b1, cla2b2,
                             wa, wb=None, coupled=False,
@@ -413,6 +563,29 @@ class NmtCovarianceWorkspace(object):
                 int(spin_b1), int(spin_b2), wa.wsp, wb.wsp, 1, 1,
                 cla1b1, cla1b2, cla2b1, cla2b2, len_a * len_b
             )
+
+            if self.has_NN.any():
+                covar += lib.comp_gaussian_covariance_coupled(
+                    self.wsp_NN, int(spin_a1), int(spin_a2),
+                    int(spin_b1), int(spin_b2), wa.wsp, wb.wsp,
+                    int(self.has_NN[0]), int(self.has_NN[1]),
+                    np.ones_like(cla1b1), np.ones_like(cla1b2),
+                    np.ones_like(cla2b1), np.ones_like(cla2b2),
+                    len_a * len_b)
+            if self.has_NS.any():
+                covar += lib.comp_gaussian_covariance_coupled(
+                    self.wsp_NS, int(spin_a1), int(spin_a2),
+                    int(spin_b1), int(spin_b2), wa.wsp, wb.wsp,
+                    int(self.has_NS[0]), int(self.has_NS[1]),
+                    np.ones_like(cla1b1), np.ones_like(cla1b2),
+                    cla2b1, cla2b2, len_a * len_b)
+            if self.has_SN.any():
+                covar += lib.comp_gaussian_covariance_coupled(
+                    self.wsp_SN, int(spin_a1), int(spin_a2),
+                    int(spin_b1), int(spin_b2), wa.wsp, wb.wsp,
+                    int(self.has_SN[0]), int(self.has_SN[1]),
+                    cla1b1, cla1b2, np.ones_like(cla2b1),
+                    np.ones_like(cla2b2), len_a * len_b)
         else:
             len_a = wa.wsp.ncls * wa.wsp.bin.n_bands
             len_b = wb.wsp.ncls * wb.wsp.bin.n_bands
@@ -422,6 +595,29 @@ class NmtCovarianceWorkspace(object):
                 int(spin_b1), int(spin_b2), wa.wsp, wb.wsp, 1, 1,
                 cla1b1, cla1b2, cla2b1, cla2b2, len_a * len_b
             )
+
+            if self.has_NN.any():
+                covar += lib.comp_gaussian_covariance(
+                    self.wsp_NN, int(spin_a1), int(spin_a2),
+                    int(spin_b1), int(spin_b2), wa.wsp, wb.wsp,
+                    int(self.has_NN[0]), int(self.has_NN[1]),
+                    np.ones_like(cla1b1), np.ones_like(cla1b2),
+                    np.ones_like(cla2b1), np.ones_like(cla2b2),
+                    len_a * len_b)
+            if self.has_NS.any():
+                covar += lib.comp_gaussian_covariance(
+                    self.wsp_NS, int(spin_a1), int(spin_a2),
+                    int(spin_b1), int(spin_b2), wa.wsp, wb.wsp,
+                    int(self.has_NS[0]), int(self.has_NS[1]),
+                    np.ones_like(cla1b1), np.ones_like(cla1b2),
+                    cla2b1, cla2b2, len_a * len_b)
+            if self.has_SN.any():
+                covar += lib.comp_gaussian_covariance(
+                    self.wsp_SN, int(spin_a1), int(spin_a2),
+                    int(spin_b1), int(spin_b2), wa.wsp, wb.wsp,
+                    int(self.has_SN[0]), int(self.has_SN[1]),
+                    cla1b1, cla1b2, np.ones_like(cla2b1),
+                    np.ones_like(cla2b2), len_a * len_b)
 
         return covar.reshape([len_a, len_b])
 
