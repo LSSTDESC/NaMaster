@@ -55,25 +55,25 @@ def test_field_catalog_compatibility():
     f_rand = np.random.rand(ncat)*0.1 + 1
     f0 = nmt.NmtFieldCatalog(p, w, f[0], lmax)
     f1 = nmt.NmtFieldCatalog(p, w, f_rand, lmax)
-    assert f0.is_compatible(f1)
+    assert f0.is_compatible(f1, strict=False)
 
     # Different positions
     p1 = np.array([np.random.permutation(p[0]), p[1]])
     f1 = nmt.NmtFieldCatalog(p1, w, f_rand, lmax)
-    assert f0.is_compatible(f1)
+    assert f0.is_compatible(f1, strict=False)
 
     # Different weights
     w_rand = np.random.rand(ncat)*0.1 + 1
     f1 = nmt.NmtFieldCatalog(p, w_rand, f_rand, lmax)
-    assert f0.is_compatible(f1)
+    assert f0.is_compatible(f1, strict=False)
 
     # Different lmax
     f1 = nmt.NmtFieldCatalog(p, w_rand, f_rand, lmax=111)
-    assert not f0.is_compatible(f1)
+    assert not f0.is_compatible(f1, strict=False)
 
     # Different lmax_mask
     f1 = nmt.NmtFieldCatalog(p, w_rand, f_rand, lmax, lmax_mask=300)
-    assert not f0.is_compatible(f1)
+    assert not f0.is_compatible(f1, strict=False)
 
 
 def test_field_catalog_init():
