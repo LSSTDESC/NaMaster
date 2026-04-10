@@ -348,12 +348,12 @@ void  nmt_compute_gaussian_covariance_coupled(nmt_covar_workspace *cw,
   shared(nmaps_a,nmaps_b,nmaps_c,nmaps_d,covar_out)	\
   shared(has_1122,has_1221)
   {
-    int band_a;
+    int la;
 
 #pragma omp for
-    for(band_a=0;band_a<wa->bin->n_bands;band_a++) {
-      int band_b;
-      for(band_b=0;band_b<wb->bin->n_bands;band_b++) {
+    for(la=0;la<=cw->lmax;la++) {
+      int lb;
+      for(lb=0;lb<=cw->lmax;lb++) {
 	int ia;
 	for(ia=0;ia<nmaps_a;ia++) {
 	  int ib;
@@ -363,46 +363,37 @@ void  nmt_compute_gaussian_covariance_coupled(nmt_covar_workspace *cw,
 	    for(ic=0;ic<nmaps_c;ic++) {
 	      int id;
 	      for(id=0;id<nmaps_d;id++) {
-		int ila;
 		int icl_b=id+nmaps_d*ic;
-		for(ila=0;ila<wa->bin->nell_list[band_a];ila++) {
-		  int ilb;
-		  int la=wa->bin->ell_list[band_a][ila];
-		  for(ilb=0;ilb<wb->bin->nell_list[band_b];ilb++) {
-		    int iap;
-		    int lb=wb->bin->ell_list[band_b][ilb];
-		    double prefac_ell=wa->bin->f_ell[band_a][ila]*wb->bin->f_ell[band_b][ilb];
-                    double cov_element=0;
-		    for(iap=0;iap<nmaps_a;iap++) {
-		      int ibp;
-		      for(ibp=0;ibp<nmaps_b;ibp++) {
-			int icp;
-			for(icp=0;icp<nmaps_c;icp++) {
-			  int idp;
-			  for(idp=0;idp<nmaps_d;idp++) {
-			    double *cl_ac=clac[icp+nmaps_c*iap];
-			    double *cl_ad=clad[idp+nmaps_d*iap];
-			    double *cl_bc=clbc[icp+nmaps_c*ibp];
-			    double *cl_bd=clbd[idp+nmaps_d*ibp];
-			    if(has_1122) {
-			      double fac_1122=0.5*(cl_ac[la]*cl_bd[lb]+cl_ac[lb]*cl_bd[la]);
-			      int ind_1122=cov_get_coupling_pair_index(nmaps_a,nmaps_c,nmaps_b,nmaps_d,
-								       ia,iap,ic,icp,ib,ibp,id,idp);
-			      cov_element+=_pick_xi(cw, ind_1122, 1, la, lb)*fac_1122*prefac_ell;
-			    }
-			    if(has_1221) {
-			      double fac_1221=0.5*(cl_ad[la]*cl_bc[lb]+cl_ad[lb]*cl_bc[la]);
-			      int ind_1221=cov_get_coupling_pair_index(nmaps_a,nmaps_d,nmaps_b,nmaps_c,
-								       ia,iap,id,idp,ib,ibp,ic,icp);
-			      cov_element+=_pick_xi(cw, ind_1221, 0, la, lb)*fac_1221*prefac_ell;
-			    }
-			  }
+		int iap;
+		double cov_element=0;
+		for(iap=0;iap<nmaps_a;iap++) {
+		  int ibp;
+		  for(ibp=0;ibp<nmaps_b;ibp++) {
+		    int icp;
+		    for(icp=0;icp<nmaps_c;icp++) {
+		      int idp;
+		      for(idp=0;idp<nmaps_d;idp++) {
+			double *cl_ac=clac[icp+nmaps_c*iap];
+			double *cl_ad=clad[idp+nmaps_d*iap];
+			double *cl_bc=clbc[icp+nmaps_c*ibp];
+			double *cl_bd=clbd[idp+nmaps_d*ibp];
+			if(has_1122) {
+			  double fac_1122=0.5*(cl_ac[la]*cl_bd[lb]+cl_ac[lb]*cl_bd[la]);
+			  int ind_1122=cov_get_coupling_pair_index(nmaps_a,nmaps_c,nmaps_b,nmaps_d,
+								   ia,iap,ic,icp,ib,ibp,id,idp);
+			  cov_element+=_pick_xi(cw, ind_1122, 1, la, lb)*fac_1122;
+			}
+			if(has_1221) {
+			  double fac_1221=0.5*(cl_ad[la]*cl_bc[lb]+cl_ad[lb]*cl_bc[la]);
+			  int ind_1221=cov_get_coupling_pair_index(nmaps_a,nmaps_d,nmaps_b,nmaps_c,
+								   ia,iap,id,idp,ib,ibp,ic,icp);
+			  cov_element+=_pick_xi(cw, ind_1221, 0, la, lb)*fac_1221;
 			}
 		      }
 		    }
-                    covar_out[((wa->ncls*la+icl_a)*(cw->lmax+1)+lb)*wb->ncls+icl_b]=cov_element;
 		  }
 		}
+		covar_out[((wa->ncls*la+icl_a)*(cw->lmax+1)+lb)*wb->ncls+icl_b]=cov_element;
 	      }
 	    }
 	  }
@@ -420,10 +411,12 @@ void  nmt_compute_gaussian_covariance(nmt_covar_workspace *cw,
 				      flouble **clbc,flouble **clbd,
 				      flouble *covar_out)
 {
-  if((cw->lmax<wa->bin->ell_max) || (cw->lmax<wb->bin->ell_max))
-    report_error(NMT_ERROR_COVAR,"Coupling coefficients only computed up to l=%d, but you require "
-		 "lmax=%d. Recompute this workspace with a larger lmax\n",cw->lmax,wa->bin->ell_max);
+  flouble *covar_coupled=my_malloc(((cw->lmax+1)*wa->ncls*(cw->lmax+1)*wb->ncls)*sizeof(flouble));
 
+  nmt_compute_gaussian_covariance_coupled(cw, spin_a, spin_b, spin_c, spin_d,
+					  wa, wb, has_1122, has_1221,
+					  clac, clad, clbc, clbd,
+					  covar_coupled);
   int sa, sb, sc, sd;
   if(cw->all_spins) {
     sa=spin_a;
@@ -441,15 +434,12 @@ void  nmt_compute_gaussian_covariance(nmt_covar_workspace *cw,
   int nmaps_b=sb ? 2 : 1;
   int nmaps_c=sc ? 2 : 1;
   int nmaps_d=sd ? 2 : 1;
-  if((wa->ncls!=nmaps_a*nmaps_b) || (wb->ncls!=nmaps_c*nmaps_d))
-    report_error(NMT_ERROR_COVAR,"Input spins don't match input workspaces\n");
 
   gsl_matrix *covar_binned=gsl_matrix_alloc(wa->ncls*wa->bin->n_bands,wb->ncls*wb->bin->n_bands);
 
 #pragma omp parallel default(none)			\
-  shared(cw,wa,wb,clac,clad,clbc,clbd)			\
-  shared(nmaps_a,nmaps_b,nmaps_c,nmaps_d,covar_binned)	\
-  shared(has_1122,has_1221)
+  shared(cw,wa,wb,covar_coupled,covar_binned)		\
+  shared(nmaps_a,nmaps_b,nmaps_c,nmaps_d)
   {
     int band_a;
 
@@ -477,33 +467,8 @@ void  nmt_compute_gaussian_covariance(nmt_covar_workspace *cw,
 		    int lb=wb->bin->ell_list[band_b][ilb];
 		    double prefac_ell=wa->bin->w_list[band_a][ila]*wa->bin->f_ell[band_a][ila]*
 		      wb->bin->w_list[band_b][ilb]*wb->bin->f_ell[band_b][ilb];
-		    for(iap=0;iap<nmaps_a;iap++) {
-		      int ibp;
-		      for(ibp=0;ibp<nmaps_b;ibp++) {
-			int icp;
-			for(icp=0;icp<nmaps_c;icp++) {
-			  int idp;
-			  for(idp=0;idp<nmaps_d;idp++) {
-			    double *cl_ac=clac[icp+nmaps_c*iap];
-			    double *cl_ad=clad[idp+nmaps_d*iap];
-			    double *cl_bc=clbc[icp+nmaps_c*ibp];
-			    double *cl_bd=clbd[idp+nmaps_d*ibp];
-			    if(has_1122) {
-			      double fac_1122=0.5*(cl_ac[la]*cl_bd[lb]+cl_ac[lb]*cl_bd[la]);
-			      int ind_1122=cov_get_coupling_pair_index(nmaps_a,nmaps_c,nmaps_b,nmaps_d,
-								       ia,iap,ic,icp,ib,ibp,id,idp);
-			      cbinned+=_pick_xi(cw, ind_1122, 1, la, lb)*fac_1122*prefac_ell;
-			    }
-			    if(has_1221) {
-			      double fac_1221=0.5*(cl_ad[la]*cl_bc[lb]+cl_ad[lb]*cl_bc[la]);
-			      int ind_1221=cov_get_coupling_pair_index(nmaps_a,nmaps_d,nmaps_b,nmaps_c,
-								       ia,iap,id,idp,ib,ibp,ic,icp);
-			      cbinned+=_pick_xi(cw, ind_1221, 0, la, lb)*fac_1221*prefac_ell;
-			    }
-			  }
-			}
-		      }
-		    }
+		    double cov_unbinned=covar_coupled[((wa->ncls*la+icl_a)*(cw->lmax+1)+lb)*wb->ncls+icl_b];
+		    cbinned+=cov_unbinned*prefac_ell;
 		  }
 		}
 		gsl_matrix_set(covar_binned,wa->ncls*band_a+icl_a,wb->ncls*band_b+icl_b,cbinned);
@@ -540,4 +505,5 @@ void  nmt_compute_gaussian_covariance(nmt_covar_workspace *cw,
   gsl_matrix_free(inverse_a);
   gsl_matrix_free(inverse_b);
   gsl_matrix_free(covar_out_g);
+  free(covar_coupled);
 }

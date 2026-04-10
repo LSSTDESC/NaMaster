@@ -394,6 +394,14 @@ class NmtCovarianceWorkspace(object):
         self.has_NS = np.array([has_1122_NS, has_1221_NS])
         self.has_SN = np.array([has_1122_SN, has_1221_SN])
         self.has_NN = np.array([has_1122_NN, has_1221_NN])
+        self.pclws = {'S11_S22': pcl_mask_S11_S22,
+                      'S12_S21': pcl_mask_S12_S21,
+                      'N11_S22': pcl_mask_N11_S22,
+                      'N12_S21': pcl_mask_N12_S21,
+                      'S11_N22': pcl_mask_S11_N22,
+                      'S12_N21': pcl_mask_S12_N21,
+                      'N11_N22': pcl_mask_N11_N22,
+                      'N12_N21': pcl_mask_N12_N21}
 
         # TODO: we are not taking advantage of cases
         # when fla1=fla2 or flb1=flb2
@@ -545,14 +553,15 @@ class NmtCovarianceWorkspace(object):
             wa.check_unbinned()
             wb.check_unbinned()
 
-            covar = lib.comp_gaussian_covariance_coupled(
+            covar_SS = lib.comp_gaussian_covariance_coupled(
                 self.wsp, int(spin_a1), int(spin_a2),
                 int(spin_b1), int(spin_b2), wa.wsp, wb.wsp, 1, 1,
                 cla1b1, cla1b2, cla2b1, cla2b2, len_a * len_b
             )
 
+            covar_NN = covar_NS = covar_SN = 0
             if self.has_NN.any():
-                covar += lib.comp_gaussian_covariance_coupled(
+                covar_NN = lib.comp_gaussian_covariance_coupled(
                     self.wsp_NN, int(spin_a1), int(spin_a2),
                     int(spin_b1), int(spin_b2), wa.wsp, wb.wsp,
                     int(self.has_NN[0]), int(self.has_NN[1]),
@@ -560,19 +569,20 @@ class NmtCovarianceWorkspace(object):
                     np.ones_like(cla2b1), np.ones_like(cla2b2),
                     len_a * len_b)
             if self.has_NS.any():
-                covar += lib.comp_gaussian_covariance_coupled(
+                covar_NS = lib.comp_gaussian_covariance_coupled(
                     self.wsp_NS, int(spin_a1), int(spin_a2),
                     int(spin_b1), int(spin_b2), wa.wsp, wb.wsp,
                     int(self.has_NS[0]), int(self.has_NS[1]),
                     np.ones_like(cla1b1), np.ones_like(cla1b2),
                     cla2b1, cla2b2, len_a * len_b)
             if self.has_SN.any():
-                covar += lib.comp_gaussian_covariance_coupled(
+                covar_SN = lib.comp_gaussian_covariance_coupled(
                     self.wsp_SN, int(spin_a1), int(spin_a2),
                     int(spin_b1), int(spin_b2), wa.wsp, wb.wsp,
                     int(self.has_SN[0]), int(self.has_SN[1]),
                     cla1b1, cla1b2, np.ones_like(cla2b1),
                     np.ones_like(cla2b2), len_a * len_b)
+            return covar_SS, covar_SN, covar_NS, covar_NN
         else:
             len_a = wa.wsp.ncls * wa.wsp.bin.n_bands
             len_b = wb.wsp.ncls * wb.wsp.bin.n_bands
