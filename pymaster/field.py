@@ -1131,7 +1131,7 @@ class NmtFieldCatalog(NmtField):
 
         # Remember at this point self.field is already the weighted field
         var_lms = ut._catalog2alm_ducc0(
-            np.sum(self.field, axis=0)**2/self.nmaps,
+            np.sum(self.field**2, axis=0)/self.nmaps,
             self.pos, spin=0,
             lmax=self.ainfo_mask.lmax)
         if self.is_clustering is None:  # Add randoms variance

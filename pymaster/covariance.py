@@ -374,6 +374,13 @@ class NmtCovarianceWorkspace(object):
                 has_1122_NN = True
                 # Calculate pcl_mask_N11_N22
                 pcl_mask_N11_N22 = hp.alm2cl(n11_lm, n22_lm, lmax=lmx)
+                if fla1 is fla2:  # Correct the four-point cumulant
+                    prefac = 2 /((2+fla1.nmaps)*4*np.pi)
+                    corr_noise = prefac * np.sum(
+                        (np.sum(fla1.field**2,
+                                axis=0)/fla1.nmaps)**2
+                        )
+                    pcl_mask_N11_N22 = pcl_mask_N11_N22 - corr_noise
         if fla2 is flb2 and _is_catalog(fla2) and _is_catalog(flb2):
             has_1122_SN = True
             # Calculate pcl_mask_S11_N22
@@ -386,6 +393,13 @@ class NmtCovarianceWorkspace(object):
                 has_1221_NN = True
                 # Calcuate pcl_mask_N12_N21
                 pcl_mask_N12_N21 = hp.alm2cl(n11_lm, n22_lm, lmax=lmx)
+                if fla1 is fla2:  # Correct the four-point cumulant
+                    prefac = 2 /((2+fla1.nmaps)*4*np.pi)
+                    corr_noise = prefac * np.sum(
+                        (np.sum(fla1.field**2,
+                                axis=0)/fla1.nmaps)**2
+                        )
+                    pcl_mask_N12_N21 = pcl_mask_N12_N21 - corr_noise
         if fla2 is flb1 and _is_catalog(fla1) and _is_catalog(flb1):
             has_1221_SN = True
             # Calculate pcl_mask_S12_N21
