@@ -903,8 +903,8 @@ def get_iNKA_cell(fla, flb, cl_guess=None, w=None):
         ls = np.arange(lmax+1)
         # Correct for catalogs
         if _is_catalog(fla) and _is_catalog(flb):
-            phi_a = fla.get_ipd_kernel(lmax)
-            phi_b = flb.get_ipd_kernel(lmax)
+            phi_a = 1 if fla.mask is not None else fla.get_ipd_kernel(lmax)
+            phi_b = 1 if flb.mask is not None else flb.get_ipd_kernel(lmax)
             # Subtract shot noise
             if fla is flb:
                 clw = clw - fla.Nw

@@ -1141,14 +1141,19 @@ class NmtFieldCatalog(NmtField):
         return var_lms.squeeze()
 
     def get_catalog_mask_map(self):
-        """ Creates a map from this catalog's positions by treating each
-        object as a Gaussian blob with a standard deviation given by
-        the mean inter-particle distance.
+        """ Outputs the field's mask if it exists (e.g., if it is a Catalog
+        Clustering field with a completeness mask). Otherwise, creates a map
+        from this catalog's positions by treating eachobject as a Gaussian
+        blob with a standard deviation given by the mean inter-particle
+        distance.
 
         Returns:
             (`array`): map in HEALPix format
             (:obj:`int`): HEALPix :math:`N_{\\rm side}` resolution parameter.
         """
+        if self.mask is not None:
+            return self.mask, hp.npix2nside(len(self.mask))
+
         lmax = self.ainfo_mask.lmax
         # Nside associated with lmax
         p = int(np.ceil(np.log2(lmax/3.0)))
