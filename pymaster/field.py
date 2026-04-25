@@ -1084,6 +1084,7 @@ class NmtFieldCatalog(NmtField):
         """ Returns the median inter-particle distance for this
         catalog. Only possible for fields created with
         `retain_catalog = True`.
+        Uses data source catalog if no randoms are available.
 
         Returns:
             (:obj:`float`): median inter-particle distance in radians.
@@ -1092,12 +1093,16 @@ class NmtFieldCatalog(NmtField):
             raise ValueError("Cannot compute inter-particle distance for "
                              "fields generated with `retain_catalog = False`")
 
+        pos, weights = (self.pos, self.weights)
+        if self.pos_r is not None:
+            pos, weights = (self.pos_r, self.weights_r)
+
         if self.theta_ipd is None:
-            nsrc = len(self.weights_r)
+            nsrc = len(weights)
             p = int(0.5*np.log2(0.5*nsrc))
             p = min(4, max(p, 0))  # Nside should be between 1 and 6
             nside = int(2**p)
-            self.theta_ipd = _get_theta_ipd(self.pos_r, self.weights_r, nside)
+            self.theta_ipd = _get_theta_ipd(pos, weights, nside)
         return self.theta_ipd
 
     def get_ipd_kernel(self, lmax):
@@ -1134,7 +1139,8 @@ class NmtFieldCatalog(NmtField):
             np.sum(self.field**2, axis=0)/self.nmaps,
             self.pos, spin=0,
             lmax=self.ainfo_mask.lmax)
-        if self.is_clustering is None:  # Add randoms variance
+        if self.mask is None and self.is_clustering:
+            # Add randoms variance
             var_lms += ut._catalog2alm_ducc0(
                 self.weights_r**2, self.pos_r,
                 spin=0, lmax=self.ainfo_mask.lmax)
@@ -1170,14 +1176,19 @@ class NmtFieldCatalog(NmtField):
         return mask_map, nside
 
     def get_catalog_mask_squared_map(self):
-        """ Creates a map from this catalog's positions by treating each
-        object as the square of a Gaussian blob with a standard deviation
-        given by the mean inter-particle distance.
+        """ Outputs the map-level self-pair contribution that arises from
+        squaring a catalog-based mask. If the field has a mask, simply returns
+        a map of zeros. Otherwise, creates a map from this catalog's positions
+        by treating each object as the square of a Gaussian blob with a
+        standard deviation given by the mean inter-particle distance.
 
+        TODO: generalize to CAR
         Returns:
             (`array`): map in HEALPix format
             (:obj:`int`): HEALPix :math:`N_{\\rm side}` resolution parameter.
         """
+        if self.mask is not None:
+            return np.zeros_like(self.mask), hp.npix2nside(len(self.mask))
         th_ipd = self.get_theta_ipd()
         lmax = self.ainfo_mask.lmax
         # Nside associated with lmax
@@ -1494,12 +1505,13 @@ class NmtFieldCatalogMomentum(NmtFieldCatalog):
                                               n_iter=n_iter_mask)
 
         if self.is_clustering:
-            field = np.atleast_2d(weights)
+            field = np.atleast_2d(weights)/self._alpha
             field_is_weighted = True
             self.spin = 0
         else:
             # Ensure it's 2D
             field = np.atleast_2d(np.array(field, dtype=np.float64))
+            field /= self._alpha
             # Set spin
             if spin is None:
                 spin = 0 if len(field) == 1 else 2
@@ -1513,7 +1525,7 @@ class NmtFieldCatalogMomentum(NmtFieldCatalog):
             field *= weights
 
         # Compute field alms
-        self.alm = ut._catalog2alm_ducc0(field/self._alpha,
+        self.alm = ut._catalog2alm_ducc0(field,
                                          positions, spin=self.spin, lmax=lmax)
         if self.is_clustering:
             self.alm = self.alm - alm_mask_sub
@@ -1601,7 +1613,7 @@ class NmtFieldCatalogMomentum(NmtFieldCatalog):
             self.alm = self.alm - np.sum(alphas[:, None, None]*flms, axis=0)
 
         # Compute field shot noise
-        self._Nf = np.sum(field**2)/(4*np.pi*self._alpha**2*self.nmaps)
+        self._Nf = np.sum(field**2)/(4*np.pi*self.nmaps)
         if self.is_clustering:
             self._Nf = self._Nf + self._Nw
 
