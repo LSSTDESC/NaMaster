@@ -1188,7 +1188,7 @@ class NmtFieldCatalog(NmtField):
             (:obj:`int`): HEALPix :math:`N_{\\rm side}` resolution parameter.
         """
         if self.mask is not None:
-            return np.zeros_like(self.mask), hp.npix2nside(len(self.mask))
+            return None
         th_ipd = self.get_theta_ipd()
         lmax = self.ainfo_mask.lmax
         # Nside associated with lmax

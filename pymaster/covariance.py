@@ -9,15 +9,15 @@ from pymaster import (compute_coupled_cell, NmtBin, NmtWorkspace,
 def _get_mask_prod_alm(f1, f2):
     # If we have catalog and map, make sure catalog goes
     # first
-    fa, fb = (f1, f2) if _is_catalog(f1) else (f2, f1)
+    fa, fb = (f1, f2) if _is_mask_catalog(f1) else (f2, f1)
 
     # Check they have the same lmax_mask
     if not f1.is_compatible(f2, strict=False):
         raise ValueError("Fields have incompatible pixelizations.")
 
     # Check which case we are dealing with
-    if _is_catalog(fa):
-        if _is_catalog(fb):
+    if _is_mask_catalog(fa):
+        if _is_mask_catalog(fb):
             option = 'cat_cat'
         else:
             option = 'cat_map'
@@ -25,10 +25,18 @@ def _get_mask_prod_alm(f1, f2):
         option = 'map_map'
 
     if option == 'map_map':
-        if not fa.is_compatible(fb):  # Check they can be multiplied
-            raise ValueError("Fields have incompatible pixelizations.")
-        mask_p = fa.get_mask()*fb.get_mask()
         minfo = fa.minfo
+        if fa.is_compatible(fb):
+            mask_p = fa.get_mask()*fb.get_mask()
+        else:
+            mask_a = fa.get_mask()
+            if minfo.is_healpix and fb.minfo.is_healpix:
+                mask_b = hp.ud_grade(fb.get_mask, nside_out=minfo.nside)
+            else:
+                wlm_b = fb.get_mask_alms()
+                mask_b = ut.alm2map(np.array([wlm_b]), 0,
+                                    minfo, fb.ainfo_mask).squeeze()
+            mask_p = mask_a * mask_b
     else:
         # The first field is a catalog
         mask_a, nside_a = fa.get_catalog_mask_map()
@@ -849,6 +857,14 @@ def gaussian_covariance_flat(cw, spin_a1, spin_a2, spin_b1, spin_b2, larr,
 
 def _is_catalog(f):
     return isinstance(f, NmtFieldCatalog)
+
+
+def _is_mask_catalog(f):
+    if isinstance(f, NmtFieldCatalog):
+        if f.mask is not None:
+            return False
+        return True
+    return False
 
 
 def get_iNKA_cell(fla, flb, cl_guess=None, w=None):
