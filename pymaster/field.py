@@ -1151,14 +1151,14 @@ class NmtFieldCatalog(NmtField):
         Clustering field with a completeness mask). Otherwise, creates a map
         from this catalog's positions by treating eachobject as a Gaussian
         blob with a standard deviation given by the mean inter-particle
-        distance.
+        distance. If the field has a mask, returns ``None``.
 
         Returns:
             (`array`): map in HEALPix format
             (:obj:`int`): HEALPix :math:`N_{\\rm side}` resolution parameter.
         """
         if self.mask is not None:
-            return self.mask, hp.npix2nside(len(self.mask))
+            return None
 
         lmax = self.ainfo_mask.lmax
         # Nside associated with lmax
@@ -1181,8 +1181,8 @@ class NmtFieldCatalog(NmtField):
         a map of zeros. Otherwise, creates a map from this catalog's positions
         by treating each object as the square of a Gaussian blob with a
         standard deviation given by the mean inter-particle distance.
+        If the field has a mask, returns ``None``.
 
-        TODO: generalize to CAR
         Returns:
             (`array`): map in HEALPix format
             (:obj:`int`): HEALPix :math:`N_{\\rm side}` resolution parameter.

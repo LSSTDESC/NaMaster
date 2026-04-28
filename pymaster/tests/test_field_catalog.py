@@ -338,6 +338,51 @@ def test_field_catalog_errors():
                                       mask=np.ones(12*2**2),
                                       templates=np.ones([1, 12*4**2]))
 
+    with pytest.raises(ValueError):  # Can't retain catalog without field
+        nmt.NmtFieldCatalog(  # Check spin
+            [[0., 0.], [1., 1.]], [1., 1.], None, 10, spin=2,
+            retain_catalog=True
+        )
+
+    f = nmt.NmtFieldCatalog(  # Check spin
+        [[0., 0.], [1., 1.]], [1., 1.], [[0., 0.], [1., 1.]], 10, spin=2
+    )
+    with pytest.raises(ValueError):  # Need to retain catalog to get ipd
+        f.get_theta_ipd()
+    with pytest.raises(ValueError):  # Need to retain catalog to get ipd
+        f.get_catalog_variance_alm()
+
+
+def test_field_catalog_clustering_masks():
+    np.random.seed(1234)
+    nside = 128
+    npix = hp.nside2npix(nside)
+    lmax = 3*nside - 1
+
+    pos = np.array([np.arccos(-1+2*np.random.rand(4*npix)),
+                    2*np.pi*np.random.rand(4*npix)])
+    w = np.ones(4*npix)
+    mask = np.ones(npix)
+
+    # Field with mask
+    fm = nmt.NmtFieldCatalogClustering(pos, w, None, None,
+                                       lmax=lmax, mask=mask,
+                                       retain_catalog=True)
+    # Field with randoms
+    fc = nmt.NmtFieldCatalogClustering(pos, w, pos, w,
+                                       lmax=lmax,
+                                       retain_catalog=True)
+
+    # Check variance alms for randoms
+    var_alm_m = fm.get_catalog_variance_alm()
+    var_alm_c = fc.get_catalog_variance_alm()
+    clwm = hp.alm2cl(var_alm_m)
+    clwc = hp.alm2cl(var_alm_c)
+    assert np.allclose(clwm*fm._alpha**4*4, clwc)
+
+    assert fm.get_catalog_mask_map() is None
+    assert fm.get_catalog_mask_squared_map() is None
+
 
 def test_field_catalog_clustering_poisson():
     # Checks that a purely Poisson catalog has a power spectrum
