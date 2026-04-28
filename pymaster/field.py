@@ -360,7 +360,8 @@ class NmtField(object):
                 no pixel-level operations (e.g. map multiplications).
         """
         if strict:
-            if self.minfo != other.minfo:
+            if ((not isinstance(self.minfo, ut.NmtMapInfo)) or
+                    (self.minfo != other.minfo)):
                 return False
         if self.ainfo_mask != other.ainfo_mask:
             return False
@@ -935,19 +936,22 @@ class NmtFieldCatalog(NmtField):
                  lmax_mask=None, spin=None, field_is_weighted=False,
                  lonlat=False, templates=None, tol_pinv=None,
                  noise_variance=None, retain_catalog=False,
-                 nside_ipd=16):
+                 n_iter_mask=None, nside_ipd=16):
         # 0. Preliminary initializations
         if ut.HAVE_DUCC:
             self.sht_calculator = 'ducc'
         else:
             raise ValueError("DUCC is needed, but currently not installed.")
 
+        if n_iter_mask is None:
+            n_iter_mask = ut.nmt_params.n_iter_mask_default
+
         # These first attributes are compulsory for all fields
         self.lite = not retain_catalog
         self.mask = None
         self.beam = np.ones(lmax+1)
         self.n_iter = None
-        self.n_iter_mask = None
+        self.n_iter_mask = n_iter_mask
         self.pure_e = False
         self.pure_b = False
         self.alm = None
@@ -971,17 +975,20 @@ class NmtFieldCatalog(NmtField):
         self.alm_mask_a = None
         self._nl_deproj = None
 
+        # Standard catalog fields are never clustering
+        self.is_clustering = False
+
         # Additional catalog-level quantities
         # (None unless retain_catalog = True)
         self.pos = None
+        self.pos_r = None
         self.weights = None
+        self.weights_r = None
         self.field = None
         self.noise_variance = None
 
         positions, weights = _process_pos_w(positions, weights,
                                             lonlat, 'source')
-        self.theta_ipd = _get_theta_ipd(positions, weights,
-                                        self.nside_ipd)
 
         # Compute mask shot noise
         self._Nw = np.sum(weights**2.)/(4.*np.pi)
@@ -1001,6 +1008,9 @@ class NmtFieldCatalog(NmtField):
             if spin is None:
                 raise ValueError("If field is None, spin needs to be "
                                  "provided.")
+            if retain_catalog:
+                raise ValueError("If field is None, `retain_catalog` must "
+                                 "be `False`")
             self.spin = spin
             return
 
@@ -1058,7 +1068,9 @@ class NmtFieldCatalog(NmtField):
 
         if retain_catalog:
             self.pos = positions
+            self.pos_r = self.pos
             self.weights = weights
+            self.weights_r = self.weights
             self.field = field
             # Consider noise variance
             if noise_variance is not None:
@@ -1067,6 +1079,134 @@ class NmtFieldCatalog(NmtField):
             self.noise_variance = noise_variance
             if templates is not None:
                 self.temp = templates
+
+    def get_theta_ipd(self):
+        """ Returns the median inter-particle distance for this
+        catalog. Only possible for fields created with
+        `retain_catalog = True`.
+        Uses data source catalog if no randoms are available.
+
+        Returns:
+            (:obj:`float`): median inter-particle distance in radians.
+        """
+        if self.lite:
+            raise ValueError("Cannot compute inter-particle distance for "
+                             "fields generated with `retain_catalog = False`")
+
+        pos, weights = (self.pos, self.weights)
+        if self.pos_r is not None:
+            pos, weights = (self.pos_r, self.weights_r)
+
+        if self.theta_ipd is None:
+            nsrc = len(weights)
+            p = int(0.5*np.log2(0.5*nsrc))
+            p = min(4, max(p, 0))  # Nside should be between 1 and 6
+            nside = int(2**p)
+            self.theta_ipd = _get_theta_ipd(pos, weights, nside)
+        return self.theta_ipd
+
+    def get_ipd_kernel(self, lmax):
+        """ Calculate the harmonic-space smoothing kernel associated
+        with this catalog's median inter-particle distance. This is
+        needed for the calculation of Gaussian covariances, and is only
+        possible for fields created with `retain_catalog = True`. The
+        kernel is an approximate Gaussian with standard deviation given
+        by the median inter-particle distance.
+
+        Args:
+            lmax (:obj:`int`): maximum multipole up to which the kernel
+                is requested.
+        Returns:
+            (`array`): the kernel sampled at all integer ells ``< lmax``.
+        """
+        th_ipd = self.get_theta_ipd()
+        ls = np.arange(lmax+1)
+        return np.exp(-0.5*th_ipd**2*ls*(ls+1))
+
+    def get_catalog_variance_alm(self):
+        """ Creates :math:`a_{\\ell m}` s for a map of the local field
+        variance from this catalog's positions and field value.
+
+        Returns:
+            (`array`): :math:`a_{\\ell m}` coefficients.
+        """
+        if self.lite:
+            raise ValueError("Cannot compute variance map for "
+                             "fields generated with `retain_catalog = False`")
+
+        # Remember at this point self.field is already the weighted field
+        var_lms = ut._catalog2alm_ducc0(
+            np.sum(self.field**2, axis=0)/self.nmaps,
+            self.pos, spin=0,
+            lmax=self.ainfo_mask.lmax)
+        if self.mask is None and self.is_clustering:
+            # Add randoms variance
+            var_lms += ut._catalog2alm_ducc0(
+                self.weights_r**2, self.pos_r,
+                spin=0, lmax=self.ainfo_mask.lmax)
+        return var_lms.squeeze()
+
+    def get_catalog_mask_map(self):
+        """ Outputs the field's mask if it exists (e.g., if it is a Catalog
+        Clustering field with a completeness mask). Otherwise, creates a map
+        from this catalog's positions by treating eachobject as a Gaussian
+        blob with a standard deviation given by the mean inter-particle
+        distance. If the field has a mask, returns ``None``.
+
+        Returns:
+            (`array`): map in HEALPix format
+            (:obj:`int`): HEALPix :math:`N_{\\rm side}` resolution parameter.
+        """
+        if self.mask is not None:
+            return None
+
+        lmax = self.ainfo_mask.lmax
+        # Nside associated with lmax
+        p = int(np.ceil(np.log2(lmax/3.0)))
+        nside = int(2**p)
+        assert lmax <= 3*nside
+        # Smooth alms
+        phi_l = self.get_ipd_kernel(lmax)
+        wlm = self.get_mask_alms()
+        wlm = hp.almxfl(wlm, phi_l)
+        # To map
+        minfo = ut.NmtMapInfo(None, [hp.nside2npix(nside)])
+        mask_map = ut.alm2map(np.array([wlm]), 0,
+                              minfo, self.ainfo_mask).squeeze()
+        return mask_map, nside
+
+    def get_catalog_mask_squared_map(self):
+        """ Outputs the map-level self-pair contribution that arises from
+        squaring a catalog-based mask. If the field has a mask, simply returns
+        a map of zeros. Otherwise, creates a map from this catalog's positions
+        by treating each object as the square of a Gaussian blob with a
+        standard deviation given by the mean inter-particle distance.
+        If the field has a mask, returns ``None``.
+
+        Returns:
+            (`array`): map in HEALPix format
+            (:obj:`int`): HEALPix :math:`N_{\\rm side}` resolution parameter.
+        """
+        if self.mask is not None:
+            return None
+        th_ipd = self.get_theta_ipd()
+        lmax = self.ainfo_mask.lmax
+        # Nside associated with lmax
+        p = int(np.ceil(np.log2(lmax/3.0)))
+        nside = int(2**p)
+        assert lmax <= 3*nside
+        # Compute alms of squared mask and smooth them
+        ls = np.arange(lmax+1)
+        phi_l = np.exp(-0.25*th_ipd**2*ls*(ls+1)) / (4*np.pi*th_ipd**2)
+        wlm = ut._catalog2alm_ducc0(self.weights_r**2,
+                                    self.pos_r,
+                                    spin=0, lmax=lmax)[0]
+        wlm = hp.almxfl(wlm, phi_l)
+        # To map
+        minfo = ut.NmtMapInfo(None, [hp.nside2npix(nside)])
+        mask_map = ut.alm2map(np.array([wlm]), 0,
+                              minfo, self.ainfo_mask).squeeze()
+        return mask_map, nside
 
     def get_noise_deprojection_bias(self):
         """ Returns the deprojection bias due to uncorrelated noise
@@ -1128,7 +1268,7 @@ class NmtFieldCatalog(NmtField):
         return self._nl_deproj
 
 
-class NmtFieldCatalogMomentum(NmtField):
+class NmtFieldCatalogMomentum(NmtFieldCatalog):
     """ An :obj:`NmtFieldCatalogMomentum` object contains all the
     information describing a field weighted by the local density of sources.
     A typical application of such a field is in the analysis of kSZ-galaxy
@@ -1251,6 +1391,11 @@ class NmtFieldCatalogMomentum(NmtField):
         else:
             raise ValueError("DUCC is needed, but currently not installed.")
 
+        if n_iter_mask is None:
+            n_iter_mask = ut.nmt_params.n_iter_mask_default
+        if n_iter_temp is None:
+            n_iter_temp = ut.nmt_params.n_iter_mask_default
+
         # These first attributes are compulsory for all fields
         self.lite = not retain_catalog
         self.mask = None
@@ -1320,8 +1465,6 @@ class NmtFieldCatalogMomentum(NmtField):
                                                           weights_rand,
                                                           lonlat,
                                                           "random")
-            self.theta_ipd = _get_theta_ipd(positions_rand,
-                                            weights_rand, self.nside_ipd)
             nrand = len(weights_rand)
 
             # Compute alpha
@@ -1343,8 +1486,6 @@ class NmtFieldCatalogMomentum(NmtField):
                                                          spin=0, lmax=lmax)
         else:  # If mask provided, ignore/replace randoms-related quantities
             # Initialisation of parameters related to the mask
-            if n_iter_mask is None:
-                n_iter_mask = ut.nmt_params.n_iter_default
             mask_area = self.minfo.si.map_integral(self.mask)
             self._alpha = np.sum(weights) / mask_area
 
@@ -1364,12 +1505,13 @@ class NmtFieldCatalogMomentum(NmtField):
                                               n_iter=n_iter_mask)
 
         if self.is_clustering:
-            field = np.atleast_2d(weights)
+            field = np.atleast_2d(weights)/self._alpha
             field_is_weighted = True
             self.spin = 0
         else:
             # Ensure it's 2D
             field = np.atleast_2d(np.array(field, dtype=np.float64))
+            field /= self._alpha
             # Set spin
             if spin is None:
                 spin = 0 if len(field) == 1 else 2
@@ -1383,7 +1525,7 @@ class NmtFieldCatalogMomentum(NmtField):
             field *= weights
 
         # Compute field alms
-        self.alm = ut._catalog2alm_ducc0(field/self._alpha,
+        self.alm = ut._catalog2alm_ducc0(field,
                                          positions, spin=self.spin, lmax=lmax)
         if self.is_clustering:
             self.alm = self.alm - alm_mask_sub
@@ -1436,9 +1578,6 @@ class NmtFieldCatalogMomentum(NmtField):
                     prods_zerop = np.array([-np.sum(fi*weights_rand)/(4*np.pi)
                                             for fi in templates])
             else:
-                if n_iter_temp is None:
-                    n_iter_temp = ut.nmt_params.n_iter_default
-
                 if len(templates[0].flatten()) != self.nmaps*self.minfo.npix:
                     raise ValueError("Templates should have total size "
                                      f"{self.nmaps*self.minfo.npix}")
@@ -1474,7 +1613,7 @@ class NmtFieldCatalogMomentum(NmtField):
             self.alm = self.alm - np.sum(alphas[:, None, None]*flms, axis=0)
 
         # Compute field shot noise
-        self._Nf = np.sum(field**2)/(4*np.pi*self._alpha**2*self.nmaps)
+        self._Nf = np.sum(field**2)/(4*np.pi*self.nmaps)
         if self.is_clustering:
             self._Nf = self._Nf + self._Nw
 
