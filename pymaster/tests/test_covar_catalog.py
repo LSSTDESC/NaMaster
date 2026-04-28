@@ -2,6 +2,8 @@ import numpy as np
 import healpy as hp
 import pytest
 import pymaster as nmt
+from astropy.io import fits
+from astropy.wcs import WCS
 
 
 def get_cl_in(lmax=300):
@@ -44,7 +46,7 @@ def test_io():
                 fname_NS="test_cov_NS.fits")
 
     # Read from file and check that the covariance is the same
-    cw2 = nmt.NmtCovarianceWorkspace.from_file("test_cov.fits",
+    cw2 = nmt.NmtCovarianceWorkspace.from_file(fname="test_cov.fits",
                                                fname_NN="test_cov_NN.fits",
                                                fname_SN="test_cov_SN.fits",
                                                fname_NS="test_cov_NS.fits")
@@ -73,6 +75,42 @@ def test_io():
         cw.write_to("test_cov.fits", fname_NS="dummy.fits")
     with pytest.raises(ValueError):  # No maps and no spin
         cw.write_to("test_cov.fits", fname_SN="dummy.fits")
+
+
+def test_iNKA_Cls():
+    cl_guess = np.atleast_2d(get_cl_in()[1])
+    fc = get_cat(seed=1234, get_field=True)
+    lmax = fc.ainfo_mask.lmax
+    mp = hp.synfast(cl_guess[0], nside=128)
+    fm = nmt.NmtField(np.ones_like(mp), [mp],
+                      lmax=lmax, lmax_mask=lmax)
+    cl_inka_cc = nmt.get_iNKA_cell(fc, fc, cl_guess=cl_guess)
+    cl_inka_cm = nmt.get_iNKA_cell(fc, fm, cl_guess=cl_guess)
+    cl_inka_mm = nmt.get_iNKA_cell(fm, fm, cl_guess=cl_guess)
+
+    # Test map-map
+    assert np.allclose(cl_inka_mm, cl_guess)
+
+    # Test map-cat and cat-cat
+    b = nmt.NmtBin.from_lmax_linear(lmax=lmax, nlb=10)
+    wcc = nmt.NmtWorkspace.from_fields(fc, fc, b)
+    pcl_cc = wcc.couple_cell(cl_guess)
+    wlm_c = fc.get_mask_alms()
+    theta_ipd = fc.get_theta_ipd()
+    ls = np.arange(lmax+1)
+    phi = np.exp(-0.5*ls*(ls+1)*theta_ipd**2)
+    cl_ww_cc = (hp.alm2cl(wlm_c, wlm_c)-fc._Nw)*phi**2
+    fsky_cc = np.sum((2*ls+1)*cl_ww_cc/(4*np.pi))
+    cl_inka_cc_approx = pcl_cc/fsky_cc
+
+    wcm = nmt.NmtWorkspace.from_fields(fc, fm, b)
+    pcl_cm = wcm.couple_cell(cl_guess)
+    wlm_m = hp.map2alm(np.ones_like(mp), lmax=lmax, mmax=lmax)
+    cl_ww_cm = hp.alm2cl(wlm_c, wlm_m)*phi
+    fsky_cm = np.sum((2*ls+1)*cl_ww_cm/(4*np.pi))
+    cl_inka_cm_approx = pcl_cm/fsky_cm
+    assert np.allclose(cl_inka_cc, cl_inka_cc_approx)
+    assert np.allclose(cl_inka_cm, cl_inka_cm_approx)
 
 
 def test_allsame():
@@ -126,3 +164,23 @@ def test_alldiff():
                     cl23_inka[:, :, None]*cl14_inka[:, None, :]).squeeze()
     cov_mine = (cl_13_24 * xi_13_24 + cl_14_23 * xi_14_23)
     assert np.allclose(cov, cov_mine)
+
+
+def test_cat_map_mixed():
+    cl_guess = np.atleast_2d(get_cl_in()[1])
+    fc = get_cat(seed=1234, get_field=True)
+    lmax = fc.ainfo_mask.lmax
+    # Healpix map
+    mp = hp.synfast(cl_guess[0], nside=128)
+    fm1 = nmt.NmtField(np.ones_like(mp), [mp],
+                       lmax=lmax, lmax_mask=lmax)
+    # Healpix map with a different nside
+    mp = hp.synfast(cl_guess[0], nside=256)
+    fm2 = nmt.NmtField(np.ones_like(mp), [mp],
+                       lmax=lmax, lmax_mask=lmax)
+    nmt.NmtCovarianceWorkspace.from_fields(fc, fm1, fc, fm2)
+    hdul = fits.open("test/benchmarks/car_wrap.fits")
+    wcs = WCS(hdul[0].header)
+    m = hdul[0].data
+    fm3 = nmt.NmtField(m[0], [m[0]], wcs=wcs, lmax=lmax, lmax_mask=lmax)
+    nmt.NmtCovarianceWorkspace.from_fields(fc, fm1, fc, fm3)

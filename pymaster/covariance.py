@@ -31,7 +31,7 @@ def _get_mask_prod_alm(f1, f2):
         else:
             mask_a = fa.get_mask()
             if minfo.is_healpix and fb.minfo.is_healpix:
-                mask_b = hp.ud_grade(fb.get_mask, nside_out=minfo.nside)
+                mask_b = hp.ud_grade(fb.get_mask(), nside_out=minfo.nside)
             else:
                 wlm_b = fb.get_mask_alms()
                 mask_b = ut.alm2map(np.array([wlm_b]), 0,
