@@ -123,7 +123,7 @@ class NmtCovarianceWorkspace(object):
         fname_NN (:obj:`str`): Input file name for the noise-noise
             component of the covariance matrix."""
     def __init__(self, fla1, fla2, flb1=None, flb2=None,
-                 all_spins=True, l_toeplitz=-1, l_exact=-1,
+                 all_spins=False, l_toeplitz=-1, l_exact=-1,
                  dl_band=-1, fname=None, fname_SN=None,
                  fname_NS=None, fname_NN=None):
         self.wsp = None
@@ -154,7 +154,7 @@ class NmtCovarianceWorkspace(object):
 
     @classmethod
     def from_fields(cls, fla1, fla2, flb1=None, flb2=None, *,
-                    all_spins=True, l_toeplitz=-1, l_exact=-1,
+                    all_spins=False, l_toeplitz=-1, l_exact=-1,
                     dl_band=-1):
         """ Creates an :obj:`NmtCovarianceWorkspace` object containing the
         mode-coupling coefficients of the Gaussian covariance
@@ -282,7 +282,7 @@ class NmtCovarianceWorkspace(object):
 
     def _compute_coupling_coefficients(self, fla1, fla2,
                                        flb1, flb2, *,
-                                       all_spins=True,
+                                       all_spins=False,
                                        l_toeplitz=-1,
                                        l_exact=-1, dl_band=-1):
         """ Computes coupling coefficients of the Gaussian covariance

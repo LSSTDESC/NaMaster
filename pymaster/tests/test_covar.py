@@ -196,7 +196,8 @@ def test_workspace_covar_errors():
     cw._compute_coupling_coefficients(CT.f0, CT.f0,
                                       CT.f0, CT.f0)
 
-    cw = nmt.NmtCovarianceWorkspace.from_fields(CT.f0, CT.f0)
+    cw = nmt.NmtCovarianceWorkspace.from_fields(CT.f0, CT.f0,
+                                                all_spins=True)
     # gaussian_covariance
     with pytest.raises(ValueError):  # Wrong number of spins
         cw.gaussian_covariance([CT.cltt], [CT.cltt],
