@@ -4,6 +4,7 @@ import pytest
 import pymaster as nmt
 from astropy.io import fits
 from astropy.wcs import WCS
+import os
 
 
 def get_cl_in(lmax=300):
@@ -75,6 +76,9 @@ def test_io():
         cw.write_to("test_cov.fits", fname_NS="dummy.fits")
     with pytest.raises(ValueError):  # No maps and no spin
         cw.write_to("test_cov.fits", fname_SN="dummy.fits")
+
+    os.system("rm -f test_cov.fits test_cov_NN.fits "
+              "test_cov_SN.fits test_cov_NS.fits")
 
 
 def test_iNKA_Cls():
