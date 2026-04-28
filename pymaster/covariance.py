@@ -116,10 +116,12 @@ class NmtCovarianceWorkspace(object):
         fname (:obj:`str`): Input file name. If not `None`, the values of
             all input fields will be ignored, and all mode-coupling
             coefficients will be read from file.
-        fname_SN TODO
-        fname_NS TODO
-        fname_NN TODO
-    """
+        fname_SN (:obj:`str`): Input file name for the signal-noise
+            component of the covariance matrix.
+        fname_NS (:obj:`str`): Input file name for the noise-signal
+            component of the covariance matrix.
+        fname_NN (:obj:`str`): Input file name for the noise-noise
+            component of the covariance matrix."""
     def __init__(self, fla1, fla2, flb1=None, flb2=None,
                  all_spins=True, l_toeplitz=-1, l_exact=-1,
                  dl_band=-1, fname=None, fname_SN=None,
@@ -205,10 +207,12 @@ class NmtCovarianceWorkspace(object):
 
         Args:
             fname (:obj:`str`): Input file name.
-            fname_SN TODO
-            fname_NS TODO
-            fname_NN TODO
-        """
+        fname_SN (:obj:`str`): Input file name for the signal-noise
+            component of the covariance matrix.
+        fname_NS (:obj:`str`): Input file name for the noise-signal
+            component of the covariance matrix.
+        fname_NN (:obj:`str`): Input file name for the noise-noise
+            component of the covariance matrix."""
         return cls(None, None, fname=fname, fname_SN=fname_SN,
                    fname_NS=fname_NS, fname_NN=fname_NN)
 
@@ -236,10 +240,12 @@ class NmtCovarianceWorkspace(object):
 
         Args:
             fname (:obj:`str`): Input file name.
-            fname_SN TODO
-            fname_NS TODO
-            fname_NN TODO
-        """
+        fname_SN (:obj:`str`): Input file name for the signal-noise
+            component of the covariance matrix.
+        fname_NS (:obj:`str`): Input file name for the noise-signal
+            component of the covariance matrix.
+        fname_NN (:obj:`str`): Input file name for the noise-noise
+            component of the covariance matrix."""
         if self.wsp is not None:
             lib.covar_workspace_free(self.wsp)
             self.wsp = None
@@ -249,24 +255,30 @@ class NmtCovarianceWorkspace(object):
         self.spin_a2 = self.wsp.spin_a2
         self.spin_b1 = self.wsp.spin_b1
         self.spin_b2 = self.wsp.spin_b2
+        self.has_SN = np.array([False, False])
+        self.has_NS = np.array([False, False])
+        self.has_NN = np.array([False, False])
         if fname_SN is not None:
             if self.wsp_SN is not None:
                 lib.covar_workspace_free(self.wsp_SN)
                 self.wsp_SN = None
             self.wsp_SN = lib.read_covar_workspace(fname_SN)
+            self.has_SN = np.array([self.wsp_SN.has_1122 > 0,
+                                    self.wsp_SN.has_1221 > 0])
         if fname_NS is not None:
             if self.wsp_NS is not None:
                 lib.covar_workspace_free(self.wsp_NS)
                 self.wsp_NS = None
             self.wsp_NS = lib.read_covar_workspace(fname_NS)
+            self.has_NS = np.array([self.wsp_NS.has_1122 > 0,
+                                    self.wsp_NS.has_1221 > 0])
         if fname_NN is not None:
             if self.wsp_NN is not None:
                 lib.covar_workspace_free(self.wsp_NN)
                 self.wsp_NN = None
             self.wsp_NN = lib.read_covar_workspace(fname_NN)
-        self.has_SN = np.array([False, False])
-        self.has_NS = np.array([False, False])
-        self.has_NN = np.array([False, False])
+            self.has_NN = np.array([self.wsp_NN.has_1122 > 0,
+                                    self.wsp_NN.has_1221 > 0])
 
     def _compute_coupling_coefficients(self, fla1, fla2,
                                        flb1, flb2, *,
@@ -437,10 +449,12 @@ class NmtCovarianceWorkspace(object):
 
         Args:
             fname (:obj:`str`): Output file name.
-            fname_SN TODO
-            fname_NS TODO
-            fname_NN TODO
-        """
+        fname_SN (:obj:`str`): Input file name for the signal-noise
+            component of the covariance matrix.
+        fname_NS (:obj:`str`): Input file name for the noise-signal
+            component of the covariance matrix.
+        fname_NN (:obj:`str`): Input file name for the noise-noise
+            component of the covariance matrix."""
         lib.write_covar_workspace(self.wsp, "!"+fname)
         if fname_SN is not None:
             if self.wsp_SN is None:
@@ -459,8 +473,7 @@ class NmtCovarianceWorkspace(object):
             lib.write_covar_workspace(self.wsp_NN, "!"+fname_NN)
 
     def gaussian_covariance(self, cla1b1, cla1b2, cla2b1, cla2b2,
-                            wa, wb=None, coupled=False, spins=None,
-                            split=False):
+                            wa, wb=None, coupled=False, spins=None):
         """ Computes the Gaussian covariance matrix for power spectra
         using the information precomputed in this
         :class:`NmtCovarianceWorkspace` object). Let us call the four
@@ -571,7 +584,7 @@ class NmtCovarianceWorkspace(object):
 
             covar_SS = lib.comp_gaussian_covariance_coupled(
                 self.wsp, int(spin_a1), int(spin_a2),
-                int(spin_b1), int(spin_b2), wa.wsp, wb.wsp, 1, 1,
+                int(spin_b1), int(spin_b2), wa.wsp, wb.wsp,
                 cla1b1, cla1b2, cla2b1, cla2b2, len_a * len_b
             )
 
@@ -580,7 +593,6 @@ class NmtCovarianceWorkspace(object):
                 covar_NN = lib.comp_gaussian_covariance_coupled(
                     self.wsp_NN, int(spin_a1), int(spin_a2),
                     int(spin_b1), int(spin_b2), wa.wsp, wb.wsp,
-                    int(self.has_NN[0]), int(self.has_NN[1]),
                     np.ones_like(cla1b1), np.ones_like(cla1b2),
                     np.ones_like(cla2b1), np.ones_like(cla2b2),
                     len_a * len_b)
@@ -588,14 +600,12 @@ class NmtCovarianceWorkspace(object):
                 covar_NS = lib.comp_gaussian_covariance_coupled(
                     self.wsp_NS, int(spin_a1), int(spin_a2),
                     int(spin_b1), int(spin_b2), wa.wsp, wb.wsp,
-                    int(self.has_NS[0]), int(self.has_NS[1]),
                     np.ones_like(cla1b1), np.ones_like(cla1b2),
                     cla2b1, cla2b2, len_a * len_b)
             if self.has_SN.any():
                 covar_SN = lib.comp_gaussian_covariance_coupled(
                     self.wsp_SN, int(spin_a1), int(spin_a2),
                     int(spin_b1), int(spin_b2), wa.wsp, wb.wsp,
-                    int(self.has_SN[0]), int(self.has_SN[1]),
                     cla1b1, cla1b2, np.ones_like(cla2b1),
                     np.ones_like(cla2b2), len_a * len_b)
         else:
@@ -604,7 +614,7 @@ class NmtCovarianceWorkspace(object):
 
             covar_SS = lib.comp_gaussian_covariance(
                 self.wsp, int(spin_a1), int(spin_a2),
-                int(spin_b1), int(spin_b2), wa.wsp, wb.wsp, 1, 1,
+                int(spin_b1), int(spin_b2), wa.wsp, wb.wsp,
                 cla1b1, cla1b2, cla2b1, cla2b2, len_a * len_b
             )
 
@@ -613,7 +623,6 @@ class NmtCovarianceWorkspace(object):
                 covar_NN = lib.comp_gaussian_covariance(
                     self.wsp_NN, int(spin_a1), int(spin_a2),
                     int(spin_b1), int(spin_b2), wa.wsp, wb.wsp,
-                    int(self.has_NN[0]), int(self.has_NN[1]),
                     np.ones_like(cla1b1), np.ones_like(cla1b2),
                     np.ones_like(cla2b1), np.ones_like(cla2b2),
                     len_a * len_b)
@@ -621,25 +630,17 @@ class NmtCovarianceWorkspace(object):
                 covar_NS = lib.comp_gaussian_covariance(
                     self.wsp_NS, int(spin_a1), int(spin_a2),
                     int(spin_b1), int(spin_b2), wa.wsp, wb.wsp,
-                    int(self.has_NS[0]), int(self.has_NS[1]),
                     np.ones_like(cla1b1), np.ones_like(cla1b2),
                     cla2b1, cla2b2, len_a * len_b)
             if self.has_SN.any():
                 covar_SN = lib.comp_gaussian_covariance(
                     self.wsp_SN, int(spin_a1), int(spin_a2),
                     int(spin_b1), int(spin_b2), wa.wsp, wb.wsp,
-                    int(self.has_SN[0]), int(self.has_SN[1]),
                     cla1b1, cla1b2, np.ones_like(cla2b1),
                     np.ones_like(cla2b2), len_a * len_b)
 
-        if split:
-            return (covar_SS.reshape([len_a, len_b]),
-                    covar_SN.reshape([len_a, len_b]),
-                    covar_NS.reshape([len_a, len_b]),
-                    covar_NN.reshape([len_a, len_b]))
-        else:
-            covar = covar_SS+covar_SN+covar_NS+covar_NN
-            return covar.reshape([len_a, len_b])
+        covar = covar_SS+covar_SN+covar_NS+covar_NN
+        return covar.reshape([len_a, len_b])
 
 
 class NmtCovarianceWorkspaceFlat(object):

@@ -20,6 +20,8 @@ nmt_covar_workspace *nmt_covar_workspace_init(int spin_a1, int spin_a2,
   cw->spin_a2=spin_a2;
   cw->spin_b1=spin_b1;
   cw->spin_b2=spin_b2;
+  cw->has_1122=has_1122;
+  cw->has_1221=has_1221;
   cw->xi00_1122=NULL;
   cw->xi00_1221=NULL;
   cw->xi02_1122=NULL;
@@ -313,7 +315,6 @@ double _pick_xi(nmt_covar_workspace *cw,
 void  nmt_compute_gaussian_covariance_coupled(nmt_covar_workspace *cw,
 					      int spin_a,int spin_b,int spin_c,int spin_d,
                                               nmt_workspace *wa,nmt_workspace *wb,
-					      int has_1122, int has_1221,
                                               flouble **clac,flouble **clad,
                                               flouble **clbc,flouble **clbd,
                                               flouble *covar_out)
@@ -345,8 +346,7 @@ void  nmt_compute_gaussian_covariance_coupled(nmt_covar_workspace *cw,
 
 #pragma omp parallel default(none)			\
   shared(cw,wa,wb,clac,clad,clbc,clbd)			\
-  shared(nmaps_a,nmaps_b,nmaps_c,nmaps_d,covar_out)	\
-  shared(has_1122,has_1221)
+  shared(nmaps_a,nmaps_b,nmaps_c,nmaps_d,covar_out)
   {
     int la;
 
@@ -377,13 +377,13 @@ void  nmt_compute_gaussian_covariance_coupled(nmt_covar_workspace *cw,
 			double *cl_ad=clad[idp+nmaps_d*iap];
 			double *cl_bc=clbc[icp+nmaps_c*ibp];
 			double *cl_bd=clbd[idp+nmaps_d*ibp];
-			if(has_1122) {
+			if(cw->has_1122) {
 			  double fac_1122=0.5*(cl_ac[la]*cl_bd[lb]+cl_ac[lb]*cl_bd[la]);
 			  int ind_1122=cov_get_coupling_pair_index(nmaps_a,nmaps_c,nmaps_b,nmaps_d,
 								   ia,iap,ic,icp,ib,ibp,id,idp);
 			  cov_element+=_pick_xi(cw, ind_1122, 1, la, lb)*fac_1122;
 			}
-			if(has_1221) {
+			if(cw->has_1221) {
 			  double fac_1221=0.5*(cl_ad[la]*cl_bc[lb]+cl_ad[lb]*cl_bc[la]);
 			  int ind_1221=cov_get_coupling_pair_index(nmaps_a,nmaps_d,nmaps_b,nmaps_c,
 								   ia,iap,id,idp,ib,ibp,ic,icp);
@@ -406,7 +406,6 @@ void  nmt_compute_gaussian_covariance_coupled(nmt_covar_workspace *cw,
 void  nmt_compute_gaussian_covariance(nmt_covar_workspace *cw,
 				      int spin_a,int spin_b,int spin_c,int spin_d,
 				      nmt_workspace *wa,nmt_workspace *wb,
-				      int has_1122, int has_1221,
 				      flouble **clac,flouble **clad,
 				      flouble **clbc,flouble **clbd,
 				      flouble *covar_out)
@@ -414,8 +413,7 @@ void  nmt_compute_gaussian_covariance(nmt_covar_workspace *cw,
   flouble *covar_coupled=my_malloc(((cw->lmax+1)*wa->ncls*(cw->lmax+1)*wb->ncls)*sizeof(flouble));
 
   nmt_compute_gaussian_covariance_coupled(cw, spin_a, spin_b, spin_c, spin_d,
-					  wa, wb, has_1122, has_1221,
-					  clac, clad, clbc, clbd,
+					  wa, wb, clac, clad, clbc, clbd,
 					  covar_coupled);
   int sa, sb, sc, sd;
   if(cw->all_spins) {

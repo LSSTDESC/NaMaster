@@ -943,6 +943,8 @@ typedef struct {
   int spin_a2;
   int spin_b1;
   int spin_b2;
+  int has_1122;
+  int has_1221;
   flouble **xi00_1122; //!< First (a1b1-a2b2), 00, mode coupling matrix (see scientific documentation)
   flouble **xi00_1221; //!< Second (a1b2-a2b1), 00, mode coupling matrix (see scientific documentation)
   flouble **xi02_1122; //!< First (a1b1-a2b2), 02, mode coupling matrix (see scientific documentation)
@@ -988,7 +990,6 @@ nmt_covar_workspace *nmt_covar_workspace_init(int spin_a1, int spin_a2,
 void  nmt_compute_gaussian_covariance(nmt_covar_workspace *cw,
 				      int spin_a,int spin_b,int spin_c,int spin_d,
 				      nmt_workspace *wa,nmt_workspace *wb,
-				      int has_1122, int has_1221,
 				      flouble **clac,flouble **clad,
 				      flouble **clbc,flouble **clbd,
 				      flouble *covar_out);
@@ -1017,7 +1018,6 @@ void  nmt_compute_gaussian_covariance(nmt_covar_workspace *cw,
 void  nmt_compute_gaussian_covariance_coupled(nmt_covar_workspace *cw,
 					      int spin_a,int spin_b,int spin_c,int spin_d,
                                               nmt_workspace *wa,nmt_workspace *wb,
-					      int has_1122, int has_1221,
                                               flouble **clac,flouble **clad,
                                               flouble **clbc,flouble **clbd,
                                               flouble *covar_out);

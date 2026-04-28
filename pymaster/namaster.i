@@ -622,7 +622,6 @@ nmt_covar_workspace_flat *covar_workspace_flat_init_py(nmt_field_flat *fa1,nmt_f
 void comp_gaussian_covariance(nmt_covar_workspace *cw,
 			      int spin_a1, int spin_a2, int spin_b1, int spin_b2,
 			      nmt_workspace *wa,nmt_workspace *wb,
-			      int has_1122, int has_1221,
 			      int ncl11,int nell11,double *c11,
 			      int ncl12,int nell12,double *c12,
 			      int ncl21,int nell21,double *c21,
@@ -647,15 +646,13 @@ void comp_gaussian_covariance(nmt_covar_workspace *cw,
     c22p[i]=&(c22[i*nell22]);
   nmt_compute_gaussian_covariance(cw,
 				  spin_a1, spin_a2, spin_b1, spin_b2,
-				  wa,wb,has_1122,has_1221,
-				  c11p,c12p,c21p,c22p,dout);
+				  wa,wb,c11p,c12p,c21p,c22p,dout);
   free(c11p); free(c12p); free(c21p); free(c22p);
 }
 
 void comp_gaussian_covariance_coupled(nmt_covar_workspace *cw,
 				      int spin_a1, int spin_a2, int spin_b1, int spin_b2,
                                       nmt_workspace *wa,nmt_workspace *wb,
-				      int has_1122, int has_1221,
                                       int ncl11,int nell11,double *c11,
                                       int ncl12,int nell12,double *c12,
                                       int ncl21,int nell21,double *c21,
@@ -680,8 +677,7 @@ void comp_gaussian_covariance_coupled(nmt_covar_workspace *cw,
     c22p[i]=&(c22[i*nell22]);
   nmt_compute_gaussian_covariance_coupled(cw,
 					  spin_a1, spin_a2, spin_b1, spin_b2,
-					  wa,wb,has_1122,has_1221,
-                                          c11p,c12p,c21p,c22p,dout);
+					  wa,wb,c11p,c12p,c21p,c22p,dout);
   free(c11p); free(c12p); free(c21p); free(c22p);
 }
 
