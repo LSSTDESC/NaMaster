@@ -1124,7 +1124,7 @@ class NmtFieldCatalog(NmtField):
         return np.exp(-0.5*th_ipd**2*ls*(ls+1))
 
     def get_catalog_variance_alm(self):
-        """ Creates :math:`a_{\\ell m}`_s for a map of the local field
+        """ Creates :math:`a_{\\ell m}` s for a map of the local field
         variance from this catalog's positions and field value.
 
         Returns:
