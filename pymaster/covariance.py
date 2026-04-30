@@ -377,9 +377,9 @@ class NmtCovarianceWorkspace(object):
         n11_lm = None
         n22_lm = None
 
-        if (fla1 is flb1) or (fla1 is flb2) and _is_catalog(fla1):
+        if ((fla1 is flb1) or (fla1 is flb2)) and _is_catalog(fla1):
             n11_lm = fla1.get_catalog_variance_alm()
-        if (fla2 is flb1) or (fla2 is flb2) and _is_catalog(fla2):
+        if ((fla2 is flb1) or (fla2 is flb2)) and _is_catalog(fla2):
             if (n11_lm is not None) and (fla2 is fla1):
                 n22_lm = n11_lm
             else:
