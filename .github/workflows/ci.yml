@@ -130,6 +130,7 @@ jobs:
           pytest -vv pymaster --cov=pymaster
 
       - name: coveralls
+        if: matrix.label == 'linux-64'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
