@@ -28,18 +28,19 @@ def test_field_catalog_ipd():
     thetas = np.arccos(-1 + 2*np.random.rand(ncat))
     w = np.ones(ncat)
     lmax = 100
-    f1 = nmt.NmtFieldCatalog(np.array([thetas, phis]), w, w, lmax)
+    f1 = nmt.NmtFieldCatalog(np.array([thetas, phis]), w, w, lmax,
+                             retain_catalog=True)
     f2 = nmt.NmtFieldCatalogClustering(np.array([thetas, phis]), w,
                                        np.array([thetas, phis]), w,
-                                       lmax)
+                                       lmax, retain_catalog=True)
     f3 = nmt.NmtFieldCatalogMomentum(np.array([thetas, phis]), w, w,
                                      np.array([thetas, phis]), w,
-                                     lmax)
+                                     lmax, retain_catalog=True)
     theta_ipd_naive = np.sqrt(4*np.pi/ncat)
 
     # Check that they agree to within 10%
     for f in [f1, f2, f3]:
-        assert np.fabs(f.theta_ipd/theta_ipd_naive-1) < 0.1
+        assert np.fabs(f.get_theta_ipd()/theta_ipd_naive-1) < 0.1
 
 
 def test_field_catalog_compatibility():
@@ -54,25 +55,25 @@ def test_field_catalog_compatibility():
     f_rand = np.random.rand(ncat)*0.1 + 1
     f0 = nmt.NmtFieldCatalog(p, w, f[0], lmax)
     f1 = nmt.NmtFieldCatalog(p, w, f_rand, lmax)
-    assert f0.is_compatible(f1)
+    assert f0.is_compatible(f1, strict=False)
 
     # Different positions
     p1 = np.array([np.random.permutation(p[0]), p[1]])
     f1 = nmt.NmtFieldCatalog(p1, w, f_rand, lmax)
-    assert f0.is_compatible(f1)
+    assert f0.is_compatible(f1, strict=False)
 
     # Different weights
     w_rand = np.random.rand(ncat)*0.1 + 1
     f1 = nmt.NmtFieldCatalog(p, w_rand, f_rand, lmax)
-    assert f0.is_compatible(f1)
+    assert f0.is_compatible(f1, strict=False)
 
     # Different lmax
     f1 = nmt.NmtFieldCatalog(p, w_rand, f_rand, lmax=111)
-    assert not f0.is_compatible(f1)
+    assert not f0.is_compatible(f1, strict=False)
 
     # Different lmax_mask
     f1 = nmt.NmtFieldCatalog(p, w_rand, f_rand, lmax, lmax_mask=300)
-    assert not f0.is_compatible(f1)
+    assert not f0.is_compatible(f1, strict=False)
 
 
 def test_field_catalog_init():
@@ -336,6 +337,51 @@ def test_field_catalog_errors():
                                       None, None, lmax=10,
                                       mask=np.ones(12*2**2),
                                       templates=np.ones([1, 12*4**2]))
+
+    with pytest.raises(ValueError):  # Can't retain catalog without field
+        nmt.NmtFieldCatalog(  # Check spin
+            [[0., 0.], [1., 1.]], [1., 1.], None, 10, spin=2,
+            retain_catalog=True
+        )
+
+    f = nmt.NmtFieldCatalog(  # Check spin
+        [[0., 0.], [1., 1.]], [1., 1.], [[0., 0.], [1., 1.]], 10, spin=2
+    )
+    with pytest.raises(ValueError):  # Need to retain catalog to get ipd
+        f.get_theta_ipd()
+    with pytest.raises(ValueError):  # Need to retain catalog to get ipd
+        f.get_catalog_variance_alm()
+
+
+def test_field_catalog_clustering_masks():
+    np.random.seed(1234)
+    nside = 128
+    npix = hp.nside2npix(nside)
+    lmax = 3*nside - 1
+
+    pos = np.array([np.arccos(-1+2*np.random.rand(4*npix)),
+                    2*np.pi*np.random.rand(4*npix)])
+    w = np.ones(4*npix)
+    mask = np.ones(npix)
+
+    # Field with mask
+    fm = nmt.NmtFieldCatalogClustering(pos, w, None, None,
+                                       lmax=lmax, mask=mask,
+                                       retain_catalog=True)
+    # Field with randoms
+    fc = nmt.NmtFieldCatalogClustering(pos, w, pos, w,
+                                       lmax=lmax,
+                                       retain_catalog=True)
+
+    # Check variance alms for randoms
+    var_alm_m = fm.get_catalog_variance_alm()
+    var_alm_c = fc.get_catalog_variance_alm()
+    clwm = hp.alm2cl(var_alm_m)
+    clwc = hp.alm2cl(var_alm_c)
+    assert np.allclose(clwm*fm._alpha**4*4, clwc)
+
+    assert fm.get_catalog_mask_map() is None
+    assert fm.get_catalog_mask_squared_map() is None
 
 
 def test_field_catalog_clustering_poisson():

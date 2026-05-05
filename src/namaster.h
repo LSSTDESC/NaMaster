@@ -943,6 +943,8 @@ typedef struct {
   int spin_a2;
   int spin_b1;
   int spin_b2;
+  int has_1122;
+  int has_1221;
   flouble **xi00_1122; //!< First (a1b1-a2b2), 00, mode coupling matrix (see scientific documentation)
   flouble **xi00_1221; //!< Second (a1b2-a2b1), 00, mode coupling matrix (see scientific documentation)
   flouble **xi02_1122; //!< First (a1b1-a2b2), 02, mode coupling matrix (see scientific documentation)
@@ -958,6 +960,7 @@ void nmt_covar_workspace_free(nmt_covar_workspace *cw);
 nmt_covar_workspace *nmt_covar_workspace_init(int spin_a1, int spin_a2,
 					      int spin_b1, int spin_b2,
 					      int all_spins, int auto_any,
+					      int has_1122, int has_1221,
 					      flouble *cl_masks_11_22,
 					      flouble *cl_masks_12_21,
 					      int lmax,int lmax_mask,
