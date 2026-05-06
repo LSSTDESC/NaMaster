@@ -494,6 +494,7 @@ flouble he_map_dot(long nside,flouble *mp1,flouble *mp2);
 
 int cov_get_coupling_pair_index(int na,int nc,int nb,int nd,
 				int ia1,int ia2,int ic1,int ic2,
-				int ib1,int ib2,int id1,int id2);
+				int ib1,int ib2,int id1,int id2,
+				int is_noise_ac, int is_noise_bd);
 
 #endif //_NM_UTILS_

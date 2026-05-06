@@ -394,8 +394,34 @@ static const int covar_indices[16]={IND_COV_P   ,IND_COV_MM  ,IND_COV_MP  ,IND_C
 				    IND_COV_MM  ,IND_COV_ZERO,IND_COV_P   ,IND_COV_MM  ,
 				    IND_COV_ZERO,IND_COV_MM  ,IND_COV_MP  ,IND_COV_P};
 
-static int cov_get_coupling_index(int nma,int nmb,int ia1,int ib1,int ia2,int ib2)
+static int cov_get_coupling_index_noise(int nma, int nmb, int ia, int ib, int icl_other)
 {
+  // Return zero for any noise combination where the second C_ell is not EE (arbitrary)
+  if(icl_other>0)
+    return IND_COV_ZERO;
+
+  if((nma==1) && (nmb==1))
+    return IND_COV_0;  // TT
+  if((nma==2) && (nmb==2)) {
+    int icl=ib+2*ia;
+    if(icl==0)
+      return IND_COV_P;  // EE
+    else if(icl==1)
+      return IND_COV_MP;  // EB
+    else if(icl==2)
+      return IND_COV_MM;  // BE
+    else if(icl==3)
+      return IND_COV_P;  // BB
+  }
+  return IND_COV_ZERO;
+}
+
+static int cov_get_coupling_index(int nma,int nmb,int ia1,int ib1,int ia2,int ib2,
+				  int is_noise_ab)
+{
+  if(is_noise_ab)
+    return cov_get_coupling_index_noise(nma, nmb, ia1, ib1, ib2+nmb*ia2);
+
   if(nma==1) {
     if(nmb==1) //TT,TT
       return IND_COV_0;
@@ -424,10 +450,11 @@ static int cov_get_coupling_index(int nma,int nmb,int ia1,int ib1,int ia2,int ib
 
 int cov_get_coupling_pair_index(int na,int nc,int nb,int nd,
 				int ia1,int ia2,int ic1,int ic2,
-				int ib1,int ib2,int id1,int id2)
+				int ib1,int ib2,int id1,int id2,
+				int is_noise_ac, int is_noise_bd)
 {
-  int ind1=cov_get_coupling_index(na,nc,ia1,ic1,ia2,ic2);
-  int ind2=cov_get_coupling_index(nb,nd,ib1,id1,ib2,id2);
+  int ind1=cov_get_coupling_index(na,nc,ia1,ic1,ia2,ic2,is_noise_ac);
+  int ind2=cov_get_coupling_index(nb,nd,ib1,id1,ib2,id2,is_noise_bd);
   
   if((ind1==IND_COV_0) && (ind2==IND_COV_0))
     return IND_COV_00;

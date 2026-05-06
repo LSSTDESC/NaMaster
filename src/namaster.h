@@ -992,6 +992,8 @@ void  nmt_compute_gaussian_covariance(nmt_covar_workspace *cw,
 				      nmt_workspace *wa,nmt_workspace *wb,
 				      flouble **clac,flouble **clad,
 				      flouble **clbc,flouble **clbd,
+				      int is_ac_noise,int is_ad_noise,
+				      int is_bc_noise,int is_bd_noise,
 				      flouble *covar_out);
 
 /**
@@ -1020,6 +1022,8 @@ void  nmt_compute_gaussian_covariance_coupled(nmt_covar_workspace *cw,
                                               nmt_workspace *wa,nmt_workspace *wb,
                                               flouble **clac,flouble **clad,
                                               flouble **clbc,flouble **clbd,
+					      int is_ac_noise,int is_ad_noise,
+					      int is_bc_noise,int is_bd_noise,
                                               flouble *covar_out);
 
 /**

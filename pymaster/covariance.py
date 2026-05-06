@@ -585,7 +585,8 @@ class NmtCovarianceWorkspace(object):
             covar_SS = lib.comp_gaussian_covariance_coupled(
                 self.wsp, int(spin_a1), int(spin_a2),
                 int(spin_b1), int(spin_b2), wa.wsp, wb.wsp,
-                cla1b1, cla1b2, cla2b1, cla2b2, len_a * len_b
+                cla1b1, cla1b2, cla2b1, cla2b2, 0, 0, 0, 0,
+                len_a * len_b
             )
 
             covar_NN = covar_NS = covar_SN = np.zeros_like(covar_SS)
@@ -595,19 +596,20 @@ class NmtCovarianceWorkspace(object):
                     int(spin_b1), int(spin_b2), wa.wsp, wb.wsp,
                     np.ones_like(cla1b1), np.ones_like(cla1b2),
                     np.ones_like(cla2b1), np.ones_like(cla2b2),
-                    len_a * len_b)
+                    1, 1, 1, 1, len_a * len_b)
             if self.has_NS.any():
                 covar_NS = lib.comp_gaussian_covariance_coupled(
                     self.wsp_NS, int(spin_a1), int(spin_a2),
                     int(spin_b1), int(spin_b2), wa.wsp, wb.wsp,
                     np.ones_like(cla1b1), np.ones_like(cla1b2),
-                    cla2b1, cla2b2, len_a * len_b)
+                    cla2b1, cla2b2, 1, 1, 0, 0, len_a * len_b)
             if self.has_SN.any():
                 covar_SN = lib.comp_gaussian_covariance_coupled(
                     self.wsp_SN, int(spin_a1), int(spin_a2),
                     int(spin_b1), int(spin_b2), wa.wsp, wb.wsp,
                     cla1b1, cla1b2, np.ones_like(cla2b1),
-                    np.ones_like(cla2b2), len_a * len_b)
+                    np.ones_like(cla2b2), 0, 0, 1, 1,
+                    len_a * len_b)
         else:
             len_a = wa.wsp.ncls * wa.wsp.bin.n_bands
             len_b = wb.wsp.ncls * wb.wsp.bin.n_bands
@@ -615,7 +617,8 @@ class NmtCovarianceWorkspace(object):
             covar_SS = lib.comp_gaussian_covariance(
                 self.wsp, int(spin_a1), int(spin_a2),
                 int(spin_b1), int(spin_b2), wa.wsp, wb.wsp,
-                cla1b1, cla1b2, cla2b1, cla2b2, len_a * len_b
+                cla1b1, cla1b2, cla2b1, cla2b2, 0, 0, 0, 0,
+                len_a * len_b
             )
 
             covar_NN = covar_NS = covar_SN = np.zeros_like(covar_SS)
@@ -625,19 +628,20 @@ class NmtCovarianceWorkspace(object):
                     int(spin_b1), int(spin_b2), wa.wsp, wb.wsp,
                     np.ones_like(cla1b1), np.ones_like(cla1b2),
                     np.ones_like(cla2b1), np.ones_like(cla2b2),
-                    len_a * len_b)
+                    1, 1, 1, 1, len_a * len_b)
             if self.has_NS.any():
                 covar_NS = lib.comp_gaussian_covariance(
                     self.wsp_NS, int(spin_a1), int(spin_a2),
                     int(spin_b1), int(spin_b2), wa.wsp, wb.wsp,
                     np.ones_like(cla1b1), np.ones_like(cla1b2),
-                    cla2b1, cla2b2, len_a * len_b)
+                    cla2b1, cla2b2, 1, 1, 0, 0, len_a * len_b)
             if self.has_SN.any():
                 covar_SN = lib.comp_gaussian_covariance(
                     self.wsp_SN, int(spin_a1), int(spin_a2),
                     int(spin_b1), int(spin_b2), wa.wsp, wb.wsp,
                     cla1b1, cla1b2, np.ones_like(cla2b1),
-                    np.ones_like(cla2b2), len_a * len_b)
+                    np.ones_like(cla2b2), 0, 0, 1, 1,
+                    len_a * len_b)
 
         covar = covar_SS+covar_SN+covar_NS+covar_NN
         return covar.reshape([len_a, len_b])
