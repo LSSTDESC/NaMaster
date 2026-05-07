@@ -760,6 +760,7 @@ void nmt_compute_general_coupling_matrix(int lmax,
 					 flouble *pcl_mask,
 					 int s1, int s2,
 					 int n1, int n2,
+					 int parity,
 					 flouble *xi_out);
 
 nmt_workspace *nmt_compute_coupling_matrix(int spin1,int spin2,
