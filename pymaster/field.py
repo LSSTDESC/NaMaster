@@ -962,7 +962,7 @@ class NmtFieldCatalog(NmtField):
         self._alpha = None
         self.is_catalog = True
         self.nside_ipd = nside_ipd
-        self.theta_ipd = None
+        self.theta_cloud = None
 
         # The remaining attributes are only required for non-lite maps
         self.maps = None
@@ -1080,14 +1080,18 @@ class NmtFieldCatalog(NmtField):
             if templates is not None:
                 self.temp = templates
 
-    def get_theta_ipd(self):
-        """ Returns the median inter-particle distance for this
-        catalog. Only possible for fields created with
+    def get_theta_cloud(self):
+        """ Returns the size of the Gaussian "cloud" that sources will be
+        replaced by when estimating covariance matrices involving catalog-based
+        fields. The size of the cloud is determined as a compromise between
+        the scale corresponding to the median inter-particle distance and the
+        scale corresponding to the maximum multipole used to treat the mask
+        (``lmax_mask`` when initialising the field). Uses data source catalog
+        if no randoms are available. Only possible for fields created with
         `retain_catalog = True`.
-        Uses data source catalog if no randoms are available.
 
         Returns:
-            (:obj:`float`): median inter-particle distance in radians.
+            (:obj:`float`): Gaussian cloud size in radians.
         """
         if self.lite:
             raise ValueError("Cannot compute inter-particle distance for "
@@ -1097,21 +1101,25 @@ class NmtFieldCatalog(NmtField):
         if self.pos_r is not None:
             pos, weights = (self.pos_r, self.weights_r)
 
-        if self.theta_ipd is None:
+        if self.theta_cloud is None:
             nsrc = len(weights)
             p = int(0.5*np.log2(0.5*nsrc))
             p = min(4, max(p, 0))  # Nside should be between 1 and 6
             nside = int(2**p)
-            self.theta_ipd = _get_theta_ipd(pos, weights, nside)
-        return self.theta_ipd
+            theta_ipd = _get_theta_ipd(pos, weights, nside)
+            theta_ell = np.pi/self.ainfo_mask.lmax
+            self.theta_cloud = np.sqrt(theta_ipd**2+theta_ell**2)
+        return self.theta_cloud
 
-    def get_ipd_kernel(self, lmax):
+    def get_cloud_kernel(self, lmax):
         """ Calculate the harmonic-space smoothing kernel associated
-        with this catalog's median inter-particle distance. This is
-        needed for the calculation of Gaussian covariances, and is only
-        possible for fields created with `retain_catalog = True`. The
+        with this catalog's Gaussian cloud size. This is needed for the
+        calculation of Gaussian covariances, and is only possible for
+        fields created with `retain_catalog = True`. The
         kernel is an approximate Gaussian with standard deviation given
-        by the median inter-particle distance.
+        by a compromise between the median inter-particle distance and
+        the smallest harmonic-space scale used to describe the
+        mask (``lmax_mask`` when initialising the field).
 
         Args:
             lmax (:obj:`int`): maximum multipole up to which the kernel
@@ -1119,9 +1127,9 @@ class NmtFieldCatalog(NmtField):
         Returns:
             (`array`): the kernel sampled at all integer ells ``< lmax``.
         """
-        th_ipd = self.get_theta_ipd()
+        th_cloud = self.get_theta_cloud()
         ls = np.arange(lmax+1)
-        return np.exp(-0.5*th_ipd**2*ls*(ls+1))
+        return np.exp(-0.5*th_cloud**2*ls*(ls+1))
 
     def get_catalog_variance_alm(self):
         """ Creates :math:`a_{\\ell m}` s for a map of the local field
@@ -1166,7 +1174,7 @@ class NmtFieldCatalog(NmtField):
         nside = int(2**p)
         assert lmax <= 3*nside
         # Smooth alms
-        phi_l = self.get_ipd_kernel(lmax)
+        phi_l = self.get_cloud_kernel(lmax)
         wlm = self.get_mask_alms()
         wlm = hp.almxfl(wlm, phi_l)
         # To map
@@ -1189,7 +1197,7 @@ class NmtFieldCatalog(NmtField):
         """
         if self.mask is not None:
             return None
-        th_ipd = self.get_theta_ipd()
+        th_cloud = self.get_theta_cloud()
         lmax = self.ainfo_mask.lmax
         # Nside associated with lmax
         p = int(np.ceil(np.log2(lmax/3.0)))
@@ -1197,7 +1205,7 @@ class NmtFieldCatalog(NmtField):
         assert lmax <= 3*nside
         # Compute alms of squared mask and smooth them
         ls = np.arange(lmax+1)
-        phi_l = np.exp(-0.25*th_ipd**2*ls*(ls+1)) / (4*np.pi*th_ipd**2)
+        phi_l = np.exp(-0.25*th_cloud**2*ls*(ls+1)) / (4*np.pi*th_cloud**2)
         wlm = ut._catalog2alm_ducc0(self.weights_r**2,
                                     self.pos_r,
                                     spin=0, lmax=lmax)[0]
@@ -1412,7 +1420,7 @@ class NmtFieldCatalogMomentum(NmtFieldCatalog):
         self._alpha = 0
         self.is_catalog = True
         self.nside_ipd = nside_ipd
-        self.theta_ipd = None
+        self.theta_cloud = None
 
         # These attributes only required if templates provided for deprojection
         self.maps = None

@@ -40,7 +40,10 @@ def test_field_catalog_ipd():
 
     # Check that they agree to within 10%
     for f in [f1, f2, f3]:
-        assert np.fabs(f.get_theta_ipd()/theta_ipd_naive-1) < 0.1
+        theta_cloud = f.get_theta_cloud()
+        theta_lmax = np.pi/f.ainfo_mask.lmax
+        theta_ipd_field = np.sqrt(theta_cloud**2-theta_lmax**2)
+        assert np.fabs(theta_ipd_field/theta_ipd_naive-1) < 0.1
 
 
 def test_field_catalog_compatibility():
@@ -348,7 +351,7 @@ def test_field_catalog_errors():
         [[0., 0.], [1., 1.]], [1., 1.], [[0., 0.], [1., 1.]], 10, spin=2
     )
     with pytest.raises(ValueError):  # Need to retain catalog to get ipd
-        f.get_theta_ipd()
+        f.get_theta_cloud()
     with pytest.raises(ValueError):  # Need to retain catalog to get ipd
         f.get_catalog_variance_alm()
 

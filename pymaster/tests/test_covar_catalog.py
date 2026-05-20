@@ -100,9 +100,9 @@ def test_iNKA_Cls():
     wcc = nmt.NmtWorkspace.from_fields(fc, fc, b)
     pcl_cc = wcc.couple_cell(cl_guess)
     wlm_c = fc.get_mask_alms()
-    theta_ipd = fc.get_theta_ipd()
+    theta_cloud = fc.get_theta_cloud()
     ls = np.arange(lmax+1)
-    phi = np.exp(-0.5*ls*(ls+1)*theta_ipd**2)
+    phi = np.exp(-0.5*ls*(ls+1)*theta_cloud**2)
     cl_ww_cc = (hp.alm2cl(wlm_c, wlm_c)-fc._Nw)*phi**2
     fsky_cc = np.sum((2*ls+1)*cl_ww_cc/(4*np.pi))
     cl_inka_cc_approx = pcl_cc/fsky_cc
@@ -151,7 +151,7 @@ def test_alldiff():
     lmax = f1.ainfo_mask.lmax
     ls = np.arange(lmax+1)
     wlms = [hp.almxfl(f.get_mask_alms(),
-                      np.exp(-0.5*ls*(ls+1)*f.get_theta_ipd()**2))
+                      np.exp(-0.5*ls*(ls+1)*f.get_theta_cloud()**2))
             for f in [f1, f2, f3, f4]]
     wmaps = [hp.alm2map(wlm, nside=128) for wlm in wlms]
     cl_w13_w24 = hp.alm2cl(hp.map2alm(wmaps[0]*wmaps[2], lmax=lmax, mmax=lmax),
