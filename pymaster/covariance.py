@@ -396,7 +396,7 @@ class NmtCovarianceWorkspace(object):
                 pcl_mask_N11_N22 = hp.alm2cl(n11_lm, n22_lm, lmax=lmx)
                 if fla1 is fla2 and not fla1.is_clustering:
                     # Correct the four-point cumulant
-                    prefac = 2/((2+fla1.nmaps)*4*np.pi)
+                    prefac = 1/(4*np.pi)
                     corr_noise = prefac * np.sum(
                         (np.sum(fla1.field**2,
                                 axis=0)/fla1.nmaps)**2
@@ -416,7 +416,7 @@ class NmtCovarianceWorkspace(object):
                 pcl_mask_N12_N21 = hp.alm2cl(n11_lm, n22_lm, lmax=lmx)
                 if fla1 is fla2 and not fla1.is_clustering:
                     # Correct the four-point cumulant
-                    prefac = 2/((2+fla1.nmaps)*4*np.pi)
+                    prefac = 1/(4*np.pi)
                     corr_noise = prefac * np.sum(
                         (np.sum(fla1.field**2,
                                 axis=0)/fla1.nmaps)**2
