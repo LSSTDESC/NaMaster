@@ -1,6 +1,119 @@
 #include "config.h"
 #include "utils.h"
 
+
+nmt_covar_workspace *nmt_covar_workspace_init_from_couplings(int spin_a1, int spin_a2,
+							     int spin_b1, int spin_b2,
+							     int all_spins,
+							     int lmax, int lmax_mask,
+							     flouble *xi00_1122,
+							     flouble *xi00_1221,
+							     flouble *xi02_1122,
+							     flouble *xi02_1221,
+							     flouble *xi22p_1122,
+							     flouble *xi22p_1221,
+							     flouble *xi22m_1122,
+							     flouble *xi22m_1221)
+{
+  int ii;
+  nmt_covar_workspace *cw=my_malloc(sizeof(nmt_covar_workspace));
+  cw->lmax=lmax;
+  cw->lmax_mask=lmax_mask;
+  cw->all_spins=all_spins;
+  cw->spin_a1=spin_a1;
+  cw->spin_a2=spin_a2;
+  cw->spin_b1=spin_b1;
+  cw->spin_b2=spin_b2;
+  cw->xi00_1122=NULL;
+  cw->xi00_1221=NULL;
+  cw->xi02_1122=NULL;
+  cw->xi02_1221=NULL;
+  cw->xi22p_1122=NULL;
+  cw->xi22p_1221=NULL;
+  cw->xi22m_1122=NULL;
+  cw->xi22m_1221=NULL;
+  cw->has_1122=0;
+  cw->has_1221=0;
+							     
+  if(xi00_1122!=NULL) {
+    cw->has_1122=1;
+    cw->xi00_1122=my_malloc((lmax+1)*sizeof(flouble *));
+    for(ii=0;ii<=lmax;ii++) {
+      cw->xi00_1122[ii]=my_malloc((lmax+1)*sizeof(flouble));
+      memcpy(cw->xi00_1122[ii],&(xi00_1122[ii*(lmax+1)]),
+	     (lmax+1)*sizeof(flouble));
+    }
+  }
+  if(xi00_1221!=NULL) {
+    cw->has_1221=1;
+    cw->xi00_1221=my_malloc((lmax+1)*sizeof(flouble *));
+    for(ii=0;ii<=lmax;ii++) {
+      cw->xi00_1221[ii]=my_malloc((lmax+1)*sizeof(flouble));
+      memcpy(cw->xi00_1221[ii],&(xi00_1221[ii*(lmax+1)]),
+	     (lmax+1)*sizeof(flouble));
+    }
+  }
+							     
+  if(xi02_1122!=NULL) {
+    cw->has_1122=1;
+    cw->xi02_1122=my_malloc((lmax+1)*sizeof(flouble *));
+    for(ii=0;ii<=lmax;ii++) {
+      cw->xi02_1122[ii]=my_malloc((lmax+1)*sizeof(flouble));
+      memcpy(cw->xi02_1122[ii],&(xi02_1122[ii*(lmax+1)]),
+	     (lmax+1)*sizeof(flouble));
+    }
+  }
+  if(xi02_1221!=NULL) {
+    cw->has_1221=1;
+    cw->xi02_1221=my_malloc((lmax+1)*sizeof(flouble *));
+    for(ii=0;ii<=lmax;ii++) {
+      cw->xi02_1221[ii]=my_malloc((lmax+1)*sizeof(flouble));
+      memcpy(cw->xi02_1221[ii],&(xi02_1221[ii*(lmax+1)]),
+	     (lmax+1)*sizeof(flouble));
+    }
+  }
+							     
+  if(xi22p_1122!=NULL) {
+    cw->has_1122=1;
+    cw->xi22p_1122=my_malloc((lmax+1)*sizeof(flouble *));
+    for(ii=0;ii<=lmax;ii++) {
+      cw->xi22p_1122[ii]=my_malloc((lmax+1)*sizeof(flouble));
+      memcpy(cw->xi22p_1122[ii],&(xi22p_1122[ii*(lmax+1)]),
+	     (lmax+1)*sizeof(flouble));
+    }
+  }
+  if(xi22p_1221!=NULL) {
+    cw->has_1221=1;
+    cw->xi22p_1221=my_malloc((lmax+1)*sizeof(flouble *));
+    for(ii=0;ii<=lmax;ii++) {
+      cw->xi22p_1221[ii]=my_malloc((lmax+1)*sizeof(flouble));
+      memcpy(cw->xi22p_1221[ii],&(xi22p_1221[ii*(lmax+1)]),
+	     (lmax+1)*sizeof(flouble));
+    }
+  }
+							     
+  if(xi22m_1122!=NULL) {
+    cw->has_1122=1;
+    cw->xi22m_1122=my_malloc((lmax+1)*sizeof(flouble *));
+    for(ii=0;ii<=lmax;ii++) {
+      cw->xi22m_1122[ii]=my_malloc((lmax+1)*sizeof(flouble));
+      memcpy(cw->xi22m_1122[ii],&(xi22m_1122[ii*(lmax+1)]),
+	     (lmax+1)*sizeof(flouble));
+    }
+  }
+  if(xi22m_1221!=NULL) {
+    cw->has_1221=1;
+    cw->xi22m_1221=my_malloc((lmax+1)*sizeof(flouble *));
+    for(ii=0;ii<=lmax;ii++) {
+      cw->xi22m_1221[ii]=my_malloc((lmax+1)*sizeof(flouble));
+      memcpy(cw->xi22m_1221[ii],&(xi22m_1221[ii*(lmax+1)]),
+	     (lmax+1)*sizeof(flouble));
+    }
+  }
+
+  return cw;
+}   
+
 nmt_covar_workspace *nmt_covar_workspace_init(int spin_a1, int spin_a2,
 					      int spin_b1, int spin_b2,
 					      int all_spins, int auto_any,

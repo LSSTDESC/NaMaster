@@ -967,6 +967,19 @@ nmt_covar_workspace *nmt_covar_workspace_init(int spin_a1, int spin_a2,
 					      int lmax,int lmax_mask,
                                               int l_toeplitz,int l_exact,int dl_band);
 
+nmt_covar_workspace *nmt_covar_workspace_init_from_couplings(int spin_a1, int spin_a2,
+							     int spin_b1, int spin_b2,
+							     int all_spins,
+							     int lmax, int lmax_mask,
+							     flouble *xi00_1122,
+							     flouble *xi00_1221,
+							     flouble *xi02_1122,
+							     flouble *xi02_1221,
+							     flouble *xi22p_1122,
+							     flouble *xi22p_1221,
+							     flouble *xi22m_1122,
+							     flouble *xi22m_1221);
+
 /**
  * @brief Compute full-sky Gaussian covariance matrix
  *

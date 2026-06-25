@@ -33,7 +33,16 @@
      (int nlee,double *flee),
      (int nleb,double *fleb),
      (int nlbe,double *flbe),
-     (int nlbb,double *flbb)};
+     (int nlbb,double *flbb),
+     (int n00_1122,double *xi00_1122),
+     (int n00_1221,double *xi00_1221),
+     (int n02_1122,double *xi02_1122),
+     (int n02_1221,double *xi02_1221),
+     (int n22p_1122,double *xi22p_1122),
+     (int n22p_1221,double *xi22p_1221),
+     (int n22m_1122,double *xi22m_1122),
+     (int n22m_1221,double *xi22m_1221)
+     };
 %apply (int DIM1,int *IN_ARRAY1) {(int nell1,int *bpws),
                                   (int nell2,int *ells),
                                   (int nfields,int *spin_arr)};
@@ -145,6 +154,41 @@ void get_mcm(nmt_workspace *w,double *ldout,long nldout)
       ldout[index]=w->coupling_matrix_unbinned[ii][jj];
     }
   }
+}
+
+int get_cw_xi(nmt_covar_workspace *cw, int which, double *ldout, long nldout)
+{
+  int ii,nrows=cw->lmax+1;
+
+  double **xi=NULL;
+  if(which==0)
+    xi=cw->xi00_1122;
+  else if(which==1)
+    xi=cw->xi00_1221;
+  else if(which==2)
+    xi=cw->xi02_1122;
+  else if(which==3)
+    xi=cw->xi02_1221;
+  else if(which==4)
+    xi=cw->xi22p_1122;
+  else if(which==5)
+    xi=cw->xi22p_1221;
+  else if(which==6)
+    xi=cw->xi22m_1122;
+  else if(which==7)
+    xi=cw->xi22m_1221;
+
+  if(xi==NULL)
+    return 0;
+
+  for(ii=0;ii<nrows;ii++) {
+    int jj;
+    for(jj=0;jj<nrows;jj++) {
+      long index=(long)(ii*nrows)+jj;
+      ldout[index]=xi[ii][jj];
+    }
+  }
+  return 1;
 }
 
 nmt_binning_scheme_flat *bins_flat_create_py(int npix_1,double *mask,
@@ -583,6 +627,38 @@ nmt_covar_workspace *read_covar_workspace(char *fname)
 {
   return nmt_covar_workspace_read_fits(fname);
 }
+
+nmt_covar_workspace *covar_workspace_init_from_xi(int spin_a1, int spin_a2,
+						  int spin_b1, int spin_b2,
+						  int all_spins, int lmax, int lmax_mask,
+						  int n00_1122, double *xi00_1122,
+						  int n00_1221, double *xi00_1221,
+						  int n02_1122, double *xi02_1122,
+						  int n02_1221, double *xi02_1221,
+						  int n22p_1122, double *xi22p_1122,
+						  int n22p_1221, double *xi22p_1221,
+						  int n22m_1122, double *xi22m_1122,
+						  int n22m_1221, double *xi22m_1221)
+{
+  double *x001122,*x001221,*x021122,*x021221,*x22p1122,*x22p1221,*x22m1122,*x22m1221;
+  x001122=(n00_1122 == 1 ? NULL : xi00_1122);
+  x001221=(n00_1221 == 1 ? NULL : xi00_1221);
+  x021122=(n02_1122 == 1 ? NULL : xi02_1122);
+  x021221=(n02_1221 == 1 ? NULL : xi02_1221);
+  x22p1122=(n22p_1122 == 1 ? NULL : xi22p_1122);
+  x22p1221=(n22p_1221 == 1 ? NULL : xi22p_1221);
+  x22m1122=(n22m_1122 == 1 ? NULL : xi22m_1122);
+  x22m1221=(n22m_1221 == 1 ? NULL : xi22m_1221);
+  nmt_covar_workspace *cw=nmt_covar_workspace_init_from_couplings(spin_a1,spin_a2,
+								  spin_b1,spin_b2,
+								  all_spins,lmax, lmax_mask,
+								  x001122,x001221,
+								  x021122,x021221,
+								  x22p1122,x22p1221,
+								  x22m1122,x22m1221);
+  return cw;
+}
+
 
 nmt_covar_workspace *covar_workspace_init_py(int spin_a1, int spin_a2,
 					     int spin_b1, int spin_b2,

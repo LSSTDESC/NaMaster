@@ -436,6 +436,9 @@ def covar_workspace_free(cw):
 def covar_workspace_init(spin_a1, spin_a2, spin_b1, spin_b2, all_spins, auto_any, has_1122, has_1221, cl_masks_11_22, cl_masks_12_21, lmax, lmax_mask, l_toeplitz, l_exact, dl_band):
     return _nmtlib.covar_workspace_init(spin_a1, spin_a2, spin_b1, spin_b2, all_spins, auto_any, has_1122, has_1221, cl_masks_11_22, cl_masks_12_21, lmax, lmax_mask, l_toeplitz, l_exact, dl_band)
 
+def covar_workspace_init_from_couplings(spin_a1, spin_a2, spin_b1, spin_b2, all_spins, lmax, lmax_mask, xi00_1122, xi00_1221, xi02_1122, xi02_1221, xi22p_1122, xi22p_1221, xi22m_1122, xi22m_1221):
+    return _nmtlib.covar_workspace_init_from_couplings(spin_a1, spin_a2, spin_b1, spin_b2, all_spins, lmax, lmax_mask, xi00_1122, xi00_1221, xi02_1122, xi02_1221, xi22p_1122, xi22p_1221, xi22m_1122, xi22m_1221)
+
 def compute_gaussian_covariance(cw, spin_a, spin_b, spin_c, spin_d, wa, wb, clac, clad, clbc, clbd, is_ac_noise, is_ad_noise, is_bc_noise, is_bd_noise, covar_out):
     return _nmtlib.compute_gaussian_covariance(cw, spin_a, spin_b, spin_c, spin_d, wa, wb, clac, clad, clbc, clbd, is_ac_noise, is_ad_noise, is_bc_noise, is_bd_noise, covar_out)
 
@@ -495,6 +498,9 @@ def get_bandpower_windows(w, dout):
 
 def get_mcm(w, ldout):
     return _nmtlib.get_mcm(w, ldout)
+
+def get_cw_xi(cw, which, ldout):
+    return _nmtlib.get_cw_xi(cw, which, ldout)
 
 def bins_flat_create_py(npix_1, nell3):
     return _nmtlib.bins_flat_create_py(npix_1, nell3)
@@ -570,6 +576,9 @@ def write_covar_workspace(cw, fname):
 
 def read_covar_workspace(fname):
     return _nmtlib.read_covar_workspace(fname)
+
+def covar_workspace_init_from_xi(spin_a1, spin_a2, spin_b1, spin_b2, all_spins, lmax, lmax_mask, n00_1122, n00_1221, n02_1122, n02_1221, n22p_1122, n22p_1221, n22m_1122, n22m_1221):
+    return _nmtlib.covar_workspace_init_from_xi(spin_a1, spin_a2, spin_b1, spin_b2, all_spins, lmax, lmax_mask, n00_1122, n00_1221, n02_1122, n02_1221, n22p_1122, n22p_1221, n22m_1122, n22m_1221)
 
 def covar_workspace_init_py(spin_a1, spin_a2, spin_b1, spin_b2, nlb1, nlb2, all_spins, auto_any, has_1122, has_1221, lmax, lmax_mask, l_toeplitz, l_exact, dl_band):
     return _nmtlib.covar_workspace_init_py(spin_a1, spin_a2, spin_b1, spin_b2, nlb1, nlb2, all_spins, auto_any, has_1122, has_1221, lmax, lmax_mask, l_toeplitz, l_exact, dl_band)

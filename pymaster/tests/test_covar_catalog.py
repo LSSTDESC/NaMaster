@@ -1,6 +1,5 @@
 import numpy as np
 import healpy as hp
-import pytest
 import pymaster as nmt
 from astropy.io import fits
 from astropy.wcs import WCS
@@ -42,43 +41,21 @@ def test_io():
                                  wa=w, wb=w)
 
     # Write to file
-    cw.write_to("test_cov.fits", fname_NN="test_cov_NN.fits",
-                fname_SN="test_cov_SN.fits",
-                fname_NS="test_cov_NS.fits")
+    cw.write_to("test_cov.fits")
 
     # Read from file and check that the covariance is the same
-    cw2 = nmt.NmtCovarianceWorkspace.from_file(fname="test_cov.fits",
-                                               fname_NN="test_cov_NN.fits",
-                                               fname_SN="test_cov_SN.fits",
-                                               fname_NS="test_cov_NS.fits")
+    cw2 = nmt.NmtCovarianceWorkspace.from_file("test_cov.fits")
     cov2 = cw2.gaussian_covariance(cl_inka, cl_inka,
                                    cl_inka, cl_inka, wa=w, wb=w)
     assert np.allclose(cov, cov2)
     # Read again to check that the workspaces are deleted before
     # being read again
-    cw2._read_from("test_cov.fits",
-                   fname_NN="test_cov_NN.fits",
-                   fname_SN="test_cov_SN.fits",
-                   fname_NS="test_cov_NS.fits")
+    cw2._read_from("test_cov.fits")
     cov3 = cw2.gaussian_covariance(cl_inka, cl_inka,
                                    cl_inka, cl_inka, wa=w, wb=w)
     assert np.allclose(cov, cov3)
 
-    # Repeat this for a workspace with different fields
-    f2 = get_cat(seed=1002, get_field=True)
-    f3 = get_cat(seed=1003, get_field=True)
-    f4 = get_cat(seed=1004, get_field=True)
-    b = nmt.NmtBin.from_lmax_linear(lmax=f.ainfo_mask.lmax, nlb=10)
-    cw = nmt.NmtCovarianceWorkspace.from_fields(f, f2, f3, f4)
-    with pytest.raises(ValueError):  # No maps and no spin
-        cw.write_to("test_cov.fits", fname_NN="dummy.fits")
-    with pytest.raises(ValueError):  # No maps and no spin
-        cw.write_to("test_cov.fits", fname_NS="dummy.fits")
-    with pytest.raises(ValueError):  # No maps and no spin
-        cw.write_to("test_cov.fits", fname_SN="dummy.fits")
-
-    os.system("rm -f test_cov.fits test_cov_NN.fits "
-              "test_cov_SN.fits test_cov_NS.fits")
+    os.system("rm -f test_cov.fits")
 
 
 def test_iNKA_Cls():

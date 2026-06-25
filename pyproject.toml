@@ -17,6 +17,7 @@ license = {file = "LICENSE"}
 requires-python = ">=3.10"
 dependencies = [
 	"healpy",
+	"fitsio",
 	"ducc0"
 ]
 classifiers=[

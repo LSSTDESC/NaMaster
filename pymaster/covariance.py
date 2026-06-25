@@ -115,24 +115,16 @@ class NmtCovarianceWorkspace(object):
             3 of the paper. Ignored if ``l_toeplitz<=0``.
         fname (:obj:`str`): Input file name. If not `None`, the values of
             all input fields will be ignored, and all mode-coupling
-            coefficients will be read from file.
-        fname_SN (:obj:`str`): Input file name for the signal-noise
-            component of the covariance matrix.
-        fname_NS (:obj:`str`): Input file name for the noise-signal
-            component of the covariance matrix.
-        fname_NN (:obj:`str`): Input file name for the noise-noise
-            component of the covariance matrix."""
+            coefficients will be read from file."""
     def __init__(self, fla1, fla2, flb1=None, flb2=None,
                  all_spins=False, l_toeplitz=-1, l_exact=-1,
-                 dl_band=-1, fname=None, fname_SN=None,
-                 fname_NS=None, fname_NN=None):
+                 dl_band=-1, fname=None):
         self.wsp = None
         self.wsp_SN = None
         self.wsp_NS = None
         self.wsp_NN = None
         if (fname is not None):
-            self._read_from(fname, fname_SN=fname_SN,
-                            fname_NS=fname_NS, fname_NN=fname_NN)
+            self._read_from(fname)
             return
 
         if flb1 is None:
@@ -206,15 +198,8 @@ class NmtCovarianceWorkspace(object):
         See :meth:`write_to`.
 
         Args:
-            fname (:obj:`str`): Input file name.
-        fname_SN (:obj:`str`): Input file name for the signal-noise
-            component of the covariance matrix.
-        fname_NS (:obj:`str`): Input file name for the noise-signal
-            component of the covariance matrix.
-        fname_NN (:obj:`str`): Input file name for the noise-noise
-            component of the covariance matrix."""
-        return cls(None, None, fname=fname, fname_SN=fname_SN,
-                   fname_NS=fname_NS, fname_NN=fname_NN)
+            fname (:obj:`str`): Input file name."""
+        return cls(None, None, fname=fname)
 
     def __del__(self):
         if self.wsp is not None:
@@ -234,49 +219,102 @@ class NmtCovarianceWorkspace(object):
                 lib.covar_workspace_free(self.wsp_NN)
             self.wsp_NN = None
 
-    def _read_from(self, fname, fname_SN=None, fname_NS=None, fname_NN=None):
+    def _read_from(self, fname):
         """ Reads the contents of an :obj:`NmtCovarianceWorkspace`
         object from a FITS file.
 
         Args:
-            fname (:obj:`str`): Input file name.
-        fname_SN (:obj:`str`): Input file name for the signal-noise
-            component of the covariance matrix.
-        fname_NS (:obj:`str`): Input file name for the noise-signal
-            component of the covariance matrix.
-        fname_NN (:obj:`str`): Input file name for the noise-noise
-            component of the covariance matrix."""
+            fname (:obj:`str`): Input file name."""
         if self.wsp is not None:
             lib.covar_workspace_free(self.wsp)
             self.wsp = None
-        self.wsp = lib.read_covar_workspace(fname)
-        self.all_spins = bool(self.wsp.all_spins)
-        self.spin_a1 = self.wsp.spin_a1
-        self.spin_a2 = self.wsp.spin_a2
-        self.spin_b1 = self.wsp.spin_b1
-        self.spin_b2 = self.wsp.spin_b2
+        import fitsio as fts
+
+        f = fts.FITS(fname)
+        print(f)
+        h = f['CWSP_PRIMARY'].read_header()
+        self.lmax = h['LMAX']
+        self.lmax_mask = h['LMAX_MASK'] if 'LMAX_MASK' in h else self.lmax
+        if 'ALL_SPINS' in h:
+            self.all_spins = h['ALL_SPINS']
+            self.spin_a1 = h['SPIN_A1']
+            self.spin_a2 = h['SPIN_A2']
+            self.spin_b1 = h['SPIN_B1']
+            self.spin_b2 = h['SPIN_B2']
+        else:
+            self.all_spins = 1
+            self.spin_a1 = self.spin_a2 = self.spin_b1 = self.spin_b2 = 0
         self.has_SN = np.array([False, False])
         self.has_NS = np.array([False, False])
         self.has_NN = np.array([False, False])
-        if fname_SN is not None:
+
+        # Read the coupling coefficients
+        xi_types = ['00_1122', '00_1221', '02_1122', '02_1221',
+                    '22P_1122', '22P_1221', '22M_1122', '22M_1221']
+        xis = {'': {}, 'SN': {}, 'NS': {}, 'NN': {}}
+        # Loop over the different signal-noise combinations
+        for prefix in ['', 'SN', 'NS', 'NN']:
+            xi = xis[prefix]
+            xi_any = False
+            # Read all stored coupling coefficients
+            for n in xi_types:
+                if f'XI{prefix+n}' in f:
+                    xi_any = True
+                    xi[n] = f[f'XI{prefix + n}'].read()
+                    if xi[n].shape != (self.lmax+1, self.lmax+1):
+                        raise ValueError(f"XI{prefix + n} shape "
+                                         f"does not match expected dimensions")
+                    xi[n] = xi[n].flatten()
+                else:
+                    xi[n] = np.array([0.0])
+            if not xi_any:
+                xis[prefix] = None
+
+        # Create all C-level workspaces
+        self.wsp = lib.covar_workspace_init_from_xi(
+            self.spin_a1, self.spin_a2, self.spin_b1, self.spin_b2,
+            self.all_spins, self.lmax, self.lmax_mask,
+            xis['']['00_1122'], xis['']['00_1221'],
+            xis['']['02_1122'], xis['']['02_1221'],
+            xis['']['22P_1122'], xis['']['22P_1221'],
+            xis['']['22M_1122'], xis['']['22M_1221'])
+        if xis['SN'] is not None:
             if self.wsp_SN is not None:
                 lib.covar_workspace_free(self.wsp_SN)
                 self.wsp_SN = None
-            self.wsp_SN = lib.read_covar_workspace(fname_SN)
+            self.wsp_SN = lib.covar_workspace_init_from_xi(
+                self.spin_a1, self.spin_a2, self.spin_b1, self.spin_b2,
+                self.all_spins, self.lmax, self.lmax_mask,
+                xis['SN']['00_1122'], xis['SN']['00_1221'],
+                xis['SN']['02_1122'], xis['SN']['02_1221'],
+                xis['SN']['22P_1122'], xis['SN']['22P_1221'],
+                xis['SN']['22M_1122'], xis['SN']['22M_1221'])
             self.has_SN = np.array([self.wsp_SN.has_1122 > 0,
                                     self.wsp_SN.has_1221 > 0])
-        if fname_NS is not None:
+        if xis['NS'] is not None:
             if self.wsp_NS is not None:
                 lib.covar_workspace_free(self.wsp_NS)
                 self.wsp_NS = None
-            self.wsp_NS = lib.read_covar_workspace(fname_NS)
+            self.wsp_NS = lib.covar_workspace_init_from_xi(
+                self.spin_a1, self.spin_a2, self.spin_b1, self.spin_b2,
+                self.all_spins, self.lmax, self.lmax_mask,
+                xis['NS']['00_1122'], xis['NS']['00_1221'],
+                xis['NS']['02_1122'], xis['NS']['02_1221'],
+                xis['NS']['22P_1122'], xis['NS']['22P_1221'],
+                xis['NS']['22M_1122'], xis['NS']['22M_1221'])
             self.has_NS = np.array([self.wsp_NS.has_1122 > 0,
                                     self.wsp_NS.has_1221 > 0])
-        if fname_NN is not None:
+        if xis['NN'] is not None:
             if self.wsp_NN is not None:
                 lib.covar_workspace_free(self.wsp_NN)
                 self.wsp_NN = None
-            self.wsp_NN = lib.read_covar_workspace(fname_NN)
+            self.wsp_NN = lib.covar_workspace_init_from_xi(
+                self.spin_a1, self.spin_a2, self.spin_b1, self.spin_b2,
+                self.all_spins, self.lmax, self.lmax_mask,
+                xis['NN']['00_1122'], xis['NN']['00_1221'],
+                xis['NN']['02_1122'], xis['NN']['02_1221'],
+                xis['NN']['22P_1122'], xis['NN']['22P_1221'],
+                xis['NN']['22M_1122'], xis['NN']['22M_1221'])
             self.has_NN = np.array([self.wsp_NN.has_1122 > 0,
                                     self.wsp_NN.has_1221 > 0])
 
@@ -331,6 +369,8 @@ class NmtCovarianceWorkspace(object):
 
         lmax = fla1.ainfo.lmax
         lmax_mask = fla1.ainfo_mask.lmax
+        self.lmax = lmax
+        self.lmax_mask = lmax_mask
         ut._toeplitz_sanity(l_toeplitz, l_exact, dl_band,
                             lmax, fla1, flb1)
 
@@ -443,34 +483,46 @@ class NmtCovarianceWorkspace(object):
             self.wsp_NN = get_wsp(pcl_mask_N11_N22, pcl_mask_N12_N21,
                                   has_1122_NN, has_1221_NN)
 
-    def write_to(self, fname, fname_SN=None, fname_NS=None, fname_NN=None):
+    def write_to(self, fname):
         """ Writes the contents of an :obj:`NmtCovarianceWorkspace`
         object to a FITS file.
 
         Args:
-            fname (:obj:`str`): Output file name.
-        fname_SN (:obj:`str`): Input file name for the signal-noise
-            component of the covariance matrix.
-        fname_NS (:obj:`str`): Input file name for the noise-signal
-            component of the covariance matrix.
-        fname_NN (:obj:`str`): Input file name for the noise-noise
-            component of the covariance matrix."""
-        lib.write_covar_workspace(self.wsp, "!"+fname)
-        if fname_SN is not None:
-            if self.wsp_SN is None:
-                raise ValueError("Cannot save inexistent workspace "
-                                 f"to {fname_SN}")
-            lib.write_covar_workspace(self.wsp_SN, "!"+fname_SN)
-        if fname_NS is not None:
-            if self.wsp_NS is None:
-                raise ValueError("Cannot save inexistent workspace "
-                                 f"to {fname_NS}")
-            lib.write_covar_workspace(self.wsp_NS, "!"+fname_NS)
-        if fname_NN is not None:
-            if self.wsp_NN is None:
-                raise ValueError(f"Cannot save inexistent workspace "
-                                 f"to {fname_NN}")
-            lib.write_covar_workspace(self.wsp_NN, "!"+fname_NN)
+            fname (:obj:`str`): Output file name."""
+        import fitsio as fts
+
+        # Read header with global information
+        f = fts.FITS(fname, 'rw', clobber=True)
+        h = {'LMAX': self.wsp.lmax,
+             'LMAX_MASK': self.wsp.lmax_mask,
+             'ALL_SPINS': self.wsp.all_spins,
+             'SPIN_A1': self.wsp.spin_a1,
+             'SPIN_A2': self.wsp.spin_a2,
+             'SPIN_B1': self.wsp.spin_b1,
+             'SPIN_B2': self.wsp.spin_b2}
+        f.write(np.ones((1, 1)), header=h, extname='CWSP_PRIMARY')
+
+        def write_wsp(w, prefix):
+            # This function writes the coupling coefficients of a
+            # workspace to a FITS HDU.
+            if w is None:
+                return
+            for i, n in enumerate(['00_1122', '00_1221',
+                                   '02_1122', '02_1221',
+                                   '22P_1122', '22P_1221',
+                                   '22M_1122', '22M_1221']):
+                exists, xi = lib.get_cw_xi(w, i, (w.lmax+1)**2)
+                if exists:
+                    f.write(xi.reshape((w.lmax+1, w.lmax+1)),
+                            extname=f'XI{prefix + n}')
+
+        # Write the coupling coefficients of all workspaces to the FITS file
+        write_wsp(self.wsp, '')
+        write_wsp(self.wsp_SN, 'SN')
+        write_wsp(self.wsp_NS, 'NS')
+        write_wsp(self.wsp_NN, 'NN')
+
+        f.close()
 
     def gaussian_covariance(self, cla1b1, cla1b2, cla2b1, cla2b2,
                             wa, wb=None, coupled=False, spins=None):

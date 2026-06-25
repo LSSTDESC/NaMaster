@@ -218,7 +218,7 @@ def test_workspace_covar_errors():
                                 [CT.cltt], [CT.cltt, CT.cltt],
                                 CT.w)
 
-    with pytest.raises(RuntimeError):  # Incorrect reading
+    with pytest.raises(OSError):  # Incorrect reading
         cw.from_file('none')
 
     with pytest.raises(ValueError):  # Incompatible resolutions
