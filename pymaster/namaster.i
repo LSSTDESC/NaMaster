@@ -618,16 +618,6 @@ void comp_deproj_bias_flat(nmt_field_flat *fl1,nmt_field_flat *fl2,
   free(cl_guess);
 }
 
-void write_covar_workspace(nmt_covar_workspace *cw,char *fname)
-{
-  nmt_covar_workspace_write_fits(cw,fname);
-}
-
-nmt_covar_workspace *read_covar_workspace(char *fname)
-{
-  return nmt_covar_workspace_read_fits(fname);
-}
-
 nmt_covar_workspace *covar_workspace_init_from_xi(int spin_a1, int spin_a2,
 						  int spin_b1, int spin_b2,
 						  int all_spins, int lmax, int lmax_mask,

@@ -7683,44 +7683,13 @@ a.anchor-link {
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=af1276b7">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="4-Reading-and-saving-covariance-workspaces">4 Reading and saving covariance workspaces<a class="anchor-link" href="#4-Reading-and-saving-covariance-workspaces">¶</a></h3><p>Covariance matrices involving catalog-based fields require different signal and noise mode-coupling coefficients. When saving a given <code>NmtCovarianceWorkspace</code> to disk, or when reading one, you must pass paths for all signal and noise components.</p>
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=719d94d6">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-<div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="c1"># E.g. if f is a catalog-based field:</span>
-<span class="n">f</span> <span class="o">=</span> <span class="n">nmt</span><span class="o">.</span><span class="n">NmtFieldCatalog</span><span class="p">(</span><span class="n">positions</span><span class="p">,</span> <span class="n">weights</span><span class="p">,</span> <span class="n">field</span><span class="p">,</span> <span class="n">lmax</span><span class="o">=</span><span class="n">lmax</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="n">mask</span><span class="p">,</span> <span class="n">spin</span><span class="o">=</span><span class="n">spin</span><span class="p">)</span>
-<span class="n">cw</span> <span class="o">=</span> <span class="n">nmt</span><span class="o">.</span><span class="n">NmtCovarianceWorkspace</span><span class="o">.</span><span class="n">from_fields</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
-<span class="n">cw</span><span class="o">.</span><span class="n">write_to</span><span class="p">(</span><span class="s1">'cov_signal_signal.fits'</span><span class="p">,</span> <span class="n">fname_SN</span><span class="o">=</span><span class="s1">'cov_signal_noise.fits'</span><span class="p">,</span>
-            <span class="n">fname_NS</span><span class="o">=</span><span class="s1">'cov_noise_signal.fits'</span><span class="p">,</span> <span class="n">fname_NN</span><span class="o">=</span><span class="s1">'cov_noise_noise.fits'</span><span class="p">)</span>
-<span class="n">cw_read</span> <span class="o">=</span> <span class="n">nmt</span><span class="o">.</span><span class="n">NmtCovarianceWorkspace</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="s1">'cov_signal_signal.fits'</span><span class="p">,</span> <span class="n">fname_SN</span><span class="o">=</span><span class="s1">'cov_signal_noise.fits'</span><span class="p">,</span>
-                                              <span class="n">fname_NS</span><span class="o">=</span><span class="s1">'cov_noise_signal.fits'</span><span class="p">,</span> <span class="n">fname_NN</span><span class="o">=</span><span class="s1">'cov_noise_noise.fits'</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-</div>
-</div>
-</div>
 <div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=2a59e734">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="5-Some-previously-public-methods-have-been-made-private">5 Some previously public methods have been made private<a class="anchor-link" href="#5-Some-previously-public-methods-have-been-made-private">¶</a></h2><p>For <code>NmtCovarianceWorkspace</code>s:</p>
+<h2 id="4-Some-previously-public-methods-have-been-made-private">4 Some previously public methods have been made private<a class="anchor-link" href="#4-Some-previously-public-methods-have-been-made-private">¶</a></h2><p>For <code>NmtCovarianceWorkspace</code>s:</p>
 <ul>
 <li><code>compute_coupling_coefficients</code> is now private. Use the <code>from_fields</code> constructor instead.</li>
 <li><code>read_from</code> is now private. Use the <code>from_file</code> constructor instead.</li>
@@ -7756,7 +7725,7 @@ a.anchor-link {
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="6-get_iNKA_cell-is-a-very-useful-new-function">6 <code>get_iNKA_cell</code> is a very useful new function<a class="anchor-link" href="#6-get_iNKA_cell-is-a-very-useful-new-function">¶</a></h3><p>Previously, when calculating Gaussian covariance matrices users had to cobble together their own best-guess $C_\ell$, even though a simple prescription (the "improved narrow-kernel approximation" -- iNKA) was provided in Nicola et al. 2020 (and in a near-future paper, Wolz et al. 2026). A new convenience function, <code>get_iNKA_cell</code> can now be used instead.</p>
+<h3 id="5-get_iNKA_cell-is-a-very-useful-new-function">5 <code>get_iNKA_cell</code> is a very useful new function<a class="anchor-link" href="#5-get_iNKA_cell-is-a-very-useful-new-function">¶</a></h3><p>Previously, when calculating Gaussian covariance matrices users had to cobble together their own best-guess $C_\ell$, even though a simple prescription (the "improved narrow-kernel approximation" -- iNKA) was provided in Nicola et al. 2020 (and in a near-future paper, Wolz et al. 2026). A new convenience function, <code>get_iNKA_cell</code> can now be used instead.</p>
 </div>
 </div>
 </div>

@@ -457,12 +457,6 @@ def workspace_flat_read_fits(fname):
 def workspace_flat_write_fits(w, fname):
     return _nmtlib.workspace_flat_write_fits(w, fname)
 
-def covar_workspace_write_fits(cw, fname):
-    return _nmtlib.covar_workspace_write_fits(cw, fname)
-
-def covar_workspace_read_fits(fname):
-    return _nmtlib.covar_workspace_read_fits(fname)
-
 def covar_workspace_flat_write_fits(cw, fname):
     return _nmtlib.covar_workspace_flat_write_fits(cw, fname)
 
@@ -570,12 +564,6 @@ def write_workspace_flat(w, fname):
 
 def comp_deproj_bias_flat(fl1, fl2, bin, lmn_x, lmx_x, lmn_y, lmx_y, nell3, ncl1, dout):
     return _nmtlib.comp_deproj_bias_flat(fl1, fl2, bin, lmn_x, lmx_x, lmn_y, lmx_y, nell3, ncl1, dout)
-
-def write_covar_workspace(cw, fname):
-    return _nmtlib.write_covar_workspace(cw, fname)
-
-def read_covar_workspace(fname):
-    return _nmtlib.read_covar_workspace(fname)
 
 def covar_workspace_init_from_xi(spin_a1, spin_a2, spin_b1, spin_b2, all_spins, lmax, lmax_mask, n00_1122, n00_1221, n02_1122, n02_1221, n22p_1122, n22p_1221, n22m_1122, n22m_1221):
     return _nmtlib.covar_workspace_init_from_xi(spin_a1, spin_a2, spin_b1, spin_b2, all_spins, lmax, lmax_mask, n00_1122, n00_1221, n02_1122, n02_1221, n22p_1122, n22p_1221, n22m_1122, n22m_1221)
