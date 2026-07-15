@@ -7544,6 +7544,8 @@ a.anchor-link {
 <li><strong>N20</strong>. Nicola et al. 2020 (<a href="https://arxiv.org/abs/2010.09717">https://arxiv.org/abs/2010.09717</a>), which refined these approximations and described in detail the procedure to estimate cosmic shear power spectra.</li>
 <li><strong>W24</strong>. Wolz et al. 2024 (<a href="https://arxiv.org/abs/2407.21013">https://arxiv.org/abs/2407.21013</a>), which introduced the formalism for catalog-based $C_\ell$s.</li>
 <li><strong>A24</strong>. Alonso 2024 (<a href="https://arxiv.org/abs/2410.07077">https://arxiv.org/abs/2410.07077</a>), which generalised the estimator to anisotropic weights.</li>
+<li><strong>C25</strong>. Cornish et al. 2025 (<a href="https://arxiv.org/abs/2510.19912">https://arxiv.org/abs/2510.19912</a>), which developed deprojection techniques for catalog-based $C_\ell$s.</li>
+<li><strong>W26</strong>. Wolz et al. 2026 (coming soon!), which presented a method for covariances of catalog-based $C_\ell$s.</li>
 </ul>
 </div>
 </div>
@@ -8212,7 +8214,7 @@ where $\langle\cdots\rangle$ denotes averaging over all sky pixels.</p>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="4.4-Covariances-">4.4 Covariances <a class="anchor" id="Ss4.4"></a><a class="anchor-link" href="#4.4-Covariances-">¶</a></h2><p>You can also calculate covariances for catalog-based fields. The only subtlety is making sure you use the right "guess" for the power spectrum of your field, using the improved Narrow Kernel Approximation of <strong>N20</strong>. The method will be described in an upcoming publication (Wolz et al. 2026, in prep.). The code below explains how to calculate the iNKA guess power spectra, and how to use them to compute the power spectrum covariance. We show this for an auto-correlation of catalog-based scalr fields, but the implementation is completely general, and should be able to cope with arbitrary combinations of catalog- and map-based fields, in auto- or cross-correlations, and for either spin-0 or spin-2. See the third tutorial on covariances for further examples.</p>
+<h2 id="4.4-Covariances-">4.4 Covariances <a class="anchor" id="Ss4.4"></a><a class="anchor-link" href="#4.4-Covariances-">¶</a></h2><p>You can also calculate covariances for catalog-based fields. The only subtlety is making sure you use the right "guess" for the power spectrum of your field, using the improved Narrow Kernel Approximation of <strong>N20</strong>. The method is described in <strong>W26</strong>. The code below explains how to calculate the iNKA guess power spectra, and how to use them to compute the power spectrum covariance. We show this for an auto-correlation of catalog-based scalr fields, but the implementation is completely general, and should be able to cope with arbitrary combinations of catalog- and map-based fields, in auto- or cross-correlations, and for either spin-0 or spin-2. See the third tutorial on covariances for further examples.</p>
 </div>
 </div>
 </div>
