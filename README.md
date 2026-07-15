@@ -3,7 +3,7 @@
 [![Docs Status](https://readthedocs.org/projects/namaster/badge/?version=latest)](http://namaster.readthedocs.io/)
 [![Coverage Status](https://coveralls.io/repos/github/LSSTDESC/NaMaster/badge.svg?branch=master)](https://coveralls.io/github/LSSTDESC/NaMaster?branch=master)
 
-NaMaster is a Python module to compute full-sky angular cross-power spectra of masked fields with arbitrary spin and an arbitrary number of known contaminants using a pseudo-Cl (aka MASTER) approach. The code also implements E/B-mode purification and is available in both full-sky and flat-sky modes, as well as supporting fields defined at the discrete positions of catalog sources.
+NaMaster is a Python package to compute angular cross-power spectra of masked fields with arbitrary spin and an arbitrary number of known contaminants using a pseudo-Cl (aka MASTER) approach. The code also supports the accurate calculation of power spectrum covariances, implements E/B-mode purification, is available in both full-sky and flat-sky modes, and supports fields defined at the discrete positions of catalog sources.
 
 
 ## Installation
