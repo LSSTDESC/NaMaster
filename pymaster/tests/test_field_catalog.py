@@ -4,6 +4,27 @@ import pymaster as nmt
 import pytest
 
 
+def test_field_is_catalog_mask():
+    np.random.seed(1234)
+    ncat = 1000000
+    phis = 2*np.pi*np.random.rand(ncat)
+    thetas = np.arccos(-1 + 2*np.random.rand(ncat))
+    w = np.ones(ncat)
+    lmax = 100
+    mask = np.ones(hp.nside2npix(64))
+    f1 = nmt.NmtFieldCatalog(np.array([thetas, phis]), w, w, lmax)
+    f2 = nmt.NmtFieldCatalogClustering(np.array([thetas, phis]), w,
+                                       np.array([thetas, phis]), w,
+                                       lmax)
+    f3 = nmt.NmtFieldCatalogClustering(np.array([thetas, phis]), w,
+                                       None, None, lmax, mask=mask)
+    f4 = nmt.NmtField(mask, [mask])
+    assert nmt.covariance._is_mask_catalog(f1)
+    assert nmt.covariance._is_mask_catalog(f2)
+    assert not nmt.covariance._is_mask_catalog(f3)
+    assert not nmt.covariance._is_mask_catalog(f4)
+
+
 def test_field_catalog_lmax_mask():
     np.random.seed(1234)
     ncat = 1000000
