@@ -22,7 +22,9 @@ hdul.close()
 # a) Read mask
 mask = fits.open("benchmarks/msk_car.fits")[0].data
 # b) Read maps
-mp_t, mp_q, mp_u = fits.open("benchmarks/mps_car.fits")[0].data
+mp_t = fits.open("benchmarks/mps_car.fits")[0].data
+mp_q = mp_t
+mp_u = mp_t
 # You can also read and use contaminant maps in the same fashion.
 # We'll skip that step here.
 

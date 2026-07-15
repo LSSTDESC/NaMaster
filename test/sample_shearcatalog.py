@@ -54,14 +54,7 @@ lb = nmt_bin.get_effective_ells()
 # Note that we pass `None` as the field value, since we
 # will only use `f` to compute the mode-coupling matrix.
 f = nmt.NmtFieldCatalog(positions, weights, None, lmax=lmax,
-                        lmax_mask=lmax, spin=2,
-                        beam=hp.pixwin(nside, lmax=lmax))
-
-# Note also that we assigned a "beam" to this field corresponding
-# to the pixel window function of the maps used to create the
-# field value of each catalog source. Since the real sky does
-# not have a window function, this should in general not be
-# necessary!
+                        lmax_mask=lmax, spin=2)
 
 wsp = nmt.NmtWorkspace.from_fields(f, f, nmt_bin)
 
@@ -81,14 +74,15 @@ plt.show()
 
 # We then compute the coupled spin-2 pseudo power spectrum
 f = nmt.NmtFieldCatalog(positions, weights, [catalog_Q, catalog_U],
-                        lmax=lmax, lmax_mask=lmax, spin=2,
-                        beam=hp.pixwin(nside, lmax=lmax))
+                        lmax=lmax, lmax_mask=lmax, spin=2)
 pcl = nmt.compute_coupled_cell(f, f)
 
 # Finally, we compute the decoupled power spectra, the binned theory
 # expectation, and plot them.
 clb = wsp.decouple_cell(pcl)
-clb_theory = wsp.decouple_cell(wsp.couple_cell([cl, cl0, cl0, cl0]))
+pixwin = hp.pixwin(nside, lmax=lmax)
+clb_theory = wsp.decouple_cell(wsp.couple_cell([cl*pixwin**2,
+                                                cl0, cl0, cl0]))
 
 plt.clf()
 plt.plot(lb, clb[0], "b.", label="Catalog simulation")

@@ -346,8 +346,8 @@ def master_calculator_free(c):
 def compute_coupling_matrix_anisotropic(spin1, spin2, mask_aniso_1, mask_aniso_2, lmax, lmax_mask, pcl_masks_00, pcl_masks_0e, pcl_masks_e0, pcl_masks_0b, pcl_masks_b0, pcl_masks_ee, pcl_masks_eb, pcl_masks_be, pcl_masks_bb, beam1, beam2, bin, norm_type, w2):
     return _nmtlib.compute_coupling_matrix_anisotropic(spin1, spin2, mask_aniso_1, mask_aniso_2, lmax, lmax_mask, pcl_masks_00, pcl_masks_0e, pcl_masks_e0, pcl_masks_0b, pcl_masks_b0, pcl_masks_ee, pcl_masks_eb, pcl_masks_be, pcl_masks_bb, beam1, beam2, bin, norm_type, w2)
 
-def compute_general_coupling_matrix(lmax, pcl_mask, s1, s2, n1, n2, xi_out):
-    return _nmtlib.compute_general_coupling_matrix(lmax, pcl_mask, s1, s2, n1, n2, xi_out)
+def compute_general_coupling_matrix(lmax, pcl_mask, s1, s2, n1, n2, parity, xi_out):
+    return _nmtlib.compute_general_coupling_matrix(lmax, pcl_mask, s1, s2, n1, n2, parity, xi_out)
 
 def compute_coupling_matrix(spin1, spin2, lmax, lmax_mask, pure_e1, pure_b1, pure_e2, pure_b2, pcl_masks, beam1, beam2, bin, is_teb, l_toeplitz, l_exact, dl_band, norm_type, w2):
     return _nmtlib.compute_coupling_matrix(spin1, spin2, lmax, lmax_mask, pure_e1, pure_b1, pure_e2, pure_b2, pcl_masks, beam1, beam2, bin, is_teb, l_toeplitz, l_exact, dl_band, norm_type, w2)
@@ -411,6 +411,8 @@ class covar_workspace(object):
     spin_a2 = property(_nmtlib.covar_workspace_spin_a2_get, _nmtlib.covar_workspace_spin_a2_set)
     spin_b1 = property(_nmtlib.covar_workspace_spin_b1_get, _nmtlib.covar_workspace_spin_b1_set)
     spin_b2 = property(_nmtlib.covar_workspace_spin_b2_get, _nmtlib.covar_workspace_spin_b2_set)
+    has_1122 = property(_nmtlib.covar_workspace_has_1122_get, _nmtlib.covar_workspace_has_1122_set)
+    has_1221 = property(_nmtlib.covar_workspace_has_1221_get, _nmtlib.covar_workspace_has_1221_set)
     xi00_1122 = property(_nmtlib.covar_workspace_xi00_1122_get, _nmtlib.covar_workspace_xi00_1122_set)
     xi00_1221 = property(_nmtlib.covar_workspace_xi00_1221_get, _nmtlib.covar_workspace_xi00_1221_set)
     xi02_1122 = property(_nmtlib.covar_workspace_xi02_1122_get, _nmtlib.covar_workspace_xi02_1122_set)
@@ -431,14 +433,17 @@ _nmtlib.covar_workspace_swigregister(covar_workspace)
 def covar_workspace_free(cw):
     return _nmtlib.covar_workspace_free(cw)
 
-def covar_workspace_init(spin_a1, spin_a2, spin_b1, spin_b2, all_spins, auto_any, cl_masks_11_22, cl_masks_12_21, lmax, lmax_mask, l_toeplitz, l_exact, dl_band):
-    return _nmtlib.covar_workspace_init(spin_a1, spin_a2, spin_b1, spin_b2, all_spins, auto_any, cl_masks_11_22, cl_masks_12_21, lmax, lmax_mask, l_toeplitz, l_exact, dl_band)
+def covar_workspace_init(spin_a1, spin_a2, spin_b1, spin_b2, all_spins, auto_any, has_1122, has_1221, cl_masks_11_22, cl_masks_12_21, lmax, lmax_mask, l_toeplitz, l_exact, dl_band):
+    return _nmtlib.covar_workspace_init(spin_a1, spin_a2, spin_b1, spin_b2, all_spins, auto_any, has_1122, has_1221, cl_masks_11_22, cl_masks_12_21, lmax, lmax_mask, l_toeplitz, l_exact, dl_band)
 
-def compute_gaussian_covariance(cw, spin_a, spin_b, spin_c, spin_d, wa, wb, clac, clad, clbc, clbd, covar_out):
-    return _nmtlib.compute_gaussian_covariance(cw, spin_a, spin_b, spin_c, spin_d, wa, wb, clac, clad, clbc, clbd, covar_out)
+def covar_workspace_init_from_couplings(spin_a1, spin_a2, spin_b1, spin_b2, all_spins, lmax, lmax_mask, xi00_1122, xi00_1221, xi02_1122, xi02_1221, xi22p_1122, xi22p_1221, xi22m_1122, xi22m_1221):
+    return _nmtlib.covar_workspace_init_from_couplings(spin_a1, spin_a2, spin_b1, spin_b2, all_spins, lmax, lmax_mask, xi00_1122, xi00_1221, xi02_1122, xi02_1221, xi22p_1122, xi22p_1221, xi22m_1122, xi22m_1221)
 
-def compute_gaussian_covariance_coupled(cw, spin_a, spin_b, spin_c, spin_d, wa, wb, clac, clad, clbc, clbd, covar_out):
-    return _nmtlib.compute_gaussian_covariance_coupled(cw, spin_a, spin_b, spin_c, spin_d, wa, wb, clac, clad, clbc, clbd, covar_out)
+def compute_gaussian_covariance(cw, spin_a, spin_b, spin_c, spin_d, wa, wb, clac, clad, clbc, clbd, is_ac_noise, is_ad_noise, is_bc_noise, is_bd_noise, covar_out):
+    return _nmtlib.compute_gaussian_covariance(cw, spin_a, spin_b, spin_c, spin_d, wa, wb, clac, clad, clbc, clbd, is_ac_noise, is_ad_noise, is_bc_noise, is_bd_noise, covar_out)
+
+def compute_gaussian_covariance_coupled(cw, spin_a, spin_b, spin_c, spin_d, wa, wb, clac, clad, clbc, clbd, is_ac_noise, is_ad_noise, is_bc_noise, is_bd_noise, covar_out):
+    return _nmtlib.compute_gaussian_covariance_coupled(cw, spin_a, spin_b, spin_c, spin_d, wa, wb, clac, clad, clbc, clbd, is_ac_noise, is_ad_noise, is_bc_noise, is_bd_noise, covar_out)
 
 def workspace_write_fits(w, fname):
     return _nmtlib.workspace_write_fits(w, fname)
@@ -451,12 +456,6 @@ def workspace_flat_read_fits(fname):
 
 def workspace_flat_write_fits(w, fname):
     return _nmtlib.workspace_flat_write_fits(w, fname)
-
-def covar_workspace_write_fits(cw, fname):
-    return _nmtlib.covar_workspace_write_fits(cw, fname)
-
-def covar_workspace_read_fits(fname):
-    return _nmtlib.covar_workspace_read_fits(fname)
 
 def covar_workspace_flat_write_fits(cw, fname):
     return _nmtlib.covar_workspace_flat_write_fits(cw, fname)
@@ -493,6 +492,9 @@ def get_bandpower_windows(w, dout):
 
 def get_mcm(w, ldout):
     return _nmtlib.get_mcm(w, ldout)
+
+def get_cw_xi(cw, which, ldout):
+    return _nmtlib.get_cw_xi(cw, which, ldout)
 
 def bins_flat_create_py(npix_1, nell3):
     return _nmtlib.bins_flat_create_py(npix_1, nell3)
@@ -542,8 +544,8 @@ def comp_coupling_matrix_anisotropic(spin1, spin2, aniso1, aniso2, lmax, lmax_ma
 def comp_coupling_matrix(spin1, spin2, lmax, lmax_mask, pure_e_1, pure_b_1, pure_e_2, pure_b_2, norm_type, w2, nlb1, nlb2, nell4, bin, is_teb, l_toeplitz, l_exact, dl_band):
     return _nmtlib.comp_coupling_matrix(spin1, spin2, lmax, lmax_mask, pure_e_1, pure_b_1, pure_e_2, pure_b_2, norm_type, w2, nlb1, nlb2, nell4, bin, is_teb, l_toeplitz, l_exact, dl_band)
 
-def comp_general_coupling_matrix(s1, s2, n1, n2, lmax, nell4, dout):
-    return _nmtlib.comp_general_coupling_matrix(s1, s2, n1, n2, lmax, nell4, dout)
+def comp_general_coupling_matrix(s1, s2, n1, n2, parity, lmax, nell4, dout):
+    return _nmtlib.comp_general_coupling_matrix(s1, s2, n1, n2, parity, lmax, nell4, dout)
 
 def comp_coupling_matrix_flat(fl1, fl2, bin, lmn_x, lmx_x, lmn_y, lmx_y, is_teb):
     return _nmtlib.comp_coupling_matrix_flat(fl1, fl2, bin, lmn_x, lmx_x, lmn_y, lmx_y, is_teb)
@@ -563,14 +565,11 @@ def write_workspace_flat(w, fname):
 def comp_deproj_bias_flat(fl1, fl2, bin, lmn_x, lmx_x, lmn_y, lmx_y, nell3, ncl1, dout):
     return _nmtlib.comp_deproj_bias_flat(fl1, fl2, bin, lmn_x, lmx_x, lmn_y, lmx_y, nell3, ncl1, dout)
 
-def write_covar_workspace(cw, fname):
-    return _nmtlib.write_covar_workspace(cw, fname)
+def covar_workspace_init_from_xi(spin_a1, spin_a2, spin_b1, spin_b2, all_spins, lmax, lmax_mask, n00_1122, n00_1221, n02_1122, n02_1221, n22p_1122, n22p_1221, n22m_1122, n22m_1221):
+    return _nmtlib.covar_workspace_init_from_xi(spin_a1, spin_a2, spin_b1, spin_b2, all_spins, lmax, lmax_mask, n00_1122, n00_1221, n02_1122, n02_1221, n22p_1122, n22p_1221, n22m_1122, n22m_1221)
 
-def read_covar_workspace(fname):
-    return _nmtlib.read_covar_workspace(fname)
-
-def covar_workspace_init_py(spin_a1, spin_a2, spin_b1, spin_b2, nlb1, nlb2, all_spins, lmax, lmax_mask, l_toeplitz, l_exact, dl_band):
-    return _nmtlib.covar_workspace_init_py(spin_a1, spin_a2, spin_b1, spin_b2, nlb1, nlb2, all_spins, lmax, lmax_mask, l_toeplitz, l_exact, dl_band)
+def covar_workspace_init_py(spin_a1, spin_a2, spin_b1, spin_b2, nlb1, nlb2, all_spins, auto_any, has_1122, has_1221, lmax, lmax_mask, l_toeplitz, l_exact, dl_band):
+    return _nmtlib.covar_workspace_init_py(spin_a1, spin_a2, spin_b1, spin_b2, nlb1, nlb2, all_spins, auto_any, has_1122, has_1221, lmax, lmax_mask, l_toeplitz, l_exact, dl_band)
 
 def write_covar_workspace_flat(cw, fname):
     return _nmtlib.write_covar_workspace_flat(cw, fname)
@@ -581,11 +580,11 @@ def read_covar_workspace_flat(fname):
 def covar_workspace_flat_init_py(fa1, fa2, ba, fb1, fb2, bb):
     return _nmtlib.covar_workspace_flat_init_py(fa1, fa2, ba, fb1, fb2, bb)
 
-def comp_gaussian_covariance(cw, spin_a1, spin_a2, spin_b1, spin_b2, wa, wb, ncl11, ncl12, ncl21, ncl22, dout):
-    return _nmtlib.comp_gaussian_covariance(cw, spin_a1, spin_a2, spin_b1, spin_b2, wa, wb, ncl11, ncl12, ncl21, ncl22, dout)
+def comp_gaussian_covariance(cw, spin_a1, spin_a2, spin_b1, spin_b2, wa, wb, ncl11, ncl12, ncl21, ncl22, is_11_noise, is_12_noise, is_21_noise, is_22_noise, dout):
+    return _nmtlib.comp_gaussian_covariance(cw, spin_a1, spin_a2, spin_b1, spin_b2, wa, wb, ncl11, ncl12, ncl21, ncl22, is_11_noise, is_12_noise, is_21_noise, is_22_noise, dout)
 
-def comp_gaussian_covariance_coupled(cw, spin_a1, spin_a2, spin_b1, spin_b2, wa, wb, ncl11, ncl12, ncl21, ncl22, dout):
-    return _nmtlib.comp_gaussian_covariance_coupled(cw, spin_a1, spin_a2, spin_b1, spin_b2, wa, wb, ncl11, ncl12, ncl21, ncl22, dout)
+def comp_gaussian_covariance_coupled(cw, spin_a1, spin_a2, spin_b1, spin_b2, wa, wb, ncl11, ncl12, ncl21, ncl22, is_11_noise, is_12_noise, is_21_noise, is_22_noise, dout):
+    return _nmtlib.comp_gaussian_covariance_coupled(cw, spin_a1, spin_a2, spin_b1, spin_b2, wa, wb, ncl11, ncl12, ncl21, ncl22, is_11_noise, is_12_noise, is_21_noise, is_22_noise, dout)
 
 def comp_gaussian_covariance_flat(cw, spin_a1, spin_a2, spin_b1, spin_b2, wa, wb, nell3, ncl11, ncl12, ncl21, ncl22, dout):
     return _nmtlib.comp_gaussian_covariance_flat(cw, spin_a1, spin_a2, spin_b1, spin_b2, wa, wb, nell3, ncl11, ncl12, ncl21, ncl22, dout)

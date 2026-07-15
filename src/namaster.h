@@ -760,6 +760,7 @@ void nmt_compute_general_coupling_matrix(int lmax,
 					 flouble *pcl_mask,
 					 int s1, int s2,
 					 int n1, int n2,
+					 int parity,
 					 flouble *xi_out);
 
 nmt_workspace *nmt_compute_coupling_matrix(int spin1,int spin2,
@@ -943,6 +944,8 @@ typedef struct {
   int spin_a2;
   int spin_b1;
   int spin_b2;
+  int has_1122;
+  int has_1221;
   flouble **xi00_1122; //!< First (a1b1-a2b2), 00, mode coupling matrix (see scientific documentation)
   flouble **xi00_1221; //!< Second (a1b2-a2b1), 00, mode coupling matrix (see scientific documentation)
   flouble **xi02_1122; //!< First (a1b1-a2b2), 02, mode coupling matrix (see scientific documentation)
@@ -958,10 +961,24 @@ void nmt_covar_workspace_free(nmt_covar_workspace *cw);
 nmt_covar_workspace *nmt_covar_workspace_init(int spin_a1, int spin_a2,
 					      int spin_b1, int spin_b2,
 					      int all_spins, int auto_any,
+					      int has_1122, int has_1221,
 					      flouble *cl_masks_11_22,
 					      flouble *cl_masks_12_21,
 					      int lmax,int lmax_mask,
                                               int l_toeplitz,int l_exact,int dl_band);
+
+nmt_covar_workspace *nmt_covar_workspace_init_from_couplings(int spin_a1, int spin_a2,
+							     int spin_b1, int spin_b2,
+							     int all_spins,
+							     int lmax, int lmax_mask,
+							     flouble *xi00_1122,
+							     flouble *xi00_1221,
+							     flouble *xi02_1122,
+							     flouble *xi02_1221,
+							     flouble *xi22p_1122,
+							     flouble *xi22p_1221,
+							     flouble *xi22m_1122,
+							     flouble *xi22m_1221);
 
 /**
  * @brief Compute full-sky Gaussian covariance matrix
@@ -989,6 +1006,8 @@ void  nmt_compute_gaussian_covariance(nmt_covar_workspace *cw,
 				      nmt_workspace *wa,nmt_workspace *wb,
 				      flouble **clac,flouble **clad,
 				      flouble **clbc,flouble **clbd,
+				      int is_ac_noise,int is_ad_noise,
+				      int is_bc_noise,int is_bd_noise,
 				      flouble *covar_out);
 
 /**
@@ -1017,6 +1036,8 @@ void  nmt_compute_gaussian_covariance_coupled(nmt_covar_workspace *cw,
                                               nmt_workspace *wa,nmt_workspace *wb,
                                               flouble **clac,flouble **clad,
                                               flouble **clbc,flouble **clbd,
+					      int is_ac_noise,int is_ad_noise,
+					      int is_bc_noise,int is_bd_noise,
                                               flouble *covar_out);
 
 /**
@@ -1065,29 +1086,6 @@ nmt_workspace_flat *nmt_workspace_flat_read_fits(char *fname);
  * @param fname Path to output file.
  */
 void nmt_workspace_flat_write_fits(nmt_workspace_flat *w,char *fname);
-
-/**
- * @brief Saves nmt_covar_workspace structure to file
- *
- * The output file uses the FITS standard. In combination with nmt_covar_workspace_read_fits(),
- * this can be used to save the information contained in a given workspace and reuse it for
- * future covariance matrix computations. The same workspace can be used on any pair of power spectra
- * between fields with the same masks.
- * @param cw nmt_covar_workspace to be saved.
- * @param fname Path to output file.
- */
-void nmt_covar_workspace_write_fits(nmt_covar_workspace *cw,char *fname);
-
-/**
- * @brief Builds nmt_covar_workspace structure from file
- *
- * The input file uses the FITS standard. In combination with nmt_covar_workspace_write_fits(),
- * this can be used to save the information contained in a given workspace and reuse it for
- * future covariance matrix computations. The same workspace can be used on any pair of power spectra
- * between fields with the same masks.
- * @param fname Path to input file.
- */
-nmt_covar_workspace *nmt_covar_workspace_read_fits(char *fname);
 
 /**
  * @brief Saves nmt_covar_workspace_flat structure to file

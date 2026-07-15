@@ -998,13 +998,14 @@ void nmt_compute_general_coupling_matrix(int lmax,
 					 flouble *pcl_mask,
 					 int s1, int s2,
 					 int n1, int n2,
+					 int parity,
 					 flouble *xi_out)
 {
   int nls=lmax+1;
   int sign = ((n1+n2) & 1) ? -1 : 1;
 
-#pragma omp parallel default(none)				\
-  shared(lmax, pcl_mask, s1, s2, n1, n2, xi_out, nls, sign)
+#pragma omp parallel default(none)					\
+  shared(lmax, pcl_mask, s1, s2, n1, n2, parity, xi_out, nls, sign)
   {
     int same_sn=(s1 == s2) && (n1 == n2);
     int ll2,ll3,icc;
@@ -1044,12 +1045,20 @@ void nmt_compute_general_coupling_matrix(int lmax,
           if(l1<=lmax) {
 	    int jsn1=l1-lmin_sn1;
 	    int jsn2=l1-lmin_sn2;
-	    flouble wsn1=0,wsn2=0;
+	    flouble wsn1=0,wsn2=0,pre_par=1;
 	    wsn1=jsn1 < 0 ? 0 : wigner_sn1[jsn1];
 	    wsn2=jsn2 < 0 ? 0 : wigner_sn2[jsn2];
-	    //if(!((l1+ll2+ll3) & 1)) //Even sum
-	    //if((l1+ll2+ll3) & 1) //Even sum
-	    xi_out[index] += wl_mask[l1]*wsn1*wsn2;
+	    if(parity!=0) {
+	      int suml=l1+ll2+ll3;
+	      if(suml & 1) {
+		if(parity==1)  // Odd sum but even parity
+		  pre_par=0;
+	      } else {
+		if(parity==-1) // Even sum but odd parity
+		  pre_par=0;
+	      }
+	    }
+	    xi_out[index] += wl_mask[l1]*wsn1*wsn2*pre_par;
 	  }
 	}
 	xi_out[index] *= (2*ll3+1.0); //*sign

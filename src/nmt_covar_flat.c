@@ -396,9 +396,9 @@ void nmt_compute_gaussian_covariance_flat(nmt_covar_workspace_flat *cw,
 			double fac_1122=0.5*(cl_ac[band_a]*cl_bd[band_b]+cl_ac[band_b]*cl_bd[band_a]);
 			double fac_1221=0.5*(cl_ad[band_a]*cl_bc[band_b]+cl_ad[band_b]*cl_bc[band_a]);
 			int ind_1122=cov_get_coupling_pair_index(nmaps_a,nmaps_c,nmaps_b,nmaps_d,
-								 ia,iap,ic,icp,ib,ibp,id,idp);
+								 ia,iap,ic,icp,ib,ibp,id,idp,0,0);
 			int ind_1221=cov_get_coupling_pair_index(nmaps_a,nmaps_d,nmaps_b,nmaps_c,
-								 ia,iap,id,idp,ib,ibp,ic,icp);
+								 ia,iap,id,idp,ib,ibp,ic,icp,0,0);
 			cbinned+=xis_1122[ind_1122]*fac_1122+xis_1221[ind_1221]*fac_1221;
 		      }
 		    }

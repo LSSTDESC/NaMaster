@@ -7,7 +7,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pymaster"
-version = "2.7"
+version = "3.0"
 authors = [
   {name="David Alonso", email="david.alonso@physics.ox.ac.uk"}
 ]
@@ -17,6 +17,7 @@ license = {file = "LICENSE"}
 requires-python = ">=3.10"
 dependencies = [
 	"healpy",
+	"fitsio",
 	"ducc0"
 ]
 classifiers=[

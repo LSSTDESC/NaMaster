@@ -33,7 +33,16 @@
      (int nlee,double *flee),
      (int nleb,double *fleb),
      (int nlbe,double *flbe),
-     (int nlbb,double *flbb)};
+     (int nlbb,double *flbb),
+     (int n00_1122,double *xi00_1122),
+     (int n00_1221,double *xi00_1221),
+     (int n02_1122,double *xi02_1122),
+     (int n02_1221,double *xi02_1221),
+     (int n22p_1122,double *xi22p_1122),
+     (int n22p_1221,double *xi22p_1221),
+     (int n22m_1122,double *xi22m_1122),
+     (int n22m_1221,double *xi22m_1221)
+     };
 %apply (int DIM1,int *IN_ARRAY1) {(int nell1,int *bpws),
                                   (int nell2,int *ells),
                                   (int nfields,int *spin_arr)};
@@ -145,6 +154,41 @@ void get_mcm(nmt_workspace *w,double *ldout,long nldout)
       ldout[index]=w->coupling_matrix_unbinned[ii][jj];
     }
   }
+}
+
+int get_cw_xi(nmt_covar_workspace *cw, int which, double *ldout, long nldout)
+{
+  int ii,nrows=cw->lmax+1;
+
+  double **xi=NULL;
+  if(which==0)
+    xi=cw->xi00_1122;
+  else if(which==1)
+    xi=cw->xi00_1221;
+  else if(which==2)
+    xi=cw->xi02_1122;
+  else if(which==3)
+    xi=cw->xi02_1221;
+  else if(which==4)
+    xi=cw->xi22p_1122;
+  else if(which==5)
+    xi=cw->xi22p_1221;
+  else if(which==6)
+    xi=cw->xi22m_1122;
+  else if(which==7)
+    xi=cw->xi22m_1221;
+
+  if(xi==NULL)
+    return 0;
+
+  for(ii=0;ii<nrows;ii++) {
+    int jj;
+    for(jj=0;jj<nrows;jj++) {
+      long index=(long)(ii*nrows)+jj;
+      ldout[index]=xi[ii][jj];
+    }
+  }
+  return 1;
 }
 
 nmt_binning_scheme_flat *bins_flat_create_py(int npix_1,double *mask,
@@ -489,14 +533,15 @@ nmt_workspace *comp_coupling_matrix(int spin1,int spin2,
 				     norm_type, w2);
 }
 
-void comp_general_coupling_matrix(int s1, int s2, int n1, int n2, int lmax,
+void comp_general_coupling_matrix(int s1, int s2, int n1, int n2,
+				  int parity, int lmax,
 				  int nell4,double *f_ell,
 				  double *dout,int ndout)
 {
   asserting(nell4==lmax+1);
   asserting(ndout==nell4*nell4);
   memset(dout,0,ndout*sizeof(double));
-  nmt_compute_general_coupling_matrix(lmax,f_ell,s1,s2,n1,n2,dout);
+  nmt_compute_general_coupling_matrix(lmax,f_ell,s1,s2,n1,n2,parity,dout);
 }
 
 nmt_workspace_flat *comp_coupling_matrix_flat(nmt_field_flat *fl1,nmt_field_flat *fl2,
@@ -573,21 +618,44 @@ void comp_deproj_bias_flat(nmt_field_flat *fl1,nmt_field_flat *fl2,
   free(cl_guess);
 }
 
-void write_covar_workspace(nmt_covar_workspace *cw,char *fname)
+nmt_covar_workspace *covar_workspace_init_from_xi(int spin_a1, int spin_a2,
+						  int spin_b1, int spin_b2,
+						  int all_spins, int lmax, int lmax_mask,
+						  int n00_1122, double *xi00_1122,
+						  int n00_1221, double *xi00_1221,
+						  int n02_1122, double *xi02_1122,
+						  int n02_1221, double *xi02_1221,
+						  int n22p_1122, double *xi22p_1122,
+						  int n22p_1221, double *xi22p_1221,
+						  int n22m_1122, double *xi22m_1122,
+						  int n22m_1221, double *xi22m_1221)
 {
-  nmt_covar_workspace_write_fits(cw,fname);
+  double *x001122,*x001221,*x021122,*x021221,*x22p1122,*x22p1221,*x22m1122,*x22m1221;
+  x001122=(n00_1122 == 1 ? NULL : xi00_1122);
+  x001221=(n00_1221 == 1 ? NULL : xi00_1221);
+  x021122=(n02_1122 == 1 ? NULL : xi02_1122);
+  x021221=(n02_1221 == 1 ? NULL : xi02_1221);
+  x22p1122=(n22p_1122 == 1 ? NULL : xi22p_1122);
+  x22p1221=(n22p_1221 == 1 ? NULL : xi22p_1221);
+  x22m1122=(n22m_1122 == 1 ? NULL : xi22m_1122);
+  x22m1221=(n22m_1221 == 1 ? NULL : xi22m_1221);
+  nmt_covar_workspace *cw=nmt_covar_workspace_init_from_couplings(spin_a1,spin_a2,
+								  spin_b1,spin_b2,
+								  all_spins,lmax, lmax_mask,
+								  x001122,x001221,
+								  x021122,x021221,
+								  x22p1122,x22p1221,
+								  x22m1122,x22m1221);
+  return cw;
 }
 
-nmt_covar_workspace *read_covar_workspace(char *fname)
-{
-  return nmt_covar_workspace_read_fits(fname);
-}
 
 nmt_covar_workspace *covar_workspace_init_py(int spin_a1, int spin_a2,
 					     int spin_b1, int spin_b2,
 					     int nlb1, double *beam1,
 					     int nlb2, double *beam2,
-					     int all_spins,
+					     int all_spins, int auto_any,
+					     int has_1122, int has_1221,
 					     int lmax, int lmax_mask,
 					     int l_toeplitz, int l_exact,
 					     int dl_band)
@@ -595,7 +663,7 @@ nmt_covar_workspace *covar_workspace_init_py(int spin_a1, int spin_a2,
   asserting(nlb1==lmax_mask+1);
   asserting(nlb2==lmax_mask+1);
   return nmt_covar_workspace_init(spin_a1, spin_a2, spin_b1, spin_b2,
-				  all_spins, 0,
+				  all_spins, auto_any, has_1122, has_1221,
 				  beam1, beam2, lmax,lmax_mask,
 				  l_toeplitz,l_exact,dl_band);
 }
@@ -625,6 +693,8 @@ void comp_gaussian_covariance(nmt_covar_workspace *cw,
 			      int ncl12,int nell12,double *c12,
 			      int ncl21,int nell21,double *c21,
 			      int ncl22,int nell22,double *c22,
+			      int is_11_noise, int is_12_noise,
+			      int is_21_noise, int is_22_noise,
 			      double *dout,int ndout)
 {
   asserting(nell11==nell12);
@@ -645,8 +715,9 @@ void comp_gaussian_covariance(nmt_covar_workspace *cw,
     c22p[i]=&(c22[i*nell22]);
   nmt_compute_gaussian_covariance(cw,
 				  spin_a1, spin_a2, spin_b1, spin_b2,
-				  wa,wb,
-				  c11p,c12p,c21p,c22p,dout);
+				  wa,wb,c11p,c12p,c21p,c22p,
+				  is_11_noise,is_12_noise,
+				  is_21_noise,is_22_noise,dout);
   free(c11p); free(c12p); free(c21p); free(c22p);
 }
 
@@ -657,6 +728,8 @@ void comp_gaussian_covariance_coupled(nmt_covar_workspace *cw,
                                       int ncl12,int nell12,double *c12,
                                       int ncl21,int nell21,double *c21,
                                       int ncl22,int nell22,double *c22,
+				      int is_11_noise, int is_12_noise,
+				      int is_21_noise, int is_22_noise,
                                       double *dout,int ndout)
 {
   asserting(nell11==nell12);
@@ -677,8 +750,9 @@ void comp_gaussian_covariance_coupled(nmt_covar_workspace *cw,
     c22p[i]=&(c22[i*nell22]);
   nmt_compute_gaussian_covariance_coupled(cw,
 					  spin_a1, spin_a2, spin_b1, spin_b2,
-					  wa,wb,
-                                          c11p,c12p,c21p,c22p,dout);
+					  wa,wb,c11p,c12p,c21p,c22p,
+					  is_11_noise,is_12_noise,
+					  is_21_noise,is_22_noise,dout);
   free(c11p); free(c12p); free(c21p); free(c22p);
 }
 

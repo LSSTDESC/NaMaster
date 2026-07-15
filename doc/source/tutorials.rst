@@ -11,3 +11,4 @@ Below is a list of tutorials, in the form of jupyter notebooks, that guide you t
 * `Anisotropic weights <../5AnisotropicWeighting.html>`_
 * `Deprojection for catalog-based fields <../6CatalogsDeprojection.html>`_
 * `kSZ power spectra and momentum fields <../7kSZSpectra.html>`_
+* `Migrating to v3 from v2 <../FromV2toV3.html>`_

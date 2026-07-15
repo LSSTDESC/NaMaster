@@ -1171,13 +1171,15 @@ def compute_full_master_flat(f1, f2, b, cl_noise=None, cl_guess=None,
     return clout
 
 
-def get_general_coupling_matrix(pcl_mask, s1, s2, n1, n2):
+def get_general_coupling_matrix(pcl_mask, s1, s2, n1, n2,
+                                parity="all"):
     """ Returns a general mode-coupling matrix of the form
 
     .. math::
       M_{\\ell \\ell'}=\\sum_{\\ell''}
       \\frac{(2\\ell'+1)(2\\ell''+1)}{4\\pi}
-      \\tilde{C}^{uv}_\\ell
+      \\tilde{C}^{uv}_{\\ell''}\\,
+      P_{\\ell+\\ell'+\\ell''}\\,
       \\left(\\begin{array}{ccc}
       \\ell & \\ell' & \\ell'' \\\\
       n_1 & -s_1 & s_1-n_1
@@ -1186,6 +1188,10 @@ def get_general_coupling_matrix(pcl_mask, s1, s2, n1, n2):
       \\ell & \\ell' & \\ell'' \\\\
       n_2 & -s_2 & s_2-n_2
       \\end{array}\\right)
+
+    Where :math:`P_L=1` if ``parity="all"``,
+    :math:`P_L=(1+(-1)^L)/2` if ``parity="even"``,
+    and :math:`P_L=(1-(-1)^L)/2` if ``parity="odd"``.
 
     Args:
         pcl_mask (`array`): 1D array containing the power spectrum
@@ -1201,10 +1207,19 @@ def get_general_coupling_matrix(pcl_mask, s1, s2, n1, n2):
         matrix for multipoles from 0 to ``nl-1``.
     """
 
+    if parity == 'all':
+        par = 0
+    elif parity == 'even':
+        par = 1
+    elif parity == 'odd':
+        par = -1
+    else:
+        raise ValueError("`parity` must be \"all\", "
+                         "\"even\", or \"odd\"")
     lmax = len(pcl_mask)-1
     xi = lib.comp_general_coupling_matrix(
         int(s1), int(s2), int(n1),
-        int(n2), int(lmax),
+        int(n2), int(par), int(lmax),
         pcl_mask, int((lmax+1)**2))
     xi = xi.reshape([lmax+1, lmax+1])
     return xi

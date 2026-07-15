@@ -769,7 +769,7 @@ def test_fkp_normalization_errors():
         nmt.NmtWorkspace.from_fields(fc, fcb, b, normalization='FKP')
 
 
-def test_general_mcmc():
+def test_general_mcm():
     # Create disc mask
     nside = 256
     nell = 3*nside
@@ -796,7 +796,20 @@ def test_general_mcmc():
     m00 = nmt.get_general_coupling_matrix(pclm, 0, 0, 0, 0)
     m02 = nmt.get_general_coupling_matrix(pclm, 0, 2, 0, 2)
     m22 = nmt.get_general_coupling_matrix(pclm, 2, 2, 2, 2)
+    mee_ee = nmt.get_general_coupling_matrix(pclm, 2, 2, 2, 2, parity='even')
+    mee_bb = nmt.get_general_coupling_matrix(pclm, 2, 2, 2, 2, parity='odd')
 
     assert np.amax(np.fabs(m00-mcm00)/np.amax(mcm00)) < 1E-10
     assert np.amax(np.fabs(m02-mcm02)/np.amax(mcm02)) < 1E-10
     assert np.amax(np.fabs(m22-mcm22)/np.amax(mcm22)) < 1E-10
+    assert np.amax(np.fabs(mee_ee-mcmee_ee)/np.amax(mcmee_ee)) < 1E-10
+    assert np.amax(np.fabs(mee_bb-mcmee_bb)/np.amax(mcmee_ee)) < 1E-10
+
+
+def test_general_mcm_error():
+    pclm = np.zeros(100)
+    pclm[0] = 1.0
+
+    # Only "all", "even" and "odd" allowed
+    with pytest.raises(ValueError):
+        nmt.get_general_coupling_matrix(pclm, 2, 2, 2, 2, parity='seven')
