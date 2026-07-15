@@ -1,3 +1,20 @@
+# v3.0
+- Implemented covariances for catalog-based fields (#247)
+- Implemented method to calculate C_ells needed in the iNKA covariance (#246)
+- Simplification of internal processes to get covariance coupling coefficients (#245)
+- CatalogClustering fields inherit from CatalogMomentum (#244)
+- Deprojection for momentum fields (#244)
+- Code cleanup (#244, #245, #245, #247)
+
+# v2.7
+- Generalisation of momentum fields to arbitrary spins (#242)
+
+# v2.6
+- Catalog-based momentum fields (#241)
+
+# v2.5.1
+- Various bugfixes. Parallelisation of catalog-based SHTs (#238, #239)
+
 # v2.5
 - Implementation of mode deprojection for catalog fields complete (#236)
 
