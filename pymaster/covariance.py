@@ -231,7 +231,6 @@ class NmtCovarianceWorkspace(object):
         import fitsio as fts
 
         f = fts.FITS(fname)
-        print(f)
         h = f['CWSP_PRIMARY'].read_header()
         self.lmax = h['LMAX']
         self.lmax_mask = h['LMAX_MASK'] if 'LMAX_MASK' in h else self.lmax
