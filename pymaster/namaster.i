@@ -21,6 +21,7 @@
 %apply (double* ARGOUT_ARRAY1, int DIM1) {(double* dout, int ndout)};
 %apply (double* ARGOUT_ARRAY1, long DIM1) {(double* ldout, long nldout)};
 %apply (int DIM1,double *IN_ARRAY1) {(int npix_1,double *mask),
+     (int nmcm_in,double *mcm_in),
      (int nell3,double *weights),
      (int nell4,double *f_ell),
      (int nlb1,double *beam1),
@@ -203,18 +204,8 @@ void bin_cl(nmt_binning_scheme *bins,
 	    int ncl1,int nell1,double *cls1,
 	    double *dout,int ndout)
 {
-  int i;
   asserting(ndout==ncl1*bins->n_bands);
-  double **cls_in,**cls_out;
-  cls_in=malloc(ncl1*sizeof(double *));
-  cls_out=malloc(ncl1*sizeof(double *));
-  for(i=0;i<ncl1;i++) {
-    cls_in[i]=&(cls1[i*nell1]);
-    cls_out[i]=&(dout[i*bins->n_bands]);
-  }
-  nmt_bin_cls(bins,cls_in,cls_out,ncl1);
-  free(cls_in);
-  free(cls_out);
+  nmt_bin_cls(bins,ncl1,cls1,dout);
 }
 
 void bin_cl_flat(nmt_binning_scheme_flat *bins,
@@ -241,20 +232,8 @@ void unbin_cl(nmt_binning_scheme *bins,
 	      int ncl1,int nell1,double *cls1,
 	      double *dout,int ndout)
 {
-  int i;
-  int nellout=ndout/ncl1;
   asserting(nell1==bins->n_bands);
-  double **cls_in,**cls_out;
-  cls_in=malloc(ncl1*sizeof(double *));
-  cls_out=malloc(ncl1*sizeof(double *));
-  for(i=0;i<ncl1;i++) {
-    cls_in[i]=&(cls1[i*nell1]);
-    cls_out[i]=&(dout[i*nellout]);
-    memset(cls_out[i],0,nellout*sizeof(double));
-  }
-  nmt_unbin_cls(bins,cls_in,cls_out,ncl1);
-  free(cls_in);
-  free(cls_out);
+  nmt_unbin_cls(bins,ncl1,cls1,dout);
 }
 
 void unbin_cl_flat(nmt_binning_scheme_flat *bins,
@@ -276,6 +255,29 @@ void unbin_cl_flat(nmt_binning_scheme_flat *bins,
   nmt_unbin_cls_flat(bins,cls_in,nell3,weights,cls_out,ncl1);
   free(cls_in);
   free(cls_out);
+}
+
+void bin_mcmat_oneside(nmt_binning_scheme *bins,int ncl,
+		       int nmcm_in,double *mcm_in,
+		       int nlb1,double *beam1,
+		       int nlb2,double *beam2,
+		       double *dout,int ndout)
+{
+  asserting(nmcm_in==ncl*ncl*(bins->ell_max+1)*(bins->ell_max+1));
+  asserting(ndout==ncl*ncl*(bins->ell_max+1)*bins->n_bands);
+  nmt_bin_mcm_oneside(bins,ncl,mcm_in,dout,beam1,beam2);
+}  
+
+void bin_mcmat(nmt_binning_scheme *bins,int ncl,
+	       int nmcm_in,double *mcm_in,
+	       int norm_type,double w2,
+	       int nlb1,double *beam1,
+	       int nlb2,double *beam2,
+	       double *dout,int ndout)
+{
+  asserting(nmcm_in==ncl*ncl*(bins->ell_max+1)*(bins->ell_max+1));
+  asserting(ndout==ncl*ncl*bins->n_bands*bins->n_bands);
+  nmt_bin_mcm(bins,ncl,mcm_in,dout,norm_type,w2,beam1,beam2);
 }
 
 nmt_field_flat *field_alloc_empty_flat(int nx,int ny,double lx,double ly,int spin,

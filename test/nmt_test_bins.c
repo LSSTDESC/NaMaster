@@ -89,8 +89,8 @@ CTEST(nmt,bins_binning) {
   for(i=0;i<=lmax;i++)
     cls[i]=i+0.;
 
-  nmt_bin_cls(bin,&cls,&cls_binned,1);
-  nmt_unbin_cls(bin,&cls_binned,&cls_back,1);
+  nmt_bin_cls(bin,1,cls,cls_binned);
+  nmt_unbin_cls(bin,1,cls_binned,cls_back);
   nmt_ell_eff(bin,leff);
 
   for(i=0;i<bin->n_bands;i++) {
@@ -120,8 +120,8 @@ CTEST(nmt,bins_binning_f_ell) {
   for(i=0;i<=lmax;i++)
     cls[i]=i+0.;
 
-  nmt_bin_cls(bin,&cls,&cls_binned,1);
-  nmt_unbin_cls(bin,&cls_binned,&cls_back,1);
+  nmt_bin_cls(bin,1,cls,cls_binned);
+  nmt_unbin_cls(bin,1,cls_binned,cls_back);
   nmt_ell_eff(bin,leff);
 
   for(i=0;i<bin->n_bands;i++) {

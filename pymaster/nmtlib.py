@@ -123,11 +123,17 @@ def bins_create(nell, bpws, ells, weights, f_ell, lmax):
 def bins_free(bin):
     return _nmtlib.bins_free(bin)
 
-def bin_cls(bin, cls_in, cls_out, ncls):
-    return _nmtlib.bin_cls(bin, cls_in, cls_out, ncls)
+def bin_cls(bin, ncls, cls_in, cls_out):
+    return _nmtlib.bin_cls(bin, ncls, cls_in, cls_out)
 
-def unbin_cls(bin, cls_in, cls_out, ncls):
-    return _nmtlib.unbin_cls(bin, cls_in, cls_out, ncls)
+def unbin_cls(bin, ncls, cls_in, cls_out):
+    return _nmtlib.unbin_cls(bin, ncls, cls_in, cls_out)
+
+def bin_mcm_oneside(bin, ncls, mcm_in, mcm_out, beam1, beam2):
+    return _nmtlib.bin_mcm_oneside(bin, ncls, mcm_in, mcm_out, beam1, beam2)
+
+def bin_mcm(bin, ncls, mcm_in, mcm_out, norm_type, w2, beam1, beam2):
+    return _nmtlib.bin_mcm(bin, ncls, mcm_in, mcm_out, norm_type, w2, beam1, beam2)
 
 def ell_eff(bin, larr):
     return _nmtlib.ell_eff(bin, larr)
@@ -510,6 +516,12 @@ def unbin_cl(bins, ncl1, dout):
 
 def unbin_cl_flat(bins, ncl1, nell3, dout):
     return _nmtlib.unbin_cl_flat(bins, ncl1, nell3, dout)
+
+def bin_mcmat_oneside(bins, ncl, nmcm_in, nlb1, nlb2, dout):
+    return _nmtlib.bin_mcmat_oneside(bins, ncl, nmcm_in, nlb1, nlb2, dout)
+
+def bin_mcmat(bins, ncl, nmcm_in, norm_type, w2, nlb1, nlb2, dout):
+    return _nmtlib.bin_mcmat(bins, ncl, nmcm_in, norm_type, w2, nlb1, nlb2, dout)
 
 def field_alloc_empty_flat(nx, ny, lx, ly, spin, npix_1, ncl1, pure_e, pure_b):
     return _nmtlib.field_alloc_empty_flat(nx, ny, lx, ly, spin, npix_1, ncl1, pure_e, pure_b)

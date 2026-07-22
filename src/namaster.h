@@ -217,7 +217,7 @@ void nmt_bins_free(nmt_binning_scheme *bin);
  *        Should be allocated to the number of bandpowers defined \p bin.
  * @param ncls Number of input/output power spectra.
  */
-void nmt_bin_cls(nmt_binning_scheme *bin,flouble **cls_in,flouble **cls_out,int ncls);
+void nmt_bin_cls(nmt_binning_scheme *bin,int ncls,flouble *cls_in,flouble *cls_out);
 
 /**
  * @brief Returns binned power spectra interpolated into output multipoles.
@@ -230,7 +230,14 @@ void nmt_bin_cls(nmt_binning_scheme *bin,flouble **cls_in,flouble **cls_out,int 
  * @param cls_out Array of \p ncls interpolated output power spectra.
  * @param ncls Number of input/output power spectra.
  */
-void nmt_unbin_cls(nmt_binning_scheme *bin,flouble **cls_in,flouble **cls_out,int ncls);
+void nmt_unbin_cls(nmt_binning_scheme *bin,int ncls,flouble *cls_in,flouble *cls_out);
+
+void nmt_bin_mcm_oneside(nmt_binning_scheme *bin,int ncls,
+			 flouble *mcm_in,flouble *mcm_out,
+			 flouble *beam1,flouble *beam2);
+
+void nmt_bin_mcm(nmt_binning_scheme *bin,int ncls,flouble *mcm_in,flouble *mcm_out,
+		 int norm_type,flouble w2,flouble *beam1,flouble *beam2);
 
 /**
  * @brief Returns effective multipoles.

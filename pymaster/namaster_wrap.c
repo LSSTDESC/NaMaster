@@ -3161,18 +3161,8 @@ void bin_cl(nmt_binning_scheme *bins,
 	    int ncl1,int nell1,double *cls1,
 	    double *dout,int ndout)
 {
-  int i;
   asserting(ndout==ncl1*bins->n_bands);
-  double **cls_in,**cls_out;
-  cls_in=malloc(ncl1*sizeof(double *));
-  cls_out=malloc(ncl1*sizeof(double *));
-  for(i=0;i<ncl1;i++) {
-    cls_in[i]=&(cls1[i*nell1]);
-    cls_out[i]=&(dout[i*bins->n_bands]);
-  }
-  nmt_bin_cls(bins,cls_in,cls_out,ncl1);
-  free(cls_in);
-  free(cls_out);
+  nmt_bin_cls(bins,ncl1,cls1,dout);
 }
 
 void bin_cl_flat(nmt_binning_scheme_flat *bins,
@@ -3199,20 +3189,8 @@ void unbin_cl(nmt_binning_scheme *bins,
 	      int ncl1,int nell1,double *cls1,
 	      double *dout,int ndout)
 {
-  int i;
-  int nellout=ndout/ncl1;
   asserting(nell1==bins->n_bands);
-  double **cls_in,**cls_out;
-  cls_in=malloc(ncl1*sizeof(double *));
-  cls_out=malloc(ncl1*sizeof(double *));
-  for(i=0;i<ncl1;i++) {
-    cls_in[i]=&(cls1[i*nell1]);
-    cls_out[i]=&(dout[i*nellout]);
-    memset(cls_out[i],0,nellout*sizeof(double));
-  }
-  nmt_unbin_cls(bins,cls_in,cls_out,ncl1);
-  free(cls_in);
-  free(cls_out);
+  nmt_unbin_cls(bins,ncl1,cls1,dout);
 }
 
 void unbin_cl_flat(nmt_binning_scheme_flat *bins,
@@ -3234,6 +3212,29 @@ void unbin_cl_flat(nmt_binning_scheme_flat *bins,
   nmt_unbin_cls_flat(bins,cls_in,nell3,weights,cls_out,ncl1);
   free(cls_in);
   free(cls_out);
+}
+
+void bin_mcmat_oneside(nmt_binning_scheme *bins,int ncl,
+		       int nmcm_in,double *mcm_in,
+		       int nlb1,double *beam1,
+		       int nlb2,double *beam2,
+		       double *dout,int ndout)
+{
+  asserting(nmcm_in==ncl*ncl*(bins->ell_max+1)*(bins->ell_max+1));
+  asserting(ndout==ncl*ncl*(bins->ell_max+1)*bins->n_bands);
+  nmt_bin_mcm_oneside(bins,ncl,mcm_in,dout,beam1,beam2);
+}  
+
+void bin_mcmat(nmt_binning_scheme *bins,int ncl,
+	       int nmcm_in,double *mcm_in,
+	       int norm_type,double w2,
+	       int nlb1,double *beam1,
+	       int nlb2,double *beam2,
+	       double *dout,int ndout)
+{
+  asserting(nmcm_in==ncl*ncl*(bins->ell_max+1)*(bins->ell_max+1));
+  asserting(ndout==ncl*ncl*bins->n_bands*bins->n_bands);
+  nmt_bin_mcm(bins,ncl,mcm_in,dout,norm_type,w2,beam1,beam2);
 }
 
 nmt_field_flat *field_alloc_empty_flat(int nx,int ny,double lx,double ly,int spin,
@@ -5396,17 +5397,17 @@ fail:
 SWIGINTERN PyObject *_wrap_bin_cls(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   nmt_binning_scheme *arg1 = (nmt_binning_scheme *) 0 ;
-  flouble **arg2 = (flouble **) 0 ;
-  flouble **arg3 = (flouble **) 0 ;
-  int arg4 ;
+  int arg2 ;
+  flouble *arg3 = (flouble *) 0 ;
+  flouble *arg4 = (flouble *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
-  void *argp2 = 0 ;
-  int res2 = 0 ;
+  int val2 ;
+  int ecode2 = 0 ;
   void *argp3 = 0 ;
   int res3 = 0 ;
-  int val4 ;
-  int ecode4 = 0 ;
+  void *argp4 = 0 ;
+  int res4 = 0 ;
   PyObject *swig_obj[4] ;
   
   if (!SWIG_Python_UnpackTuple(args, "bin_cls", 4, 4, swig_obj)) SWIG_fail;
@@ -5415,21 +5416,21 @@ SWIGINTERN PyObject *_wrap_bin_cls(PyObject *SWIGUNUSEDPARM(self), PyObject *arg
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "bin_cls" "', argument " "1"" of type '" "nmt_binning_scheme *""'"); 
   }
   arg1 = (nmt_binning_scheme *)(argp1);
-  res2 = SWIG_ConvertPtr(swig_obj[1], &argp2,SWIGTYPE_p_p_double, 0 |  0 );
-  if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "bin_cls" "', argument " "2"" of type '" "flouble **""'"); 
-  }
-  arg2 = (flouble **)(argp2);
-  res3 = SWIG_ConvertPtr(swig_obj[2], &argp3,SWIGTYPE_p_p_double, 0 |  0 );
-  if (!SWIG_IsOK(res3)) {
-    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "bin_cls" "', argument " "3"" of type '" "flouble **""'"); 
-  }
-  arg3 = (flouble **)(argp3);
-  ecode4 = SWIG_AsVal_int(swig_obj[3], &val4);
-  if (!SWIG_IsOK(ecode4)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "bin_cls" "', argument " "4"" of type '" "int""'");
+  ecode2 = SWIG_AsVal_int(swig_obj[1], &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "bin_cls" "', argument " "2"" of type '" "int""'");
   } 
-  arg4 = (int)(val4);
+  arg2 = (int)(val2);
+  res3 = SWIG_ConvertPtr(swig_obj[2], &argp3,SWIGTYPE_p_double, 0 |  0 );
+  if (!SWIG_IsOK(res3)) {
+    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "bin_cls" "', argument " "3"" of type '" "flouble *""'"); 
+  }
+  arg3 = (flouble *)(argp3);
+  res4 = SWIG_ConvertPtr(swig_obj[3], &argp4,SWIGTYPE_p_double, 0 |  0 );
+  if (!SWIG_IsOK(res4)) {
+    SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "bin_cls" "', argument " "4"" of type '" "flouble *""'"); 
+  }
+  arg4 = (flouble *)(argp4);
   nmt_bin_cls(arg1,arg2,arg3,arg4);
   resultobj = SWIG_Py_Void();
   return resultobj;
@@ -5441,17 +5442,17 @@ fail:
 SWIGINTERN PyObject *_wrap_unbin_cls(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   nmt_binning_scheme *arg1 = (nmt_binning_scheme *) 0 ;
-  flouble **arg2 = (flouble **) 0 ;
-  flouble **arg3 = (flouble **) 0 ;
-  int arg4 ;
+  int arg2 ;
+  flouble *arg3 = (flouble *) 0 ;
+  flouble *arg4 = (flouble *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
-  void *argp2 = 0 ;
-  int res2 = 0 ;
+  int val2 ;
+  int ecode2 = 0 ;
   void *argp3 = 0 ;
   int res3 = 0 ;
-  int val4 ;
-  int ecode4 = 0 ;
+  void *argp4 = 0 ;
+  int res4 = 0 ;
   PyObject *swig_obj[4] ;
   
   if (!SWIG_Python_UnpackTuple(args, "unbin_cls", 4, 4, swig_obj)) SWIG_fail;
@@ -5460,22 +5461,160 @@ SWIGINTERN PyObject *_wrap_unbin_cls(PyObject *SWIGUNUSEDPARM(self), PyObject *a
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "unbin_cls" "', argument " "1"" of type '" "nmt_binning_scheme *""'"); 
   }
   arg1 = (nmt_binning_scheme *)(argp1);
-  res2 = SWIG_ConvertPtr(swig_obj[1], &argp2,SWIGTYPE_p_p_double, 0 |  0 );
-  if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "unbin_cls" "', argument " "2"" of type '" "flouble **""'"); 
-  }
-  arg2 = (flouble **)(argp2);
-  res3 = SWIG_ConvertPtr(swig_obj[2], &argp3,SWIGTYPE_p_p_double, 0 |  0 );
-  if (!SWIG_IsOK(res3)) {
-    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "unbin_cls" "', argument " "3"" of type '" "flouble **""'"); 
-  }
-  arg3 = (flouble **)(argp3);
-  ecode4 = SWIG_AsVal_int(swig_obj[3], &val4);
-  if (!SWIG_IsOK(ecode4)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "unbin_cls" "', argument " "4"" of type '" "int""'");
+  ecode2 = SWIG_AsVal_int(swig_obj[1], &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "unbin_cls" "', argument " "2"" of type '" "int""'");
   } 
-  arg4 = (int)(val4);
+  arg2 = (int)(val2);
+  res3 = SWIG_ConvertPtr(swig_obj[2], &argp3,SWIGTYPE_p_double, 0 |  0 );
+  if (!SWIG_IsOK(res3)) {
+    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "unbin_cls" "', argument " "3"" of type '" "flouble *""'"); 
+  }
+  arg3 = (flouble *)(argp3);
+  res4 = SWIG_ConvertPtr(swig_obj[3], &argp4,SWIGTYPE_p_double, 0 |  0 );
+  if (!SWIG_IsOK(res4)) {
+    SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "unbin_cls" "', argument " "4"" of type '" "flouble *""'"); 
+  }
+  arg4 = (flouble *)(argp4);
   nmt_unbin_cls(arg1,arg2,arg3,arg4);
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_bin_mcm_oneside(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_binning_scheme *arg1 = (nmt_binning_scheme *) 0 ;
+  int arg2 ;
+  flouble *arg3 = (flouble *) 0 ;
+  flouble *arg4 = (flouble *) 0 ;
+  flouble *arg5 = (flouble *) 0 ;
+  flouble *arg6 = (flouble *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int val2 ;
+  int ecode2 = 0 ;
+  void *argp3 = 0 ;
+  int res3 = 0 ;
+  void *argp4 = 0 ;
+  int res4 = 0 ;
+  void *argp5 = 0 ;
+  int res5 = 0 ;
+  void *argp6 = 0 ;
+  int res6 = 0 ;
+  PyObject *swig_obj[6] ;
+  
+  if (!SWIG_Python_UnpackTuple(args, "bin_mcm_oneside", 6, 6, swig_obj)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_nmt_binning_scheme, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "bin_mcm_oneside" "', argument " "1"" of type '" "nmt_binning_scheme *""'"); 
+  }
+  arg1 = (nmt_binning_scheme *)(argp1);
+  ecode2 = SWIG_AsVal_int(swig_obj[1], &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "bin_mcm_oneside" "', argument " "2"" of type '" "int""'");
+  } 
+  arg2 = (int)(val2);
+  res3 = SWIG_ConvertPtr(swig_obj[2], &argp3,SWIGTYPE_p_double, 0 |  0 );
+  if (!SWIG_IsOK(res3)) {
+    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "bin_mcm_oneside" "', argument " "3"" of type '" "flouble *""'"); 
+  }
+  arg3 = (flouble *)(argp3);
+  res4 = SWIG_ConvertPtr(swig_obj[3], &argp4,SWIGTYPE_p_double, 0 |  0 );
+  if (!SWIG_IsOK(res4)) {
+    SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "bin_mcm_oneside" "', argument " "4"" of type '" "flouble *""'"); 
+  }
+  arg4 = (flouble *)(argp4);
+  res5 = SWIG_ConvertPtr(swig_obj[4], &argp5,SWIGTYPE_p_double, 0 |  0 );
+  if (!SWIG_IsOK(res5)) {
+    SWIG_exception_fail(SWIG_ArgError(res5), "in method '" "bin_mcm_oneside" "', argument " "5"" of type '" "flouble *""'"); 
+  }
+  arg5 = (flouble *)(argp5);
+  res6 = SWIG_ConvertPtr(swig_obj[5], &argp6,SWIGTYPE_p_double, 0 |  0 );
+  if (!SWIG_IsOK(res6)) {
+    SWIG_exception_fail(SWIG_ArgError(res6), "in method '" "bin_mcm_oneside" "', argument " "6"" of type '" "flouble *""'"); 
+  }
+  arg6 = (flouble *)(argp6);
+  nmt_bin_mcm_oneside(arg1,arg2,arg3,arg4,arg5,arg6);
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_bin_mcm(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_binning_scheme *arg1 = (nmt_binning_scheme *) 0 ;
+  int arg2 ;
+  flouble *arg3 = (flouble *) 0 ;
+  flouble *arg4 = (flouble *) 0 ;
+  int arg5 ;
+  flouble arg6 ;
+  flouble *arg7 = (flouble *) 0 ;
+  flouble *arg8 = (flouble *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int val2 ;
+  int ecode2 = 0 ;
+  void *argp3 = 0 ;
+  int res3 = 0 ;
+  void *argp4 = 0 ;
+  int res4 = 0 ;
+  int val5 ;
+  int ecode5 = 0 ;
+  double val6 ;
+  int ecode6 = 0 ;
+  void *argp7 = 0 ;
+  int res7 = 0 ;
+  void *argp8 = 0 ;
+  int res8 = 0 ;
+  PyObject *swig_obj[8] ;
+  
+  if (!SWIG_Python_UnpackTuple(args, "bin_mcm", 8, 8, swig_obj)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_nmt_binning_scheme, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "bin_mcm" "', argument " "1"" of type '" "nmt_binning_scheme *""'"); 
+  }
+  arg1 = (nmt_binning_scheme *)(argp1);
+  ecode2 = SWIG_AsVal_int(swig_obj[1], &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "bin_mcm" "', argument " "2"" of type '" "int""'");
+  } 
+  arg2 = (int)(val2);
+  res3 = SWIG_ConvertPtr(swig_obj[2], &argp3,SWIGTYPE_p_double, 0 |  0 );
+  if (!SWIG_IsOK(res3)) {
+    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "bin_mcm" "', argument " "3"" of type '" "flouble *""'"); 
+  }
+  arg3 = (flouble *)(argp3);
+  res4 = SWIG_ConvertPtr(swig_obj[3], &argp4,SWIGTYPE_p_double, 0 |  0 );
+  if (!SWIG_IsOK(res4)) {
+    SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "bin_mcm" "', argument " "4"" of type '" "flouble *""'"); 
+  }
+  arg4 = (flouble *)(argp4);
+  ecode5 = SWIG_AsVal_int(swig_obj[4], &val5);
+  if (!SWIG_IsOK(ecode5)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode5), "in method '" "bin_mcm" "', argument " "5"" of type '" "int""'");
+  } 
+  arg5 = (int)(val5);
+  ecode6 = SWIG_AsVal_double(swig_obj[5], &val6);
+  if (!SWIG_IsOK(ecode6)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode6), "in method '" "bin_mcm" "', argument " "6"" of type '" "flouble""'");
+  } 
+  arg6 = (flouble)(val6);
+  res7 = SWIG_ConvertPtr(swig_obj[6], &argp7,SWIGTYPE_p_double, 0 |  0 );
+  if (!SWIG_IsOK(res7)) {
+    SWIG_exception_fail(SWIG_ArgError(res7), "in method '" "bin_mcm" "', argument " "7"" of type '" "flouble *""'"); 
+  }
+  arg7 = (flouble *)(argp7);
+  res8 = SWIG_ConvertPtr(swig_obj[7], &argp8,SWIGTYPE_p_double, 0 |  0 );
+  if (!SWIG_IsOK(res8)) {
+    SWIG_exception_fail(SWIG_ArgError(res8), "in method '" "bin_mcm" "', argument " "8"" of type '" "flouble *""'"); 
+  }
+  arg8 = (flouble *)(argp8);
+  nmt_bin_mcm(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8);
   resultobj = SWIG_Py_Void();
   return resultobj;
 fail:
@@ -15761,6 +15900,306 @@ fail:
 }
 
 
+SWIGINTERN PyObject *_wrap_bin_mcmat_oneside(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_binning_scheme *arg1 = (nmt_binning_scheme *) 0 ;
+  int arg2 ;
+  int arg3 ;
+  double *arg4 = (double *) 0 ;
+  int arg5 ;
+  double *arg6 = (double *) 0 ;
+  int arg7 ;
+  double *arg8 = (double *) 0 ;
+  double *arg9 = (double *) 0 ;
+  int arg10 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int val2 ;
+  int ecode2 = 0 ;
+  PyArrayObject *array3 = NULL ;
+  int is_new_object3 = 0 ;
+  PyArrayObject *array5 = NULL ;
+  int is_new_object5 = 0 ;
+  PyArrayObject *array7 = NULL ;
+  int is_new_object7 = 0 ;
+  PyObject *array9 = NULL ;
+  PyObject *swig_obj[6] ;
+  
+  if (!SWIG_Python_UnpackTuple(args, "bin_mcmat_oneside", 6, 6, swig_obj)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_nmt_binning_scheme, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "bin_mcmat_oneside" "', argument " "1"" of type '" "nmt_binning_scheme *""'"); 
+  }
+  arg1 = (nmt_binning_scheme *)(argp1);
+  ecode2 = SWIG_AsVal_int(swig_obj[1], &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "bin_mcmat_oneside" "', argument " "2"" of type '" "int""'");
+  } 
+  arg2 = (int)(val2);
+  {
+    npy_intp size[1] = {
+      -1
+    };
+    array3 = obj_to_array_contiguous_allow_conversion(swig_obj[2],
+      NPY_DOUBLE,
+      &is_new_object3);
+    if (!array3 || !require_dimensions(array3, 1) ||
+      !require_size(array3, size, 1)) SWIG_fail;
+    arg3 = (int) array_size(array3,0);
+    arg4 = (double*) array_data(array3);
+  }
+  {
+    npy_intp size[1] = {
+      -1
+    };
+    array5 = obj_to_array_contiguous_allow_conversion(swig_obj[3],
+      NPY_DOUBLE,
+      &is_new_object5);
+    if (!array5 || !require_dimensions(array5, 1) ||
+      !require_size(array5, size, 1)) SWIG_fail;
+    arg5 = (int) array_size(array5,0);
+    arg6 = (double*) array_data(array5);
+  }
+  {
+    npy_intp size[1] = {
+      -1
+    };
+    array7 = obj_to_array_contiguous_allow_conversion(swig_obj[4],
+      NPY_DOUBLE,
+      &is_new_object7);
+    if (!array7 || !require_dimensions(array7, 1) ||
+      !require_size(array7, size, 1)) SWIG_fail;
+    arg7 = (int) array_size(array7,0);
+    arg8 = (double*) array_data(array7);
+  }
+  {
+    npy_intp dims[1];
+    if (!PyInt_Check(swig_obj[5]))
+    {
+      const char* typestring = pytype_string(swig_obj[5]);
+      PyErr_Format(PyExc_TypeError,
+        "Int dimension expected.  '%s' given.",
+        typestring);
+      SWIG_fail;
+    }
+    arg10 = (int) PyInt_AsLong(swig_obj[5]);
+    dims[0] = (npy_intp) arg10;
+    array9 = PyArray_SimpleNew(1, dims, NPY_DOUBLE);
+    if (!array9) SWIG_fail;
+    arg9 = (double*) array_data(array9);
+  }
+  {
+    try {
+      bin_mcmat_oneside(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10);
+    }
+    finally {
+      SWIG_exception(SWIG_RuntimeError,nmt_error_message);
+    }
+  }
+  resultobj = SWIG_Py_Void();
+  {
+    resultobj = SWIG_Python_AppendOutput(resultobj,(PyObject*)array9);
+  }
+  {
+    if (is_new_object3 && array3)
+    {
+      Py_DECREF(array3); 
+    }
+  }
+  {
+    if (is_new_object5 && array5)
+    {
+      Py_DECREF(array5); 
+    }
+  }
+  {
+    if (is_new_object7 && array7)
+    {
+      Py_DECREF(array7); 
+    }
+  }
+  return resultobj;
+fail:
+  {
+    if (is_new_object3 && array3)
+    {
+      Py_DECREF(array3); 
+    }
+  }
+  {
+    if (is_new_object5 && array5)
+    {
+      Py_DECREF(array5); 
+    }
+  }
+  {
+    if (is_new_object7 && array7)
+    {
+      Py_DECREF(array7); 
+    }
+  }
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_bin_mcmat(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_binning_scheme *arg1 = (nmt_binning_scheme *) 0 ;
+  int arg2 ;
+  int arg3 ;
+  double *arg4 = (double *) 0 ;
+  int arg5 ;
+  double arg6 ;
+  int arg7 ;
+  double *arg8 = (double *) 0 ;
+  int arg9 ;
+  double *arg10 = (double *) 0 ;
+  double *arg11 = (double *) 0 ;
+  int arg12 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int val2 ;
+  int ecode2 = 0 ;
+  PyArrayObject *array3 = NULL ;
+  int is_new_object3 = 0 ;
+  int val5 ;
+  int ecode5 = 0 ;
+  double val6 ;
+  int ecode6 = 0 ;
+  PyArrayObject *array7 = NULL ;
+  int is_new_object7 = 0 ;
+  PyArrayObject *array9 = NULL ;
+  int is_new_object9 = 0 ;
+  PyObject *array11 = NULL ;
+  PyObject *swig_obj[8] ;
+  
+  if (!SWIG_Python_UnpackTuple(args, "bin_mcmat", 8, 8, swig_obj)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_nmt_binning_scheme, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "bin_mcmat" "', argument " "1"" of type '" "nmt_binning_scheme *""'"); 
+  }
+  arg1 = (nmt_binning_scheme *)(argp1);
+  ecode2 = SWIG_AsVal_int(swig_obj[1], &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "bin_mcmat" "', argument " "2"" of type '" "int""'");
+  } 
+  arg2 = (int)(val2);
+  {
+    npy_intp size[1] = {
+      -1
+    };
+    array3 = obj_to_array_contiguous_allow_conversion(swig_obj[2],
+      NPY_DOUBLE,
+      &is_new_object3);
+    if (!array3 || !require_dimensions(array3, 1) ||
+      !require_size(array3, size, 1)) SWIG_fail;
+    arg3 = (int) array_size(array3,0);
+    arg4 = (double*) array_data(array3);
+  }
+  ecode5 = SWIG_AsVal_int(swig_obj[3], &val5);
+  if (!SWIG_IsOK(ecode5)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode5), "in method '" "bin_mcmat" "', argument " "5"" of type '" "int""'");
+  } 
+  arg5 = (int)(val5);
+  ecode6 = SWIG_AsVal_double(swig_obj[4], &val6);
+  if (!SWIG_IsOK(ecode6)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode6), "in method '" "bin_mcmat" "', argument " "6"" of type '" "double""'");
+  } 
+  arg6 = (double)(val6);
+  {
+    npy_intp size[1] = {
+      -1
+    };
+    array7 = obj_to_array_contiguous_allow_conversion(swig_obj[5],
+      NPY_DOUBLE,
+      &is_new_object7);
+    if (!array7 || !require_dimensions(array7, 1) ||
+      !require_size(array7, size, 1)) SWIG_fail;
+    arg7 = (int) array_size(array7,0);
+    arg8 = (double*) array_data(array7);
+  }
+  {
+    npy_intp size[1] = {
+      -1
+    };
+    array9 = obj_to_array_contiguous_allow_conversion(swig_obj[6],
+      NPY_DOUBLE,
+      &is_new_object9);
+    if (!array9 || !require_dimensions(array9, 1) ||
+      !require_size(array9, size, 1)) SWIG_fail;
+    arg9 = (int) array_size(array9,0);
+    arg10 = (double*) array_data(array9);
+  }
+  {
+    npy_intp dims[1];
+    if (!PyInt_Check(swig_obj[7]))
+    {
+      const char* typestring = pytype_string(swig_obj[7]);
+      PyErr_Format(PyExc_TypeError,
+        "Int dimension expected.  '%s' given.",
+        typestring);
+      SWIG_fail;
+    }
+    arg12 = (int) PyInt_AsLong(swig_obj[7]);
+    dims[0] = (npy_intp) arg12;
+    array11 = PyArray_SimpleNew(1, dims, NPY_DOUBLE);
+    if (!array11) SWIG_fail;
+    arg11 = (double*) array_data(array11);
+  }
+  {
+    try {
+      bin_mcmat(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12);
+    }
+    finally {
+      SWIG_exception(SWIG_RuntimeError,nmt_error_message);
+    }
+  }
+  resultobj = SWIG_Py_Void();
+  {
+    resultobj = SWIG_Python_AppendOutput(resultobj,(PyObject*)array11);
+  }
+  {
+    if (is_new_object3 && array3)
+    {
+      Py_DECREF(array3); 
+    }
+  }
+  {
+    if (is_new_object7 && array7)
+    {
+      Py_DECREF(array7); 
+    }
+  }
+  {
+    if (is_new_object9 && array9)
+    {
+      Py_DECREF(array9); 
+    }
+  }
+  return resultobj;
+fail:
+  {
+    if (is_new_object3 && array3)
+    {
+      Py_DECREF(array3); 
+    }
+  }
+  {
+    if (is_new_object7 && array7)
+    {
+      Py_DECREF(array7); 
+    }
+  }
+  {
+    if (is_new_object9 && array9)
+    {
+      Py_DECREF(array9); 
+    }
+  }
+  return NULL;
+}
+
+
 SWIGINTERN PyObject *_wrap_field_alloc_empty_flat(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   int arg1 ;
@@ -20326,6 +20765,8 @@ static PyMethodDef SwigMethods[] = {
 	 { "bins_free", _wrap_bins_free, METH_O, NULL},
 	 { "bin_cls", _wrap_bin_cls, METH_VARARGS, NULL},
 	 { "unbin_cls", _wrap_unbin_cls, METH_VARARGS, NULL},
+	 { "bin_mcm_oneside", _wrap_bin_mcm_oneside, METH_VARARGS, NULL},
+	 { "bin_mcm", _wrap_bin_mcm, METH_VARARGS, NULL},
 	 { "ell_eff", _wrap_ell_eff, METH_VARARGS, NULL},
 	 { "k_function_is_const_set", _wrap_k_function_is_const_set, METH_VARARGS, NULL},
 	 { "k_function_is_const_get", _wrap_k_function_is_const_get, METH_O, NULL},
@@ -20636,6 +21077,8 @@ static PyMethodDef SwigMethods[] = {
 	 { "bin_cl_flat", _wrap_bin_cl_flat, METH_VARARGS, NULL},
 	 { "unbin_cl", _wrap_unbin_cl, METH_VARARGS, NULL},
 	 { "unbin_cl_flat", _wrap_unbin_cl_flat, METH_VARARGS, NULL},
+	 { "bin_mcmat_oneside", _wrap_bin_mcmat_oneside, METH_VARARGS, NULL},
+	 { "bin_mcmat", _wrap_bin_mcmat, METH_VARARGS, NULL},
 	 { "field_alloc_empty_flat", _wrap_field_alloc_empty_flat, METH_VARARGS, NULL},
 	 { "field_alloc_new_flat", _wrap_field_alloc_new_flat, METH_VARARGS, NULL},
 	 { "field_alloc_new_notemp_flat", _wrap_field_alloc_new_notemp_flat, METH_VARARGS, NULL},
