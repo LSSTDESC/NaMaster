@@ -106,6 +106,14 @@ void get_weight_list(nmt_binning_scheme *bins,int ibin,double *dout,int ndout)
 
   memcpy(dout,bins->w_list[ibin],bins->nell_list[ibin]*sizeof(double));
 }
+
+void get_fell_list(nmt_binning_scheme *bins,int ibin,double *dout,int ndout)
+{
+  asserting(ibin<bins->n_bands);
+  asserting(bins->nell_list[ibin]==ndout);
+
+  memcpy(dout,bins->f_ell[ibin],bins->nell_list[ibin]*sizeof(double));
+}
  
 void get_ell_eff(nmt_binning_scheme *bins,double *dout,int ndout)
 {

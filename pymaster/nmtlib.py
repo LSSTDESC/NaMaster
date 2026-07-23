@@ -477,6 +477,9 @@ def get_ell_list(bins, ibin, iout):
 def get_weight_list(bins, ibin, dout):
     return _nmtlib.get_weight_list(bins, ibin, dout)
 
+def get_fell_list(bins, ibin, dout):
+    return _nmtlib.get_fell_list(bins, ibin, dout)
+
 def get_ell_eff(bins, dout):
     return _nmtlib.get_ell_eff(bins, dout)
 

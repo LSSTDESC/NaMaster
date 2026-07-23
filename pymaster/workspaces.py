@@ -1,6 +1,7 @@
 from pymaster import nmtlib as lib
 import pymaster.utils as ut
 import pymaster.master as mst
+from pymaster.bins import NmtBin
 import numpy as np
 import healpy as hp
 import warnings
@@ -545,35 +546,34 @@ class NmtWorkspaceNew(object):
     def __init__(self, fl1=None, fl2=None, bins=None, is_teb=False,
                  l_toeplitz=-1, l_exact=-1, dl_band=-1, fname=None,
                  normalization='MASTER'):
-        self.mcm = None  #
-        self.mcm_binned = None  #
-        self.pcl_mask = None  #
-        self.lmax = None  #
-        self.lmax_mask = None  #
-        self.nbands = None  #
-        self.bpws = None  #
-        self.bins = None  #
-        self.spin1 = None  #
-        self.spin2 = None  #
-        self.aniso1 = None  #
-        self.aniso2 = None  #
-        self.nmaps1 = None  #
-        self.nmaps2 = None  #
-        self.ncls = None  #
-        self.beam1 = None  #
-        self.beam2 = None  #
-        self.pure_e1 = None  #
-        self.pure_b1 = None  #
-        self.pure_e2 = None  #
-        self.pure_b2 = None  #
-        self.is_teb = None  #
-        self.l_toeplitz = None  #
-        self.l_exact = None  #
-        self.dl_band = None  #
-        self.pcl_mask = None  #
-        self.norm_type = None  #
-        self.normalization = None  #
-        self.wawb = None  #
+        self.mcm = None
+        self.mcm_binned = None
+        self.lmax = None
+        self.lmax_mask = None
+        self.nbands = None
+        self.bpws = None
+        self.bins = None
+        self.spin1 = None
+        self.spin2 = None
+        self.aniso1 = None
+        self.aniso2 = None
+        self.nmaps1 = None
+        self.nmaps2 = None
+        self.ncls = None
+        self.beam1 = None
+        self.beam2 = None
+        self.pure_e1 = None
+        self.pure_b1 = None
+        self.pure_e2 = None
+        self.pure_b2 = None
+        self.is_teb = None
+        self.l_toeplitz = None
+        self.l_exact = None
+        self.dl_band = None
+        self.pcl_mask = None
+        self.norm_type = None
+        self.normalization = None
+        self.wawb = None
 
         if ((fl1 is None) and (fl2 is None) and (bins is None) and
                 (fname is None)):
@@ -647,17 +647,76 @@ class NmtWorkspaceNew(object):
         """
         return cls(fname=fname)
 
-    def read_from(self, fname):  # TODO
+    def read_from(self, fname):
         """ Reads the contents of an :obj:`NmtWorkspace` object from a
         FITS file.
 
         Args:
             fname (:obj:`str`): Input file name.
         """
-        if self.wsp is not None:
-            lib.workspace_free(self.wsp)
-            self.wsp = None
-        self.wsp = lib.read_workspace(fname)
+        import fitsio as fts
+
+        f = fts.FITS(fname)
+        # Write header information
+        h = f['WSP_PRIMARY'].read_header()
+        self.lmax = h['LMAX']
+        self.lmax_mask = h['LMAX_MASK']
+        self.is_teb = bool(h['IS_TEB'])
+        self.ncls = h['NCLS']
+        self.norm_type = h['NORM_TYPE'] if 'NORM_TYPE' in h else 0
+        self.normalization = 'MASTER' if self.norm_type == 0 else 'FKP'
+        self.wawb = h['WAWB'] if 'WAWB' in h else 0.0
+        s1 = h['SPIN1'] if 'SPIN1' in h else -1
+        s2 = h['SPIN2'] if 'SPIN2' in h else -1
+        if s1 < 0 or s2 < 0:
+            if self.ncls == 1:
+                s1 = s2 = 0
+            elif self.ncls == 2:
+                s1 = 0
+                s2 = 2
+            elif self.ncls == 4:
+                s1 = s2 = 2
+        self.spin1 = s1
+        self.spin2 = s2
+        self.aniso1 = bool(h['ANISO1']) if 'ANISO1' in h else False
+        self.aniso2 = bool(h['ANISO2']) if 'ANISO2' in h else False
+        self.nmaps1 = 2 if self.spin1 > 0 else 1
+        self.nmaps2 = 2 if self.spin2 > 0 else 1
+        self.pure_e1 = bool(h['PURE_E1']) if 'PURE_E1' in h else False
+        self.pure_b1 = bool(h['PURE_B1']) if 'PURE_B1' in h else False
+        self.pure_e2 = bool(h['PURE_E2']) if 'PURE_E2' in h else False
+        self.pure_b2 = bool(h['PURE_B2']) if 'PURE_B2' in h else False
+        self.l_toeplitz = h['L_TOEPLITZ'] if 'L_TOEPLITZ' in h else -1
+        self.l_exact = h['L_EXACT'] if 'L_EXACT' in h else -1
+        self.dl_band = h['DL_BAND'] if 'DL_BAND' in h else -1
+
+        # Read the mode-coupling matrix
+        self.mcm = f['WSP_PRIMARY'].read()
+
+        # Read beams
+        hdu = f['BEAMS']
+        # This is only to support legacy files. To be removed
+        # in the future.
+        if 'BEAMS' in hdu.get_colnames():
+            # Assume both fields had the same beam
+            beams = hdu['BEAMS'].read()
+            self.beam1 = np.sqrt(beams)
+            self.beam2 = np.sqrt(beams)
+        else:
+            self.beam1 = hdu['BEAM1'].read()
+            self.beam2 = hdu['BEAM2'].read()
+
+        # Read mask PCL
+        self.pcl_mask = f['PCL_MASKS']['PCL_MASKS'].read()
+
+        # Read binning scheme
+        extname = 'BINS' if 'BINS' in f else 'BANDPOWERS'
+        self.bins = NmtBin._from_fits_file(f, extname=extname)
+        self.nbands = self.bins.get_n_bands()
+
+        # Get bandpowers
+        self.bpws, self.mcm_binned = self._postproc_mcm(self.mcm)
+        f.close()
 
     def update_beams(self, beam1, beam2):
         """ Update beams associated with this mode-coupling matrix.
@@ -985,16 +1044,50 @@ class NmtWorkspaceNew(object):
             self.mcm = self._get_mcm()
         self.bpws, self.mcm_binned = self._postproc_mcm(self.mcm)
 
-    def write_to(self, fname):  # TODO
+    def write_to(self, fname):
         """ Writes the contents of an :obj:`NmtWorkspace` object
         to a FITS file.
 
         Args:
             fname (:obj:`str`): Output file name
         """
-        if self.wsp is None:
-            raise RuntimeError("Must initialize workspace before writing")
-        lib.write_workspace(self.wsp, "!"+fname)
+        import fitsio as fts
+
+        # Write header with global information
+        f = fts.FITS(fname, 'rw', clobber=True)
+
+        h = {'LMAX': self.lmax,
+             'LMAX_MASK': self.lmax_mask,
+             'IS_TEB': self.is_teb,
+             'NCLS': self.ncls,
+             'NORM_TYPE': self.norm_type,
+             'WAWB': self.wawb,
+             'SPIN1': self.spin1,
+             'SPIN2': self.spin2,
+             'ANISO1': self.aniso1,
+             'ANISO2': self.aniso2,
+             'PURE_E1': self.pure_e1,
+             'PURE_B1': self.pure_b1,
+             'PURE_E2': self.pure_e2,
+             'PURE_B2': self.pure_b2,
+             'L_TOEPLITZ': self.l_toeplitz,
+             'L_EXACT': self.l_exact,
+             'DL_BAND': self.dl_band}
+        f.write(self.mcm, header=h, extname='WSP_PRIMARY')
+
+        # Write beams
+        ls = np.arange(self.lmax+1, dtype=np.int32)
+        f.write([ls, self.beam1, self.beam2],
+                names=['L', 'BEAM1', 'BEAM2'],
+                extname='BEAMS')
+        # Write mask PCL
+        f.write([ls, self.pcl_mask],
+                names=['L', 'PCL_MASKS'],
+                extname='PCL_MASKS')
+
+        # Write binning scheme
+        self.bins._to_fits_file(f, extname='BANDPOWERS')
+        f.close()
 
     def get_coupling_matrix(self):
         """ Returns the currently stored mode-coupling matrix.

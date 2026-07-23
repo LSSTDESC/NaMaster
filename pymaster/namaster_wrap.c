@@ -3062,6 +3062,14 @@ void get_weight_list(nmt_binning_scheme *bins,int ibin,double *dout,int ndout)
 
   memcpy(dout,bins->w_list[ibin],bins->nell_list[ibin]*sizeof(double));
 }
+
+void get_fell_list(nmt_binning_scheme *bins,int ibin,double *dout,int ndout)
+{
+  asserting(ibin<bins->n_bands);
+  asserting(bins->nell_list[ibin]==ndout);
+
+  memcpy(dout,bins->f_ell[ibin],bins->nell_list[ibin]*sizeof(double));
+}
  
 void get_ell_eff(nmt_binning_scheme *bins,double *dout,int ndout)
 {
@@ -14842,6 +14850,64 @@ fail:
 }
 
 
+SWIGINTERN PyObject *_wrap_get_fell_list(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_binning_scheme *arg1 = (nmt_binning_scheme *) 0 ;
+  int arg2 ;
+  double *arg3 = (double *) 0 ;
+  int arg4 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int val2 ;
+  int ecode2 = 0 ;
+  PyObject *array3 = NULL ;
+  PyObject *swig_obj[3] ;
+  
+  if (!SWIG_Python_UnpackTuple(args, "get_fell_list", 3, 3, swig_obj)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_nmt_binning_scheme, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "get_fell_list" "', argument " "1"" of type '" "nmt_binning_scheme *""'"); 
+  }
+  arg1 = (nmt_binning_scheme *)(argp1);
+  ecode2 = SWIG_AsVal_int(swig_obj[1], &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "get_fell_list" "', argument " "2"" of type '" "int""'");
+  } 
+  arg2 = (int)(val2);
+  {
+    npy_intp dims[1];
+    if (!PyInt_Check(swig_obj[2]))
+    {
+      const char* typestring = pytype_string(swig_obj[2]);
+      PyErr_Format(PyExc_TypeError,
+        "Int dimension expected.  '%s' given.",
+        typestring);
+      SWIG_fail;
+    }
+    arg4 = (int) PyInt_AsLong(swig_obj[2]);
+    dims[0] = (npy_intp) arg4;
+    array3 = PyArray_SimpleNew(1, dims, NPY_DOUBLE);
+    if (!array3) SWIG_fail;
+    arg3 = (double*) array_data(array3);
+  }
+  {
+    try {
+      get_fell_list(arg1,arg2,arg3,arg4);
+    }
+    finally {
+      SWIG_exception(SWIG_RuntimeError,nmt_error_message);
+    }
+  }
+  resultobj = SWIG_Py_Void();
+  {
+    resultobj = SWIG_Python_AppendOutput(resultobj,(PyObject*)array3);
+  }
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
 SWIGINTERN PyObject *_wrap_get_ell_eff(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   nmt_binning_scheme *arg1 = (nmt_binning_scheme *) 0 ;
@@ -21060,6 +21126,7 @@ static PyMethodDef SwigMethods[] = {
 	 { "get_nell", _wrap_get_nell, METH_VARARGS, NULL},
 	 { "get_ell_list", _wrap_get_ell_list, METH_VARARGS, NULL},
 	 { "get_weight_list", _wrap_get_weight_list, METH_VARARGS, NULL},
+	 { "get_fell_list", _wrap_get_fell_list, METH_VARARGS, NULL},
 	 { "get_ell_eff", _wrap_get_ell_eff, METH_VARARGS, NULL},
 	 { "get_ell_eff_flat", _wrap_get_ell_eff_flat, METH_VARARGS, NULL},
 	 { "bins_create_py", _wrap_bins_create_py, METH_VARARGS, NULL},

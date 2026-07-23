@@ -316,6 +316,7 @@ class NmtCovarianceWorkspace(object):
                 xis['NN']['22M_1122'], xis['NN']['22M_1221'])
             self.has_NN = np.array([self.wsp_NN.has_1122 > 0,
                                     self.wsp_NN.has_1221 > 0])
+        f.close()
 
     def _compute_coupling_coefficients(self, fla1, fla2,
                                        flb1, flb2, *,
@@ -490,7 +491,7 @@ class NmtCovarianceWorkspace(object):
             fname (:obj:`str`): Output file name."""
         import fitsio as fts
 
-        # Read header with global information
+        # Write header with global information
         f = fts.FITS(fname, 'rw', clobber=True)
         h = {'LMAX': self.wsp.lmax,
              'LMAX_MASK': self.wsp.lmax_mask,
