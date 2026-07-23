@@ -180,7 +180,7 @@ nmt_covar_workspace *nmt_covar_workspace_init(int spin_a1, int spin_a2,
     int iadd=0;
     c=nmt_compute_master_coefficients(cw->lmax, cw->lmax_mask,
 				      n_cl_masks, cl_masks,
-				      0, 2, 0, 0, 0, 0, 1,
+				      0, 2, 0, 1,
 				      l_toeplitz,l_exact,dl_band);
     if(has_1122) {
       cw->xi00_1122=c->xi_00[iadd];
@@ -246,9 +246,7 @@ nmt_covar_workspace *nmt_covar_workspace_init(int spin_a1, int spin_a2,
     if(i00ss != -1) { // Compute Xi_02
       c=nmt_compute_master_coefficients(cw->lmax, cw->lmax_mask,
 					1, &(cl_masks[i00ss]),
-					0, 2,
-					0, 0, 0, 0,
-					0,
+					0, 2, 0, 0,
 					l_toeplitz,l_exact,dl_band);
       if(spin_a1 == spin_b1)  // we're in the 0s, 0s case
 	cw->xi02_1122=c->xi_0s[0][0];
@@ -262,9 +260,7 @@ nmt_covar_workspace *nmt_covar_workspace_init(int spin_a1, int spin_a2,
     if(i0s0s != -1) { // Compute Xi_00
       c=nmt_compute_master_coefficients(cw->lmax, cw->lmax_mask,
 					1, &(cl_masks[i0s0s]),
-					0, 0,
 					0, 0, 0, 0,
-					0,
 					l_toeplitz,l_exact,dl_band);
       if(spin_a1 != spin_b1)  // we're in the 0s, s0 case
 	cw->xi00_1122=c->xi_00[0];
@@ -278,9 +274,7 @@ nmt_covar_workspace *nmt_covar_workspace_init(int spin_a1, int spin_a2,
   else if(is_ss_ss) {  // Case (s,s)-(s,s)
     c=nmt_compute_master_coefficients(cw->lmax, cw->lmax_mask,
 				      ncls, cl_masks,
-				      2, 2,
-				      0, 0, 0, 0,
-				      0,
+				      2, 2, 0, 0,
 				      l_toeplitz,l_exact,dl_band);
     int iadd=0;
     if(has_1122) {
@@ -310,9 +304,7 @@ nmt_covar_workspace *nmt_covar_workspace_init(int spin_a1, int spin_a2,
   else if(is_0s_ss) { // Case (0,s)-(s,s)
     c=nmt_compute_master_coefficients(cw->lmax, cw->lmax_mask,
 				      ncls, cl_masks,
-				      0, 2,
-				      0, 0, 0, 0,
-				      0,
+				      0, 2, 0, 0,
 				      l_toeplitz,l_exact,dl_band);
     int iadd=0;
     if(has_1122) {
@@ -335,9 +327,7 @@ nmt_covar_workspace *nmt_covar_workspace_init(int spin_a1, int spin_a2,
   else { //Cases (0,0)-(0,0), (0,0)-(0,s), (0,0)-(s,s)
     c=nmt_compute_master_coefficients(cw->lmax, cw->lmax_mask,
 				      ncls, cl_masks,
-				      0, 0,
 				      0, 0, 0, 0,
-				      0,
 				      l_toeplitz,l_exact,dl_band);
     int iadd=0;
     if(has_1122) {

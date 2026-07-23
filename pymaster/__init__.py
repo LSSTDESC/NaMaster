@@ -95,6 +95,7 @@ from pymaster.field import (  # noqa
 from pymaster.bins import NmtBin, NmtBinFlat  # noqa
 from pymaster.workspaces import (  # noqa
     NmtWorkspace,
+    NmtWorkspaceNew,
     NmtWorkspaceFlat,
     deprojection_bias,
     compute_coupled_cell,
@@ -103,7 +104,6 @@ from pymaster.workspaces import (  # noqa
     compute_coupled_cell_flat,
     compute_full_master_flat,
     uncorr_noise_deprojection_bias,
-    get_general_coupling_matrix,
 )
 from pymaster.covariance import (  # noqa
     NmtCovarianceWorkspace,
@@ -111,4 +111,8 @@ from pymaster.covariance import (  # noqa
     get_iNKA_cell,
     gaussian_covariance,
     gaussian_covariance_flat,
+)
+from pymaster.master import (  # noqa
+    get_master_coefficients,
+    get_general_coupling_matrix,
 )

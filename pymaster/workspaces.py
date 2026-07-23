@@ -1,5 +1,6 @@
 from pymaster import nmtlib as lib
 import pymaster.utils as ut
+import pymaster.master as mst
 import numpy as np
 import healpy as hp
 import warnings
@@ -491,6 +492,651 @@ class NmtWorkspace(object):
                                        self.wsp.ncls,
                                        self.wsp.lmax+1,
                                        self.wsp.ncls]),
+                            axes=[1, 0, 3, 2])
+
+
+class NmtWorkspaceNew(object):
+    """ :obj:`NmtWorkspace` objects are used to compute and store the
+    mode-coupling matrix associated with an incomplete sky coverage,
+    and used in the MASTER algorithm. :obj:`NmtWorkspace` objects can be
+    initialised from a pair of :class:`~pymaster.field.NmtField` objects
+    and an :class:`~pymaster.bins.NmtBin` object, containing information
+    about the masks involved and the :math:`\\ell` binning scheme, or
+    read from a file where the mode-coupling matrix was stored.
+
+    We recommend using the class methods :meth:`from_fields` and
+    :meth:`from_file` to create new :obj:`NmtWorkspace` objects,
+    rather than using the main constructor.
+
+    Args:
+        fl1 (:class:`~pymaster.field.NmtField`): First field being
+            correlated.
+        fl2 (:class:`~pymaster.field.NmtField`): Second field being
+            correlated.
+        bins (:class:`~pymaster.bins.NmtBin`): Binning scheme.
+        is_teb (:obj:`bool`): If ``True``, all mode-coupling matrices
+            (0-0,0-s,s-s) will be computed at the same time. In this
+            case, ``fl1`` must be a spin-0 field and ``fl2`` must be
+            spin-s.
+        l_toeplitz (:obj:`int`): If a positive number, the Toeplitz
+            approximation described in `Louis et al. 2020
+            <https://arxiv.org/abs/2010.14344>`_ will be used.
+            In that case, this quantity corresponds to
+            :math:`\\ell_{\\rm toeplitz}` in Fig. 3 of that paper.
+        l_exact (:obj:`int`): If ``l_toeplitz>0``, it corresponds to
+            :math:`\\ell_{\\rm exact}` in Fig. 3 of the paper.
+            Ignored if ``l_toeplitz<=0``.
+        dl_band (:obj:`int`): If ``l_toeplitz>0``, this quantity
+            corresponds to :math:`\\Delta \\ell_{\\rm band}` in Fig.
+            3 of the paper. Ignored if ``l_toeplitz<=0``.
+        fname (:obj:`str`): Input file name. If not `None`, this
+            workspace will be initialised from file, and the values
+            of ``fl1``, ``fl2``, and ``bin`` will be ignored.
+        read_unbinned_MCM (:obj:`bool`): If ``False``, the unbinned
+            mode-coupling matrix will not be read. This can save
+            significant IO time.
+        normalization (:obj:`str`): Normalization convention to use for
+            the bandpower window functions. Two options supported:
+            `'MASTER'` (default) corresponds to the standard inversion
+            of the binned mode-coupling matrix. `'FKP'` simply divides
+            by the mean of the mask product, forcing a unit response
+            to an input white spectrum.
+    """
+    def __init__(self, fl1=None, fl2=None, bins=None, is_teb=False,
+                 l_toeplitz=-1, l_exact=-1, dl_band=-1, fname=None,
+                 normalization='MASTER'):
+        self.mcm = None  #
+        self.mcm_binned = None  #
+        self.pcl_mask = None  #
+        self.lmax = None  #
+        self.lmax_mask = None  #
+        self.nbands = None  #
+        self.bpws = None  #
+        self.bins = None  #
+        self.spin1 = None  #
+        self.spin2 = None  #
+        self.aniso1 = None  #
+        self.aniso2 = None  #
+        self.nmaps1 = None  #
+        self.nmaps2 = None  #
+        self.ncls = None  #
+        self.beam1 = None  #
+        self.beam2 = None  #
+        self.pure_e1 = None  #
+        self.pure_b1 = None  #
+        self.pure_e2 = None  #
+        self.pure_b2 = None  #
+        self.is_teb = None  #
+        self.l_toeplitz = None  #
+        self.l_exact = None  #
+        self.dl_band = None  #
+        self.pcl_mask = None  #
+        self.norm_type = None  #
+        self.normalization = None  #
+        self.wawb = None  #
+
+        if ((fl1 is None) and (fl2 is None) and (bins is None) and
+                (fname is None)):
+            warnings.warn("The bare constructor for `NmtWorkspace` "
+                          "objects is deprecated and will be removed "
+                          "in future versions of NaMaster. Consider "
+                          "using the class methods "
+                          "`from_fields` and `from_file`, or pass "
+                          "the necessary arguments to the constructor.",
+                          category=DeprecationWarning)
+            return
+
+        if (fname is not None):
+            self.read_from(fname)
+            return
+
+        self.compute_coupling_matrix(
+            fl1, fl2, bins, is_teb=is_teb,
+            l_toeplitz=l_toeplitz, l_exact=l_exact, dl_band=dl_band,
+            normalization=normalization)
+
+    @classmethod
+    def from_fields(cls, fl1, fl2, bins, is_teb=False,
+                    l_toeplitz=-1, l_exact=-1, dl_band=-1,
+                    normalization='MASTER'):
+        """ Creates an :obj:`NmtWorkspace` object containing the
+        mode-coupling matrix associated with the cross-power spectrum of
+        two :class:`~pymaster.field.NmtField` s
+        and an :class:`~pymaster.bins.NmtBin` binning scheme. Note that
+        the mode-coupling matrix will only contain :math:`\\ell` s up
+        to the maximum multipole included in the bandpowers, which should
+        match the :math:`\\ell_{\\rm max}` of the fields as well.
+
+        Args:
+            fl1 (:class:`~pymaster.field.NmtField`): First field to correlate.
+            fl2 (:class:`~pymaster.field.NmtField`): Second field to correlate.
+            bins (:class:`~pymaster.bins.NmtBin`): Binning scheme.
+            is_teb (:obj:`bool`): If ``True``, all mode-coupling matrices
+                (0-0,0-s,s-s) will be computed at the same time. In this
+                case, ``fl1`` must be a spin-0 field and ``fl2`` must be
+                spin-s.
+            l_toeplitz (:obj:`int`): If a positive number, the Toeplitz
+                approximation described in `Louis et al. 2020
+                <https://arxiv.org/abs/2010.14344>`_ will be used.
+                In that case, this quantity corresponds to
+                :math:`\\ell_{\\rm toeplitz}` in Fig. 3 of that paper.
+            l_exact (:obj:`int`): If ``l_toeplitz>0``, it corresponds to
+                :math:`\\ell_{\\rm exact}` in Fig. 3 of the paper.
+                Ignored if ``l_toeplitz<=0``.
+            dl_band (:obj:`int`): If ``l_toeplitz>0``, this quantity
+                corresponds to :math:`\\Delta \\ell_{\\rm band}` in Fig.
+                3 of the paper. Ignored if ``l_toeplitz<=0``.
+            normalization (:obj:`str`): Normalization convention to use
+                for the bandpower window functions. Two options
+                supported: `'MASTER'` (default) corresponds to the
+                standard inversion of the binned mode-coupling matrix.
+                `'FKP'` simply divides by the mean of the mask product,
+                forcing a unit response to an input white spectrum.
+        """
+        return cls(fl1=fl1, fl2=fl2, bins=bins, is_teb=is_teb,
+                   l_toeplitz=l_toeplitz, l_exact=l_exact,
+                   dl_band=dl_band, normalization=normalization)
+
+    @classmethod
+    def from_file(cls, fname):
+        """ Creates an :obj:`NmtWorkspace` object from a mode-coupling
+        matrix stored in a FITS file. See :meth:`write_to`.
+
+        Args:
+            fname (:obj:`str`): Input file name.
+        """
+        return cls(fname=fname)
+
+    def read_from(self, fname):  # TODO
+        """ Reads the contents of an :obj:`NmtWorkspace` object from a
+        FITS file.
+
+        Args:
+            fname (:obj:`str`): Input file name.
+        """
+        if self.wsp is not None:
+            lib.workspace_free(self.wsp)
+            self.wsp = None
+        self.wsp = lib.read_workspace(fname)
+
+    def update_beams(self, beam1, beam2):
+        """ Update beams associated with this mode-coupling matrix.
+        This is significantly faster than recomputing the matrix from
+        scratch.
+
+        Args:
+            beam1 (`array`): First beam, in the form of a 1D array
+                with the beam sampled at all integer multipoles up
+                to the maximum :math:`\\ell` with which this
+                workspace was initialised.
+            beam2 (`array`): Second beam.
+        """
+        b1arr = isinstance(beam1, (list, tuple, np.ndarray))
+        b2arr = isinstance(beam2, (list, tuple, np.ndarray))
+        if ((not b1arr) or (not b2arr)):
+            raise ValueError("The new beams must be provided as arrays")
+
+        if ((len(beam1) != self.lmax+1) or
+                (len(beam2) != self.lmax+1)):
+            raise ValueError("The new beams must go up to"
+                             " ell = %d" % self.lmax)
+        self.beam1 = beam1
+        self.beam2 = beam2
+        # Rebin MCM
+        self.bpws, self.mcm_binned = self._postproc_mcm(self.mcm)
+
+    def update_bins(self, bins):
+        """ Update binning associated with this mode-coupling matrix.
+        This is significantly faster than recomputing the matrix from
+        scratch.
+
+        Args:
+            bins (:class:`~pymaster.bins.NmtBin`): New binning scheme.
+        """
+        if bins.bin.ell_max != self.lmax:
+            raise ValueError("The new binning scheme has a different "
+                             "maximum multipole than the fields used to "
+                             "compute this workspace.")
+        self.bins = bins
+        self.nbands = bins.get_n_bands()
+        # Rebin MCM
+        self.bpws, self.mcm_binned = self._postproc_mcm(self.mcm)
+
+    def _postproc_mcm(self, mcm):
+        mcm_binned = self.bins._bin_mcm(mcm, self.norm_type, self.wawb,
+                                        self.beam1, self.beam2,
+                                        oneside=False)
+        mcm_binned = mcm_binned.reshape([self.ncls*self.nbands,
+                                         self.ncls*self.nbands])
+        bpws = self.bins._bin_mcm(mcm, self.norm_type, self.wawb,
+                                  self.beam1, self.beam2, oneside=True)
+        imcm_binned = np.linalg.inv(mcm_binned)
+
+        bpws = np.dot(imcm_binned, bpws)
+        return bpws, mcm_binned
+
+    def _get_mcm_anisotropic(self, aniso1, aniso2, pclm_00,
+                             pclm_0e, pclm_0b, pclm_e0, pclm_b0,
+                             pclm_ee, pclm_eb, pclm_be, pclm_bb):
+        sg00 = 1
+        m00 = mst.get_general_coupling_matrix(
+            pclm_00*sg00, self.spin1, self.spin2,
+            self.spin1, self.spin2, parity="both")
+        m0e = m0b = me0 = mb0 = mee = meb = mbe = mbb = 0*m00
+        if aniso2:
+            sg0s = (-1)**self.spin2
+            m0e = mst.get_general_coupling_matrix(
+                pclm_0e*sg0s, self.spin1, -self.spin2,
+                self.spin1, self.spin2, parity="both")
+            m0b = mst.get_general_coupling_matrix(
+                pclm_0b*sg0s, self.spin1, -self.spin2,
+                self.spin1, self.spin2, parity="both")
+        if aniso1:
+            sgs0 = (-1)**self.spin1
+            me0 = mst.get_general_coupling_matrix(
+                pclm_e0*sgs0, -self.spin1, self.spin2,
+                self.spin1, self.spin2, parity="both")
+            mb0 = mst.get_general_coupling_matrix(
+                pclm_b0*sgs0, self.spin1, -self.spin2,
+                self.spin1, self.spin2, parity="both")
+        if aniso1 and aniso2:
+            sgss = (-1)**(self.spin1+self.spin2)
+            mee = mst.get_general_coupling_matrix(
+                pclm_ee*sgss, -self.spin1, -self.spin2,
+                self.spin1, self.spin2, parity="both")
+            meb = mst.get_general_coupling_matrix(
+                pclm_eb*sgss, -self.spin1, -self.spin2,
+                self.spin1, self.spin2, parity="both")
+            mbe = mst.get_general_coupling_matrix(
+                pclm_be*sgss, -self.spin1, -self.spin2,
+                self.spin1, self.spin2, parity="both")
+            mbb = mst.get_general_coupling_matrix(
+                pclm_bb*sgss, -self.spin1, -self.spin2,
+                self.spin1, self.spin2, parity="both")
+
+        mcm = np.zeros([self.lmax+1, self.ncls,
+                        self.lmax+1, self.ncls])
+        if (self.spin1 == 0) and (self.spin2 != 0):
+            # s=0 kills odd-parity terms
+            mcm[:, 0, :, 0] = m00[0]-m0e[0]
+            mcm[:, 0, :, 1] = -m0b[0]
+            mcm[:, 1, :, 0] = -m0b[0]
+            mcm[:, 1, :, 1] = m00[0]+m0e[0]
+        if (self.spin1 != 0) and (self.spin2 == 0):
+            # s=0 kills odd-parity terms
+            mcm[:, 0, :, 0] = m00[0]-me0[0]
+            mcm[:, 0, :, 1] = -mb0[0]
+            mcm[:, 1, :, 0] = -mb0[0]
+            mcm[:, 1, :, 1] = m00[0]+me0[0]
+        if (self.spin1 != 0) and (self.spin2 != 0):
+            mcm[:, 0, :, 0] = m00[0]-m0e[0]-me0[0]+mee[0]+mbb[1]
+            mcm[:, 0, :, 1] = -m0b[0]+meb[0]-mb0[1]-mbe[1]
+            mcm[:, 0, :, 2] = -mb0[0]+mbe[0]-m0b[1]-meb[1]
+            mcm[:, 0, :, 3] = mbb[0]+m00[1]+m0e[1]+me0[1]+mee[1]
+            mcm[:, 1, :, 0] = -m0b[0]+meb[0]+mb0[1]-mbe[1]
+            mcm[:, 1, :, 1] = m00[0]+m0e[0]-me0[0]-mee[0]-mbb[1]
+            mcm[:, 1, :, 2] = mbb[0]-m00[1]+m0e[1]-me0[1]+mee[1]
+            mcm[:, 1, :, 3] = -mb0[0]-mbe[0]+m0b[1]+meb[1]
+            mcm[:, 2, :, 0] = -mb0[0]+mbe[0]+m0b[1]-meb[1]
+            mcm[:, 2, :, 1] = mbb[0]-m00[1]-m0e[1]+me0[1]+mee[1]
+            mcm[:, 2, :, 2] = m00[0]-m0e[0]+me0[0]-mee[0]-mbb[1]
+            mcm[:, 2, :, 3] = -m0b[0]-meb[0]+mb0[1]+mbe[1]
+            mcm[:, 3, :, 0] = mbb[0]+m00[1]-m0e[1]-me0[1]+mee[1]
+            mcm[:, 3, :, 1] = -mb0[0]-mbe[0]-m0b[1]+meb[1]
+            mcm[:, 3, :, 2] = -m0b[0]-meb[0]-mb0[1]+mbe[1]
+            mcm[:, 3, :, 3] = m00[0]+m0e[0]+me0[0]+mee[0]+mbb[1]
+        return mcm.reshape([self.ncls*(self.lmax+1),
+                            self.ncls*(self.lmax+1)])
+
+    def _get_mcm(self):
+        pure_any = (self.pure_e1 or self.pure_b1 or
+                    self.pure_e2 or self.pure_b2)
+        d = mst.get_master_coefficients(self.pcl_mask, self.lmax,
+                                        spin1=self.spin1, spin2=self.spin2,
+                                        is_teb=self.is_teb,
+                                        pure_any=pure_any,
+                                        l_toeplitz=self.l_toeplitz,
+                                        l_exact=self.l_exact,
+                                        dl_band=self.dl_band)
+        ls = np.arange(self.lmax+1)
+        ipe1 = int(self.pure_e1)
+        ipb1 = int(self.pure_b1)
+        ipe2 = int(self.pure_e2)
+        ipb2 = int(self.pure_b2)
+        sign = (-1)**(self.spin1+self.spin2)
+
+        mcm = np.zeros([self.lmax+1, self.ncls,
+                        self.lmax+1, self.ncls])
+        lfac = (2*ls+1)[None, :]
+        if self.ncls == 1:
+            sign = 1
+            mcm[:, 0, :, 0] = d['00']*lfac*sign
+        elif self.ncls == 2:
+            mcm[:, 0, :, 0] = d['0s'][ipe1+ipe2]*lfac*sign
+            mcm[:, 1, :, 1] = d['0s'][ipb1+ipb2]*lfac*sign
+        elif self.ncls == 4:
+            mcm[:, 0, :, 0] = d['pp'][ipe1+ipe2]*lfac*sign
+            mcm[:, 1, :, 1] = d['pp'][ipe1+ipb2]*lfac*sign
+            mcm[:, 2, :, 2] = d['pp'][ipb1+ipe2]*lfac*sign
+            mcm[:, 3, :, 3] = d['pp'][ipb1+ipb2]*lfac*sign
+            mcm[:, 0, :, 3] = d['mm'][ipe1+ipe2]*lfac*sign
+            mcm[:, 1, :, 2] = -d['mm'][ipe1+ipb2]*lfac*sign
+            mcm[:, 2, :, 1] = -d['mm'][ipb1+ipe2]*lfac*sign
+            mcm[:, 3, :, 0] = d['mm'][ipb1+ipb2]*lfac*sign
+        elif self.ncls == 7:
+            mcm[:, 0, :, 0] = d['00']*lfac
+            mcm[:, 1, :, 1] = d['0s'][ipe2]*lfac*sign
+            mcm[:, 2, :, 2] = d['0s'][ipb2]*lfac*sign
+            mcm[:, 3, :, 3] = d['pp'][ipe1+ipe2]*lfac
+            mcm[:, 4, :, 4] = d['pp'][ipe1+ipb2]*lfac
+            mcm[:, 5, :, 5] = d['pp'][ipb1+ipb2]*lfac
+            mcm[:, 6, :, 6] = d['pp'][ipb1+ipb2]*lfac
+            mcm[:, 3, :, 6] = d['mm'][ipe1+ipe2]*lfac
+            mcm[:, 4, :, 5] = -d['mm'][ipe1+ipb2]*lfac
+            mcm[:, 5, :, 4] = -d['mm'][ipb1+ipb2]*lfac
+            mcm[:, 6, :, 3] = d['mm'][ipb1+ipb2]*lfac
+        return mcm.reshape([self.ncls*(self.lmax+1),
+                            self.ncls*(self.lmax+1)])
+
+    def compute_coupling_matrix(self, fl1, fl2, bins, is_teb=False,
+                                l_toeplitz=-1, l_exact=-1, dl_band=-1,
+                                normalization='MASTER'):
+        """ Computes the mode-coupling matrix associated with the
+        cross-power spectrum of two :class:`~pymaster.field.NmtField` s
+        and an :class:`~pymaster.bins.NmtBin` binning scheme. Note that
+        the mode-coupling matrix will only contain :math:`\\ell` s up
+        to the maximum multipole included in the bandpowers, which should
+        match the :math:`\\ell_{\\rm max}` of the fields as well.
+
+        Args:
+            fl1 (:class:`~pymaster.field.NmtField`): First field to correlate.
+            fl2 (:class:`~pymaster.field.NmtField`): Second field to correlate.
+            bins (:class:`~pymaster.bins.NmtBin`): Binning scheme.
+            is_teb (:obj:`bool`): If ``True``, all mode-coupling matrices
+                (0-0,0-s,s-s) will be computed at the same time. In this
+                case, ``fl1`` must be a spin-0 field and ``fl2`` must be
+                spin-s.
+            l_toeplitz (:obj:`int`): If a positive number, the Toeplitz
+                approximation described in `Louis et al. 2020
+                <https://arxiv.org/abs/2010.14344>`_ will be used.
+                In that case, this quantity corresponds to
+                :math:`\\ell_{\\rm toeplitz}` in Fig. 3 of that paper.
+            l_exact (:obj:`int`): If ``l_toeplitz>0``, it corresponds to
+                :math:`\\ell_{\\rm exact}` in Fig. 3 of the paper.
+                Ignored if ``l_toeplitz<=0``.
+            dl_band (:obj:`int`): If ``l_toeplitz>0``, this quantity
+                corresponds to :math:`\\Delta \\ell_{\\rm band}` in Fig.
+                3 of the paper. Ignored if ``l_toeplitz<=0``.
+            normalization (:obj:`str`): Normalization convention to use for
+                the bandpower window functions. Two options supported:
+                `'MASTER'` (default) corresponds to the standard inversion
+                of the binned mode-coupling matrix. `'FKP'` simply divides
+                by the mean of the mask product, forcing a unit response to
+                an input white spectrum.
+        """
+        if not fl1.is_compatible(fl2, strict=False):
+            raise ValueError("Fields have incompatible pixelizations.")
+        if fl1.ainfo.lmax != bins.lmax:
+            raise ValueError(f"Maximum multipoles in bins ({bins.lmax}) "
+                             f"and fields ({fl1.ainfo.lmax}) "
+                             "are not the same.")
+
+        if is_teb and ((fl1.spin != 0) or (fl2.spin == 0)):
+            raise ValueError("If is_teb=True, fl1 must be spin-0 and fl2 "
+                             "must be spin-s.")
+
+        self.spin1 = fl1.spin
+        self.spin2 = fl2.spin
+        self.beam1 = fl1.beam
+        self.beam2 = fl2.beam
+        self.pure_e1 = fl1.pure_e
+        self.pure_b1 = fl1.pure_b
+        self.pure_e2 = fl2.pure_e
+        self.pure_b2 = fl2.pure_b
+        self.lmax = fl1.ainfo.lmax
+        self.lmax_mask = fl1.ainfo_mask.lmax
+        self.is_teb = is_teb
+        self.bins = bins
+        self.l_toeplitz = l_toeplitz
+        self.l_exact = l_exact
+        self.dl_band = dl_band
+        self.aniso1 = fl1.anisotropic_mask
+        self.aniso2 = fl2.anisotropic_mask
+        self.nbands = bins.get_n_bands()
+
+        anisotropic_mask_any = self.aniso1 or self.aniso2
+        if anisotropic_mask_any and (l_toeplitz >= 0):
+            raise NotImplementedError("Toeplitz approximation not "
+                                      "implemented for anisotropic masks.")
+        ut._toeplitz_sanity(l_toeplitz, l_exact, dl_band,
+                            bins.bin.ell_max, fl1, fl2)
+
+        # Get mask PCL
+        alm1 = fl1.get_mask_alms()
+        Nw = 0
+        if fl2 is fl1:
+            alm2 = alm1
+            Nw = fl1.Nw
+        else:
+            alm2 = fl2.get_mask_alms()
+        pcl_mask = hp.alm2cl(alm1, alm2, lmax=fl1.ainfo_mask.lmax)
+        if anisotropic_mask_any:
+            pcl0 = pcl_mask * 0
+            pclm_00 = pcl_mask
+            pclm_0e = pclm_0b = pclm_e0 = pclm_b0 = pcl0
+            pclm_ee = pclm_eb = pclm_be = pclm_bb = pcl0
+            if self.aniso1:
+                alm1a = fl1.get_anisotropic_mask_alms()
+            if self.aniso2:
+                alm2a = fl2.get_anisotropic_mask_alms()
+            if self.aniso2:
+                pclm_0e = hp.alm2cl(alm1, alm2a[0], lmax=fl1.ainfo_mask.lmax)
+                pclm_0b = hp.alm2cl(alm1, alm2a[1], lmax=fl1.ainfo_mask.lmax)
+            if self.aniso1:
+                pclm_e0 = hp.alm2cl(alm1a[0], alm2, lmax=fl1.ainfo_mask.lmax)
+                pclm_b0 = hp.alm2cl(alm1a[1], alm2, lmax=fl1.ainfo_mask.lmax)
+                if self.aniso2:
+                    pclm_ee = hp.alm2cl(alm1a[0], alm2a[0],
+                                        lmax=fl1.ainfo_mask.lmax)
+                    pclm_eb = hp.alm2cl(alm1a[0], alm2a[1],
+                                        lmax=fl1.ainfo_mask.lmax)
+                    pclm_be = hp.alm2cl(alm1a[1], alm2a[0],
+                                        lmax=fl1.ainfo_mask.lmax)
+                    pclm_bb = hp.alm2cl(alm1a[1], alm2a[1],
+                                        lmax=fl1.ainfo_mask.lmax)
+
+        if normalization == 'MASTER':
+            self.norm_type = 0
+        elif normalization == 'FKP':
+            self.norm_type = 1
+        else:
+            raise ValueError(f"Unknown normalization type {normalization}. "
+                             "Allowed options are 'MASTER' and 'FKP'.")
+        self.normalization = normalization
+
+        self.wawb = 0
+        if self.norm_type == 1:
+            if fl1.is_catalog or fl2.is_catalog:
+                if fl2 is fl1:
+                    self.wawb = fl1.Nw
+                else:
+                    raise ValueError("Cannot use FKP normalisation for "
+                                     "catalog fields unless they are the "
+                                     "same field.")
+            else:
+                msk1 = fl1.get_mask()
+                msk2 = fl2.get_mask()
+                self.wawb = fl1.minfo.si.dot_map(msk1, msk2)/(4*np.pi)
+
+        self.nmaps1 = 2 if self.spin1 > 0 else 1
+        self.nmaps2 = 2 if self.spin2 > 0 else 1
+        if self.is_teb:
+            self.ncls = 7
+        else:
+            self.ncls = self.nmaps1 * self.nmaps2
+
+        self.pcl_mask = pcl_mask.flatten()-Nw
+        if anisotropic_mask_any:
+            self.mcm = self._get_mcm_anisotropic(
+                self.aniso1, self.aniso2, pclm_00,
+                pclm_0e, pclm_0b, pclm_e0, pclm_b0,
+                pclm_ee, pclm_eb, pclm_be, pclm_bb)
+        else:
+            self.mcm = self._get_mcm()
+        self.bpws, self.mcm_binned = self._postproc_mcm(self.mcm)
+
+    def write_to(self, fname):  # TODO
+        """ Writes the contents of an :obj:`NmtWorkspace` object
+        to a FITS file.
+
+        Args:
+            fname (:obj:`str`): Output file name
+        """
+        if self.wsp is None:
+            raise RuntimeError("Must initialize workspace before writing")
+        lib.write_workspace(self.wsp, "!"+fname)
+
+    def get_coupling_matrix(self):
+        """ Returns the currently stored mode-coupling matrix.
+
+        Returns:
+            (`array`): Mode-coupling matrix. The matrix will have shape
+            ``(nrows,nrows)``, with ``nrows = n_cls * n_ells``, where
+            ``n_cls`` is the number of power spectra (1, 2 or 4 for
+            spin 0-0, spin 0-s and spin s-s correlations), and
+            ``n_ells = lmax + 1``, and ``lmax`` is the maximum multipole
+            associated with this workspace. The assumed ordering of power
+            spectra is such that the ``L``-th element of the ``i``-th power
+            spectrum be stored with index ``L * n_cls + i``.
+        """
+        return self.mcm
+
+    def update_coupling_matrix(self, new_matrix):
+        """
+        Updates the stored mode-coupling matrix. The new matrix
+        (``new_matrix``) must have shape ``(nrows,nrows)``.
+        See docstring of :meth:`~NmtWorkspace.get_coupling_matrix` for an
+        explanation of the size and ordering of this matrix.
+
+        Args:
+            new_matrix (`array`): Matrix that will replace the mode-coupling
+                matrix.
+        """
+        rowsize = (self.lmax + 1) * self.ncls
+        if new_matrix.shape != (rowsize, rowsize):
+            raise ValueError("Input matrix has an inconsistent shape. "
+                             f"Expected {(rowsize, rowsize)}, "
+                             f"but got {new_matrix.shape}.")
+        self.mcm = new_matrix
+        # Bin new MCM
+        self.bpws, self.mcm_binned = self._postproc_mcm(self.mcm)
+
+    def couple_cell(self, cl_in):
+        """ Convolves a set of input power spectra with a coupling matrix
+        (see Eq. 9 of the NaMaster paper).
+
+        Args:
+            cl_in (`array`): Set of input power spectra. The number of power
+                spectra must correspond to the spins of the two fields that
+                this :obj:`NmtWorkspace` object was initialized with (i.e. 1
+                for two spin-0 fields, 2 for one spin-0 field and one spin-s
+                field, and 4 for two spin-s fields).
+
+        Returns:
+            (`array`): Mode-coupled power spectra.
+        """
+        if (len(cl_in) != self.ncls) or \
+           (len(cl_in[0]) < self.lmax + 1):
+            raise ValueError("Input power spectrum has wrong shape. "
+                             f"Expected ({self.ncls}, {self.lmax+1}), "
+                             f"but got {cl_in.shape}.")
+
+        # Shorten C_ells if they're too long
+        cl_in = np.array(cl_in)[:, :self.lmax+1]
+        # Multiply by beams
+        cl_in = cl_in * (self.beam1*self.beam2)[None, :]
+        cl1d = np.dot(self.mcm, cl_in.T.flatten())
+        clout = np.reshape(cl1d, [self.lmax + 1, self.ncls]).T
+        return clout
+
+    def decouple_cell(self, cl_in, cl_bias=None, cl_noise=None):
+        """ Decouples a set of pseudo-:math:`C_\\ell` power spectra into a
+        set of bandpowers by inverting the binned coupling matrix (se Eq.
+        16 of the NaMaster paper).
+
+        Args:
+            cl_in (`array`): Set of input power spectra. The number of power
+                spectra must correspond to the spins of the two fields that
+                this :obj:`NmtWorkspace` object was initialized with (i.e. 1
+                for two spin-0 fields, 2 for one spin-0 field and one spin-s
+                field, 4 for two spin-s fields, and 7 if this
+                :obj:`NmtWorkspace` was created using ``is_teb=True``).
+            cl_bias (`array`): Bias to the power spectrum associated with
+                contaminant residuals (optional). This can be computed through
+                :func:`deprojection_bias`.
+            cl_noise (`array`): Noise bias (i.e. angular
+                pseudo-:math:`C_\\ell` of masked noise realizations).
+
+        Returns:
+            (`array`): Set of decoupled bandpowers.
+        """
+        if (len(cl_in) != self.ncls) or \
+           (len(cl_in[0]) < self.lmax + 1):
+            raise ValueError("Input power spectrum has wrong shape. "
+                             f"Expected ({self.ncls}, {self.lmax+1}), "
+                             f"but got {cl_in.shape}")
+        if cl_bias is not None:
+            if (len(cl_bias) != self.ncls) or \
+               (len(cl_bias[0]) < self.lmax + 1):
+                raise ValueError(
+                    "Input bias power spectrum has wrong shape. "
+                    f"Expected ({self.ncls}, {self.lmax+1}), "
+                    f"but got {cl_bias.shape}")
+            clb = cl_bias.copy()
+        else:
+            clb = np.zeros_like(cl_in)
+        if cl_noise is not None:
+            if (len(cl_noise) != self.ncls) or \
+               (len(cl_noise[0]) < self.lmax + 1):
+                raise ValueError(
+                    "Input noise power spectrum has wrong shape. "
+                    f"Expected ({self.ncls}, {self.lmax+1}), "
+                    f"but got {cl_noise.shape}")
+            cln = cl_noise.copy()
+        else:
+            cln = np.zeros_like(cl_in)
+
+        cltot = cl_in-clb-cln  # [ncls, lmax+1]
+        cl1d = self.bins.bin_cell(cltot)  # [ncls, nband]
+        cl1d = np.linalg.solve(self.mcm_binned, cl1d.T.flatten())
+        clout = np.reshape(cl1d, [self.nbands, self.ncls]).T
+
+        return clout
+
+    def get_bandpower_windows(self):
+        """ Get bandpower window functions. Convolve the theory power spectra
+        with these as an alternative to the combination of function calls \
+        ``w.decouple_cell(w.couple_cell(cls_theory))``. See Eqs. 18 and
+        19 of the NaMaster paper.
+
+        As an example consider the power spectrum of two spin-2 fields. In
+        this case, the estimated bandpowers would have shape ``[4, n_bpw]``,
+        where ``n_bpw`` is the number of bandpowers. The unbinned power
+        spectra would have shape ``[4, lmax+1]``, where ``lmax`` is the
+        maximum multipole under study. The bandpower window functions would
+        then have shape ``[4, n_bpw, 4, lmax+1]`` and, for example, the
+        window function at indices ``[0, b1, 3, ell2]`` quantifies the
+        amount of :math:`BB` power at :math:`\\ell=` ``ell2`` that is leaked
+        into the ``b1``-th :math:`EE` bandpower.
+
+        Returns:
+            (`array`): Bandpower windows with shape \
+                ``(n_cls, n_bpws, n_cls, lmax+1)``.
+        """
+        return np.transpose(self.bpws.reshape([self.nbands,
+                                               self.ncls,
+                                               self.lmax+1,
+                                               self.ncls]),
                             axes=[1, 0, 3, 2])
 
 
@@ -1169,57 +1815,3 @@ def compute_full_master_flat(f1, f2, b, cl_noise=None, cl_guess=None,
     clout = np.reshape(cl1d, [len(cln), b.bin.n_bands])
 
     return clout
-
-
-def get_general_coupling_matrix(pcl_mask, s1, s2, n1, n2,
-                                parity="all"):
-    """ Returns a general mode-coupling matrix of the form
-
-    .. math::
-      M_{\\ell \\ell'}=\\sum_{\\ell''}
-      \\frac{(2\\ell'+1)(2\\ell''+1)}{4\\pi}
-      \\tilde{C}^{uv}_{\\ell''}\\,
-      P_{\\ell+\\ell'+\\ell''}\\,
-      \\left(\\begin{array}{ccc}
-      \\ell & \\ell' & \\ell'' \\\\
-      n_1 & -s_1 & s_1-n_1
-      \\end{array}\\right)
-      \\left(\\begin{array}{ccc}
-      \\ell & \\ell' & \\ell'' \\\\
-      n_2 & -s_2 & s_2-n_2
-      \\end{array}\\right)
-
-    Where :math:`P_L=1` if ``parity="all"``,
-    :math:`P_L=(1+(-1)^L)/2` if ``parity="even"``,
-    and :math:`P_L=(1-(-1)^L)/2` if ``parity="odd"``.
-
-    Args:
-        pcl_mask (`array`): 1D array containing the power spectrum
-          of the masks :math:`\\tilde{C}_\\ell^{uw}`.
-        s1 (:obj:`int`): spin index :math:`s_1` above.
-        s2 (:obj:`int`): spin index :math:`s_2` above.
-        n1 (:obj:`int`): spin index :math:`n_1` above.
-        n2 (:obj:`int`): spin index :math:`n_2` above.
-
-    Returns:
-        (`array`): 2D array of shape ``[nl, nl]``, where ``nl`` is
-        the size of ``pcl_mask``, containing the mode-coupling
-        matrix for multipoles from 0 to ``nl-1``.
-    """
-
-    if parity == 'all':
-        par = 0
-    elif parity == 'even':
-        par = 1
-    elif parity == 'odd':
-        par = -1
-    else:
-        raise ValueError("`parity` must be \"all\", "
-                         "\"even\", or \"odd\"")
-    lmax = len(pcl_mask)-1
-    xi = lib.comp_general_coupling_matrix(
-        int(s1), int(s2), int(n1),
-        int(n2), int(par), int(lmax),
-        pcl_mask, int((lmax+1)**2))
-    xi = xi.reshape([lmax+1, lmax+1])
-    return xi

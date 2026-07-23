@@ -3114,6 +3114,94 @@ void get_mcm(nmt_workspace *w,double *ldout,long nldout)
   }
 }
 
+void get_xis(int lmax, int lmax_mask,
+	     int ncl1, int nell1, double *cls1,
+	     int s1, int s2, int pure_any,
+	     int do_teb, int l_toeplitz, int l_exact,
+	     int dl_band, double *ldout, long nldout)
+{
+  int imask,ipure,ll,nmask=ncl1;
+  double **pcl_masks=my_malloc(nmask*sizeof(double *));
+
+  asserting(nell1==lmax_mask+1);
+
+  for(imask=0;imask<nmask;imask++)
+    pcl_masks[imask]=&(cls1[imask*nell1]);
+
+  nmt_master_calculator *c;
+  c=nmt_compute_master_coefficients(lmax, lmax_mask, nmask, pcl_masks,
+				    s1, s2, pure_any, do_teb,
+				    l_toeplitz, l_exact, dl_band);
+  long nout=0,nls=lmax+1;
+  if(c->has_00)
+    nout+=nmask*nls*nls;
+  if(c->has_0s)
+    nout+=nmask*c->npure_0s*nls*nls;
+  if(c->has_ss)
+    nout+=2*nmask*c->npure_ss*nls*nls;
+  asserting(nout==nldout);
+
+  long ind_sofar=0;
+  if(c->has_00) {
+    for(imask=0;imask<nmask;imask++) {
+      long indmask=nls*nls*imask;
+      for(ll=0;ll<=lmax;ll++) {
+	memcpy(&(ldout[ind_sofar+indmask+nls*ll]),
+	       c->xi_00[imask][ll],
+	       nls*sizeof(double));
+      }
+    }
+    ind_sofar+=nmask*nls*nls;
+  }
+
+  if(c->has_0s) {
+    for(ipure=0;ipure<c->npure_0s;ipure++) {
+      long indpure=nls*nls*nmask*ipure;
+      for(imask=0;imask<nmask;imask++) {
+	long indmask=nls*nls*imask;
+	for(ll=0;ll<=lmax;ll++) {
+	  memcpy(&(ldout[ind_sofar+indpure+indmask+nls*ll]),
+		 c->xi_0s[imask][ipure][ll],
+		 nls*sizeof(double));
+	}
+      }
+    }
+    ind_sofar+=nmask*c->npure_0s*nls*nls;
+  }
+
+  if(c->has_ss) {
+    for(ipure=0;ipure<c->npure_ss;ipure++) {
+      long indpure=nls*nls*nmask*ipure;
+      for(imask=0;imask<nmask;imask++) {
+	long indmask=nls*nls*imask;
+	for(ll=0;ll<=lmax;ll++) {
+	  memcpy(&(ldout[ind_sofar+indpure+indmask+nls*ll]),
+		 c->xi_pp[imask][ipure][ll],
+		 nls*sizeof(double));
+	}
+      }
+    }
+    ind_sofar+=nmask*c->npure_ss*nls*nls;
+    for(ipure=0;ipure<c->npure_ss;ipure++) {
+      long indpure=nls*nls*nmask*ipure;
+      for(imask=0;imask<nmask;imask++) {
+	long indmask=nls*nls*imask;
+	for(ll=0;ll<=lmax;ll++) {
+	  memcpy(&(ldout[ind_sofar+indpure+indmask+nls*ll]),
+		 c->xi_mm[imask][ipure][ll],
+		 nls*sizeof(double));
+	}
+      }
+    }
+    ind_sofar+=nmask*c->npure_ss*nls*nls;
+  }
+
+  asserting(ind_sofar==nldout);
+
+  nmt_master_calculator_free(c);
+  free(pcl_masks);
+}
+
 int get_cw_xi(nmt_covar_workspace *cw, int which, double *ldout, long nldout)
 {
   int ii,nrows=cw->lmax+1;
@@ -3158,11 +3246,11 @@ nmt_binning_scheme_flat *bins_flat_create_py(int npix_1,double *mask,
 }
 
 void bin_cl(nmt_binning_scheme *bins,
-	    int ncl1,int nell1,double *cls1,
+	    int nl1,int ncell1,double *cell1,
 	    double *dout,int ndout)
 {
-  asserting(ndout==ncl1*bins->n_bands);
-  nmt_bin_cls(bins,ncl1,cls1,dout);
+  asserting(ndout==ncell1*bins->n_bands);
+  nmt_bin_cls(bins,ncell1,cell1,dout);
 }
 
 void bin_cl_flat(nmt_binning_scheme_flat *bins,
@@ -3186,11 +3274,11 @@ void bin_cl_flat(nmt_binning_scheme_flat *bins,
 }
 
 void unbin_cl(nmt_binning_scheme *bins,
-	      int ncl1,int nell1,double *cls1,
+	      int nl1,int ncell1,double *cell1,
 	      double *dout,int ndout)
 {
-  asserting(nell1==bins->n_bands);
-  nmt_unbin_cls(bins,ncl1,cls1,dout);
+  asserting(nl1==bins->n_bands);
+  nmt_unbin_cls(bins,ncell1,cell1,dout);
 }
 
 void unbin_cl_flat(nmt_binning_scheme_flat *bins,
@@ -3498,7 +3586,10 @@ void comp_general_coupling_matrix(int s1, int s2, int n1, int n2,
 				  double *dout,int ndout)
 {
   asserting(nell4==lmax+1);
-  asserting(ndout==nell4*nell4);
+  if(parity==2)
+    asserting(ndout==2*nell4*nell4);
+  else
+    asserting(ndout==nell4*nell4);
   memset(dout,0,ndout*sizeof(double));
   nmt_compute_general_coupling_matrix(lmax,f_ell,s1,s2,n1,n2,parity,dout);
 }
@@ -11105,214 +11196,6 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_master_calculator_pure_e1_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
-  PyObject *resultobj = 0;
-  nmt_master_calculator *arg1 = (nmt_master_calculator *) 0 ;
-  int arg2 ;
-  void *argp1 = 0 ;
-  int res1 = 0 ;
-  int val2 ;
-  int ecode2 = 0 ;
-  PyObject *swig_obj[2] ;
-  
-  if (!SWIG_Python_UnpackTuple(args, "master_calculator_pure_e1_set", 2, 2, swig_obj)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_nmt_master_calculator, 0 |  0 );
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "master_calculator_pure_e1_set" "', argument " "1"" of type '" "nmt_master_calculator *""'"); 
-  }
-  arg1 = (nmt_master_calculator *)(argp1);
-  ecode2 = SWIG_AsVal_int(swig_obj[1], &val2);
-  if (!SWIG_IsOK(ecode2)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "master_calculator_pure_e1_set" "', argument " "2"" of type '" "int""'");
-  } 
-  arg2 = (int)(val2);
-  if (arg1) (arg1)->pure_e1 = arg2;
-  resultobj = SWIG_Py_Void();
-  return resultobj;
-fail:
-  return NULL;
-}
-
-
-SWIGINTERN PyObject *_wrap_master_calculator_pure_e1_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
-  PyObject *resultobj = 0;
-  nmt_master_calculator *arg1 = (nmt_master_calculator *) 0 ;
-  void *argp1 = 0 ;
-  int res1 = 0 ;
-  PyObject *swig_obj[1] ;
-  int result;
-  
-  if (!args) SWIG_fail;
-  swig_obj[0] = args;
-  res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_nmt_master_calculator, 0 |  0 );
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "master_calculator_pure_e1_get" "', argument " "1"" of type '" "nmt_master_calculator *""'"); 
-  }
-  arg1 = (nmt_master_calculator *)(argp1);
-  result = (int) ((arg1)->pure_e1);
-  resultobj = SWIG_From_int((int)(result));
-  return resultobj;
-fail:
-  return NULL;
-}
-
-
-SWIGINTERN PyObject *_wrap_master_calculator_pure_e2_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
-  PyObject *resultobj = 0;
-  nmt_master_calculator *arg1 = (nmt_master_calculator *) 0 ;
-  int arg2 ;
-  void *argp1 = 0 ;
-  int res1 = 0 ;
-  int val2 ;
-  int ecode2 = 0 ;
-  PyObject *swig_obj[2] ;
-  
-  if (!SWIG_Python_UnpackTuple(args, "master_calculator_pure_e2_set", 2, 2, swig_obj)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_nmt_master_calculator, 0 |  0 );
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "master_calculator_pure_e2_set" "', argument " "1"" of type '" "nmt_master_calculator *""'"); 
-  }
-  arg1 = (nmt_master_calculator *)(argp1);
-  ecode2 = SWIG_AsVal_int(swig_obj[1], &val2);
-  if (!SWIG_IsOK(ecode2)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "master_calculator_pure_e2_set" "', argument " "2"" of type '" "int""'");
-  } 
-  arg2 = (int)(val2);
-  if (arg1) (arg1)->pure_e2 = arg2;
-  resultobj = SWIG_Py_Void();
-  return resultobj;
-fail:
-  return NULL;
-}
-
-
-SWIGINTERN PyObject *_wrap_master_calculator_pure_e2_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
-  PyObject *resultobj = 0;
-  nmt_master_calculator *arg1 = (nmt_master_calculator *) 0 ;
-  void *argp1 = 0 ;
-  int res1 = 0 ;
-  PyObject *swig_obj[1] ;
-  int result;
-  
-  if (!args) SWIG_fail;
-  swig_obj[0] = args;
-  res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_nmt_master_calculator, 0 |  0 );
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "master_calculator_pure_e2_get" "', argument " "1"" of type '" "nmt_master_calculator *""'"); 
-  }
-  arg1 = (nmt_master_calculator *)(argp1);
-  result = (int) ((arg1)->pure_e2);
-  resultobj = SWIG_From_int((int)(result));
-  return resultobj;
-fail:
-  return NULL;
-}
-
-
-SWIGINTERN PyObject *_wrap_master_calculator_pure_b1_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
-  PyObject *resultobj = 0;
-  nmt_master_calculator *arg1 = (nmt_master_calculator *) 0 ;
-  int arg2 ;
-  void *argp1 = 0 ;
-  int res1 = 0 ;
-  int val2 ;
-  int ecode2 = 0 ;
-  PyObject *swig_obj[2] ;
-  
-  if (!SWIG_Python_UnpackTuple(args, "master_calculator_pure_b1_set", 2, 2, swig_obj)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_nmt_master_calculator, 0 |  0 );
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "master_calculator_pure_b1_set" "', argument " "1"" of type '" "nmt_master_calculator *""'"); 
-  }
-  arg1 = (nmt_master_calculator *)(argp1);
-  ecode2 = SWIG_AsVal_int(swig_obj[1], &val2);
-  if (!SWIG_IsOK(ecode2)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "master_calculator_pure_b1_set" "', argument " "2"" of type '" "int""'");
-  } 
-  arg2 = (int)(val2);
-  if (arg1) (arg1)->pure_b1 = arg2;
-  resultobj = SWIG_Py_Void();
-  return resultobj;
-fail:
-  return NULL;
-}
-
-
-SWIGINTERN PyObject *_wrap_master_calculator_pure_b1_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
-  PyObject *resultobj = 0;
-  nmt_master_calculator *arg1 = (nmt_master_calculator *) 0 ;
-  void *argp1 = 0 ;
-  int res1 = 0 ;
-  PyObject *swig_obj[1] ;
-  int result;
-  
-  if (!args) SWIG_fail;
-  swig_obj[0] = args;
-  res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_nmt_master_calculator, 0 |  0 );
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "master_calculator_pure_b1_get" "', argument " "1"" of type '" "nmt_master_calculator *""'"); 
-  }
-  arg1 = (nmt_master_calculator *)(argp1);
-  result = (int) ((arg1)->pure_b1);
-  resultobj = SWIG_From_int((int)(result));
-  return resultobj;
-fail:
-  return NULL;
-}
-
-
-SWIGINTERN PyObject *_wrap_master_calculator_pure_b2_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
-  PyObject *resultobj = 0;
-  nmt_master_calculator *arg1 = (nmt_master_calculator *) 0 ;
-  int arg2 ;
-  void *argp1 = 0 ;
-  int res1 = 0 ;
-  int val2 ;
-  int ecode2 = 0 ;
-  PyObject *swig_obj[2] ;
-  
-  if (!SWIG_Python_UnpackTuple(args, "master_calculator_pure_b2_set", 2, 2, swig_obj)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_nmt_master_calculator, 0 |  0 );
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "master_calculator_pure_b2_set" "', argument " "1"" of type '" "nmt_master_calculator *""'"); 
-  }
-  arg1 = (nmt_master_calculator *)(argp1);
-  ecode2 = SWIG_AsVal_int(swig_obj[1], &val2);
-  if (!SWIG_IsOK(ecode2)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "master_calculator_pure_b2_set" "', argument " "2"" of type '" "int""'");
-  } 
-  arg2 = (int)(val2);
-  if (arg1) (arg1)->pure_b2 = arg2;
-  resultobj = SWIG_Py_Void();
-  return resultobj;
-fail:
-  return NULL;
-}
-
-
-SWIGINTERN PyObject *_wrap_master_calculator_pure_b2_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
-  PyObject *resultobj = 0;
-  nmt_master_calculator *arg1 = (nmt_master_calculator *) 0 ;
-  void *argp1 = 0 ;
-  int res1 = 0 ;
-  PyObject *swig_obj[1] ;
-  int result;
-  
-  if (!args) SWIG_fail;
-  swig_obj[0] = args;
-  res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_nmt_master_calculator, 0 |  0 );
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "master_calculator_pure_b2_get" "', argument " "1"" of type '" "nmt_master_calculator *""'"); 
-  }
-  arg1 = (nmt_master_calculator *)(argp1);
-  result = (int) ((arg1)->pure_b2);
-  resultobj = SWIG_From_int((int)(result));
-  return resultobj;
-fail:
-  return NULL;
-}
-
-
 SWIGINTERN PyObject *_wrap_master_calculator_pure_any_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   nmt_master_calculator *arg1 = (nmt_master_calculator *) 0 ;
@@ -11542,9 +11425,6 @@ SWIGINTERN PyObject *_wrap_compute_master_coefficients(PyObject *SWIGUNUSEDPARM(
   int arg9 ;
   int arg10 ;
   int arg11 ;
-  int arg12 ;
-  int arg13 ;
-  int arg14 ;
   int val1 ;
   int ecode1 = 0 ;
   int val2 ;
@@ -11567,16 +11447,10 @@ SWIGINTERN PyObject *_wrap_compute_master_coefficients(PyObject *SWIGUNUSEDPARM(
   int ecode10 = 0 ;
   int val11 ;
   int ecode11 = 0 ;
-  int val12 ;
-  int ecode12 = 0 ;
-  int val13 ;
-  int ecode13 = 0 ;
-  int val14 ;
-  int ecode14 = 0 ;
-  PyObject *swig_obj[14] ;
+  PyObject *swig_obj[11] ;
   nmt_master_calculator *result = 0 ;
   
-  if (!SWIG_Python_UnpackTuple(args, "compute_master_coefficients", 14, 14, swig_obj)) SWIG_fail;
+  if (!SWIG_Python_UnpackTuple(args, "compute_master_coefficients", 11, 11, swig_obj)) SWIG_fail;
   ecode1 = SWIG_AsVal_int(swig_obj[0], &val1);
   if (!SWIG_IsOK(ecode1)) {
     SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "compute_master_coefficients" "', argument " "1"" of type '" "int""'");
@@ -11632,22 +11506,7 @@ SWIGINTERN PyObject *_wrap_compute_master_coefficients(PyObject *SWIGUNUSEDPARM(
     SWIG_exception_fail(SWIG_ArgError(ecode11), "in method '" "compute_master_coefficients" "', argument " "11"" of type '" "int""'");
   } 
   arg11 = (int)(val11);
-  ecode12 = SWIG_AsVal_int(swig_obj[11], &val12);
-  if (!SWIG_IsOK(ecode12)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode12), "in method '" "compute_master_coefficients" "', argument " "12"" of type '" "int""'");
-  } 
-  arg12 = (int)(val12);
-  ecode13 = SWIG_AsVal_int(swig_obj[12], &val13);
-  if (!SWIG_IsOK(ecode13)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode13), "in method '" "compute_master_coefficients" "', argument " "13"" of type '" "int""'");
-  } 
-  arg13 = (int)(val13);
-  ecode14 = SWIG_AsVal_int(swig_obj[13], &val14);
-  if (!SWIG_IsOK(ecode14)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode14), "in method '" "compute_master_coefficients" "', argument " "14"" of type '" "int""'");
-  } 
-  arg14 = (int)(val14);
-  result = (nmt_master_calculator *)nmt_compute_master_coefficients(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13,arg14);
+  result = (nmt_master_calculator *)nmt_compute_master_coefficients(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11);
   resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_nmt_master_calculator, 0 |  0 );
   return resultobj;
 fail:
@@ -15384,6 +15243,150 @@ SWIGINTERN PyObject *_wrap_get_mcm(PyObject *SWIGUNUSEDPARM(self), PyObject *arg
   }
   return resultobj;
 fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_get_xis(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  int arg1 ;
+  int arg2 ;
+  int arg3 ;
+  int arg4 ;
+  double *arg5 = (double *) 0 ;
+  int arg6 ;
+  int arg7 ;
+  int arg8 ;
+  int arg9 ;
+  int arg10 ;
+  int arg11 ;
+  int arg12 ;
+  double *arg13 = (double *) 0 ;
+  long arg14 ;
+  int val1 ;
+  int ecode1 = 0 ;
+  int val2 ;
+  int ecode2 = 0 ;
+  PyArrayObject *array3 = NULL ;
+  int is_new_object3 = 0 ;
+  int val6 ;
+  int ecode6 = 0 ;
+  int val7 ;
+  int ecode7 = 0 ;
+  int val8 ;
+  int ecode8 = 0 ;
+  int val9 ;
+  int ecode9 = 0 ;
+  int val10 ;
+  int ecode10 = 0 ;
+  int val11 ;
+  int ecode11 = 0 ;
+  int val12 ;
+  int ecode12 = 0 ;
+  PyObject *array13 = NULL ;
+  PyObject *swig_obj[11] ;
+  
+  if (!SWIG_Python_UnpackTuple(args, "get_xis", 11, 11, swig_obj)) SWIG_fail;
+  ecode1 = SWIG_AsVal_int(swig_obj[0], &val1);
+  if (!SWIG_IsOK(ecode1)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "get_xis" "', argument " "1"" of type '" "int""'");
+  } 
+  arg1 = (int)(val1);
+  ecode2 = SWIG_AsVal_int(swig_obj[1], &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "get_xis" "', argument " "2"" of type '" "int""'");
+  } 
+  arg2 = (int)(val2);
+  {
+    npy_intp size[2] = {
+      -1, -1 
+    };
+    array3 = obj_to_array_contiguous_allow_conversion(swig_obj[2],
+      NPY_DOUBLE,
+      &is_new_object3);
+    if (!array3 || !require_dimensions(array3, 2) ||
+      !require_size(array3, size, 2)) SWIG_fail;
+    arg3 = (int) array_size(array3,0);
+    arg4 = (int) array_size(array3,1);
+    arg5 = (double*) array_data(array3);
+  }
+  ecode6 = SWIG_AsVal_int(swig_obj[3], &val6);
+  if (!SWIG_IsOK(ecode6)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode6), "in method '" "get_xis" "', argument " "6"" of type '" "int""'");
+  } 
+  arg6 = (int)(val6);
+  ecode7 = SWIG_AsVal_int(swig_obj[4], &val7);
+  if (!SWIG_IsOK(ecode7)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode7), "in method '" "get_xis" "', argument " "7"" of type '" "int""'");
+  } 
+  arg7 = (int)(val7);
+  ecode8 = SWIG_AsVal_int(swig_obj[5], &val8);
+  if (!SWIG_IsOK(ecode8)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode8), "in method '" "get_xis" "', argument " "8"" of type '" "int""'");
+  } 
+  arg8 = (int)(val8);
+  ecode9 = SWIG_AsVal_int(swig_obj[6], &val9);
+  if (!SWIG_IsOK(ecode9)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode9), "in method '" "get_xis" "', argument " "9"" of type '" "int""'");
+  } 
+  arg9 = (int)(val9);
+  ecode10 = SWIG_AsVal_int(swig_obj[7], &val10);
+  if (!SWIG_IsOK(ecode10)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode10), "in method '" "get_xis" "', argument " "10"" of type '" "int""'");
+  } 
+  arg10 = (int)(val10);
+  ecode11 = SWIG_AsVal_int(swig_obj[8], &val11);
+  if (!SWIG_IsOK(ecode11)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode11), "in method '" "get_xis" "', argument " "11"" of type '" "int""'");
+  } 
+  arg11 = (int)(val11);
+  ecode12 = SWIG_AsVal_int(swig_obj[9], &val12);
+  if (!SWIG_IsOK(ecode12)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode12), "in method '" "get_xis" "', argument " "12"" of type '" "int""'");
+  } 
+  arg12 = (int)(val12);
+  {
+    npy_intp dims[1];
+    if (!PyInt_Check(swig_obj[10]))
+    {
+      const char* typestring = pytype_string(swig_obj[10]);
+      PyErr_Format(PyExc_TypeError,
+        "Int dimension expected.  '%s' given.",
+        typestring);
+      SWIG_fail;
+    }
+    arg14 = (long) PyInt_AsLong(swig_obj[10]);
+    dims[0] = (npy_intp) arg14;
+    array13 = PyArray_SimpleNew(1, dims, NPY_DOUBLE);
+    if (!array13) SWIG_fail;
+    arg13 = (double*) array_data(array13);
+  }
+  {
+    try {
+      get_xis(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13,arg14);
+    }
+    finally {
+      SWIG_exception(SWIG_RuntimeError,nmt_error_message);
+    }
+  }
+  resultobj = SWIG_Py_Void();
+  {
+    resultobj = SWIG_Python_AppendOutput(resultobj,(PyObject*)array13);
+  }
+  {
+    if (is_new_object3 && array3)
+    {
+      Py_DECREF(array3); 
+    }
+  }
+  return resultobj;
+fail:
+  {
+    if (is_new_object3 && array3)
+    {
+      Py_DECREF(array3); 
+    }
+  }
   return NULL;
 }
 
@@ -20957,14 +20960,6 @@ static PyMethodDef SwigMethods[] = {
 	 { "master_calculator_xi_mm_get", _wrap_master_calculator_xi_mm_get, METH_O, NULL},
 	 { "master_calculator_lfac_set", _wrap_master_calculator_lfac_set, METH_VARARGS, NULL},
 	 { "master_calculator_lfac_get", _wrap_master_calculator_lfac_get, METH_O, NULL},
-	 { "master_calculator_pure_e1_set", _wrap_master_calculator_pure_e1_set, METH_VARARGS, NULL},
-	 { "master_calculator_pure_e1_get", _wrap_master_calculator_pure_e1_get, METH_O, NULL},
-	 { "master_calculator_pure_e2_set", _wrap_master_calculator_pure_e2_set, METH_VARARGS, NULL},
-	 { "master_calculator_pure_e2_get", _wrap_master_calculator_pure_e2_get, METH_O, NULL},
-	 { "master_calculator_pure_b1_set", _wrap_master_calculator_pure_b1_set, METH_VARARGS, NULL},
-	 { "master_calculator_pure_b1_get", _wrap_master_calculator_pure_b1_get, METH_O, NULL},
-	 { "master_calculator_pure_b2_set", _wrap_master_calculator_pure_b2_set, METH_VARARGS, NULL},
-	 { "master_calculator_pure_b2_get", _wrap_master_calculator_pure_b2_get, METH_O, NULL},
 	 { "master_calculator_pure_any_set", _wrap_master_calculator_pure_any_set, METH_VARARGS, NULL},
 	 { "master_calculator_pure_any_get", _wrap_master_calculator_pure_any_get, METH_O, NULL},
 	 { "master_calculator_npure_0s_set", _wrap_master_calculator_npure_0s_set, METH_VARARGS, NULL},
@@ -21071,6 +21066,7 @@ static PyMethodDef SwigMethods[] = {
 	 { "update_mcm", _wrap_update_mcm, METH_VARARGS, NULL},
 	 { "get_bandpower_windows", _wrap_get_bandpower_windows, METH_VARARGS, NULL},
 	 { "get_mcm", _wrap_get_mcm, METH_VARARGS, NULL},
+	 { "get_xis", _wrap_get_xis, METH_VARARGS, NULL},
 	 { "get_cw_xi", _wrap_get_cw_xi, METH_VARARGS, NULL},
 	 { "bins_flat_create_py", _wrap_bins_flat_create_py, METH_VARARGS, NULL},
 	 { "bin_cl", _wrap_bin_cl, METH_VARARGS, NULL},

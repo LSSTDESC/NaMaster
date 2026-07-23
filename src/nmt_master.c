@@ -652,22 +652,16 @@ nmt_workspace *nmt_compute_coupling_matrix_anisotropic(int spin1, int spin2,
 
 nmt_master_calculator *nmt_compute_master_coefficients(int lmax, int lmax_mask,
                                                        int npcl, flouble **pcl_masks,
-                                                       int s1, int s2,
-                                                       int pure_e1, int pure_b1,
-                                                       int pure_e2, int pure_b2,
+                                                       int s1, int s2, int pure_any,
                                                        int do_teb, int l_toeplitz,
                                                        int l_exact, int dl_band)
 {
   int ic, ip, ii;
   nmt_master_calculator *c=my_malloc(sizeof(nmt_master_calculator));
-  c->pure_any=pure_e1 || pure_b1 || pure_e2 || pure_b2;
+  c->pure_any=pure_any;
   c->npcl=npcl;
   c->lmax=lmax;
   c->lmax_mask=lmax_mask;
-  c->pure_e1=pure_e1;
-  c->pure_b1=pure_b1;
-  c->pure_e2=pure_e2;
-  c->pure_b2=pure_b2;
   c->has_00=0;
   c->has_0s=0;
   c->has_ss=0;
@@ -1046,22 +1040,22 @@ void nmt_compute_general_coupling_matrix(int lmax,
 	    int jsn1=l1-lmin_sn1;
 	    int jsn2=l1-lmin_sn2;
 	    flouble wsn1=0,wsn2=0,pre_par=1;
+	    int suml=l1+ll2+ll3;
 	    wsn1=jsn1 < 0 ? 0 : wigner_sn1[jsn1];
 	    wsn2=jsn2 < 0 ? 0 : wigner_sn2[jsn2];
-	    if(parity!=0) {
-	      int suml=l1+ll2+ll3;
-	      if(suml & 1) {
-		if(parity==1)  // Odd sum but even parity
-		  pre_par=0;
-	      } else {
-		if(parity==-1) // Even sum but odd parity
-		  pre_par=0;
-	      }
+	    if((parity==0) ||
+	       ((parity==-1) && (suml & 1)) ||
+	       ((parity==1) && (!(suml & 1))))
+	      xi_out[index] += wl_mask[l1]*wsn1*wsn2;
+	    if(parity==2) {
+	      long index_full=index+(suml & 1)*(lmax+1)*(lmax+1);
+	      xi_out[index_full] += wl_mask[l1]*wsn1*wsn2;
 	    }
-	    xi_out[index] += wl_mask[l1]*wsn1*wsn2*pre_par;
 	  }
 	}
 	xi_out[index] *= (2*ll3+1.0); //*sign
+	if(parity==2)
+	  xi_out[index+(lmax+1)*(lmax+1)] *= (2*ll3+1.0);
       }
     } //end omp for
     free(wl_mask);
@@ -1155,11 +1149,10 @@ nmt_workspace *nmt_compute_coupling_matrix(int spin1,int spin2,
     w->pcl_masks[l2]=pcl_masks[l2]*(2*l2+1.)/(4*M_PI);
 
   // Compute coupling coefficients
+  int pure_any=pure_e1 || pure_b1 || pure_e2 || pure_b2;
   nmt_master_calculator *c=nmt_compute_master_coefficients(w->lmax, w->lmax_mask,
                                                            1, &(w->pcl_masks),
-                                                           spin1, spin2,
-                                                           pure_e1,pure_b1,
-                                                           pure_e2,pure_b2,
+                                                           spin1, spin2, pure_any,
                                                            is_teb, l_toeplitz, l_exact, dl_band);
 
   // Apply coupling coefficients

@@ -48,13 +48,14 @@
                                   (int nell2,int *ells),
                                   (int nfields,int *spin_arr)};
 %apply (int DIM1,int DIM2,double *IN_ARRAY2) {(int nmap_2,int npix_2,double *mps),
-                                              (int ncl11, int nell11,double *c11),
-                                              (int ncl12, int nell12,double *c12),
-                                              (int ncl21, int nell21,double *c21),
-                                              (int ncl22, int nell22,double *c22),
+                                              (int ncl11 ,int nell11,double *c11),
+                                              (int ncl12 ,int nell12,double *c12),
+                                              (int ncl21 ,int nell21,double *c21),
+                                              (int ncl22 ,int nell22,double *c22),
                                               (int ncl1  ,int nell1 ,double *cls1),
                                               (int ncl2  ,int nell2 ,double *cls2),
-                                              (int ncl3  ,int nell3 ,double *cls3)};
+                                              (int ncl3  ,int nell3 ,double *cls3),
+                                              (int nl1   ,int ncell1,double *cell1)};
 %apply (int DIM1,int DIM2,int DIM3,double *IN_ARRAY3) {(int ntmp_3,int nmap_3,int npix_3,double *tmp)};
 
 %{
@@ -157,6 +158,94 @@ void get_mcm(nmt_workspace *w,double *ldout,long nldout)
   }
 }
 
+void get_xis(int lmax, int lmax_mask,
+	     int ncl1, int nell1, double *cls1,
+	     int s1, int s2, int pure_any,
+	     int do_teb, int l_toeplitz, int l_exact,
+	     int dl_band, double *ldout, long nldout)
+{
+  int imask,ipure,ll,nmask=ncl1;
+  double **pcl_masks=my_malloc(nmask*sizeof(double *));
+
+  asserting(nell1==lmax_mask+1);
+
+  for(imask=0;imask<nmask;imask++)
+    pcl_masks[imask]=&(cls1[imask*nell1]);
+
+  nmt_master_calculator *c;
+  c=nmt_compute_master_coefficients(lmax, lmax_mask, nmask, pcl_masks,
+				    s1, s2, pure_any, do_teb,
+				    l_toeplitz, l_exact, dl_band);
+  long nout=0,nls=lmax+1;
+  if(c->has_00)
+    nout+=nmask*nls*nls;
+  if(c->has_0s)
+    nout+=nmask*c->npure_0s*nls*nls;
+  if(c->has_ss)
+    nout+=2*nmask*c->npure_ss*nls*nls;
+  asserting(nout==nldout);
+
+  long ind_sofar=0;
+  if(c->has_00) {
+    for(imask=0;imask<nmask;imask++) {
+      long indmask=nls*nls*imask;
+      for(ll=0;ll<=lmax;ll++) {
+	memcpy(&(ldout[ind_sofar+indmask+nls*ll]),
+	       c->xi_00[imask][ll],
+	       nls*sizeof(double));
+      }
+    }
+    ind_sofar+=nmask*nls*nls;
+  }
+
+  if(c->has_0s) {
+    for(ipure=0;ipure<c->npure_0s;ipure++) {
+      long indpure=nls*nls*nmask*ipure;
+      for(imask=0;imask<nmask;imask++) {
+	long indmask=nls*nls*imask;
+	for(ll=0;ll<=lmax;ll++) {
+	  memcpy(&(ldout[ind_sofar+indpure+indmask+nls*ll]),
+		 c->xi_0s[imask][ipure][ll],
+		 nls*sizeof(double));
+	}
+      }
+    }
+    ind_sofar+=nmask*c->npure_0s*nls*nls;
+  }
+
+  if(c->has_ss) {
+    for(ipure=0;ipure<c->npure_ss;ipure++) {
+      long indpure=nls*nls*nmask*ipure;
+      for(imask=0;imask<nmask;imask++) {
+	long indmask=nls*nls*imask;
+	for(ll=0;ll<=lmax;ll++) {
+	  memcpy(&(ldout[ind_sofar+indpure+indmask+nls*ll]),
+		 c->xi_pp[imask][ipure][ll],
+		 nls*sizeof(double));
+	}
+      }
+    }
+    ind_sofar+=nmask*c->npure_ss*nls*nls;
+    for(ipure=0;ipure<c->npure_ss;ipure++) {
+      long indpure=nls*nls*nmask*ipure;
+      for(imask=0;imask<nmask;imask++) {
+	long indmask=nls*nls*imask;
+	for(ll=0;ll<=lmax;ll++) {
+	  memcpy(&(ldout[ind_sofar+indpure+indmask+nls*ll]),
+		 c->xi_mm[imask][ipure][ll],
+		 nls*sizeof(double));
+	}
+      }
+    }
+    ind_sofar+=nmask*c->npure_ss*nls*nls;
+  }
+
+  asserting(ind_sofar==nldout);
+
+  nmt_master_calculator_free(c);
+  free(pcl_masks);
+}
+
 int get_cw_xi(nmt_covar_workspace *cw, int which, double *ldout, long nldout)
 {
   int ii,nrows=cw->lmax+1;
@@ -201,11 +290,11 @@ nmt_binning_scheme_flat *bins_flat_create_py(int npix_1,double *mask,
 }
 
 void bin_cl(nmt_binning_scheme *bins,
-	    int ncl1,int nell1,double *cls1,
+	    int nl1,int ncell1,double *cell1,
 	    double *dout,int ndout)
 {
-  asserting(ndout==ncl1*bins->n_bands);
-  nmt_bin_cls(bins,ncl1,cls1,dout);
+  asserting(ndout==ncell1*bins->n_bands);
+  nmt_bin_cls(bins,ncell1,cell1,dout);
 }
 
 void bin_cl_flat(nmt_binning_scheme_flat *bins,
@@ -229,11 +318,11 @@ void bin_cl_flat(nmt_binning_scheme_flat *bins,
 }
 
 void unbin_cl(nmt_binning_scheme *bins,
-	      int ncl1,int nell1,double *cls1,
+	      int nl1,int ncell1,double *cell1,
 	      double *dout,int ndout)
 {
-  asserting(nell1==bins->n_bands);
-  nmt_unbin_cls(bins,ncl1,cls1,dout);
+  asserting(nl1==bins->n_bands);
+  nmt_unbin_cls(bins,ncell1,cell1,dout);
 }
 
 void unbin_cl_flat(nmt_binning_scheme_flat *bins,
@@ -541,7 +630,10 @@ void comp_general_coupling_matrix(int s1, int s2, int n1, int n2,
 				  double *dout,int ndout)
 {
   asserting(nell4==lmax+1);
-  asserting(ndout==nell4*nell4);
+  if(parity==2)
+    asserting(ndout==2*nell4*nell4);
+  else
+    asserting(ndout==nell4*nell4);
   memset(dout,0,ndout*sizeof(double));
   nmt_compute_general_coupling_matrix(lmax,f_ell,s1,s2,n1,n2,parity,dout);
 }

@@ -275,8 +275,9 @@ class NmtBin(object):
             cls_in = np.array([cls_in])
         if (cls_in.ndim > 2) or (len(cls_in[0]) != self.lmax + 1):
             raise ValueError("Input Cl has wrong size")
-        cl1d = lib.bin_cl(self.bin, cls_in, len(cls_in) * self.bin.n_bands)
-        clout = np.reshape(cl1d, [len(cls_in), self.bin.n_bands])
+        ncls = len(cls_in)
+        cl1d = lib.bin_cl(self.bin, cls_in.T, ncls * self.bin.n_bands)
+        clout = np.reshape(cl1d, [self.bin.n_bands, ncls]).T
         if oned:
             clout = clout[0]
         return clout
@@ -298,12 +299,30 @@ class NmtBin(object):
             cls_in = np.array([cls_in])
         if (cls_in.ndim > 2) or (len(cls_in[0]) != self.bin.n_bands):
             raise ValueError("Input Cl has wrong size")
-        cl1d = lib.unbin_cl(self.bin, cls_in,
-                            int(len(cls_in) * (self.lmax + 1)))
-        clout = np.reshape(cl1d, [len(cls_in), self.lmax + 1])
+        ncls = len(cls_in)
+        cl1d = lib.unbin_cl(self.bin, cls_in.T,
+                            int(ncls * (self.lmax + 1)))
+        clout = np.reshape(cl1d, [self.lmax + 1, ncls]).T
         if oned:
             clout = clout[0]
         return clout
+
+    def _bin_mcm(self, mcm_in, norm_type, w2, beam1, beam2, oneside):
+        nelem = len(mcm_in)
+        nls = self.lmax+1
+        ncls = nelem // nls
+        nbands = self.get_n_bands()
+        if oneside:
+            mcm_binned = lib.bin_mcmat_oneside(
+                self.bin, ncls, mcm_in.flatten(),
+                beam1, beam2, int(ncls**2*nls*nbands))
+            mcm_binned = np.reshape(mcm_binned, [nbands*ncls, nls*ncls])
+        else:
+            mcm_binned = lib.bin_mcmat(self.bin, ncls, mcm_in.flatten(),
+                                       int(norm_type), w2, beam1, beam2,
+                                       int((nbands*ncls)**2))
+            mcm_binned = np.reshape(mcm_binned, [nbands*ncls, nbands*ncls])
+        return mcm_binned
 
 
 class NmtBinFlat(object):

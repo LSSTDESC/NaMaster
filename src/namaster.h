@@ -729,10 +729,6 @@ typedef struct {
   flouble ****xi_pp;
   flouble ****xi_mm;
   double *lfac;
-  int pure_e1;
-  int pure_e2;
-  int pure_b1;
-  int pure_b2;
   int pure_any;
   int npure_0s;
   int npure_ss;
@@ -740,9 +736,7 @@ typedef struct {
 
 nmt_master_calculator *nmt_compute_master_coefficients(int lmax, int lmax_mask,
                                                        int npcl, flouble **pcl_masks,
-                                                       int s1, int s2,
-                                                       int pure_e1, int pure_b1,
-                                                       int pure_e2, int pure_b2,
+                                                       int s1, int s2, int pure_any,
                                                        int do_teb, int l_toeplitz,
                                                        int l_exact, int dl_band);
 void nmt_master_calculator_free(nmt_master_calculator *c);

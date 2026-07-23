@@ -327,10 +327,6 @@ class master_calculator(object):
     xi_pp = property(_nmtlib.master_calculator_xi_pp_get, _nmtlib.master_calculator_xi_pp_set)
     xi_mm = property(_nmtlib.master_calculator_xi_mm_get, _nmtlib.master_calculator_xi_mm_set)
     lfac = property(_nmtlib.master_calculator_lfac_get, _nmtlib.master_calculator_lfac_set)
-    pure_e1 = property(_nmtlib.master_calculator_pure_e1_get, _nmtlib.master_calculator_pure_e1_set)
-    pure_e2 = property(_nmtlib.master_calculator_pure_e2_get, _nmtlib.master_calculator_pure_e2_set)
-    pure_b1 = property(_nmtlib.master_calculator_pure_b1_get, _nmtlib.master_calculator_pure_b1_set)
-    pure_b2 = property(_nmtlib.master_calculator_pure_b2_get, _nmtlib.master_calculator_pure_b2_set)
     pure_any = property(_nmtlib.master_calculator_pure_any_get, _nmtlib.master_calculator_pure_any_set)
     npure_0s = property(_nmtlib.master_calculator_npure_0s_get, _nmtlib.master_calculator_npure_0s_set)
     npure_ss = property(_nmtlib.master_calculator_npure_ss_get, _nmtlib.master_calculator_npure_ss_set)
@@ -343,8 +339,8 @@ class master_calculator(object):
 _nmtlib.master_calculator_swigregister(master_calculator)
 
 
-def compute_master_coefficients(lmax, lmax_mask, npcl, pcl_masks, s1, s2, pure_e1, pure_b1, pure_e2, pure_b2, do_teb, l_toeplitz, l_exact, dl_band):
-    return _nmtlib.compute_master_coefficients(lmax, lmax_mask, npcl, pcl_masks, s1, s2, pure_e1, pure_b1, pure_e2, pure_b2, do_teb, l_toeplitz, l_exact, dl_band)
+def compute_master_coefficients(lmax, lmax_mask, npcl, pcl_masks, s1, s2, pure_any, do_teb, l_toeplitz, l_exact, dl_band):
+    return _nmtlib.compute_master_coefficients(lmax, lmax_mask, npcl, pcl_masks, s1, s2, pure_any, do_teb, l_toeplitz, l_exact, dl_band)
 
 def master_calculator_free(c):
     return _nmtlib.master_calculator_free(c)
@@ -499,20 +495,23 @@ def get_bandpower_windows(w, dout):
 def get_mcm(w, ldout):
     return _nmtlib.get_mcm(w, ldout)
 
+def get_xis(lmax, lmax_mask, ncl1, s1, s2, pure_any, do_teb, l_toeplitz, l_exact, dl_band, ldout):
+    return _nmtlib.get_xis(lmax, lmax_mask, ncl1, s1, s2, pure_any, do_teb, l_toeplitz, l_exact, dl_band, ldout)
+
 def get_cw_xi(cw, which, ldout):
     return _nmtlib.get_cw_xi(cw, which, ldout)
 
 def bins_flat_create_py(npix_1, nell3):
     return _nmtlib.bins_flat_create_py(npix_1, nell3)
 
-def bin_cl(bins, ncl1, dout):
-    return _nmtlib.bin_cl(bins, ncl1, dout)
+def bin_cl(bins, nl1, dout):
+    return _nmtlib.bin_cl(bins, nl1, dout)
 
 def bin_cl_flat(bins, nell3, ncl1, dout):
     return _nmtlib.bin_cl_flat(bins, nell3, ncl1, dout)
 
-def unbin_cl(bins, ncl1, dout):
-    return _nmtlib.unbin_cl(bins, ncl1, dout)
+def unbin_cl(bins, nl1, dout):
+    return _nmtlib.unbin_cl(bins, nl1, dout)
 
 def unbin_cl_flat(bins, ncl1, nell3, dout):
     return _nmtlib.unbin_cl_flat(bins, ncl1, nell3, dout)
