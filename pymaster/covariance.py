@@ -609,7 +609,7 @@ class NmtCovarianceWorkspace(object):
         if wb is None:
             wb = wa
 
-        if (wa.wsp.ncls != nm_a1*nm_a2) or (wb.wsp.ncls != nm_b1*nm_b2):
+        if (wa.ncls != nm_a1*nm_a2) or (wb.ncls != nm_b1*nm_b2):
             raise ValueError("Field spins do not match input workspaces")
 
         if (len(cla1b1) != nm_a1*nm_b1) or \
@@ -629,8 +629,8 @@ class NmtCovarianceWorkspace(object):
                              f"{len(cla2b1[0])}, {len(cla2b2[0])}).")
 
         if coupled:
-            len_a = wa.wsp.ncls * (self.wsp.lmax+1)
-            len_b = wb.wsp.ncls * (self.wsp.lmax+1)
+            len_a = wa.ncls * (self.wsp.lmax+1)
+            len_b = wb.ncls * (self.wsp.lmax+1)
             wa.check_unbinned()
             wb.check_unbinned()
 
@@ -663,8 +663,8 @@ class NmtCovarianceWorkspace(object):
                     np.ones_like(cla2b2), 0, 0, 1, 1,
                     len_a * len_b)
         else:
-            len_a = wa.wsp.ncls * wa.wsp.bin.n_bands
-            len_b = wb.wsp.ncls * wb.wsp.bin.n_bands
+            len_a = wa.ncls * wa.nbands
+            len_b = wb.ncls * wb.nbands
 
             covar_SS = lib.comp_gaussian_covariance(
                 self.wsp, int(spin_a1), int(spin_a2),
@@ -808,7 +808,7 @@ class NmtCovarianceWorkspaceFlat(object):
         if wb is None:
             wb = wa
 
-        if (wa.wsp.ncls != nm_a1*nm_a2) or (wb.wsp.ncls != nm_b1*nm_b2):
+        if (wa.ncls != nm_a1*nm_a2) or (wb.ncls != nm_b1*nm_b2):
             raise ValueError("Input spins do not match input workspaces")
 
         if (len(cla1b1) != nm_a1*nm_b1) or \
@@ -828,8 +828,8 @@ class NmtCovarianceWorkspaceFlat(object):
                              f"Expected {len(larr)}, but got "
                              f"({len(cla1b1[0])}, {len(cla1b2[0])}, "
                              f"{len(cla2b1[0])}, {len(cla2b2[0])}).")
-        len_a = wa.wsp.ncls * self.wsp.bin.n_bands
-        len_b = wb.wsp.ncls * self.wsp.bin.n_bands
+        len_a = wa.ncls * self.nbands
+        len_b = wb.ncls * self.nbands
 
         covar1d = lib.comp_gaussian_covariance_flat(
             self.wsp, spin_a1, spin_a2, spin_b1, spin_b2,

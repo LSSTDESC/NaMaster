@@ -53,7 +53,7 @@ def test_workspace_car_methods():
     assert not WT.f0.is_compatible(fhalf)
 
     # Wrong fields for TEB
-    with pytest.raises(RuntimeError):
+    with pytest.raises(ValueError):
         w.compute_coupling_matrix(WT.f0, WT.f0,
                                   WT.b, is_teb=True)
 
@@ -64,7 +64,7 @@ def test_workspace_car_methods():
     n_bad = np.ones([2, WT.lmax+1])
     n_half = np.ones([1, WT.lmax//2+1])
     c = w.couple_cell(n_good)
-    assert c.shape == (1, w.wsp.lmax+1)
+    assert c.shape == (1, w.lmax+1)
     with pytest.raises(ValueError):
         w.couple_cell(n_bad)
     with pytest.raises(ValueError):

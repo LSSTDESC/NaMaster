@@ -57,11 +57,11 @@ def get_master_coefficients(pcl_mask, lmax, spin1, spin2,
     """
     # Give mask power spectra the right shape
     pcl_mask = np.atleast_2d(pcl_mask)
-    nmask, nls = pcl_mask.shape
-    ls = np.arange(nls)
+    nmask, nls_mask = pcl_mask.shape
+    ls = np.arange(nls_mask)
     pcl_mask = pcl_mask * ((2*ls + 1) / (4 * np.pi))[None, :]
-    lmax_mask = nls-1
-    size = nls**2*nmask
+    lmax_mask = nls_mask-1
+    nls = lmax+1
 
     # Sanity checks on input flags
     if is_teb and not (spin1 == 0 and spin2 != 0):

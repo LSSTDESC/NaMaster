@@ -95,7 +95,7 @@ from pymaster.field import (  # noqa
 from pymaster.bins import NmtBin, NmtBinFlat  # noqa
 from pymaster.workspaces import (  # noqa
     NmtWorkspace,
-    NmtWorkspaceNew,
+    NmtWorkspaceOld,
     NmtWorkspaceFlat,
     deprojection_bias,
     compute_coupled_cell,

@@ -7,7 +7,7 @@ import healpy as hp
 import warnings
 
 
-class NmtWorkspace(object):
+class NmtWorkspaceOld(object):
     """ :obj:`NmtWorkspace` objects are used to compute and store the
     mode-coupling matrix associated with an incomplete sky coverage,
     and used in the MASTER algorithm. :obj:`NmtWorkspace` objects can be
@@ -496,7 +496,7 @@ class NmtWorkspace(object):
                             axes=[1, 0, 3, 2])
 
 
-class NmtWorkspaceNew(object):
+class NmtWorkspace(object):
     """ :obj:`NmtWorkspace` objects are used to compute and store the
     mode-coupling matrix associated with an incomplete sky coverage,
     and used in the MASTER algorithm. :obj:`NmtWorkspace` objects can be
@@ -886,14 +886,14 @@ class NmtWorkspaceNew(object):
             mcm[:, 0, :, 0] = d['00']*lfac
             mcm[:, 1, :, 1] = d['0s'][ipe2]*lfac*sign
             mcm[:, 2, :, 2] = d['0s'][ipb2]*lfac*sign
-            mcm[:, 3, :, 3] = d['pp'][ipe1+ipe2]*lfac
-            mcm[:, 4, :, 4] = d['pp'][ipe1+ipb2]*lfac
-            mcm[:, 5, :, 5] = d['pp'][ipb1+ipb2]*lfac
-            mcm[:, 6, :, 6] = d['pp'][ipb1+ipb2]*lfac
-            mcm[:, 3, :, 6] = d['mm'][ipe1+ipe2]*lfac
-            mcm[:, 4, :, 5] = -d['mm'][ipe1+ipb2]*lfac
-            mcm[:, 5, :, 4] = -d['mm'][ipb1+ipb2]*lfac
-            mcm[:, 6, :, 3] = d['mm'][ipb1+ipb2]*lfac
+            mcm[:, 3, :, 3] = d['pp'][ipe2+ipe2]*lfac
+            mcm[:, 4, :, 4] = d['pp'][ipe2+ipb2]*lfac
+            mcm[:, 5, :, 5] = d['pp'][ipb2+ipe2]*lfac
+            mcm[:, 6, :, 6] = d['pp'][ipb2+ipb2]*lfac
+            mcm[:, 3, :, 6] = d['mm'][ipe2+ipe2]*lfac
+            mcm[:, 4, :, 5] = -d['mm'][ipe2+ipb2]*lfac
+            mcm[:, 5, :, 4] = -d['mm'][ipb2+ipe2]*lfac
+            mcm[:, 6, :, 3] = d['mm'][ipb2+ipb2]*lfac
         return mcm.reshape([self.ncls*(self.lmax+1),
                             self.ncls*(self.lmax+1)])
 
