@@ -1003,7 +1003,7 @@ void nmt_compute_general_coupling_matrix(int lmax,
   {
     int same_sn=(s1 == s2) && (n1 == n2);
     int ll2,ll3,icc;
-    int lstart=NMT_MAX(s1, s2);
+    int lstart=NMT_MAX((NMT_MAX(n1, n2)), (NMT_MAX(s1, s2)));
     flouble *wl_mask=my_malloc((lmax+1)*sizeof(flouble));
     double *wigner_sn1=NULL,*wigner_sn2=NULL;
     wigner_sn1=my_malloc(2*(lmax+1)*sizeof(double));

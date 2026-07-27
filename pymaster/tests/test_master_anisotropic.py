@@ -103,7 +103,6 @@ def test_anisotropic_weighting():
     w0sa = nmt.NmtWorkspace.from_fields(f0, fsa, b)
     wsa0 = nmt.NmtWorkspace.from_fields(fsa, f0, b)
     wsasa = nmt.NmtWorkspace.from_fields(fsa, fsa, b)
-    return
     wssa = nmt.NmtWorkspace.from_fields(fs, fsa, b)
     wsas = nmt.NmtWorkspace.from_fields(fsa, fs, b)
 
