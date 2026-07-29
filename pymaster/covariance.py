@@ -192,7 +192,7 @@ class NmtCovarianceWorkspace(object):
                    l_exact=l_exact, dl_band=dl_band)
 
     @classmethod
-    def from_file(cls, fname, fname_SN=None, fname_NS=None, fname_NN=None):
+    def from_file(cls, fname):
         """ Creates an :obj:`NmtCovarianceWorkspace` object from the
         mode-coupling coefficients stored in a FITS file.
         See :meth:`write_to`.
@@ -231,7 +231,6 @@ class NmtCovarianceWorkspace(object):
         import fitsio as fts
 
         f = fts.FITS(fname)
-        print(f)
         h = f['CWSP_PRIMARY'].read_header()
         self.lmax = h['LMAX']
         self.lmax_mask = h['LMAX_MASK'] if 'LMAX_MASK' in h else self.lmax
