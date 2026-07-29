@@ -56,7 +56,9 @@ def get_master_coefficients(pcl_mask, lmax, spin1, spin2,
         corresponds to the coefficients when both fields are purified.
     """
     # Give mask power spectra the right shape
-    pcl_mask = np.atleast_2d(pcl_mask)
+    in1d = pcl_mask.ndim == 1
+    if in1d:
+        pcl_mask = pcl_mask[None, :]
     nmask, nls_mask = pcl_mask.shape
     ls = np.arange(nls_mask)
     pcl_mask = pcl_mask * ((2*ls + 1) / (4 * np.pi))[None, :]
@@ -89,7 +91,7 @@ def get_master_coefficients(pcl_mask, lmax, spin1, spin2,
                     int(is_teb), int(l_toeplitz),
                     int(l_exact), int(dl_band), size)
     d = d.reshape((n_xis, nmask, nls, nls))
-    if nmask == 1:
+    if in1d:
         d = d.reshape((n_xis, nls, nls))
 
     # Place everything in a dictionary

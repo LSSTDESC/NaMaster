@@ -415,14 +415,14 @@ double _pick_xi(nmt_covar_workspace *cw,
   return sign*xi[la][lb];
 }
 
-void  nmt_compute_gaussian_covariance_coupled(nmt_covar_workspace *cw,
-					      int spin_a,int spin_b,int spin_c,int spin_d,
-                                              nmt_workspace *wa,nmt_workspace *wb,
-                                              flouble **clac,flouble **clad,
-                                              flouble **clbc,flouble **clbd,
-					      int is_ac_noise, int is_ad_noise,
-					      int is_bc_noise, int is_bd_noise,
-                                              flouble *covar_out)
+void nmt_compute_gaussian_covariance_coupled(nmt_covar_workspace *cw,
+					     int spin_a,int spin_b,int spin_c,int spin_d,
+					     nmt_workspace *wa,nmt_workspace *wb,
+					     flouble **clac,flouble **clad,
+					     flouble **clbc,flouble **clbd,
+					     int is_ac_noise, int is_ad_noise,
+					     int is_bc_noise, int is_bd_noise,
+					     flouble *covar_out)
 {
   if((cw->lmax<wa->bin->ell_max) || (cw->lmax<wb->bin->ell_max))
     report_error(NMT_ERROR_COVAR,"Coupling coefficients only computed up to l=%d, but you require "

@@ -107,6 +107,7 @@ from pymaster.workspaces import (  # noqa
 )
 from pymaster.covariance import (  # noqa
     NmtCovarianceWorkspace,
+    NmtCovarianceWorkspaceNew,
     NmtCovarianceWorkspaceFlat,
     get_iNKA_cell,
     gaussian_covariance,
