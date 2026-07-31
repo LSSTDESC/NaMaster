@@ -769,6 +769,8 @@ class NmtWorkspace(object):
                                          self.ncls*self.nbands])
         bpws = self.bins._bin_mcm(mcm, self.norm_type, self.wawb,
                                   self.beam1, self.beam2, oneside=True)
+        # TODO: regularise inversion for catalog-based cases, where one
+        # of the eigenvalues (corresponding to white noise) should be 0.
         imcm_binned = np.linalg.inv(mcm_binned)
 
         bpws = np.dot(imcm_binned, bpws)

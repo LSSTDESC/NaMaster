@@ -68,7 +68,7 @@ def _get_mask_prod_alm(f1, f2):
     return mask_p_alm, minfo
 
 
-class NmtCovarianceWorkspace(object):
+class NmtCovarianceWorkspaceOld(object):
     """ :obj:`NmtCovarianceWorkspace` objects are used to compute and
     store the coupling coefficients needed to calculate the Gaussian
     covariance matrix of angular power spectra under the approximations
@@ -664,8 +664,8 @@ class NmtCovarianceWorkspace(object):
                     np.ones_like(cla2b2), 0, 0, 1, 1,
                     len_a * len_b)
         else:
-            len_a = wa.wsp.ncls * wa.nbands
-            len_b = wb.wsp.ncls * wb.nbands
+            len_a = wa.wsp.ncls * wa.wsp.bin.n_bands
+            len_b = wb.wsp.ncls * wb.wsp.bin.n_bands
 
             covar_SS = lib.comp_gaussian_covariance(
                 self.wsp, int(spin_a1), int(spin_a2),
@@ -749,8 +749,70 @@ class _NmtCovIdxHandler(object):
             return '0'
         return ['+', '-+', '--', '+'][ib+2*ia]
 
-    def _get_covar_terms(self,
-                         ia, ib, ic, id, wick0):
+    def _pair_xi_index(self, ind1, ind2):
+        xi = None
+        sign = 1
+        if (ind1, ind2) == ('0', '0'):
+            xi = '00'
+        elif (ind1, ind2) in [('0', '+'), ('+', '0')]:
+            xi = '0s'
+        elif (ind1, ind2) == ('+', '+'):
+            xi = 'pp'
+        elif (ind1, ind2) in [('-+', '-+'), ('--', '--')]:
+            xi = 'mm'
+            sign = -1
+        elif (ind1, ind2) in [('-+', '--'), ('--', '-+')]:
+            xi = 'mm'
+        return sign, xi
+
+    def _get_covar_terms_NN(self, ia, ib, ic, id, wick0):
+        if wick0:
+            ind1 = self._coupling_index_noise(
+                self.nmaps[0], self.nmaps[2], ia, ic)
+            ind2 = self._coupling_index_noise(
+                self.nmaps[1], self.nmaps[3], ib, id)
+        else:
+            ind1 = self._coupling_index_noise(
+                self.nmaps[0], self.nmaps[3], ia, id)
+            ind2 = self._coupling_index_noise(
+                self.nmaps[1], self.nmaps[2], ib, ic)
+        sign, xi = self._pair_xi_index(ind1, ind2)
+        return xi, sign
+
+    def _get_covar_terms_SN(self, ia, ib, ic, id,
+                            wick0, is_NS=False):
+        indices = []
+        xis = []
+        signs = []
+        if is_NS:
+            iA, iB = ib, ia
+            nmpA, nmpB = self.nmaps[1], self.nmaps[0]
+        else:
+            iA, iB = ia, ib
+            nmpA, nmpB = self.nmaps[0], self.nmaps[1]
+        if wick0:
+            nmpx, nmpy = self.nmaps[2], self.nmaps[3]
+            ix, iy = ic, id
+        else:
+            nmpx, nmpy = self.nmaps[3], self.nmaps[2]
+            ix, iy = id, ic
+        for iA2 in range(nmpA):
+            for ix2 in range(nmpx):
+                ind1 = self._coupling_index_signal(
+                    nmpA, nmpx, iA, ix, iA2, ix2)
+                ind2 = self._coupling_index_noise(
+                    nmpB, nmpy, iB, iy)
+                sign, xi = self._pair_xi_index(ind1, ind2)
+                if xi is not None:
+                    indices.append(ix2+nmpx*iA2)
+                    xis.append(xi)
+                    signs.append(sign)
+        indices = np.array(indices, dtype=int)
+        signs = np.array(signs)
+        return indices, xis, signs
+
+    def _get_covar_terms_SS(self,
+                            ia, ib, ic, id, wick0):
         indices = []
         xis = []
         signs = []
@@ -772,19 +834,7 @@ class _NmtCovIdxHandler(object):
                             ind2 = self._coupling_index_signal(
                                 self.nmaps[1], self.nmaps[2],
                                 ib, ic, ib2, ic2)
-                        xi = None
-                        sign = 1
-                        if (ind1, ind2) == ('0', '0'):
-                            xi = '00'
-                        elif (ind1, ind2) in [('0', '+'), ('+', '0')]:
-                            xi = '0s'
-                        elif (ind1, ind2) == ('+', '+'):
-                            xi = 'pp'
-                        elif (ind1, ind2) in [('-+', '-+'), ('--', '--')]:
-                            xi = 'mm'
-                            sign = -1
-                        elif (ind1, ind2) in [('-+', '--'), ('--', '-+')]:
-                            xi = 'mm'
+                        sign, xi = self._pair_xi_index(ind1, ind2)
                         if xi is not None:
                             if wick0:
                                 indices.append([ic2+self.nmaps[2]*ia2,
@@ -809,38 +859,63 @@ class _NmtCovIdxHandler(object):
         self.xi_sp_combs = self._xi_comb.get(self.spins)
 
         # Precalculate all combinations needed
-        self.ind_1122 = []
-        self.xis_1122 = []
-        self.signs_1122 = []
-        self.ind_1221 = []
-        self.xis_1221 = []
-        self.signs_1221 = []
+        # for the signal-signal covariance
+        self.info_SS_1122 = []
+        self.info_SS_1221 = []
+        self.info_SN_1122 = []
+        self.info_SN_1221 = []
+        self.info_NS_1122 = []
+        self.info_NS_1221 = []
+        self.info_NN_1122 = []
+        self.info_NN_1221 = []
         for ia in range(self.nmaps[0]):
             for ib in range(self.nmaps[1]):
-                inds1122 = []
-                xis1122 = []
-                signs1122 = []
-                inds1221 = []
-                xis1221 = []
-                signs1221 = []
+                inf1122_SS = []
+                inf1221_SS = []
+                inf1122_SN = []
+                inf1221_SN = []
+                inf1122_NS = []
+                inf1221_NS = []
+                inf1122_NN = []
+                inf1221_NN = []
                 for ic in range(self.nmaps[2]):
                     for id in range(self.nmaps[3]):
-                        ids, xs, sgns = self._get_covar_terms(
+                        # SS
+                        ids, xs, sgns = self._get_covar_terms_SS(
                             ia, ib, ic, id, wick0=True)
-                        inds1122.append(ids)
-                        xis1122.append(xs)
-                        signs1122.append(sgns)
-                        ids, xs, sgns = self._get_covar_terms(
+                        inf1122_SS.append([ids, sgns, xs])
+                        ids, xs, sgns = self._get_covar_terms_SS(
                             ia, ib, ic, id, wick0=False)
-                        inds1221.append(ids)
-                        xis1221.append(xs)
-                        signs1221.append(sgns)
-                self.ind_1122.append(inds1122)
-                self.xis_1122.append(xis1122)
-                self.signs_1122.append(signs1122)
-                self.ind_1221.append(inds1221)
-                self.xis_1221.append(xis1221)
-                self.signs_1221.append(signs1221)
+                        inf1221_SS.append([ids, sgns, xs])
+                        # SN
+                        ids, xs, sgns = self._get_covar_terms_SN(
+                            ia, ib, ic, id, wick0=True, is_NS=False)
+                        inf1122_SN.append([ids, sgns, xs])
+                        ids, xs, sgns = self._get_covar_terms_SN(
+                            ia, ib, ic, id, wick0=False, is_NS=False)
+                        inf1221_SN.append([ids, sgns, xs])
+                        # NS
+                        ids, xs, sgns = self._get_covar_terms_SN(
+                            ia, ib, ic, id, wick0=True, is_NS=True)
+                        inf1122_NS.append([ids, sgns, xs])
+                        ids, xs, sgns = self._get_covar_terms_SN(
+                            ia, ib, ic, id, wick0=False, is_NS=True)
+                        inf1221_NS.append([ids, sgns, xs])
+                        # NN
+                        xi, sgn = self._get_covar_terms_NN(
+                            ia, ib, ic, id, wick0=True)
+                        inf1122_NN.append([sgn, xi])
+                        xi, sgn = self._get_covar_terms_NN(
+                            ia, ib, ic, id, wick0=False)
+                        inf1221_NN.append([sgn, xi])
+                self.info_SS_1122.append(inf1122_SS)
+                self.info_SS_1221.append(inf1221_SS)
+                self.info_SN_1122.append(inf1122_SN)
+                self.info_SN_1221.append(inf1221_SN)
+                self.info_NS_1122.append(inf1122_NS)
+                self.info_NS_1221.append(inf1221_NS)
+                self.info_NN_1122.append(inf1122_NN)
+                self.info_NN_1221.append(inf1221_NN)
 
 
 def _sqz(d, k, i):
@@ -855,7 +930,7 @@ def _sqz(d, k, i):
     return None
 
 
-class NmtCovarianceWorkspaceNew(object):
+class NmtCovarianceWorkspace(object):
     """ :obj:`NmtCovarianceWorkspace` objects are used to compute and
     store the coupling coefficients needed to calculate the Gaussian
     covariance matrix of angular power spectra under the approximations
@@ -1260,19 +1335,19 @@ class NmtCovarianceWorkspaceNew(object):
             # Calculate pcl_mask_S12_N21
             pcl_mask_S12_N21 = hp.alm2cl(s12_lm, n22_lm)
 
-        self.has_NS = np.any([has_1122_NS, has_1221_NS])
-        self.has_SN = np.any([has_1122_SN, has_1221_SN])
-        self.has_NN = np.any([has_1122_NN, has_1221_NN])
+        self.has_NS = np.array([has_1122_NS, has_1221_NS])
+        self.has_SN = np.array([has_1122_SN, has_1221_SN])
+        self.has_NN = np.array([has_1122_NN, has_1221_NN])
 
         # TODO: we are not taking advantage of cases
         # when fla1=fla2 or flb1=flb2
-        if self.has_NS:
+        if self.has_NS.any():
             self.xiNS = self._get_covariance_xis(
                 pcl_1122=pcl_mask_N11_S22, pcl_1221=pcl_mask_N12_S21)
-        if self.has_SN:
+        if self.has_SN.any():
             self.xiSN = self._get_covariance_xis(
                 pcl_1122=pcl_mask_S11_N22, pcl_1221=pcl_mask_S12_N21)
-        if self.has_NN:
+        if self.has_NN.any():
             self.xiNN = self._get_covariance_xis(
                 pcl_1122=pcl_mask_N11_N22, pcl_1221=pcl_mask_N12_N21)
 
@@ -1395,86 +1470,72 @@ class NmtCovarianceWorkspaceNew(object):
                              "than the covariance workspace."
                              f" Expected {self.lmax}, but got ({wa.lmax}, {wb.lmax}).")  # noqa: E501
 
-        if coupled:
-            # Compure signal-signal covariance
-            clprod_1122 = cla1b1[:, None, :, None] * cla2b2[None, :, None, :]
-            clprod_1122 = 0.5*(clprod_1122 + np.swapaxes(clprod_1122, 2, 3))
-            clprod_1221 = cla1b2[:, None, :, None] * cla2b1[None, :, None, :]
-            clprod_1221 = 0.5*(clprod_1221 + np.swapaxes(clprod_1221, 2, 3))
-            covar_SS = np.zeros([self.nclsa, self.nclsb,
-                                 self.lmax+1, self.lmax+1])
-            for ia in range(self.nclsa):
-                for ib in range(self.nclsb):
-                    for (i, j), sign, sxi in zip(self._idxh.ind_1122[ia][ib],
-                                                 self._idxh.signs_1122[ia][ib],
-                                                 self._idxh.xis_1122[ia][ib]):
-                        covar_SS[ia, ib] += (sign * clprod_1122[i, j] *
-                                             self.xiSS[0][sxi])
-                    for (i, j), sign, sxi in zip(self._idxh.ind_1221[ia][ib],
-                                                 self._idxh.signs_1221[ia][ib],
-                                                 self._idxh.xis_1221[ia][ib]):
-                        covar_SS[ia, ib] += (sign * clprod_1221[i, j] *
-                                             self.xiSS[1][sxi])
-            covar_SS = np.transpose(covar_SS, axes=[2, 0, 3, 1])
+        # Symmetrized power spectra
+        clprod_1122 = cla1b1[:, None, :, None] * cla2b2[None, :, None, :]
+        clprod_1122 = 0.5*(clprod_1122 + np.swapaxes(clprod_1122, 2, 3))
+        clprod_1221 = cla1b2[:, None, :, None] * cla2b1[None, :, None, :]
+        clprod_1221 = 0.5*(clprod_1221 + np.swapaxes(clprod_1221, 2, 3))
+        clt1122_NS = 0.5*(cla2b2[:, None, :]+cla2b2[:, :, None])
+        clt1221_NS = 0.5*(cla2b1[:, None, :]+cla2b1[:, :, None])
+        clt1122_SN = 0.5*(cla1b1[:, None, :]+cla1b1[:, :, None])
+        clt1221_SN = 0.5*(cla1b2[:, None, :]+cla1b2[:, :, None])
+        nba = self.lmax+1 if coupled else wa.nbands
+        nbb = self.lmax+1 if coupled else wb.nbands
+        len_a = wa.ncls * nba
+        len_b = wb.ncls * nbb
 
-            len_a = wa.ncls * (self.lmax+1)
-            len_b = wb.ncls * (self.lmax+1)
-            covar_NN = covar_NS = covar_SN = np.zeros_like(covar_SS)
-            if self.has_NN.any():
-                covar_NN = lib.comp_gaussian_covariance_coupled(
-                    self.wsp_NN, int(self.spin_a1), int(self.spin_a2),
-                    int(self.spin_b1), int(self.spin_b2), wa.wsp, wb.wsp,
-                    np.ones_like(cla1b1), np.ones_like(cla1b2),
-                    np.ones_like(cla2b1), np.ones_like(cla2b2),
-                    1, 1, 1, 1, len_a * len_b)
-            if self.has_NS.any():
-                covar_NS = lib.comp_gaussian_covariance_coupled(
-                    self.wsp_NS, int(self.spin_a1), int(self.spin_a2),
-                    int(self.spin_b1), int(self.spin_b2), wa.wsp, wb.wsp,
-                    np.ones_like(cla1b1), np.ones_like(cla1b2),
-                    cla2b1, cla2b2, 1, 1, 0, 0, len_a * len_b)
-            if self.has_SN.any():
-                covar_SN = lib.comp_gaussian_covariance_coupled(
-                    self.wsp_SN, int(self.spin_a1), int(self.spin_a2),
-                    int(self.spin_b1), int(self.spin_b2), wa.wsp, wb.wsp,
-                    cla1b1, cla1b2, np.ones_like(cla2b1),
-                    np.ones_like(cla2b2), 0, 0, 1, 1,
-                    len_a * len_b)
-        else:
-            len_a = wa.ncls * wa.nbands
-            len_b = wb.ncls * wb.nbands
+        covar = np.zeros([self.nclsa, self.nclsb, nba, nbb])
+        for ia in range(self.nclsa):
+            for ib in range(self.nclsb):
+                cov = np.zeros([self.lmax+1, self.lmax+1])
+                # Signal=signal
+                for (i, j), sign, sxi in zip(*self._idxh.info_SS_1122[ia][ib]):
+                    cov += (sign * clprod_1122[i, j] * self.xiSS[0][sxi])
+                for (i, j), sign, sxi in zip(*self._idxh.info_SS_1221[ia][ib]):
+                    cov += (sign * clprod_1221[i, j] * self.xiSS[1][sxi])
+                # Signal-noise
+                if self.has_SN[0]:  # 1122
+                    for i, sign, sxi in zip(*self._idxh.info_SN_1122[ia][ib]):
+                        cov += sign*self.xiSN[0][sxi]*clt1122_SN[i]
+                if self.has_SN[1]:  # 1221
+                    for i, sign, sxi in zip(*self._idxh.info_SN_1221[ia][ib]):
+                        cov += sign*self.xiSN[1][sxi]*clt1221_SN[i]
+                # Noise-signal
+                if self.has_NS[0]:  # 1122
+                    for i, sign, sxi in zip(*self._idxh.info_NS_1122[ia][ib]):
+                        cov += sign*self.xiNS[0][sxi]*clt1122_NS[i]
+                if self.has_NS[1]:  # 1221
+                    for i, sign, sxi in zip(*self._idxh.info_NS_1221[ia][ib]):
+                        cov += sign*self.xiNS[1][sxi]*clt1221_NS[i]
+                # Noise-noise
+                if self.has_NN[0]:  # 1122
+                    sign, sxi = self._idxh.info_NN_1122[ia][ib]
+                    if sxi is not None:
+                        cov += sign*self.xiNN[0][sxi]
+                if self.has_NN[1]:  # 1221
+                    sign, sxi = self._idxh.info_NN_1221[ia][ib]
+                    if sxi is not None:
+                        cov += sign*self.xiNN[1][sxi]
 
-            covar_SS = lib.comp_gaussian_covariance(
-                self.wsp, int(self.spin_a1), int(self.spin_a2),
-                int(self.spin_b1), int(self.spin_b2), wa.wsp, wb.wsp,
-                cla1b1, cla1b2, cla2b1, cla2b2, 0, 0, 0, 0,
-                len_a * len_b
-            )
+                # Bin if needed
+                if not coupled:
+                    # Bin rows and transpose
+                    cov = np.array([wb.bins.bin_cell(row) for row in cov]).T
+                    # Bin former columns and transpose back
+                    cov = np.array([wa.bins.bin_cell(col) for col in cov]).T
 
-            covar_NN = covar_NS = covar_SN = np.zeros_like(covar_SS)
-            if self.has_NN.any():
-                covar_NN = lib.comp_gaussian_covariance(
-                    self.wsp_NN, int(self.spin_a1), int(self.spin_a2),
-                    int(self.spin_b1), int(self.spin_b2), wa.wsp, wb.wsp,
-                    np.ones_like(cla1b1), np.ones_like(cla1b2),
-                    np.ones_like(cla2b1), np.ones_like(cla2b2),
-                    1, 1, 1, 1, len_a * len_b)
-            if self.has_NS.any():
-                covar_NS = lib.comp_gaussian_covariance(
-                    self.wsp_NS, int(self.spin_a1), int(self.spin_a2),
-                    int(self.spin_b1), int(self.spin_b2), wa.wsp, wb.wsp,
-                    np.ones_like(cla1b1), np.ones_like(cla1b2),
-                    cla2b1, cla2b2, 1, 1, 0, 0, len_a * len_b)
-            if self.has_SN.any():
-                covar_SN = lib.comp_gaussian_covariance(
-                    self.wsp_SN, int(self.spin_a1), int(self.spin_a2),
-                    int(self.spin_b1), int(self.spin_b2), wa.wsp, wb.wsp,
-                    cla1b1, cla1b2, np.ones_like(cla2b1),
-                    np.ones_like(cla2b2), 0, 0, 1, 1,
-                    len_a * len_b)
+                covar[ia, ib, :, :] = cov
 
-        covar = covar_SS+covar_SN+covar_NS+covar_NN
-        return covar.reshape([len_a, len_b])
+        # [Nl, Np, Nl, Np]
+        covar = np.transpose(covar, axes=[2, 0, 3, 1])
+        # Flatten both sides
+        covar = covar.reshape([len_a, len_b])
+        # Decouple if needed
+        if not coupled:
+            imcma = np.linalg.inv(wa.mcm_binned)
+            imcmb = np.linalg.inv(wb.mcm_binned)
+            covar = np.einsum('ik,jl,kl->ij', imcma, imcmb, covar)
+        return covar
 
 
 class NmtCovarianceWorkspaceFlat(object):

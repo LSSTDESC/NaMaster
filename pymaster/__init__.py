@@ -106,8 +106,8 @@ from pymaster.workspaces import (  # noqa
     uncorr_noise_deprojection_bias,
 )
 from pymaster.covariance import (  # noqa
+    NmtCovarianceWorkspaceOld,
     NmtCovarianceWorkspace,
-    NmtCovarianceWorkspaceNew,
     NmtCovarianceWorkspaceFlat,
     get_iNKA_cell,
     gaussian_covariance,
