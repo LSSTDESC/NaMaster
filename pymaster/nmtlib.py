@@ -489,20 +489,8 @@ def get_ell_eff_flat(bins, dout):
 def bins_create_py(nell1, nell2, nell3, nell4, lmax):
     return _nmtlib.bins_create_py(nell1, nell2, nell3, nell4, lmax)
 
-def update_mcm(w, n_rows, nell3):
-    return _nmtlib.update_mcm(w, n_rows, nell3)
-
-def get_bandpower_windows(w, dout):
-    return _nmtlib.get_bandpower_windows(w, dout)
-
-def get_mcm(w, ldout):
-    return _nmtlib.get_mcm(w, ldout)
-
 def get_xis(lmax, lmax_mask, ncl1, s1, s2, pure_any, do_teb, l_toeplitz, l_exact, dl_band, ldout):
     return _nmtlib.get_xis(lmax, lmax_mask, ncl1, s1, s2, pure_any, do_teb, l_toeplitz, l_exact, dl_band, ldout)
-
-def get_cw_xi(cw, which, ldout):
-    return _nmtlib.get_cw_xi(cw, which, ldout)
 
 def bins_flat_create_py(npix_1, nell3):
     return _nmtlib.bins_flat_create_py(npix_1, nell3)
@@ -552,23 +540,11 @@ def apomask_flat(nx, ny, lx, ly, npix_1, dout, aposize, apotype):
 def synfast_new_flat(nx, ny, lx, ly, nfields, seed, ncl1, ncl2, dout):
     return _nmtlib.synfast_new_flat(nx, ny, lx, ly, nfields, seed, ncl1, ncl2, dout)
 
-def comp_coupling_matrix_anisotropic(spin1, spin2, aniso1, aniso2, lmax, lmax_mask, nl00, nl0e, nl0b, nle0, nlb0, nlee, nleb, nlbe, nlbb, nlb1, nlb2, bin, norm_type, w2):
-    return _nmtlib.comp_coupling_matrix_anisotropic(spin1, spin2, aniso1, aniso2, lmax, lmax_mask, nl00, nl0e, nl0b, nle0, nlb0, nlee, nleb, nlbe, nlbb, nlb1, nlb2, bin, norm_type, w2)
-
-def comp_coupling_matrix(spin1, spin2, lmax, lmax_mask, pure_e_1, pure_b_1, pure_e_2, pure_b_2, norm_type, w2, nlb1, nlb2, nell4, bin, is_teb, l_toeplitz, l_exact, dl_band):
-    return _nmtlib.comp_coupling_matrix(spin1, spin2, lmax, lmax_mask, pure_e_1, pure_b_1, pure_e_2, pure_b_2, norm_type, w2, nlb1, nlb2, nell4, bin, is_teb, l_toeplitz, l_exact, dl_band)
-
 def comp_general_coupling_matrix(s1, s2, n1, n2, parity, lmax, nell4, dout):
     return _nmtlib.comp_general_coupling_matrix(s1, s2, n1, n2, parity, lmax, nell4, dout)
 
 def comp_coupling_matrix_flat(fl1, fl2, bin, lmn_x, lmx_x, lmn_y, lmx_y, is_teb):
     return _nmtlib.comp_coupling_matrix_flat(fl1, fl2, bin, lmn_x, lmx_x, lmn_y, lmx_y, is_teb)
-
-def read_workspace(fname, w_unbinned):
-    return _nmtlib.read_workspace(fname, w_unbinned)
-
-def write_workspace(w, fname):
-    return _nmtlib.write_workspace(w, fname)
 
 def read_workspace_flat(fname):
     return _nmtlib.read_workspace_flat(fname)
@@ -579,12 +555,6 @@ def write_workspace_flat(w, fname):
 def comp_deproj_bias_flat(fl1, fl2, bin, lmn_x, lmx_x, lmn_y, lmx_y, nell3, ncl1, dout):
     return _nmtlib.comp_deproj_bias_flat(fl1, fl2, bin, lmn_x, lmx_x, lmn_y, lmx_y, nell3, ncl1, dout)
 
-def covar_workspace_init_from_xi(spin_a1, spin_a2, spin_b1, spin_b2, all_spins, lmax, lmax_mask, n00_1122, n00_1221, n02_1122, n02_1221, n22p_1122, n22p_1221, n22m_1122, n22m_1221):
-    return _nmtlib.covar_workspace_init_from_xi(spin_a1, spin_a2, spin_b1, spin_b2, all_spins, lmax, lmax_mask, n00_1122, n00_1221, n02_1122, n02_1221, n22p_1122, n22p_1221, n22m_1122, n22m_1221)
-
-def covar_workspace_init_py(spin_a1, spin_a2, spin_b1, spin_b2, nlb1, nlb2, all_spins, auto_any, has_1122, has_1221, lmax, lmax_mask, l_toeplitz, l_exact, dl_band):
-    return _nmtlib.covar_workspace_init_py(spin_a1, spin_a2, spin_b1, spin_b2, nlb1, nlb2, all_spins, auto_any, has_1122, has_1221, lmax, lmax_mask, l_toeplitz, l_exact, dl_band)
-
 def write_covar_workspace_flat(cw, fname):
     return _nmtlib.write_covar_workspace_flat(cw, fname)
 
@@ -594,35 +564,17 @@ def read_covar_workspace_flat(fname):
 def covar_workspace_flat_init_py(fa1, fa2, ba, fb1, fb2, bb):
     return _nmtlib.covar_workspace_flat_init_py(fa1, fa2, ba, fb1, fb2, bb)
 
-def comp_gaussian_covariance(cw, spin_a1, spin_a2, spin_b1, spin_b2, wa, wb, ncl11, ncl12, ncl21, ncl22, is_11_noise, is_12_noise, is_21_noise, is_22_noise, dout):
-    return _nmtlib.comp_gaussian_covariance(cw, spin_a1, spin_a2, spin_b1, spin_b2, wa, wb, ncl11, ncl12, ncl21, ncl22, is_11_noise, is_12_noise, is_21_noise, is_22_noise, dout)
-
-def comp_gaussian_covariance_coupled(cw, spin_a1, spin_a2, spin_b1, spin_b2, wa, wb, ncl11, ncl12, ncl21, ncl22, is_11_noise, is_12_noise, is_21_noise, is_22_noise, dout):
-    return _nmtlib.comp_gaussian_covariance_coupled(cw, spin_a1, spin_a2, spin_b1, spin_b2, wa, wb, ncl11, ncl12, ncl21, ncl22, is_11_noise, is_12_noise, is_21_noise, is_22_noise, dout)
-
 def comp_gaussian_covariance_flat(cw, spin_a1, spin_a2, spin_b1, spin_b2, wa, wb, nell3, ncl11, ncl12, ncl21, ncl22, dout):
     return _nmtlib.comp_gaussian_covariance_flat(cw, spin_a1, spin_a2, spin_b1, spin_b2, wa, wb, nell3, ncl11, ncl12, ncl21, ncl22, dout)
 
 def comp_pspec_coupled_flat(fl1, fl2, bin, dout, lmn_x, lmx_x, lmn_y, lmx_y):
     return _nmtlib.comp_pspec_coupled_flat(fl1, fl2, bin, dout, lmn_x, lmx_x, lmn_y, lmx_y)
 
-def decouple_cell_py(w, ncl1, ncl2, ncl3, dout):
-    return _nmtlib.decouple_cell_py(w, ncl1, ncl2, ncl3, dout)
-
 def decouple_cell_py_flat(w, ncl1, ncl2, ncl3, dout):
     return _nmtlib.decouple_cell_py_flat(w, ncl1, ncl2, ncl3, dout)
 
-def couple_cell_py(w, ncl1, dout):
-    return _nmtlib.couple_cell_py(w, ncl1, dout)
-
 def couple_cell_py_flat(w, nell3, ncl1, dout):
     return _nmtlib.couple_cell_py_flat(w, nell3, ncl1, dout)
-
-def wsp_update_beams(w, nlb1, nlb2):
-    return _nmtlib.wsp_update_beams(w, nlb1, nlb2)
-
-def wsp_update_bins(w, b):
-    return _nmtlib.wsp_update_bins(w, b)
 
 def comp_pspec_flat(fl1, fl2, bin, w0, ncl1, nell3, ncl2, dout, lmn_x, lmx_x, lmn_y, lmx_y):
     return _nmtlib.comp_pspec_flat(fl1, fl2, bin, w0, ncl1, nell3, ncl2, dout, lmn_x, lmx_x, lmn_y, lmx_y)

@@ -140,32 +140,6 @@ nmt_binning_scheme *bins_create_py(int nell1,int *bpws,
   return nmt_bins_create(nell1,bpws,ells,weights,f_ell,lmax);
 }
 
-void update_mcm(nmt_workspace *w,int n_rows,int nell3,double *weights)
-{
-  asserting(nell3==n_rows*n_rows);
-
-  nmt_update_coupling_matrix(w,n_rows,weights);
-}
-
-void get_bandpower_windows(nmt_workspace *w,double *dout,int ndout)
-{
-  asserting(ndout==w->ncls*w->bin->n_bands*w->ncls*(w->lmax+1));
-  nmt_compute_bandpower_windows(w,dout);
-}
-
-void get_mcm(nmt_workspace *w,double *ldout,long nldout)
-{
-  int ii,nrows=(w->lmax+1)*w->ncls;
-
-  for(ii=0;ii<nrows;ii++) {
-    int jj;
-    for(jj=0;jj<nrows;jj++) {
-      long index=(long)(ii*nrows)+jj;
-      ldout[index]=w->coupling_matrix_unbinned[ii][jj];
-    }
-  }
-}
-
 void get_xis(int lmax, int lmax_mask,
 	     int ncl1, int nell1, double *cls1,
 	     int s1, int s2, int pure_any,
@@ -252,41 +226,6 @@ void get_xis(int lmax, int lmax_mask,
 
   nmt_master_calculator_free(c);
   free(pcl_masks);
-}
-
-int get_cw_xi(nmt_covar_workspace *cw, int which, double *ldout, long nldout)
-{
-  int ii,nrows=cw->lmax+1;
-
-  double **xi=NULL;
-  if(which==0)
-    xi=cw->xi00_1122;
-  else if(which==1)
-    xi=cw->xi00_1221;
-  else if(which==2)
-    xi=cw->xi02_1122;
-  else if(which==3)
-    xi=cw->xi02_1221;
-  else if(which==4)
-    xi=cw->xi22p_1122;
-  else if(which==5)
-    xi=cw->xi22p_1221;
-  else if(which==6)
-    xi=cw->xi22m_1122;
-  else if(which==7)
-    xi=cw->xi22m_1221;
-
-  if(xi==NULL)
-    return 0;
-
-  for(ii=0;ii<nrows;ii++) {
-    int jj;
-    for(jj=0;jj<nrows;jj++) {
-      long index=(long)(ii*nrows)+jj;
-      ldout[index]=xi[ii][jj];
-    }
-  }
-  return 1;
 }
 
 nmt_binning_scheme_flat *bins_flat_create_py(int npix_1,double *mask,
@@ -574,64 +513,6 @@ void synfast_new_flat(int nx,int ny,double lx,double ly,
   free(larr);
 }
 
-nmt_workspace *comp_coupling_matrix_anisotropic(int spin1,int spin2,
-						int aniso1, int aniso2,
-						int lmax, int lmax_mask,
-						int nl00,double *fl00,
-						int nl0e,double *fl0e,
-						int nl0b,double *fl0b,
-						int nle0,double *fle0,
-						int nlb0,double *flb0,
-						int nlee,double *flee,
-						int nleb,double *fleb,
-						int nlbe,double *flbe,
-						int nlbb,double *flbb,
-						int nlb1,double *beam1,
-						int nlb2,double *beam2,
-						nmt_binning_scheme *bin,
-						int norm_type,double w2)
-{
-  asserting(nlb1==lmax+1);
-  asserting(nlb2==lmax+1);
-  asserting(nl00==lmax_mask+1);
-  asserting(nl0e==lmax_mask+1);
-  asserting(nl0b==lmax_mask+1);
-  asserting(nle0==lmax_mask+1);
-  asserting(nlb0==lmax_mask+1);
-  asserting(nlee==lmax_mask+1);
-  asserting(nleb==lmax_mask+1);
-  asserting(nlbe==lmax_mask+1);
-  asserting(nlbb==lmax_mask+1);
-  return nmt_compute_coupling_matrix_anisotropic(spin1,spin2,aniso1,aniso2,
-						 lmax,lmax_mask,
-						 fl00,fl0e,fl0b,fle0,flb0,
-						 flee,fleb,flbe,flbb,
-						 beam1,beam2,bin,norm_type,w2);
-}						
-						
-						
-nmt_workspace *comp_coupling_matrix(int spin1,int spin2,
-				    int lmax,int lmax_mask,
-				    int pure_e_1,int pure_b_1,
-				    int pure_e_2,int pure_b_2,
-				    int norm_type,double w2,
-				    int nlb1,double *beam1,
-				    int nlb2,double *beam2,
-				    int nell4,double *f_ell,
-				    nmt_binning_scheme *bin,
-				    int is_teb,int l_toeplitz,
-				    int l_exact,int dl_band)
-{
-  asserting(nlb1==lmax+1);
-  asserting(nlb2==lmax+1);
-  asserting(nell4==lmax_mask+1);
-  return nmt_compute_coupling_matrix(spin1,spin2,lmax,lmax_mask,
-				     pure_e_1,pure_b_1,pure_e_2,pure_b_2,
-				     f_ell,beam1,beam2,
-				     bin,is_teb,l_toeplitz,l_exact,dl_band,
-				     norm_type, w2);
-}
-
 void comp_general_coupling_matrix(int s1, int s2, int n1, int n2,
 				  int parity, int lmax,
 				  int nell4,double *f_ell,
@@ -654,16 +535,6 @@ nmt_workspace_flat *comp_coupling_matrix_flat(nmt_field_flat *fl1,nmt_field_flat
   return nmt_compute_coupling_matrix_flat(fl1,fl2,bin,lmn_x,lmx_x,lmn_y,lmx_y,is_teb);
 }
 
-nmt_workspace *read_workspace(char *fname,int w_unbinned)
-{
-  return nmt_workspace_read_fits(fname,w_unbinned);
-}
-
-void write_workspace(nmt_workspace *w,char *fname)
-{
-  nmt_workspace_write_fits(w,fname);
-}
-
 nmt_workspace_flat *read_workspace_flat(char *fname)
 {
   return nmt_workspace_flat_read_fits(fname);
@@ -673,27 +544,6 @@ void write_workspace_flat(nmt_workspace_flat *w,char *fname)
 {
   nmt_workspace_flat_write_fits(w,fname);
 }
-
-/*
-void comp_uncorr_noise_deproj_bias(nmt_field *fl1,
-				   int npix_1,double *mask,
-				   double *dout,int ndout,int n_iter)
-{
-  int i;
-  double **cl_bias;
-  int n_cl1=fl1->nmaps*fl1->nmaps;
-  int n_ell1=fl1->lmax+1;
-  asserting(npix_1==fl1->npix);
-  asserting(ndout==n_ell1*n_cl1);
-  cl_bias=malloc(n_cl1*sizeof(double *));
-  for(i=0;i<n_cl1;i++)
-    cl_bias[i]=&(dout[n_ell1*i]);
-
-  nmt_compute_uncorr_noise_deprojection_bias(fl1,mask,cl_bias,n_iter);
-
-  free(cl_bias);
-}
-*/
 
 void comp_deproj_bias_flat(nmt_field_flat *fl1,nmt_field_flat *fl2,
 			   nmt_binning_scheme_flat *bin,
@@ -720,56 +570,6 @@ void comp_deproj_bias_flat(nmt_field_flat *fl1,nmt_field_flat *fl2,
   free(cl_guess);
 }
 
-nmt_covar_workspace *covar_workspace_init_from_xi(int spin_a1, int spin_a2,
-						  int spin_b1, int spin_b2,
-						  int all_spins, int lmax, int lmax_mask,
-						  int n00_1122, double *xi00_1122,
-						  int n00_1221, double *xi00_1221,
-						  int n02_1122, double *xi02_1122,
-						  int n02_1221, double *xi02_1221,
-						  int n22p_1122, double *xi22p_1122,
-						  int n22p_1221, double *xi22p_1221,
-						  int n22m_1122, double *xi22m_1122,
-						  int n22m_1221, double *xi22m_1221)
-{
-  double *x001122,*x001221,*x021122,*x021221,*x22p1122,*x22p1221,*x22m1122,*x22m1221;
-  x001122=(n00_1122 == 1 ? NULL : xi00_1122);
-  x001221=(n00_1221 == 1 ? NULL : xi00_1221);
-  x021122=(n02_1122 == 1 ? NULL : xi02_1122);
-  x021221=(n02_1221 == 1 ? NULL : xi02_1221);
-  x22p1122=(n22p_1122 == 1 ? NULL : xi22p_1122);
-  x22p1221=(n22p_1221 == 1 ? NULL : xi22p_1221);
-  x22m1122=(n22m_1122 == 1 ? NULL : xi22m_1122);
-  x22m1221=(n22m_1221 == 1 ? NULL : xi22m_1221);
-  nmt_covar_workspace *cw=nmt_covar_workspace_init_from_couplings(spin_a1,spin_a2,
-								  spin_b1,spin_b2,
-								  all_spins,lmax, lmax_mask,
-								  x001122,x001221,
-								  x021122,x021221,
-								  x22p1122,x22p1221,
-								  x22m1122,x22m1221);
-  return cw;
-}
-
-
-nmt_covar_workspace *covar_workspace_init_py(int spin_a1, int spin_a2,
-					     int spin_b1, int spin_b2,
-					     int nlb1, double *beam1,
-					     int nlb2, double *beam2,
-					     int all_spins, int auto_any,
-					     int has_1122, int has_1221,
-					     int lmax, int lmax_mask,
-					     int l_toeplitz, int l_exact,
-					     int dl_band)
-{
-  asserting(nlb1==lmax_mask+1);
-  asserting(nlb2==lmax_mask+1);
-  return nmt_covar_workspace_init(spin_a1, spin_a2, spin_b1, spin_b2,
-				  all_spins, auto_any, has_1122, has_1221,
-				  beam1, beam2, lmax,lmax_mask,
-				  l_toeplitz,l_exact,dl_band);
-}
-
 void write_covar_workspace_flat(nmt_covar_workspace_flat *cw,char *fname)
 {
   nmt_covar_workspace_flat_write_fits(cw,fname);
@@ -786,76 +586,6 @@ nmt_covar_workspace_flat *covar_workspace_flat_init_py(nmt_field_flat *fa1,nmt_f
 						       nmt_binning_scheme_flat *bb)
 {
   return nmt_covar_workspace_flat_init(fa1,fa2,ba,fb1,fb2,bb);
-}
-
-void comp_gaussian_covariance(nmt_covar_workspace *cw,
-			      int spin_a1, int spin_a2, int spin_b1, int spin_b2,
-			      nmt_workspace *wa,nmt_workspace *wb,
-			      int ncl11,int nell11,double *c11,
-			      int ncl12,int nell12,double *c12,
-			      int ncl21,int nell21,double *c21,
-			      int ncl22,int nell22,double *c22,
-			      int is_11_noise, int is_12_noise,
-			      int is_21_noise, int is_22_noise,
-			      double *dout,int ndout)
-{
-  asserting(nell11==nell12);
-  asserting(nell11==nell21);
-  asserting(nell11==nell22);
-  int i;
-  double **c11p=malloc(ncl11*sizeof(double *));
-  for(i=0;i<ncl11;i++)
-    c11p[i]=&(c11[i*nell11]);
-  double **c12p=malloc(ncl12*sizeof(double *));
-  for(i=0;i<ncl12;i++)
-    c12p[i]=&(c12[i*nell12]);
-  double **c21p=malloc(ncl21*sizeof(double *));
-  for(i=0;i<ncl21;i++)
-    c21p[i]=&(c21[i*nell21]);
-  double **c22p=malloc(ncl22*sizeof(double *));
-  for(i=0;i<ncl22;i++)
-    c22p[i]=&(c22[i*nell22]);
-  nmt_compute_gaussian_covariance(cw,
-				  spin_a1, spin_a2, spin_b1, spin_b2,
-				  wa,wb,c11p,c12p,c21p,c22p,
-				  is_11_noise,is_12_noise,
-				  is_21_noise,is_22_noise,dout);
-  free(c11p); free(c12p); free(c21p); free(c22p);
-}
-
-void comp_gaussian_covariance_coupled(nmt_covar_workspace *cw,
-				      int spin_a1, int spin_a2, int spin_b1, int spin_b2,
-                                      nmt_workspace *wa,nmt_workspace *wb,
-                                      int ncl11,int nell11,double *c11,
-                                      int ncl12,int nell12,double *c12,
-                                      int ncl21,int nell21,double *c21,
-                                      int ncl22,int nell22,double *c22,
-				      int is_11_noise, int is_12_noise,
-				      int is_21_noise, int is_22_noise,
-                                      double *dout,int ndout)
-{
-  asserting(nell11==nell12);
-  asserting(nell11==nell21);
-  asserting(nell11==nell22);
-  int i;
-  double **c11p=malloc(ncl11*sizeof(double *));
-  for(i=0;i<ncl11;i++)
-    c11p[i]=&(c11[i*nell11]);
-  double **c12p=malloc(ncl12*sizeof(double *));
-  for(i=0;i<ncl12;i++)
-    c12p[i]=&(c12[i*nell12]);
-  double **c21p=malloc(ncl21*sizeof(double *));
-  for(i=0;i<ncl21;i++)
-    c21p[i]=&(c21[i*nell21]);
-  double **c22p=malloc(ncl22*sizeof(double *));
-  for(i=0;i<ncl22;i++)
-    c22p[i]=&(c22[i*nell22]);
-  nmt_compute_gaussian_covariance_coupled(cw,
-					  spin_a1, spin_a2, spin_b1, spin_b2,
-					  wa,wb,c11p,c12p,c21p,c22p,
-					  is_11_noise,is_12_noise,
-					  is_21_noise,is_22_noise,dout);
-  free(c11p); free(c12p); free(c21p); free(c22p);
 }
 
 void comp_gaussian_covariance_flat(nmt_covar_workspace_flat *cw,
@@ -911,40 +641,6 @@ void comp_pspec_coupled_flat(nmt_field_flat *fl1,nmt_field_flat *fl2,
   free(cl_out);
 }
 
-void decouple_cell_py(nmt_workspace *w,
-		      int ncl1,int nell1,double *cls1,
-		      int ncl2,int nell2,double *cls2,
-		      int ncl3,int nell3,double *cls3,
-		      double *dout,int ndout)
-{
-  int i;
-  double **cl_in,**cl_noise,**cl_bias,**cl_out;
-  asserting(ncl1==ncl2);
-  asserting(ncl2==ncl3);
-  asserting(ncl1==w->ncls);
-  asserting(nell1==nell2);
-  asserting(nell2==nell3);
-  asserting(nell1>=(w->lmax+1));
-  asserting(ndout==w->bin->n_bands*ncl1);
-  cl_in=   malloc(ncl1*sizeof(double *));
-  cl_noise=malloc(ncl2*sizeof(double *));
-  cl_bias= malloc(ncl3*sizeof(double *));
-  cl_out=  malloc(ncl1*sizeof(double *));
-  for(i=0;i<ncl1;i++) {
-    cl_in[i]   =&(cls1[i*nell1]);
-    cl_noise[i]=&(cls2[i*nell2]);
-    cl_bias[i] =&(cls3[i*nell3]);
-    cl_out[i]  =&(dout[i*w->bin->n_bands]);
-  }
-
-  nmt_decouple_cl_l(w,cl_in,cl_noise,cl_bias,cl_out);
-
-  free(cl_in);
-  free(cl_noise);
-  free(cl_bias);
-  free(cl_out);
-}
-
 void decouple_cell_py_flat(nmt_workspace_flat *w,
 			   int ncl1,int nell1,double *cls1,
 			   int ncl2,int nell2,double *cls2,
@@ -979,26 +675,6 @@ void decouple_cell_py_flat(nmt_workspace_flat *w,
   free(cl_out);
 }
 
-void couple_cell_py(nmt_workspace *w,
-		    int ncl1,int nell1,double *cls1,
-		    double *dout,int ndout)
-{
-  int i;
-  double **cl_in,**cl_out;
-  asserting(ncl1==w->ncls);
-  asserting(nell1>=(w->lmax+1));
-  asserting(ncl1*nell1==ndout);
-  cl_in=malloc(ncl1*sizeof(double *));
-  cl_out=malloc(ncl1*sizeof(double *));
-  for(i=0;i<ncl1;i++) {
-    cl_in[i]=&(cls1[i*nell1]);
-    cl_out[i]=&(dout[i*nell1]);
-  }
-  nmt_couple_cl_l(w,cl_in,cl_out);
-  free(cl_in);
-  free(cl_out);
-}
-
 void couple_cell_py_flat(nmt_workspace_flat *w,
 			 int nell3,double *weights,
 			 int ncl1,int nell1,double *cls1,
@@ -1018,18 +694,6 @@ void couple_cell_py_flat(nmt_workspace_flat *w,
   nmt_couple_cl_l_flat_fast(w,nell3,weights,cl_in,cl_out);
   free(cl_in);
   free(cl_out);
-}
-
-void wsp_update_beams(nmt_workspace *w,  // Workspace
-		      int nlb1,double *beam1, // 1st beam
-		      int nlb2,double *beam2) // 2nd beam
-{
-  nmt_workspace_update_beams(w,nlb1,beam1,nlb2,beam2);
-}
-
-void wsp_update_bins(nmt_workspace *w,nmt_binning_scheme *b)
-{
-  nmt_workspace_update_binning(w,b);
 }
 
 void comp_pspec_flat(nmt_field_flat *fl1,nmt_field_flat *fl2,
