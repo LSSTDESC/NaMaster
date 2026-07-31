@@ -976,10 +976,6 @@ class NmtCovarianceWorkspace(object):
     def __init__(self, fla1, fla2, flb1=None, flb2=None,
                  l_toeplitz=-1, l_exact=-1,
                  dl_band=-1, fname=None):
-        self.wsp = None
-        self.wsp_SN = None
-        self.wsp_NS = None
-        self.wsp_NN = None
         if (fname is not None):
             self._read_from(fname)
             self._post_init()
@@ -1107,7 +1103,7 @@ class NmtCovarianceWorkspace(object):
                    l_toeplitz=l_toeplitz, l_exact=l_exact, dl_band=dl_band)
 
     @classmethod
-    def from_file(cls, fname):  # TODO
+    def from_file(cls, fname):
         """ Creates an :obj:`NmtCovarianceWorkspace` object from the
         mode-coupling coefficients stored in a FITS file.
         See :meth:`write_to`.
@@ -1122,9 +1118,6 @@ class NmtCovarianceWorkspace(object):
 
         Args:
             fname (:obj:`str`): Input file name."""
-        if self.wsp is not None:
-            lib.covar_workspace_free(self.wsp)
-            self.wsp = None
         import fitsio as fts
 
         f = fts.FITS(fname)
@@ -1251,10 +1244,6 @@ class NmtCovarianceWorkspace(object):
         self.lmax_mask = lmax_mask
         ut._toeplitz_sanity(self.l_toeplitz, self.l_exact, self.dl_band,
                             lmax, fla1, flb1)
-
-        if self.wsp is not None:
-            lib.covar_workspace_free(self.wsp)
-            self.wsp = None
 
         s11_lm, _ = _get_mask_prod_alm(fla1, flb1)
         s22_lm, _ = _get_mask_prod_alm(fla2, flb2)
@@ -1471,6 +1460,10 @@ class NmtCovarianceWorkspace(object):
                              f" Expected {self.lmax}, but got ({wa.lmax}, {wb.lmax}).")  # noqa: E501
 
         # Symmetrized power spectra
+        cla1b1 = np.array(cla1b1)
+        cla1b2 = np.array(cla1b2)
+        cla2b1 = np.array(cla2b1)
+        cla2b2 = np.array(cla2b2)
         clprod_1122 = cla1b1[:, None, :, None] * cla2b2[None, :, None, :]
         clprod_1122 = 0.5*(clprod_1122 + np.swapaxes(clprod_1122, 2, 3))
         clprod_1221 = cla1b2[:, None, :, None] * cla2b1[None, :, None, :]
@@ -1727,10 +1720,12 @@ def gaussian_covariance(cw, spin_a1, spin_a2, spin_b1, spin_b2,
             computed. Otherwise it'll be the covariance of
             mode-decoupled bandpowers.
     """
+    if ((spin_a1 != cw.spin_a1) or (spin_a2 != cw.spin_a2) or
+            (spin_b1 != cw.spin_b1) or (spin_b2 != cw.spin_b2)):
+        raise ValueError("Requested spins do not match those used "
+                         "to initialize the workspace")
     return cw.gaussian_covariance(cla1b1, cla1b2, cla2b1, cla2b2,
-                                  wa, wb=wb, coupled=coupled,
-                                  spins=[spin_a1, spin_a2,
-                                         spin_b1, spin_b2])
+                                  wa, wb=wb, coupled=coupled)
 
 
 def gaussian_covariance_flat(cw, spin_a1, spin_a2, spin_b1, spin_b2, larr,

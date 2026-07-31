@@ -124,22 +124,6 @@ def test_workspace_covar_benchmark():
     covar_bench = np.loadtxt("test/benchmarks/bm_nc_np_cov2222.txt")
     compare_covars(covar, covar_bench)
 
-    # Test `all_spins`
-    cw = nmt.NmtCovarianceWorkspace.from_fields(CT.f0, CT.f0,
-                                                all_spins=True)
-    covar = cw.gaussian_covariance([CT.clee, 0*CT.clee,
-                                    0*CT.clee, CT.clbb],
-                                   [CT.clee, 0*CT.clee,
-                                    0*CT.clee, CT.clbb],
-                                   [CT.clee, 0*CT.clee,
-                                    0*CT.clee, CT.clbb],
-                                   [CT.clee, 0*CT.clee,
-                                    0*CT.clee, CT.clbb],
-                                   CT.w22, wb=CT.w22,
-                                   spins=[2, 2, 2, 2])
-    covar_bench = np.loadtxt("test/benchmarks/bm_nc_np_cov2222.txt")
-    compare_covars(covar, covar_bench)
-
 
 def test_workspace_covar_io():
     import os
@@ -162,10 +146,9 @@ def test_workspace_covar_io():
 
 
 def test_workspace_covar_errors():
-    cw = nmt.NmtCovarianceWorkspace.from_fields(CT.f0, CT.f0,
-                                                all_spins=False)  # All good
-    assert cw.wsp.lmax == CT.w.wsp.lmax
-    assert cw.wsp.lmax == CT.w.wsp.lmax
+    cw = nmt.NmtCovarianceWorkspace.from_fields(CT.f0, CT.f0)  # All good
+    assert cw.lmax == CT.w.lmax
+    assert cw.lmax == CT.w.lmax
     cw.gaussian_covariance([CT.cltt], [CT.cltt],
                            [CT.cltt], [CT.cltt],
                            CT.w)  # Also fine
@@ -180,8 +163,7 @@ def test_workspace_covar_errors():
                                 0*CT.clee, CT.clbb],
                                [CT.clee, 0*CT.clee,
                                 0*CT.clee, CT.clbb],
-                               CT.w22, wb=CT.w22,
-                               spins=[2, 2, 2, 2])
+                               CT.w22, wb=CT.w22)
 
     cw = nmt.NmtCovarianceWorkspace.from_file(
         'test/benchmarks/bm_nc_np_cw00.fits')  # Correct reading
