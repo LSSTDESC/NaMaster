@@ -745,7 +745,7 @@ class _NmtCovIdxHandler(object):
     def _coupling_index_noise(self, nma, nmb, ia, ib):
         if nma != nmb:
             return 'Z'
-        if nma == 0:
+        if nma == 1:
             return '0'
         return ['+', '-+', '--', '+'][ib+2*ia]
 
@@ -1112,7 +1112,7 @@ class NmtCovarianceWorkspace(object):
             fname (:obj:`str`): Input file name."""
         return cls(None, None, fname=fname)
 
-    def _read_from(self, fname):  # TODO
+    def _read_from(self, fname):
         """ Reads the contents of an :obj:`NmtCovarianceWorkspace`
         object from a FITS file.
 
@@ -1125,88 +1125,51 @@ class NmtCovarianceWorkspace(object):
         self.lmax = h['LMAX']
         self.lmax_mask = h['LMAX_MASK'] if 'LMAX_MASK' in h else self.lmax
         if 'ALL_SPINS' in h:
-            self.all_spins = h['ALL_SPINS']
             self.spin_a1 = h['SPIN_A1']
             self.spin_a2 = h['SPIN_A2']
             self.spin_b1 = h['SPIN_B1']
             self.spin_b2 = h['SPIN_B2']
         else:
-            self.all_spins = 1
             self.spin_a1 = self.spin_a2 = self.spin_b1 = self.spin_b2 = 0
+        self.l_toeplitz = h['L_TOEPLITZ'] if 'L_TOEPLITZ' in h else -1
+        self.l_exact = h['L_EXACT'] if 'L_EXACT' in h else -1
+        self.dl_band = h['DL_BAND'] if 'DL_BAND' in h else -1
         self.has_SN = np.array([False, False])
         self.has_NS = np.array([False, False])
         self.has_NN = np.array([False, False])
 
-        # Read the coupling coefficients
-        xi_types = ['00_1122', '00_1221', '02_1122', '02_1221',
-                    '22P_1122', '22P_1221', '22M_1122', '22M_1221']
-        xis = {'': {}, 'SN': {}, 'NS': {}, 'NN': {}}
-        # Loop over the different signal-noise combinations
-        for prefix in ['', 'SN', 'NS', 'NN']:
-            xi = xis[prefix]
-            xi_any = False
-            # Read all stored coupling coefficients
-            for n in xi_types:
-                if f'XI{prefix+n}' in f:
-                    xi_any = True
-                    xi[n] = f[f'XI{prefix + n}'].read()
-                    if xi[n].shape != (self.lmax+1, self.lmax+1):
-                        raise ValueError(f"XI{prefix + n} shape "
-                                         f"does not match expected dimensions")
-                    xi[n] = xi[n].flatten()
-                else:
-                    xi[n] = np.array([0.0])
-            if not xi_any:
-                xis[prefix] = None
+        self.xiSS = [{}, {}]
+        self.xiSN = [{}, {}]
+        self.xiNS = [{}, {}]
+        self.xiNN = [{}, {}]
 
-        # Create all C-level workspaces
-        self.wsp = lib.covar_workspace_init_from_xi(
-            self.spin_a1, self.spin_a2, self.spin_b1, self.spin_b2,
-            self.all_spins, self.lmax, self.lmax_mask,
-            xis['']['00_1122'], xis['']['00_1221'],
-            xis['']['02_1122'], xis['']['02_1221'],
-            xis['']['22P_1122'], xis['']['22P_1221'],
-            xis['']['22M_1122'], xis['']['22M_1221'])
-        if xis['SN'] is not None:
-            if self.wsp_SN is not None:
-                lib.covar_workspace_free(self.wsp_SN)
-                self.wsp_SN = None
-            self.wsp_SN = lib.covar_workspace_init_from_xi(
-                self.spin_a1, self.spin_a2, self.spin_b1, self.spin_b2,
-                self.all_spins, self.lmax, self.lmax_mask,
-                xis['SN']['00_1122'], xis['SN']['00_1221'],
-                xis['SN']['02_1122'], xis['SN']['02_1221'],
-                xis['SN']['22P_1122'], xis['SN']['22P_1221'],
-                xis['SN']['22M_1122'], xis['SN']['22M_1221'])
-            self.has_SN = np.array([self.wsp_SN.has_1122 > 0,
-                                    self.wsp_SN.has_1221 > 0])
-        if xis['NS'] is not None:
-            if self.wsp_NS is not None:
-                lib.covar_workspace_free(self.wsp_NS)
-                self.wsp_NS = None
-            self.wsp_NS = lib.covar_workspace_init_from_xi(
-                self.spin_a1, self.spin_a2, self.spin_b1, self.spin_b2,
-                self.all_spins, self.lmax, self.lmax_mask,
-                xis['NS']['00_1122'], xis['NS']['00_1221'],
-                xis['NS']['02_1122'], xis['NS']['02_1221'],
-                xis['NS']['22P_1122'], xis['NS']['22P_1221'],
-                xis['NS']['22M_1122'], xis['NS']['22M_1221'])
-            self.has_NS = np.array([self.wsp_NS.has_1122 > 0,
-                                    self.wsp_NS.has_1221 > 0])
-        if xis['NN'] is not None:
-            if self.wsp_NN is not None:
-                lib.covar_workspace_free(self.wsp_NN)
-                self.wsp_NN = None
-            self.wsp_NN = lib.covar_workspace_init_from_xi(
-                self.spin_a1, self.spin_a2, self.spin_b1, self.spin_b2,
-                self.all_spins, self.lmax, self.lmax_mask,
-                xis['NN']['00_1122'], xis['NN']['00_1221'],
-                xis['NN']['02_1122'], xis['NN']['02_1221'],
-                xis['NN']['22P_1122'], xis['NN']['22P_1221'],
-                xis['NN']['22M_1122'], xis['NN']['22M_1221'])
-            self.has_NN = np.array([self.wsp_NN.has_1122 > 0,
-                                    self.wsp_NN.has_1221 > 0])
+        for xilist, xiname in zip([self.xiSS, self.xiSN, self.xiNS, self.xiNN],
+                                  ['', 'SN', 'NS', 'NN']):
+            for n1, n2 in zip(['00', '0s', 'pp', 'mm'],
+                              ['00', '02', '22P', '22M']):
+                for i, wick in enumerate(['1122', '1221']):
+                    name = 'XI'+xiname+n2+'_'+wick
+                    xilist[i][n1] = None
+                    if name in f:
+                        xi = f[name].read()
+                        if xi.shape != (self.lmax+1, self.lmax+1):
+                            raise ValueError(
+                                f"{name} shape "
+                                "does not match expected dimensions")
+                        xilist[i][n1] = xi
         f.close()
+        self.has_SN = [np.any([self.xiSN[i][k] is not None
+                               for k in ['00', '0s', 'pp', 'mm']])
+                       for i in range(2)]
+        self.has_SN = np.array(self.has_SN)
+        self.has_NS = [np.any([self.xiNS[i][k] is not None
+                               for k in ['00', '0s', 'pp', 'mm']])
+                       for i in range(2)]
+        self.has_NS = np.array(self.has_NS)
+        self.has_NN = [np.any([self.xiNN[i][k] is not None
+                               for k in ['00', '0s', 'pp', 'mm']])
+                       for i in range(2)]
+        self.has_NN = np.array(self.has_NN)
 
     def _compute_coupling_coefficients(self, fla1, fla2, flb1, flb2):
         """ Computes coupling coefficients of the Gaussian covariance
@@ -1233,6 +1196,12 @@ class NmtCovarianceWorkspace(object):
         self.has_SN = np.array([False, False])
         self.has_NS = np.array([False, False])
         self.has_NN = np.array([False, False])
+        self.xiSN = [{k: None for k in ['00', '0s', 'pp', 'mm']}
+                     for _ in range(2)]
+        self.xiNS = [{k: None for k in ['00', '0s', 'pp', 'mm']}
+                     for _ in range(2)]
+        self.xiNN = [{k: None for k in ['00', '0s', 'pp', 'mm']}
+                     for _ in range(2)]
         if np.any([fla1.anisotropic_mask, fla2.anisotropic_mask,
                    flb1.anisotropic_mask, flb2.anisotropic_mask]):
             raise NotImplementedError("Covariance matrix estimation not "
@@ -1340,7 +1309,7 @@ class NmtCovarianceWorkspace(object):
             self.xiNN = self._get_covariance_xis(
                 pcl_1122=pcl_mask_N11_N22, pcl_1221=pcl_mask_N12_N21)
 
-    def write_to(self, fname):  # TODO
+    def write_to(self, fname):
         """ Writes the contents of an :obj:`NmtCovarianceWorkspace`
         object to a FITS file.
 
@@ -1350,34 +1319,35 @@ class NmtCovarianceWorkspace(object):
 
         # Write header with global information
         f = fts.FITS(fname, 'rw', clobber=True)
-        h = {'LMAX': self.wsp.lmax,
-             'LMAX_MASK': self.wsp.lmax_mask,
-             'ALL_SPINS': self.wsp.all_spins,
-             'SPIN_A1': self.wsp.spin_a1,
-             'SPIN_A2': self.wsp.spin_a2,
-             'SPIN_B1': self.wsp.spin_b1,
-             'SPIN_B2': self.wsp.spin_b2}
+        h = {'LMAX': self.lmax,
+             'LMAX_MASK': self.lmax_mask,
+             'SPIN_A1': self.spin_a1,
+             'SPIN_A2': self.spin_a2,
+             'SPIN_B1': self.spin_b1,
+             'SPIN_B2': self.spin_b2,
+             'L_TOEPLITZ': self.l_toeplitz,
+             'L_EXACT': self.l_exact,
+             'DL_BAND': self.dl_band}
         f.write(np.ones((1, 1)), header=h, extname='CWSP_PRIMARY')
 
-        def write_wsp(w, prefix):
+        def write_xi(w, prefix):
             # This function writes the coupling coefficients of a
             # workspace to a FITS HDU.
             if w is None:
                 return
-            for i, n in enumerate(['00_1122', '00_1221',
-                                   '02_1122', '02_1221',
-                                   '22P_1122', '22P_1221',
-                                   '22M_1122', '22M_1221']):
-                exists, xi = lib.get_cw_xi(w, i, (w.lmax+1)**2)
-                if exists:
-                    f.write(xi.reshape((w.lmax+1, w.lmax+1)),
-                            extname=f'XI{prefix + n}')
+            for n1, n2 in zip(['00', '0s', 'pp', 'mm'],
+                              ['00', '02', '22P', '22M']):
+                for i, wick in enumerate(['1122', '1221']):
+                    xi = w[i][n1]
+                    if xi is not None:
+                        f.write(xi.reshape((self.lmax+1, self.lmax+1)),
+                                extname=f'XI{prefix + n2}_{wick}')
 
         # Write the coupling coefficients of all workspaces to the FITS file
-        write_wsp(self.wsp, '')
-        write_wsp(self.wsp_SN, 'SN')
-        write_wsp(self.wsp_NS, 'NS')
-        write_wsp(self.wsp_NN, 'NN')
+        write_xi(self.xiSS, '')
+        write_xi(self.xiSN, 'SN')
+        write_xi(self.xiNS, 'NS')
+        write_xi(self.xiNN, 'NN')
 
         f.close()
 
