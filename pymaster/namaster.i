@@ -77,68 +77,6 @@ void asserting(int expression)
 
 
 %inline %{
-void get_nell_list(nmt_binning_scheme *bins,int *iout,int niout)
-{
-  asserting(bins->n_bands==niout);
-
-  memcpy(iout,bins->nell_list,bins->n_bands*sizeof(int));
-}
-
-int get_nell(nmt_binning_scheme *bins,int ibin)
-{
-  asserting(ibin<bins->n_bands);
-  
-  return bins->nell_list[ibin];
-}
-
-void get_ell_list(nmt_binning_scheme *bins,int ibin,int *iout,int niout)
-{
-  asserting(ibin<bins->n_bands);
-  asserting(bins->nell_list[ibin]==niout);
-
-  memcpy(iout,bins->ell_list[ibin],bins->nell_list[ibin]*sizeof(int));
-}
-
-void get_weight_list(nmt_binning_scheme *bins,int ibin,double *dout,int ndout)
-{
-  asserting(ibin<bins->n_bands);
-  asserting(bins->nell_list[ibin]==ndout);
-
-  memcpy(dout,bins->w_list[ibin],bins->nell_list[ibin]*sizeof(double));
-}
-
-void get_fell_list(nmt_binning_scheme *bins,int ibin,double *dout,int ndout)
-{
-  asserting(ibin<bins->n_bands);
-  asserting(bins->nell_list[ibin]==ndout);
-
-  memcpy(dout,bins->f_ell[ibin],bins->nell_list[ibin]*sizeof(double));
-}
- 
-void get_ell_eff(nmt_binning_scheme *bins,double *dout,int ndout)
-{
-  asserting(ndout==bins->n_bands);
-  nmt_ell_eff(bins,dout);
-}
-
-void get_ell_eff_flat(nmt_binning_scheme_flat *bins,double *dout,int ndout)
-{
-  asserting(ndout==bins->n_bands);
-  nmt_ell_eff_flat(bins,dout);
-}
-
-nmt_binning_scheme *bins_create_py(int nell1,int *bpws,
-				   int nell2,int *ells,
-				   int nell3,double *weights,
-				   int nell4,double *f_ell,
-				   int lmax)
-{
-  asserting(nell1==nell2);
-  asserting(nell2==nell3);
-  asserting(nell3==nell4);
-  
-  return nmt_bins_create(nell1,bpws,ells,weights,f_ell,lmax);
-}
 
 void get_xis(int lmax, int lmax_mask,
 	     int ncl1, int nell1, double *cls1,
@@ -226,6 +164,68 @@ void get_xis(int lmax, int lmax_mask,
 
   nmt_master_calculator_free(c);
   free(pcl_masks);
+}
+void get_nell_list(nmt_binning_scheme *bins,int *iout,int niout)
+{
+  asserting(bins->n_bands==niout);
+
+  memcpy(iout,bins->nell_list,bins->n_bands*sizeof(int));
+}
+
+int get_nell(nmt_binning_scheme *bins,int ibin)
+{
+  asserting(ibin<bins->n_bands);
+  
+  return bins->nell_list[ibin];
+}
+
+void get_ell_list(nmt_binning_scheme *bins,int ibin,int *iout,int niout)
+{
+  asserting(ibin<bins->n_bands);
+  asserting(bins->nell_list[ibin]==niout);
+
+  memcpy(iout,bins->ell_list[ibin],bins->nell_list[ibin]*sizeof(int));
+}
+
+void get_weight_list(nmt_binning_scheme *bins,int ibin,double *dout,int ndout)
+{
+  asserting(ibin<bins->n_bands);
+  asserting(bins->nell_list[ibin]==ndout);
+
+  memcpy(dout,bins->w_list[ibin],bins->nell_list[ibin]*sizeof(double));
+}
+
+void get_fell_list(nmt_binning_scheme *bins,int ibin,double *dout,int ndout)
+{
+  asserting(ibin<bins->n_bands);
+  asserting(bins->nell_list[ibin]==ndout);
+
+  memcpy(dout,bins->f_ell[ibin],bins->nell_list[ibin]*sizeof(double));
+}
+ 
+void get_ell_eff(nmt_binning_scheme *bins,double *dout,int ndout)
+{
+  asserting(ndout==bins->n_bands);
+  nmt_ell_eff(bins,dout);
+}
+
+void get_ell_eff_flat(nmt_binning_scheme_flat *bins,double *dout,int ndout)
+{
+  asserting(ndout==bins->n_bands);
+  nmt_ell_eff_flat(bins,dout);
+}
+
+nmt_binning_scheme *bins_create_py(int nell1,int *bpws,
+				   int nell2,int *ells,
+				   int nell3,double *weights,
+				   int nell4,double *f_ell,
+				   int lmax)
+{
+  asserting(nell1==nell2);
+  asserting(nell2==nell3);
+  asserting(nell3==nell4);
+  
+  return nmt_bins_create(nell1,bpws,ells,weights,f_ell,lmax);
 }
 
 nmt_binning_scheme_flat *bins_flat_create_py(int npix_1,double *mask,

@@ -276,9 +276,6 @@ def compute_deprojection_bias_flat(fl1, fl2, bin, lmn_x, lmx_x, lmn_y, lmx_y, nl
 def couple_cl_l_flat_fast(w, nl, larr, cl_in, cl_out):
     return _nmtlib.couple_cl_l_flat_fast(w, nl, larr, cl_in, cl_out)
 
-def couple_cl_l_flat_quick(w, nl, larr, cl_in, cl_out):
-    return _nmtlib.couple_cl_l_flat_quick(w, nl, larr, cl_in, cl_out)
-
 def decouple_cl_l_flat(w, cl_in, cl_noise_in, cl_bias, cl_out):
     return _nmtlib.decouple_cl_l_flat(w, cl_in, cl_noise_in, cl_bias, cl_out)
 
@@ -287,30 +284,6 @@ def compute_coupled_cell_flat(fl1, fl2, bin, cl_out, lmn_x, lmx_x, lmn_y, lmx_y)
 
 def compute_power_spectra_flat(fl1, fl2, bin, lmn_x, lmx_x, lmn_y, lmx_y, w0, cl_noise, nl_prop, l_prop, cl_prop, cl_out):
     return _nmtlib.compute_power_spectra_flat(fl1, fl2, bin, lmn_x, lmx_x, lmn_y, lmx_y, w0, cl_noise, nl_prop, l_prop, cl_prop, cl_out)
-class workspace(object):
-    thisown = property(lambda x: x.this.own(), lambda x, v: x.this.own(v), doc="The membership flag")
-    __repr__ = _swig_repr
-    lmax = property(_nmtlib.workspace_lmax_get, _nmtlib.workspace_lmax_set)
-    lmax_fields = property(_nmtlib.workspace_lmax_fields_get, _nmtlib.workspace_lmax_fields_set)
-    lmax_mask = property(_nmtlib.workspace_lmax_mask_get, _nmtlib.workspace_lmax_mask_set)
-    is_teb = property(_nmtlib.workspace_is_teb_get, _nmtlib.workspace_is_teb_set)
-    ncls = property(_nmtlib.workspace_ncls_get, _nmtlib.workspace_ncls_set)
-    beam_prod = property(_nmtlib.workspace_beam_prod_get, _nmtlib.workspace_beam_prod_set)
-    pcl_masks = property(_nmtlib.workspace_pcl_masks_get, _nmtlib.workspace_pcl_masks_set)
-    coupling_matrix_unbinned = property(_nmtlib.workspace_coupling_matrix_unbinned_get, _nmtlib.workspace_coupling_matrix_unbinned_set)
-    bin = property(_nmtlib.workspace_bin_get, _nmtlib.workspace_bin_set)
-    norm_type = property(_nmtlib.workspace_norm_type_get, _nmtlib.workspace_norm_type_set)
-    w2 = property(_nmtlib.workspace_w2_get, _nmtlib.workspace_w2_set)
-    coupling_matrix_binned = property(_nmtlib.workspace_coupling_matrix_binned_get, _nmtlib.workspace_coupling_matrix_binned_set)
-    coupling_matrix_perm = property(_nmtlib.workspace_coupling_matrix_perm_get, _nmtlib.workspace_coupling_matrix_perm_set)
-
-    def __init__(self):
-        _nmtlib.workspace_swiginit(self, _nmtlib.new_workspace())
-    __swig_destroy__ = _nmtlib.delete_workspace
-
-# Register workspace in _nmtlib:
-_nmtlib.workspace_swigregister(workspace)
-
 class master_calculator(object):
     thisown = property(lambda x: x.this.own(), lambda x, v: x.this.own(v), doc="The membership flag")
     __repr__ = _swig_repr
@@ -345,35 +318,8 @@ def compute_master_coefficients(lmax, lmax_mask, npcl, pcl_masks, s1, s2, pure_a
 def master_calculator_free(c):
     return _nmtlib.master_calculator_free(c)
 
-def compute_coupling_matrix_anisotropic(spin1, spin2, mask_aniso_1, mask_aniso_2, lmax, lmax_mask, pcl_masks_00, pcl_masks_0e, pcl_masks_e0, pcl_masks_0b, pcl_masks_b0, pcl_masks_ee, pcl_masks_eb, pcl_masks_be, pcl_masks_bb, beam1, beam2, bin, norm_type, w2):
-    return _nmtlib.compute_coupling_matrix_anisotropic(spin1, spin2, mask_aniso_1, mask_aniso_2, lmax, lmax_mask, pcl_masks_00, pcl_masks_0e, pcl_masks_e0, pcl_masks_0b, pcl_masks_b0, pcl_masks_ee, pcl_masks_eb, pcl_masks_be, pcl_masks_bb, beam1, beam2, bin, norm_type, w2)
-
 def compute_general_coupling_matrix(lmax, pcl_mask, s1, s2, n1, n2, parity, xi_out):
     return _nmtlib.compute_general_coupling_matrix(lmax, pcl_mask, s1, s2, n1, n2, parity, xi_out)
-
-def compute_coupling_matrix(spin1, spin2, lmax, lmax_mask, pure_e1, pure_b1, pure_e2, pure_b2, pcl_masks, beam1, beam2, bin, is_teb, l_toeplitz, l_exact, dl_band, norm_type, w2):
-    return _nmtlib.compute_coupling_matrix(spin1, spin2, lmax, lmax_mask, pure_e1, pure_b1, pure_e2, pure_b2, pcl_masks, beam1, beam2, bin, is_teb, l_toeplitz, l_exact, dl_band, norm_type, w2)
-
-def update_coupling_matrix(w, n_rows, new_matrix):
-    return _nmtlib.update_coupling_matrix(w, n_rows, new_matrix)
-
-def workspace_update_binning(w, bin):
-    return _nmtlib.workspace_update_binning(w, bin)
-
-def workspace_update_beams(w, nl1, b1, nl2, b2):
-    return _nmtlib.workspace_update_beams(w, nl1, b1, nl2, b2)
-
-def workspace_free(w):
-    return _nmtlib.workspace_free(w)
-
-def couple_cl_l(w, cl_in, cl_out):
-    return _nmtlib.couple_cl_l(w, cl_in, cl_out)
-
-def decouple_cl_l(w, cl_in, cl_noise_in, cl_bias, cl_out):
-    return _nmtlib.decouple_cl_l(w, cl_in, cl_noise_in, cl_bias, cl_out)
-
-def compute_bandpower_windows(w, bpw_win_out):
-    return _nmtlib.compute_bandpower_windows(w, bpw_win_out)
 class covar_workspace_flat(object):
     thisown = property(lambda x: x.this.own(), lambda x, v: x.this.own(v), doc="The membership flag")
     __repr__ = _swig_repr
@@ -403,55 +349,6 @@ def covar_workspace_flat_init(fla1, fla2, ba, flb1, flb2, bb):
 
 def compute_gaussian_covariance_flat(cw, spin_a, spin_b, spin_c, spin_d, wa, wb, nl, larr, clac, clad, clbc, clbd, covar_out):
     return _nmtlib.compute_gaussian_covariance_flat(cw, spin_a, spin_b, spin_c, spin_d, wa, wb, nl, larr, clac, clad, clbc, clbd, covar_out)
-class covar_workspace(object):
-    thisown = property(lambda x: x.this.own(), lambda x, v: x.this.own(v), doc="The membership flag")
-    __repr__ = _swig_repr
-    lmax = property(_nmtlib.covar_workspace_lmax_get, _nmtlib.covar_workspace_lmax_set)
-    lmax_mask = property(_nmtlib.covar_workspace_lmax_mask_get, _nmtlib.covar_workspace_lmax_mask_set)
-    all_spins = property(_nmtlib.covar_workspace_all_spins_get, _nmtlib.covar_workspace_all_spins_set)
-    spin_a1 = property(_nmtlib.covar_workspace_spin_a1_get, _nmtlib.covar_workspace_spin_a1_set)
-    spin_a2 = property(_nmtlib.covar_workspace_spin_a2_get, _nmtlib.covar_workspace_spin_a2_set)
-    spin_b1 = property(_nmtlib.covar_workspace_spin_b1_get, _nmtlib.covar_workspace_spin_b1_set)
-    spin_b2 = property(_nmtlib.covar_workspace_spin_b2_get, _nmtlib.covar_workspace_spin_b2_set)
-    has_1122 = property(_nmtlib.covar_workspace_has_1122_get, _nmtlib.covar_workspace_has_1122_set)
-    has_1221 = property(_nmtlib.covar_workspace_has_1221_get, _nmtlib.covar_workspace_has_1221_set)
-    xi00_1122 = property(_nmtlib.covar_workspace_xi00_1122_get, _nmtlib.covar_workspace_xi00_1122_set)
-    xi00_1221 = property(_nmtlib.covar_workspace_xi00_1221_get, _nmtlib.covar_workspace_xi00_1221_set)
-    xi02_1122 = property(_nmtlib.covar_workspace_xi02_1122_get, _nmtlib.covar_workspace_xi02_1122_set)
-    xi02_1221 = property(_nmtlib.covar_workspace_xi02_1221_get, _nmtlib.covar_workspace_xi02_1221_set)
-    xi22p_1122 = property(_nmtlib.covar_workspace_xi22p_1122_get, _nmtlib.covar_workspace_xi22p_1122_set)
-    xi22p_1221 = property(_nmtlib.covar_workspace_xi22p_1221_get, _nmtlib.covar_workspace_xi22p_1221_set)
-    xi22m_1122 = property(_nmtlib.covar_workspace_xi22m_1122_get, _nmtlib.covar_workspace_xi22m_1122_set)
-    xi22m_1221 = property(_nmtlib.covar_workspace_xi22m_1221_get, _nmtlib.covar_workspace_xi22m_1221_set)
-
-    def __init__(self):
-        _nmtlib.covar_workspace_swiginit(self, _nmtlib.new_covar_workspace())
-    __swig_destroy__ = _nmtlib.delete_covar_workspace
-
-# Register covar_workspace in _nmtlib:
-_nmtlib.covar_workspace_swigregister(covar_workspace)
-
-
-def covar_workspace_free(cw):
-    return _nmtlib.covar_workspace_free(cw)
-
-def covar_workspace_init(spin_a1, spin_a2, spin_b1, spin_b2, all_spins, auto_any, has_1122, has_1221, cl_masks_11_22, cl_masks_12_21, lmax, lmax_mask, l_toeplitz, l_exact, dl_band):
-    return _nmtlib.covar_workspace_init(spin_a1, spin_a2, spin_b1, spin_b2, all_spins, auto_any, has_1122, has_1221, cl_masks_11_22, cl_masks_12_21, lmax, lmax_mask, l_toeplitz, l_exact, dl_band)
-
-def covar_workspace_init_from_couplings(spin_a1, spin_a2, spin_b1, spin_b2, all_spins, lmax, lmax_mask, xi00_1122, xi00_1221, xi02_1122, xi02_1221, xi22p_1122, xi22p_1221, xi22m_1122, xi22m_1221):
-    return _nmtlib.covar_workspace_init_from_couplings(spin_a1, spin_a2, spin_b1, spin_b2, all_spins, lmax, lmax_mask, xi00_1122, xi00_1221, xi02_1122, xi02_1221, xi22p_1122, xi22p_1221, xi22m_1122, xi22m_1221)
-
-def compute_gaussian_covariance(cw, spin_a, spin_b, spin_c, spin_d, wa, wb, clac, clad, clbc, clbd, is_ac_noise, is_ad_noise, is_bc_noise, is_bd_noise, covar_out):
-    return _nmtlib.compute_gaussian_covariance(cw, spin_a, spin_b, spin_c, spin_d, wa, wb, clac, clad, clbc, clbd, is_ac_noise, is_ad_noise, is_bc_noise, is_bd_noise, covar_out)
-
-def compute_gaussian_covariance_coupled(cw, spin_a, spin_b, spin_c, spin_d, wa, wb, clac, clad, clbc, clbd, is_ac_noise, is_ad_noise, is_bc_noise, is_bd_noise, covar_out):
-    return _nmtlib.compute_gaussian_covariance_coupled(cw, spin_a, spin_b, spin_c, spin_d, wa, wb, clac, clad, clbc, clbd, is_ac_noise, is_ad_noise, is_bc_noise, is_bd_noise, covar_out)
-
-def workspace_write_fits(w, fname):
-    return _nmtlib.workspace_write_fits(w, fname)
-
-def workspace_read_fits(fname, w_unbinned):
-    return _nmtlib.workspace_read_fits(fname, w_unbinned)
 
 def workspace_flat_read_fits(fname):
     return _nmtlib.workspace_flat_read_fits(fname)
@@ -464,6 +361,9 @@ def covar_workspace_flat_write_fits(cw, fname):
 
 def covar_workspace_flat_read_fits(fname):
     return _nmtlib.covar_workspace_flat_read_fits(fname)
+
+def get_xis(lmax, lmax_mask, ncl1, s1, s2, pure_any, do_teb, l_toeplitz, l_exact, dl_band, ldout):
+    return _nmtlib.get_xis(lmax, lmax_mask, ncl1, s1, s2, pure_any, do_teb, l_toeplitz, l_exact, dl_band, ldout)
 
 def get_nell_list(bins, iout):
     return _nmtlib.get_nell_list(bins, iout)
@@ -488,9 +388,6 @@ def get_ell_eff_flat(bins, dout):
 
 def bins_create_py(nell1, nell2, nell3, nell4, lmax):
     return _nmtlib.bins_create_py(nell1, nell2, nell3, nell4, lmax)
-
-def get_xis(lmax, lmax_mask, ncl1, s1, s2, pure_any, do_teb, l_toeplitz, l_exact, dl_band, ldout):
-    return _nmtlib.get_xis(lmax, lmax_mask, ncl1, s1, s2, pure_any, do_teb, l_toeplitz, l_exact, dl_band, ldout)
 
 def bins_flat_create_py(npix_1, nell3):
     return _nmtlib.bins_flat_create_py(npix_1, nell3)
