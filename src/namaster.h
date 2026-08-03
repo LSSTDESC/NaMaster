@@ -783,18 +783,6 @@ void nmt_compute_gaussian_covariance_flat(nmt_covar_workspace_flat *cw,
 					  flouble **clbc,flouble **clbd,flouble *covar_out);
 
 /**
- * @brief Saves nmt_workspace_flat structure to file
- *
- * The output file uses the FITS standard. In combination with nmt_workspace_flat_read_fits(),
- * this can be used to save the information contained in a given workspace and reuse it for
- * future power spectrum computations. The same workspace can be used on any pair of fields
- * with the same masks.
- * @param w nmt_workspace_flat to be saved.
- * @param fname Path to output file.
- */
-void nmt_workspace_flat_write_fits(nmt_workspace_flat *w,char *fname);
-
-/**
  * @brief Saves nmt_covar_workspace_flat structure to file
  *
  * The output file uses the FITS standard. In combination with nmt_covar_workspace_flat_read_fits(),

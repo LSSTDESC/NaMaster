@@ -3566,6 +3566,76 @@ nmt_workspace_flat *workspace_flat_from_data(int ncls, double lmax,
   return w;     
 }
 
+void wsp_flat_get_n_cells(nmt_workspace_flat *w, int *iout, int niout)
+{
+  asserting(niout==w->bin->n_bands);
+  memcpy(iout, w->n_cells, niout*sizeof(int));
+}
+
+void wsp_flat_get_mcm(nmt_workspace_flat *w,
+		      int unbinned, int is_gsl,
+		      double *ldout,long nldout)
+{
+  int ii;
+  if(unbinned) {
+    for(ii=0;ii<w->ncls*w->bin->n_bands;ii++) {
+      memcpy(&(ldout[ii*w->ncls*w->fs->n_ell]),
+	     w->coupling_matrix_unbinned[ii],
+	     w->ncls*w->fs->n_ell*sizeof(double));
+    }
+  }
+  else {
+    if(is_gsl) {
+      for(ii=0;ii<w->ncls*w->bin->n_bands;ii++) {
+	int jj;
+	long index0=ii*w->ncls*w->bin->n_bands;
+	for(jj=0;jj<w->ncls*w->bin->n_bands;jj++)
+	  ldout[index0+jj]=gsl_matrix_get(w->coupling_matrix_binned_gsl,ii,jj);
+      }
+    }
+    else {
+      for(ii=0;ii<w->ncls*w->bin->n_bands;ii++) {
+	memcpy(&(ldout[ii*w->ncls*w->bin->n_bands]),
+	       w->coupling_matrix_binned[ii],
+	       w->ncls*w->bin->n_bands*sizeof(double));
+      }
+    }
+  }
+}
+
+void wsp_flat_get_perm(nmt_workspace_flat *w,
+		int *iout,int niout)
+{
+  int ii;
+  for(ii=0;ii<w->ncls*w->bin->n_bands;ii++)
+    iout[ii]=(int)(w->coupling_matrix_perm->data[ii]);
+}
+
+void wsp_flat_get_fs_ellmin(nmt_workspace_flat *w,
+			    double *dout, int ndout)
+{
+  memcpy(dout,w->fs->ell_min,ndout*sizeof(double));
+}
+
+void wsp_flat_get_bin_ls(nmt_workspace_flat *w,
+			 double *dout,int ndout)
+{
+  asserting(ndout==2*w->bin->n_bands);
+  memcpy(dout,w->bin->ell_0_list,w->bin->n_bands*sizeof(double));
+  memcpy(&(dout[w->bin->n_bands]),
+	 w->bin->ell_f_list,w->bin->n_bands*sizeof(double));
+}
+
+void wsp_flat_get_lcuts(nmt_workspace_flat *w,
+			double *dout,int ndout)
+{
+  asserting(ndout==4);
+  dout[0]=w->ellcut_x[0];
+  dout[1]=w->ellcut_x[1];
+  dout[2]=w->ellcut_y[0];
+  dout[3]=w->ellcut_y[1];
+}
+
 void write_workspace_flat(nmt_workspace_flat *w,char *fname)
 {
   nmt_workspace_flat_write_fits(w,fname);
@@ -14488,6 +14558,322 @@ fail:
 }
 
 
+SWIGINTERN PyObject *_wrap_wsp_flat_get_n_cells(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_workspace_flat *arg1 = (nmt_workspace_flat *) 0 ;
+  int *arg2 = (int *) 0 ;
+  int arg3 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject *array2 = NULL ;
+  PyObject *swig_obj[2] ;
+  
+  if (!SWIG_Python_UnpackTuple(args, "wsp_flat_get_n_cells", 2, 2, swig_obj)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_nmt_workspace_flat, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "wsp_flat_get_n_cells" "', argument " "1"" of type '" "nmt_workspace_flat *""'"); 
+  }
+  arg1 = (nmt_workspace_flat *)(argp1);
+  {
+    npy_intp dims[1];
+    if (!PyInt_Check(swig_obj[1]))
+    {
+      const char* typestring = pytype_string(swig_obj[1]);
+      PyErr_Format(PyExc_TypeError,
+        "Int dimension expected.  '%s' given.",
+        typestring);
+      SWIG_fail;
+    }
+    arg3 = (int) PyInt_AsLong(swig_obj[1]);
+    dims[0] = (npy_intp) arg3;
+    array2 = PyArray_SimpleNew(1, dims, NPY_INT);
+    if (!array2) SWIG_fail;
+    arg2 = (int*) array_data(array2);
+  }
+  {
+    try {
+      wsp_flat_get_n_cells(arg1,arg2,arg3);
+    }
+    finally {
+      SWIG_exception(SWIG_RuntimeError,nmt_error_message);
+    }
+  }
+  resultobj = SWIG_Py_Void();
+  {
+    resultobj = SWIG_Python_AppendOutput(resultobj,(PyObject*)array2);
+  }
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_wsp_flat_get_mcm(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_workspace_flat *arg1 = (nmt_workspace_flat *) 0 ;
+  int arg2 ;
+  int arg3 ;
+  double *arg4 = (double *) 0 ;
+  long arg5 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int val2 ;
+  int ecode2 = 0 ;
+  int val3 ;
+  int ecode3 = 0 ;
+  PyObject *array4 = NULL ;
+  PyObject *swig_obj[4] ;
+  
+  if (!SWIG_Python_UnpackTuple(args, "wsp_flat_get_mcm", 4, 4, swig_obj)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_nmt_workspace_flat, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "wsp_flat_get_mcm" "', argument " "1"" of type '" "nmt_workspace_flat *""'"); 
+  }
+  arg1 = (nmt_workspace_flat *)(argp1);
+  ecode2 = SWIG_AsVal_int(swig_obj[1], &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "wsp_flat_get_mcm" "', argument " "2"" of type '" "int""'");
+  } 
+  arg2 = (int)(val2);
+  ecode3 = SWIG_AsVal_int(swig_obj[2], &val3);
+  if (!SWIG_IsOK(ecode3)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "wsp_flat_get_mcm" "', argument " "3"" of type '" "int""'");
+  } 
+  arg3 = (int)(val3);
+  {
+    npy_intp dims[1];
+    if (!PyInt_Check(swig_obj[3]))
+    {
+      const char* typestring = pytype_string(swig_obj[3]);
+      PyErr_Format(PyExc_TypeError,
+        "Int dimension expected.  '%s' given.",
+        typestring);
+      SWIG_fail;
+    }
+    arg5 = (long) PyInt_AsLong(swig_obj[3]);
+    dims[0] = (npy_intp) arg5;
+    array4 = PyArray_SimpleNew(1, dims, NPY_DOUBLE);
+    if (!array4) SWIG_fail;
+    arg4 = (double*) array_data(array4);
+  }
+  {
+    try {
+      wsp_flat_get_mcm(arg1,arg2,arg3,arg4,arg5);
+    }
+    finally {
+      SWIG_exception(SWIG_RuntimeError,nmt_error_message);
+    }
+  }
+  resultobj = SWIG_Py_Void();
+  {
+    resultobj = SWIG_Python_AppendOutput(resultobj,(PyObject*)array4);
+  }
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_wsp_flat_get_perm(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_workspace_flat *arg1 = (nmt_workspace_flat *) 0 ;
+  int *arg2 = (int *) 0 ;
+  int arg3 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject *array2 = NULL ;
+  PyObject *swig_obj[2] ;
+  
+  if (!SWIG_Python_UnpackTuple(args, "wsp_flat_get_perm", 2, 2, swig_obj)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_nmt_workspace_flat, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "wsp_flat_get_perm" "', argument " "1"" of type '" "nmt_workspace_flat *""'"); 
+  }
+  arg1 = (nmt_workspace_flat *)(argp1);
+  {
+    npy_intp dims[1];
+    if (!PyInt_Check(swig_obj[1]))
+    {
+      const char* typestring = pytype_string(swig_obj[1]);
+      PyErr_Format(PyExc_TypeError,
+        "Int dimension expected.  '%s' given.",
+        typestring);
+      SWIG_fail;
+    }
+    arg3 = (int) PyInt_AsLong(swig_obj[1]);
+    dims[0] = (npy_intp) arg3;
+    array2 = PyArray_SimpleNew(1, dims, NPY_INT);
+    if (!array2) SWIG_fail;
+    arg2 = (int*) array_data(array2);
+  }
+  {
+    try {
+      wsp_flat_get_perm(arg1,arg2,arg3);
+    }
+    finally {
+      SWIG_exception(SWIG_RuntimeError,nmt_error_message);
+    }
+  }
+  resultobj = SWIG_Py_Void();
+  {
+    resultobj = SWIG_Python_AppendOutput(resultobj,(PyObject*)array2);
+  }
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_wsp_flat_get_fs_ellmin(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_workspace_flat *arg1 = (nmt_workspace_flat *) 0 ;
+  double *arg2 = (double *) 0 ;
+  int arg3 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject *array2 = NULL ;
+  PyObject *swig_obj[2] ;
+  
+  if (!SWIG_Python_UnpackTuple(args, "wsp_flat_get_fs_ellmin", 2, 2, swig_obj)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_nmt_workspace_flat, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "wsp_flat_get_fs_ellmin" "', argument " "1"" of type '" "nmt_workspace_flat *""'"); 
+  }
+  arg1 = (nmt_workspace_flat *)(argp1);
+  {
+    npy_intp dims[1];
+    if (!PyInt_Check(swig_obj[1]))
+    {
+      const char* typestring = pytype_string(swig_obj[1]);
+      PyErr_Format(PyExc_TypeError,
+        "Int dimension expected.  '%s' given.",
+        typestring);
+      SWIG_fail;
+    }
+    arg3 = (int) PyInt_AsLong(swig_obj[1]);
+    dims[0] = (npy_intp) arg3;
+    array2 = PyArray_SimpleNew(1, dims, NPY_DOUBLE);
+    if (!array2) SWIG_fail;
+    arg2 = (double*) array_data(array2);
+  }
+  {
+    try {
+      wsp_flat_get_fs_ellmin(arg1,arg2,arg3);
+    }
+    finally {
+      SWIG_exception(SWIG_RuntimeError,nmt_error_message);
+    }
+  }
+  resultobj = SWIG_Py_Void();
+  {
+    resultobj = SWIG_Python_AppendOutput(resultobj,(PyObject*)array2);
+  }
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_wsp_flat_get_bin_ls(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_workspace_flat *arg1 = (nmt_workspace_flat *) 0 ;
+  double *arg2 = (double *) 0 ;
+  int arg3 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject *array2 = NULL ;
+  PyObject *swig_obj[2] ;
+  
+  if (!SWIG_Python_UnpackTuple(args, "wsp_flat_get_bin_ls", 2, 2, swig_obj)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_nmt_workspace_flat, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "wsp_flat_get_bin_ls" "', argument " "1"" of type '" "nmt_workspace_flat *""'"); 
+  }
+  arg1 = (nmt_workspace_flat *)(argp1);
+  {
+    npy_intp dims[1];
+    if (!PyInt_Check(swig_obj[1]))
+    {
+      const char* typestring = pytype_string(swig_obj[1]);
+      PyErr_Format(PyExc_TypeError,
+        "Int dimension expected.  '%s' given.",
+        typestring);
+      SWIG_fail;
+    }
+    arg3 = (int) PyInt_AsLong(swig_obj[1]);
+    dims[0] = (npy_intp) arg3;
+    array2 = PyArray_SimpleNew(1, dims, NPY_DOUBLE);
+    if (!array2) SWIG_fail;
+    arg2 = (double*) array_data(array2);
+  }
+  {
+    try {
+      wsp_flat_get_bin_ls(arg1,arg2,arg3);
+    }
+    finally {
+      SWIG_exception(SWIG_RuntimeError,nmt_error_message);
+    }
+  }
+  resultobj = SWIG_Py_Void();
+  {
+    resultobj = SWIG_Python_AppendOutput(resultobj,(PyObject*)array2);
+  }
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_wsp_flat_get_lcuts(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  nmt_workspace_flat *arg1 = (nmt_workspace_flat *) 0 ;
+  double *arg2 = (double *) 0 ;
+  int arg3 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject *array2 = NULL ;
+  PyObject *swig_obj[2] ;
+  
+  if (!SWIG_Python_UnpackTuple(args, "wsp_flat_get_lcuts", 2, 2, swig_obj)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_nmt_workspace_flat, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "wsp_flat_get_lcuts" "', argument " "1"" of type '" "nmt_workspace_flat *""'"); 
+  }
+  arg1 = (nmt_workspace_flat *)(argp1);
+  {
+    npy_intp dims[1];
+    if (!PyInt_Check(swig_obj[1]))
+    {
+      const char* typestring = pytype_string(swig_obj[1]);
+      PyErr_Format(PyExc_TypeError,
+        "Int dimension expected.  '%s' given.",
+        typestring);
+      SWIG_fail;
+    }
+    arg3 = (int) PyInt_AsLong(swig_obj[1]);
+    dims[0] = (npy_intp) arg3;
+    array2 = PyArray_SimpleNew(1, dims, NPY_DOUBLE);
+    if (!array2) SWIG_fail;
+    arg2 = (double*) array_data(array2);
+  }
+  {
+    try {
+      wsp_flat_get_lcuts(arg1,arg2,arg3);
+    }
+    finally {
+      SWIG_exception(SWIG_RuntimeError,nmt_error_message);
+    }
+  }
+  resultobj = SWIG_Py_Void();
+  {
+    resultobj = SWIG_Python_AppendOutput(resultobj,(PyObject*)array2);
+  }
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
 SWIGINTERN PyObject *_wrap_write_workspace_flat(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   nmt_workspace_flat *arg1 = (nmt_workspace_flat *) 0 ;
@@ -15930,6 +16316,12 @@ static PyMethodDef SwigMethods[] = {
 	 { "comp_general_coupling_matrix", _wrap_comp_general_coupling_matrix, METH_VARARGS, NULL},
 	 { "comp_coupling_matrix_flat", _wrap_comp_coupling_matrix_flat, METH_VARARGS, NULL},
 	 { "workspace_flat_from_data", _wrap_workspace_flat_from_data, METH_VARARGS, NULL},
+	 { "wsp_flat_get_n_cells", _wrap_wsp_flat_get_n_cells, METH_VARARGS, NULL},
+	 { "wsp_flat_get_mcm", _wrap_wsp_flat_get_mcm, METH_VARARGS, NULL},
+	 { "wsp_flat_get_perm", _wrap_wsp_flat_get_perm, METH_VARARGS, NULL},
+	 { "wsp_flat_get_fs_ellmin", _wrap_wsp_flat_get_fs_ellmin, METH_VARARGS, NULL},
+	 { "wsp_flat_get_bin_ls", _wrap_wsp_flat_get_bin_ls, METH_VARARGS, NULL},
+	 { "wsp_flat_get_lcuts", _wrap_wsp_flat_get_lcuts, METH_VARARGS, NULL},
 	 { "write_workspace_flat", _wrap_write_workspace_flat, METH_VARARGS, NULL},
 	 { "comp_deproj_bias_flat", _wrap_comp_deproj_bias_flat, METH_VARARGS, NULL},
 	 { "write_covar_workspace_flat", _wrap_write_covar_workspace_flat, METH_VARARGS, NULL},

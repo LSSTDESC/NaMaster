@@ -250,7 +250,14 @@ def test_workspace_flat_io():
         w.write_to("test/wspc.fits")
     w.read_from("test/benchmarks/bm_f_yc_yp_w02.fits")  # OK read
     assert WT.msk.shape == (w.wsp.fs.ny, w.wsp.fs.nx)
-    with pytest.raises(RuntimeError):  # Can't write on that file
+
+    # Write and read again
+    w.write_to("test/wspc.fits")
+    w = nmt.NmtWorkspaceFlat()
+    w.read_from("test/benchmarks/bm_f_yc_yp_w02.fits")  # OK read
+    assert WT.msk.shape == (w.wsp.fs.ny, w.wsp.fs.nx)
+
+    with pytest.raises(OSError):  # Can't write on that file
         w.write_to("tests/wspc.fits")
     with pytest.raises(OSError):  # File doesn't exist
         w.read_from("none")

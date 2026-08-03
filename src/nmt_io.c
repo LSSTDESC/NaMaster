@@ -13,34 +13,6 @@ static void check_fits(int status,char *fname,int is_read)
   }
 }
 
-static void nmt_workspace_flat_info_tohdus(fitsfile *fptr,
-					   nmt_workspace_flat *w,
-					   int *status)
-{
-  long ii;
-  long n_el1=w->ncls*w->bin->n_bands;
-  long n_el2=w->ncls*w->fs->n_ell;
-  long naxes[2]={n_el2,n_el1};
-  long fpixel[2]={1,1};
-  fits_create_img(fptr,DOUBLE_IMG,2,naxes,status);
-  fits_write_key(fptr,TSTRING,"EXTNAME","WSP_PRIMARY",NULL,status);
-  fits_write_key(fptr,TDOUBLE,"LMAX",&(w->lmax),NULL,status);
-  fits_write_key(fptr,TDOUBLE,"ELLCUT_X_I",&(w->ellcut_x[0]),NULL,status);
-  fits_write_key(fptr,TDOUBLE,"ELLCUT_X_F",&(w->ellcut_x[1]),NULL,status);
-  fits_write_key(fptr,TDOUBLE,"ELLCUT_Y_I",&(w->ellcut_y[0]),NULL,status);
-  fits_write_key(fptr,TDOUBLE,"ELLCUT_Y_F",&(w->ellcut_y[1]),NULL,status);
-  fits_write_key(fptr,TINT,"PURE_E1",&(w->pe1),NULL,status);
-  fits_write_key(fptr,TINT,"PURE_E2",&(w->pe2),NULL,status);
-  fits_write_key(fptr,TINT,"PURE_B1",&(w->pb1),NULL,status);
-  fits_write_key(fptr,TINT,"PURE_B2",&(w->pb2),NULL,status);
-  fits_write_key(fptr,TINT,"IS_TEB",&(w->is_teb),NULL,status);
-  fits_write_key(fptr,TINT,"NCLS",&(w->ncls),NULL,status);
-  for(ii=0;ii<n_el1;ii++) {
-    fpixel[1]=ii+1;
-    fits_write_pix(fptr,TDOUBLE,fpixel,n_el2,w->coupling_matrix_unbinned[ii],status);
-  }
-}
-
 static void nmt_flatsky_info_tohdus(fitsfile *fptr,
 				    nmt_flatsky_info *fs,
 				    int *status)
@@ -89,46 +61,6 @@ static void nmt_n_cells_tohdus(fitsfile *fptr,
   free(tunit[0]); free(tunit);
 }
 
-static void nmt_flat_coupling_binned_tohdus(fitsfile *fptr,
-					    nmt_workspace_flat *w,
-					    int *status)
-{
-  long ii;
-  long n_el=w->ncls*w->bin->n_bands;
-  long naxes[2]={n_el,n_el};
-  long fpixel[2]={1,1};
-
-  //Non-GSL
-  fits_create_img(fptr,DOUBLE_IMG,2,naxes,status);
-  fits_write_key(fptr,TSTRING,"EXTNAME","MCM_BINNED",NULL,status);
-  for(ii=0;ii<n_el;ii++) {
-    fpixel[1]=ii+1;
-    fits_write_pix(fptr,TDOUBLE,fpixel,n_el,w->coupling_matrix_binned[ii],status);
-  }
-
-  //GSL
-  flouble *matrix=my_malloc(n_el*n_el*sizeof(flouble));
-  for(ii=0;ii<n_el;ii++) {
-    long jj,i0=ii*n_el;
-    for(jj=0;jj<n_el;jj++)
-      matrix[i0+jj]=gsl_matrix_get(w->coupling_matrix_binned_gsl,ii,jj);
-  }
-  fits_create_img(fptr,DOUBLE_IMG,2,naxes,status);
-  fits_write_key(fptr,TSTRING,"EXTNAME","MCM_BINNED_GSL",NULL,status);
-  fpixel[1]=1;
-  fits_write_pix(fptr,TDOUBLE,fpixel,n_el*n_el,matrix,status);
-  free(matrix);
-
-  //Permutation
-  int *perm=my_malloc(n_el*sizeof(int));
-  for(ii=0;ii<n_el;ii++)
-    perm[ii]=(int)(w->coupling_matrix_perm->data[ii]);
-  fits_create_img(fptr,LONG_IMG,1,naxes,status);
-  fits_write_key(fptr,TSTRING,"EXTNAME","MCM_PERM",NULL,status);
-  fits_write_pix(fptr,TINT,fpixel,n_el,perm,status);
-  free(perm);
-}
-
 static void nmt_binning_scheme_flat_tohdus(fitsfile *fptr,
 					   nmt_binning_scheme_flat *b,
 					   int *status)
@@ -160,30 +92,6 @@ static void nmt_binning_scheme_flat_tohdus(fitsfile *fptr,
   free(ttype);
   free(tform);
   free(tunit);  
-}
-
-void nmt_workspace_flat_write_fits(nmt_workspace_flat *w,char *fname)
-{
-  fitsfile *fptr;
-  int status=0;
-  fits_create_file(&fptr,fname,&status);
-  check_fits(status,fname,0);
-  // Workspace info HDU
-  nmt_workspace_flat_info_tohdus(fptr,w,&status);
-  check_fits(status,fname,0);
-  // FS info HDU
-  nmt_flatsky_info_tohdus(fptr,w->fs,&status);
-  check_fits(status,fname,0);
-  // n_cells HDU
-  nmt_n_cells_tohdus(fptr,w->bin->n_bands,w->n_cells,&status);
-  check_fits(status,fname,0);
-  // binned MCM HDUs
-  nmt_flat_coupling_binned_tohdus(fptr,w,&status);
-  check_fits(status,fname,0);
-  // bins HDU
-  nmt_binning_scheme_flat_tohdus(fptr,w->bin,&status);
-  check_fits(status,fname,0);
-  fits_close_file(fptr,&status);
 }
 
 static void nmt_covar_coeffs_tohdus(fitsfile *fptr,

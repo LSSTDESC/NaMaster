@@ -612,9 +612,74 @@ nmt_workspace_flat *workspace_flat_from_data(int ncls, double lmax,
   return w;     
 }
 
-void write_workspace_flat(nmt_workspace_flat *w,char *fname)
+void wsp_flat_get_n_cells(nmt_workspace_flat *w, int *iout, int niout)
 {
-  nmt_workspace_flat_write_fits(w,fname);
+  asserting(niout==w->bin->n_bands);
+  memcpy(iout, w->n_cells, niout*sizeof(int));
+}
+
+void wsp_flat_get_mcm(nmt_workspace_flat *w,
+		      int unbinned, int is_gsl,
+		      double *ldout,long nldout)
+{
+  int ii;
+  if(unbinned) {
+    for(ii=0;ii<w->ncls*w->bin->n_bands;ii++) {
+      memcpy(&(ldout[ii*w->ncls*w->fs->n_ell]),
+	     w->coupling_matrix_unbinned[ii],
+	     w->ncls*w->fs->n_ell*sizeof(double));
+    }
+  }
+  else {
+    if(is_gsl) {
+      for(ii=0;ii<w->ncls*w->bin->n_bands;ii++) {
+	int jj;
+	long index0=ii*w->ncls*w->bin->n_bands;
+	for(jj=0;jj<w->ncls*w->bin->n_bands;jj++)
+	  ldout[index0+jj]=gsl_matrix_get(w->coupling_matrix_binned_gsl,ii,jj);
+      }
+    }
+    else {
+      for(ii=0;ii<w->ncls*w->bin->n_bands;ii++) {
+	memcpy(&(ldout[ii*w->ncls*w->bin->n_bands]),
+	       w->coupling_matrix_binned[ii],
+	       w->ncls*w->bin->n_bands*sizeof(double));
+      }
+    }
+  }
+}
+
+void wsp_flat_get_perm(nmt_workspace_flat *w,
+		int *iout,int niout)
+{
+  int ii;
+  for(ii=0;ii<w->ncls*w->bin->n_bands;ii++)
+    iout[ii]=(int)(w->coupling_matrix_perm->data[ii]);
+}
+
+void wsp_flat_get_fs_ellmin(nmt_workspace_flat *w,
+			    double *dout, int ndout)
+{
+  memcpy(dout,w->fs->ell_min,ndout*sizeof(double));
+}
+
+void wsp_flat_get_bin_ls(nmt_workspace_flat *w,
+			 double *dout,int ndout)
+{
+  asserting(ndout==2*w->bin->n_bands);
+  memcpy(dout,w->bin->ell_0_list,w->bin->n_bands*sizeof(double));
+  memcpy(&(dout[w->bin->n_bands]),
+	 w->bin->ell_f_list,w->bin->n_bands*sizeof(double));
+}
+
+void wsp_flat_get_lcuts(nmt_workspace_flat *w,
+			double *dout,int ndout)
+{
+  asserting(ndout==4);
+  dout[0]=w->ellcut_x[0];
+  dout[1]=w->ellcut_x[1];
+  dout[2]=w->ellcut_y[0];
+  dout[3]=w->ellcut_y[1];
 }
 
 void comp_deproj_bias_flat(nmt_field_flat *fl1,nmt_field_flat *fl2,

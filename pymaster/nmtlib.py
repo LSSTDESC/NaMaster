@@ -443,6 +443,24 @@ def comp_coupling_matrix_flat(fl1, fl2, bin, lmn_x, lmx_x, lmn_y, lmx_y, is_teb)
 def workspace_flat_from_data(ncls, lmax, lcut_x_i, lcut_x_f, lcut_y_i, lcut_y_f, pe1, pe2, pb1, pb2, is_teb, nell2, nx, ny, npix, lx, ly, pixsize, dell, i_dell, nell4, nlb1, nlb2, ncl11, ncl12, ncl21, nell1):
     return _nmtlib.workspace_flat_from_data(ncls, lmax, lcut_x_i, lcut_x_f, lcut_y_i, lcut_y_f, pe1, pe2, pb1, pb2, is_teb, nell2, nx, ny, npix, lx, ly, pixsize, dell, i_dell, nell4, nlb1, nlb2, ncl11, ncl12, ncl21, nell1)
 
+def wsp_flat_get_n_cells(w, iout):
+    return _nmtlib.wsp_flat_get_n_cells(w, iout)
+
+def wsp_flat_get_mcm(w, unbinned, is_gsl, ldout):
+    return _nmtlib.wsp_flat_get_mcm(w, unbinned, is_gsl, ldout)
+
+def wsp_flat_get_perm(w, iout):
+    return _nmtlib.wsp_flat_get_perm(w, iout)
+
+def wsp_flat_get_fs_ellmin(w, dout):
+    return _nmtlib.wsp_flat_get_fs_ellmin(w, dout)
+
+def wsp_flat_get_bin_ls(w, dout):
+    return _nmtlib.wsp_flat_get_bin_ls(w, dout)
+
+def wsp_flat_get_lcuts(w, dout):
+    return _nmtlib.wsp_flat_get_lcuts(w, dout)
+
 def write_workspace_flat(w, fname):
     return _nmtlib.write_workspace_flat(w, fname)
 

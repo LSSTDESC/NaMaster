@@ -824,10 +824,12 @@ class NmtWorkspaceFlat(object):
             lcut_Y_I, lcut_Y_F,
             int(pure_e1), int(pure_e2),
             int(pure_b1), int(pure_b2), int(is_teb),
-            n_cells,
+            n_cells.astype(np.int32),
             int(nx), int(ny), npix, lx, ly, pixsize, dell, i_dell,
-            lmin, ell_0, ell_f,
-            mcm, mcm_binned, mcm_binned_gsl, mcm_perm)
+            lmin.astype(np.float64),
+            ell_0.astype(np.float64), ell_f.astype(np.float64),
+            mcm.astype(np.float64), mcm_binned.astype(np.float64),
+            mcm_binned_gsl.astype(np.float64), mcm_perm.astype(np.int32))
 
     def compute_coupling_matrix(self, fl1, fl2, bins, ell_cut_x=[1., -1.],
                                 ell_cut_y=[1., -1.], is_teb=False):
@@ -877,7 +879,67 @@ class NmtWorkspaceFlat(object):
         if self.wsp is None:
             raise RuntimeError("Must initialize workspace before "
                                "writing")
-        lib.write_workspace_flat(self.wsp, "!"+fname)
+
+        import fitsio as fts
+
+        nbands = self.wsp.bin.n_bands
+        nells = self.wsp.fs.n_ell
+        ncls = self.wsp.ncls
+        lmax = self.wsp.lmax
+        lcx_i, lcx_f, lcy_i, lcy_f = lib.wsp_flat_get_lcuts(self.wsp, 4)
+        mcm = lib.wsp_flat_get_mcm(self.wsp, int(1), int(0),
+                                   ncls**2*nbands*nells).reshape([ncls*nbands,
+                                                                  ncls*nells])
+        # Write header with global information
+        f = fts.FITS(fname, 'rw', clobber=True)
+        h = {'LMAX': lmax,
+             'ELLCUT_X_I': lcx_i,
+             'ELLCUT_X_F': lcx_f,
+             'ELLCUT_Y_I': lcy_i,
+             'ELLCUT_Y_F': lcy_f,
+             'PURE_E1': self.wsp.pe1,
+             'PURE_E2': self.wsp.pe2,
+             'PURE_B1': self.wsp.pb1,
+             'PURE_B2': self.wsp.pb2,
+             'IS_TEB': self.wsp.is_teb,
+             'NCLS': self.wsp.ncls}
+        f.write(mcm, header=h, extname='WSP_PRIMARY')
+
+        h = {'NX': self.wsp.fs.nx,
+             'NY': self.wsp.fs.ny,
+             'NPIX': self.wsp.fs.npix,
+             'LX': self.wsp.fs.lx,
+             'LY': self.wsp.fs.ly,
+             'PIXSIZE': self.wsp.fs.pixsize,
+             'DELL': self.wsp.fs.dell,
+             'I_DELL': self.wsp.fs.i_dell}
+        lmin = lib.wsp_flat_get_fs_ellmin(self.wsp, nells)
+        f.write([lmin], names=['L_MIN'], header=h, extname='FS_INFO')
+
+        n_cells = lib.wsp_flat_get_n_cells(self.wsp, nbands)
+        f.write([n_cells], names=['N_CELLS'], extname='N_CELLS')
+
+        mcm_binned = lib.wsp_flat_get_mcm(
+            self.wsp, int(0), int(0),
+            ncls**2*nbands**2).reshape([ncls*nbands,
+                                        ncls*nbands])
+        f.write(mcm_binned, extname='MCM_BINNED')
+
+        mcm_binned_gsl = lib.wsp_flat_get_mcm(
+            self.wsp, int(0), int(1),
+            (ncls*nbands)**2).reshape([ncls*nbands,
+                                       ncls*nbands])
+        f.write(mcm_binned_gsl, extname='MCM_BINNED_GSL')
+
+        mcm_perm = lib.wsp_flat_get_perm(self.wsp, ncls*nbands)
+        f.write(mcm_perm, extname='MCM_PERM')
+
+        ell_0, ell_f = lib.wsp_flat_get_bin_ls(
+            self.wsp, 2*nbands).reshape([2, -1])
+        f.write([ell_0, ell_f], names=['ELL_0', 'ELL_F'],
+                extname='BINS_SUMMARY')
+
+        f.close()
 
     def couple_cell(self, ells, cl_in):
         """ Convolves a set of input power spectra with a coupling
