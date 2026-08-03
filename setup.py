@@ -30,7 +30,7 @@ if '--disable-openmp' in sys.argv:
 else:
     USE_OPENMP = True
 
-libs = ['cfitsio', 'gsl', 'gslcblas', 'm'] + FFTW_LIBS
+libs = ['chealpix', 'cfitsio', 'gsl', 'gslcblas', 'm'] + FFTW_LIBS
 
 use_icc = False
 if use_icc:
@@ -64,20 +64,20 @@ def _compile_libnmt():
 class build(_build):
     """Specialized Python source builder."""
     def run(self):
-        _compile_libchealpix()
+        # _compile_libchealpix()
         _compile_libnmt()
         _build.run(self)
 
 class develop(_develop):
     """Specialized Python develop mode."""
     def run(self):
-        _compile_libchealpix()
+        # _compile_libchealpix()
         _compile_libnmt()
         _develop.run(self)
 
 _nmtlib = Extension("_nmtlib",
                     ["pymaster/namaster_wrap.c"],
-                    extra_objects=["./_deps/lib/libnmt.a", "./_deps/lib/libchealpix.a"],
+                    extra_objects=["./_deps/lib/libnmt.a"],  # , "./_deps/lib/libchealpix.a"],
                     libraries=libs,
                     library_dirs=["./_deps/lib/"],
                     include_dirs=[numpy_include, "./src/","./_deps/include/"],
