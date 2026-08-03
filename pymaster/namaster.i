@@ -535,9 +535,81 @@ nmt_workspace_flat *comp_coupling_matrix_flat(nmt_field_flat *fl1,nmt_field_flat
   return nmt_compute_coupling_matrix_flat(fl1,fl2,bin,lmn_x,lmx_x,lmn_y,lmx_y,is_teb);
 }
 
-nmt_workspace_flat *read_workspace_flat(char *fname)
+nmt_workspace_flat *workspace_flat_from_data(int ncls, double lmax,
+					     double lcut_x_i, double lcut_x_f,
+					     double lcut_y_i, double lcut_y_f,
+					     int pe1, int pe2, int pb1, int pb2, int is_teb,
+					     int nell2, int *ells, // n_cells
+					     int nx, int ny, long npix,  // fs_info
+					     double lx, double ly, double pixsize,
+					     double dell, double i_dell,
+					     int nell4, double *f_ell, // fs_info.ell_min
+					     int nlb1,double *beam1, // bin.l0
+					     int nlb2,double *beam2, // bin.lf
+					     int ncl11,int nell11,double *c11, //mcm
+					     int ncl12,int nell12,double *c12, //mcm_binned
+					     int ncl21,int nell21,double *c21, //mcm_binned_gsl
+					     int nell1,int *bpws) //mcm_binned_gsl_perm
 {
-  return nmt_workspace_flat_read_fits(fname);
+  int ii;
+  asserting(nlb1==nell2);
+  asserting(nlb1==nlb2);
+  asserting(ncl11==nlb1*ncls);
+  asserting(nell11==nell4*ncls);
+  asserting(ncl12==nlb1*ncls);
+  asserting(nell12==nlb1*ncls);
+  asserting(ncl21==nlb1*ncls);
+  asserting(nell21==nlb1*ncls);
+  asserting(nell1==nlb1*ncls);
+
+  nmt_workspace_flat *w=my_malloc(sizeof(nmt_workspace_flat));
+  w->ncls=ncls;
+  w->lmax=lmax;
+  w->ellcut_x[0]=lcut_x_i;
+  w->ellcut_x[1]=lcut_x_f;
+  w->ellcut_y[0]=lcut_y_i;
+  w->ellcut_y[1]=lcut_y_f;
+  w->pe1=pe1;
+  w->pe2=pe2;
+  w->pb1=pb1;
+  w->pb2=pb2;
+  w->is_teb=is_teb;
+  w->fs=my_malloc(sizeof(nmt_flatsky_info));
+  w->fs->nx=nx;
+  w->fs->ny=ny;
+  w->fs->npix=npix;
+  w->fs->lx=lx;
+  w->fs->ly=ly;
+  w->fs->pixsize=pixsize;
+  w->fs->dell=dell;
+  w->fs->i_dell=i_dell;
+  w->fs->n_ell=nell4;
+  w->fs->ell_min=my_malloc(sizeof(double)*w->fs->n_ell);
+  memcpy(w->fs->ell_min,f_ell,w->fs->n_ell*sizeof(double));
+  w->n_cells=my_malloc(sizeof(int)*nell4);
+  memcpy(w->n_cells,ells,nell4*sizeof(int));
+  w->bin=nmt_bins_flat_create(nlb1,beam1,beam2);
+  w->coupling_matrix_unbinned=my_malloc(ncl11*sizeof(double *));
+  for(ii=0;ii<ncl11;ii++) {
+    w->coupling_matrix_unbinned[ii]=my_malloc(nell11*sizeof(double));
+    memcpy(w->coupling_matrix_unbinned[ii], &(c11[ii*nell11]), nell11*sizeof(double));
+  }
+  w->coupling_matrix_binned=my_malloc(ncl12*sizeof(double *));
+  for(ii=0;ii<ncl12;ii++) {
+    w->coupling_matrix_binned[ii]=my_malloc(nell12*sizeof(double));
+    memcpy(w->coupling_matrix_binned[ii], &(c12[ii*nell12]), nell12*sizeof(double));
+  }
+  w->coupling_matrix_binned_gsl=gsl_matrix_alloc(ncl21,nell21);
+  for(ii=0;ii<ncl21;ii++) {
+    long jj,i0=ii*nell21;
+    for(jj=0;jj<nell21;jj++)
+      gsl_matrix_set(w->coupling_matrix_binned_gsl,ii,jj,c21[i0+jj]);
+  }
+  w->coupling_matrix_perm=gsl_permutation_alloc(nell1);
+  for(ii=0;ii<nell1;ii++)
+    w->coupling_matrix_perm->data[ii]=bpws[ii];
+
+  return w;     
 }
 
 void write_workspace_flat(nmt_workspace_flat *w,char *fname)

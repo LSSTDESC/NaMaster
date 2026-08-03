@@ -350,9 +350,6 @@ def covar_workspace_flat_init(fla1, fla2, ba, flb1, flb2, bb):
 def compute_gaussian_covariance_flat(cw, spin_a, spin_b, spin_c, spin_d, wa, wb, nl, larr, clac, clad, clbc, clbd, covar_out):
     return _nmtlib.compute_gaussian_covariance_flat(cw, spin_a, spin_b, spin_c, spin_d, wa, wb, nl, larr, clac, clad, clbc, clbd, covar_out)
 
-def workspace_flat_read_fits(fname):
-    return _nmtlib.workspace_flat_read_fits(fname)
-
 def workspace_flat_write_fits(w, fname):
     return _nmtlib.workspace_flat_write_fits(w, fname)
 
@@ -443,8 +440,8 @@ def comp_general_coupling_matrix(s1, s2, n1, n2, parity, lmax, nell4, dout):
 def comp_coupling_matrix_flat(fl1, fl2, bin, lmn_x, lmx_x, lmn_y, lmx_y, is_teb):
     return _nmtlib.comp_coupling_matrix_flat(fl1, fl2, bin, lmn_x, lmx_x, lmn_y, lmx_y, is_teb)
 
-def read_workspace_flat(fname):
-    return _nmtlib.read_workspace_flat(fname)
+def workspace_flat_from_data(ncls, lmax, lcut_x_i, lcut_x_f, lcut_y_i, lcut_y_f, pe1, pe2, pb1, pb2, is_teb, nell2, nx, ny, npix, lx, ly, pixsize, dell, i_dell, nell4, nlb1, nlb2, ncl11, ncl12, ncl21, nell1):
+    return _nmtlib.workspace_flat_from_data(ncls, lmax, lcut_x_i, lcut_x_f, lcut_y_i, lcut_y_f, pe1, pe2, pb1, pb2, is_teb, nell2, nx, ny, npix, lx, ly, pixsize, dell, i_dell, nell4, nlb1, nlb2, ncl11, ncl12, ncl21, nell1)
 
 def write_workspace_flat(w, fname):
     return _nmtlib.write_workspace_flat(w, fname)

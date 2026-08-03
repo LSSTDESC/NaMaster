@@ -252,7 +252,7 @@ def test_workspace_flat_io():
     assert WT.msk.shape == (w.wsp.fs.ny, w.wsp.fs.nx)
     with pytest.raises(RuntimeError):  # Can't write on that file
         w.write_to("tests/wspc.fits")
-    with pytest.raises(RuntimeError):  # File doesn't exist
+    with pytest.raises(OSError):  # File doesn't exist
         w.read_from("none")
 
 

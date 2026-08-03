@@ -772,7 +772,62 @@ class NmtWorkspaceFlat(object):
         if self.wsp is not None:
             lib.workspace_flat_free(self.wsp)
             self.wsp = None
-        self.wsp = lib.read_workspace_flat(fname)
+
+        import fitsio as fts
+        f = fts.FITS(fname)
+
+        # Workspace info
+        h = f['WSP_PRIMARY'].read_header()
+        lmax = h['LMAX']
+        lcut_X_I = h['ELLCUT_X_I']
+        lcut_X_F = h['ELLCUT_X_F']
+        lcut_Y_I = h['ELLCUT_Y_I']
+        lcut_Y_F = h['ELLCUT_Y_F']
+        pure_e1 = h['PURE_E1']
+        pure_e2 = h['PURE_E2']
+        pure_b1 = h['PURE_B1']
+        pure_b2 = h['PURE_B2']
+        is_teb = h['IS_TEB']
+        ncls = h['NCLS']
+        mcm = f['WSP_PRIMARY'].read()
+
+        # Flatsky info
+        h = f['FS_INFO'].read_header()
+        nx = h['NX']
+        ny = h['NY']
+        npix = h['NPIX']
+        lx = h['LX']
+        ly = h['LY']
+        pixsize = h['PIXSIZE']
+        dell = h['DELL']
+        i_dell = h['I_DELL']
+        lmin = f['FS_INFO'].read()['L_MIN']
+
+        # N_cells
+        n_cells = f['N_CELLS'].read()['N_CELLS']
+
+        # Binned mcm
+        mcm_binned = d = f['MCM_BINNED'].read()
+        mcm_binned_gsl = f['MCM_BINNED_GSL'].read()
+        mcm_perm = f['MCM_PERM'].read()
+
+        # Binning
+        d = f['BINS_SUMMARY'].read()
+        ell_0 = d['ELL_0']
+        ell_f = d['ELL_F']
+
+        f.close()
+
+        self.wsp = lib.workspace_flat_from_data(
+            int(ncls), lmax,
+            lcut_X_I, lcut_X_F,
+            lcut_Y_I, lcut_Y_F,
+            int(pure_e1), int(pure_e2),
+            int(pure_b1), int(pure_b2), int(is_teb),
+            n_cells,
+            int(nx), int(ny), npix, lx, ly, pixsize, dell, i_dell,
+            lmin, ell_0, ell_f,
+            mcm, mcm_binned, mcm_binned_gsl, mcm_perm)
 
     def compute_coupling_matrix(self, fl1, fl2, bins, ell_cut_x=[1., -1.],
                                 ell_cut_y=[1., -1.], is_teb=False):
