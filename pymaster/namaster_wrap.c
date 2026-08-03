@@ -3617,13 +3617,13 @@ void wsp_flat_get_fs_ellmin(nmt_workspace_flat *w,
   memcpy(dout,w->fs->ell_min,ndout*sizeof(double));
 }
 
-void wsp_flat_get_bin_ls(nmt_workspace_flat *w,
-			 double *dout,int ndout)
+void bins_flat_get_ls(nmt_binning_scheme_flat *bin,
+		      double *dout,int ndout)
 {
-  asserting(ndout==2*w->bin->n_bands);
-  memcpy(dout,w->bin->ell_0_list,w->bin->n_bands*sizeof(double));
-  memcpy(&(dout[w->bin->n_bands]),
-	 w->bin->ell_f_list,w->bin->n_bands*sizeof(double));
+  asserting(ndout==2*bin->n_bands);
+  memcpy(dout,bin->ell_0_list,bin->n_bands*sizeof(double));
+  memcpy(&(dout[bin->n_bands]),
+	 bin->ell_f_list,bin->n_bands*sizeof(double));
 }
 
 void wsp_flat_get_lcuts(nmt_workspace_flat *w,
@@ -3634,11 +3634,6 @@ void wsp_flat_get_lcuts(nmt_workspace_flat *w,
   dout[1]=w->ellcut_x[1];
   dout[2]=w->ellcut_y[0];
   dout[3]=w->ellcut_y[1];
-}
-
-void write_workspace_flat(nmt_workspace_flat *w,char *fname)
-{
-  nmt_workspace_flat_write_fits(w,fname);
 }
 
 void comp_deproj_bias_flat(nmt_field_flat *fl1,nmt_field_flat *fl2,
@@ -3666,14 +3661,108 @@ void comp_deproj_bias_flat(nmt_field_flat *fl1,nmt_field_flat *fl2,
   free(cl_guess);
 }
 
-void write_covar_workspace_flat(nmt_covar_workspace_flat *cw,char *fname)
+void cwsp_flat_get_xi(nmt_covar_workspace_flat *cw,
+		      int xi_type,double *ldout,long nldout)
 {
-  nmt_covar_workspace_flat_write_fits(cw,fname);
+  int ii,nband=cw->bin->n_bands;
+  double **xi=NULL;
+
+  asserting(nldout==nband*nband);
+
+  if(xi_type==0)
+    xi=cw->xi00_1122;
+  else if(xi_type==1)
+    xi=cw->xi00_1221;
+  else if(xi_type==2)
+    xi=cw->xi02_1122;
+  else if(xi_type==3)
+    xi=cw->xi02_1221;
+  else if(xi_type==4)
+    xi=cw->xi22p_1122;
+  else if(xi_type==5)
+    xi=cw->xi22p_1221;
+  else if(xi_type==6)
+    xi=cw->xi22m_1122;
+  else if(xi_type==7)
+    xi=cw->xi22m_1221;
+  for(ii=0;ii<nband;ii++)
+    memcpy(&(ldout[ii*nband]), xi[ii], nband*sizeof(double));
 }
 
-nmt_covar_workspace_flat *read_covar_workspace_flat(char *fname)
+nmt_covar_workspace_flat *covar_workspace_flat_from_data(int nlb1,double *beam1, // bin.l0
+							 int nlb2,double *beam2, // bin.lf
+							 int ncl11,int nell11,double *c11, //00_1122
+							 int ncl12,int nell12,double *c12, //00_1221
+							 int ncl21,int nell21,double *c21, //02_1122
+							 int ncl22,int nell22,double *c22, //02_1221
+							 int ncl1,int nell1,double *cls1, //22P_1122
+							 int ncl2,int nell2,double *cls2, //22P_1221
+							 int ncl3,int nell3,double *cls3, //22M_1122
+							 int nl1,int ncell1,double *cell1) //22M_1221
 {
-  return nmt_covar_workspace_flat_read_fits(fname);
+  int ii,nband=nlb1;
+  asserting(nlb2==nband);
+  asserting(ncl11==nband);
+  asserting(nell11==nband);
+  asserting(ncl12==nband);
+  asserting(nell12==nband);
+  asserting(ncl21==nband);
+  asserting(nell21==nband);
+  asserting(ncl22==nband);
+  asserting(nell22==nband);
+  asserting(ncl1==nband);
+  asserting(nell1==nband);
+  asserting(ncl2==nband);
+  asserting(nell2==nband);
+  asserting(ncl3==nband);
+  asserting(nell3==nband);
+  asserting(nl1==nband);
+  asserting(ncell1==nband);
+
+  nmt_covar_workspace_flat *cw=my_malloc(sizeof(nmt_workspace_flat));
+  cw->bin=nmt_bins_flat_create(nlb1,beam1,beam2);
+  cw->xi00_1122=my_malloc(nband*sizeof(double *));
+  for(ii=0;ii<nband;ii++) {
+    cw->xi00_1122[ii]=my_malloc(nband*sizeof(double));
+    memcpy(cw->xi00_1122[ii], &(c11[ii*nband]), nband*sizeof(double));
+  }
+  cw->xi00_1221=my_malloc(nband*sizeof(double *));
+  for(ii=0;ii<nband;ii++) {
+    cw->xi00_1221[ii]=my_malloc(nband*sizeof(double));
+    memcpy(cw->xi00_1221[ii], &(c12[ii*nband]), nband*sizeof(double));
+  }
+  cw->xi02_1122=my_malloc(nband*sizeof(double *));
+  for(ii=0;ii<nband;ii++) {
+    cw->xi02_1122[ii]=my_malloc(nband*sizeof(double));
+    memcpy(cw->xi02_1122[ii], &(c21[ii*nband]), nband*sizeof(double));
+  }
+  cw->xi02_1221=my_malloc(nband*sizeof(double *));
+  for(ii=0;ii<nband;ii++) {
+    cw->xi02_1221[ii]=my_malloc(nband*sizeof(double));
+    memcpy(cw->xi02_1221[ii], &(c22[ii*nband]), nband*sizeof(double));
+  }
+  cw->xi22p_1122=my_malloc(nband*sizeof(double *));
+  for(ii=0;ii<nband;ii++) {
+    cw->xi22p_1122[ii]=my_malloc(nband*sizeof(double));
+    memcpy(cw->xi22p_1122[ii], &(cls1[ii*nband]), nband*sizeof(double));
+  }
+  cw->xi22p_1221=my_malloc(nband*sizeof(double *));
+  for(ii=0;ii<nband;ii++) {
+    cw->xi22p_1221[ii]=my_malloc(nband*sizeof(double));
+    memcpy(cw->xi22p_1221[ii], &(cls2[ii*nband]), nband*sizeof(double));
+  }
+  cw->xi22m_1122=my_malloc(nband*sizeof(double *));
+  for(ii=0;ii<nband;ii++) {
+    cw->xi22m_1122[ii]=my_malloc(nband*sizeof(double));
+    memcpy(cw->xi22m_1122[ii], &(cls3[ii*nband]), nband*sizeof(double));
+  }
+  cw->xi22m_1221=my_malloc(nband*sizeof(double *));
+  for(ii=0;ii<nband;ii++) {
+    cw->xi22m_1221[ii]=my_malloc(nband*sizeof(double));
+    memcpy(cw->xi22m_1221[ii], &(cell1[ii*nband]), nband*sizeof(double));
+  }
+
+  return cw;
 }
 
 nmt_covar_workspace_flat *covar_workspace_flat_init_py(nmt_field_flat *fa1,nmt_field_flat *fa2,
@@ -11373,96 +11462,6 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_workspace_flat_write_fits(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
-  PyObject *resultobj = 0;
-  nmt_workspace_flat *arg1 = (nmt_workspace_flat *) 0 ;
-  char *arg2 = (char *) 0 ;
-  void *argp1 = 0 ;
-  int res1 = 0 ;
-  int res2 ;
-  char *buf2 = 0 ;
-  int alloc2 = 0 ;
-  PyObject *swig_obj[2] ;
-  
-  if (!SWIG_Python_UnpackTuple(args, "workspace_flat_write_fits", 2, 2, swig_obj)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_nmt_workspace_flat, 0 |  0 );
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "workspace_flat_write_fits" "', argument " "1"" of type '" "nmt_workspace_flat *""'"); 
-  }
-  arg1 = (nmt_workspace_flat *)(argp1);
-  res2 = SWIG_AsCharPtrAndSize(swig_obj[1], &buf2, NULL, &alloc2);
-  if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "workspace_flat_write_fits" "', argument " "2"" of type '" "char *""'");
-  }
-  arg2 = (char *)(buf2);
-  nmt_workspace_flat_write_fits(arg1,arg2);
-  resultobj = SWIG_Py_Void();
-  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
-  return resultobj;
-fail:
-  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
-  return NULL;
-}
-
-
-SWIGINTERN PyObject *_wrap_covar_workspace_flat_write_fits(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
-  PyObject *resultobj = 0;
-  nmt_covar_workspace_flat *arg1 = (nmt_covar_workspace_flat *) 0 ;
-  char *arg2 = (char *) 0 ;
-  void *argp1 = 0 ;
-  int res1 = 0 ;
-  int res2 ;
-  char *buf2 = 0 ;
-  int alloc2 = 0 ;
-  PyObject *swig_obj[2] ;
-  
-  if (!SWIG_Python_UnpackTuple(args, "covar_workspace_flat_write_fits", 2, 2, swig_obj)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_nmt_covar_workspace_flat, 0 |  0 );
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "covar_workspace_flat_write_fits" "', argument " "1"" of type '" "nmt_covar_workspace_flat *""'"); 
-  }
-  arg1 = (nmt_covar_workspace_flat *)(argp1);
-  res2 = SWIG_AsCharPtrAndSize(swig_obj[1], &buf2, NULL, &alloc2);
-  if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "covar_workspace_flat_write_fits" "', argument " "2"" of type '" "char *""'");
-  }
-  arg2 = (char *)(buf2);
-  nmt_covar_workspace_flat_write_fits(arg1,arg2);
-  resultobj = SWIG_Py_Void();
-  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
-  return resultobj;
-fail:
-  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
-  return NULL;
-}
-
-
-SWIGINTERN PyObject *_wrap_covar_workspace_flat_read_fits(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
-  PyObject *resultobj = 0;
-  char *arg1 = (char *) 0 ;
-  int res1 ;
-  char *buf1 = 0 ;
-  int alloc1 = 0 ;
-  PyObject *swig_obj[1] ;
-  nmt_covar_workspace_flat *result = 0 ;
-  
-  if (!args) SWIG_fail;
-  swig_obj[0] = args;
-  res1 = SWIG_AsCharPtrAndSize(swig_obj[0], &buf1, NULL, &alloc1);
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "covar_workspace_flat_read_fits" "', argument " "1"" of type '" "char *""'");
-  }
-  arg1 = (char *)(buf1);
-  result = (nmt_covar_workspace_flat *)nmt_covar_workspace_flat_read_fits(arg1);
-  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_nmt_covar_workspace_flat, 0 |  0 );
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
-  return resultobj;
-fail:
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
-  return NULL;
-}
-
-
 SWIGINTERN PyObject *_wrap_get_xis(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   int arg1 ;
@@ -14774,9 +14773,9 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_wsp_flat_get_bin_ls(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_bins_flat_get_ls(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  nmt_workspace_flat *arg1 = (nmt_workspace_flat *) 0 ;
+  nmt_binning_scheme_flat *arg1 = (nmt_binning_scheme_flat *) 0 ;
   double *arg2 = (double *) 0 ;
   int arg3 ;
   void *argp1 = 0 ;
@@ -14784,12 +14783,12 @@ SWIGINTERN PyObject *_wrap_wsp_flat_get_bin_ls(PyObject *SWIGUNUSEDPARM(self), P
   PyObject *array2 = NULL ;
   PyObject *swig_obj[2] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "wsp_flat_get_bin_ls", 2, 2, swig_obj)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_nmt_workspace_flat, 0 |  0 );
+  if (!SWIG_Python_UnpackTuple(args, "bins_flat_get_ls", 2, 2, swig_obj)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_nmt_binning_scheme_flat, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "wsp_flat_get_bin_ls" "', argument " "1"" of type '" "nmt_workspace_flat *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "bins_flat_get_ls" "', argument " "1"" of type '" "nmt_binning_scheme_flat *""'"); 
   }
-  arg1 = (nmt_workspace_flat *)(argp1);
+  arg1 = (nmt_binning_scheme_flat *)(argp1);
   {
     npy_intp dims[1];
     if (!PyInt_Check(swig_obj[1]))
@@ -14808,7 +14807,7 @@ SWIGINTERN PyObject *_wrap_wsp_flat_get_bin_ls(PyObject *SWIGUNUSEDPARM(self), P
   }
   {
     try {
-      wsp_flat_get_bin_ls(arg1,arg2,arg3);
+      bins_flat_get_ls(arg1,arg2,arg3);
     }
     finally {
       SWIG_exception(SWIG_RuntimeError,nmt_error_message);
@@ -14870,45 +14869,6 @@ SWIGINTERN PyObject *_wrap_wsp_flat_get_lcuts(PyObject *SWIGUNUSEDPARM(self), Py
   }
   return resultobj;
 fail:
-  return NULL;
-}
-
-
-SWIGINTERN PyObject *_wrap_write_workspace_flat(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
-  PyObject *resultobj = 0;
-  nmt_workspace_flat *arg1 = (nmt_workspace_flat *) 0 ;
-  char *arg2 = (char *) 0 ;
-  void *argp1 = 0 ;
-  int res1 = 0 ;
-  int res2 ;
-  char *buf2 = 0 ;
-  int alloc2 = 0 ;
-  PyObject *swig_obj[2] ;
-  
-  if (!SWIG_Python_UnpackTuple(args, "write_workspace_flat", 2, 2, swig_obj)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_nmt_workspace_flat, 0 |  0 );
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "write_workspace_flat" "', argument " "1"" of type '" "nmt_workspace_flat *""'"); 
-  }
-  arg1 = (nmt_workspace_flat *)(argp1);
-  res2 = SWIG_AsCharPtrAndSize(swig_obj[1], &buf2, NULL, &alloc2);
-  if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "write_workspace_flat" "', argument " "2"" of type '" "char *""'");
-  }
-  arg2 = (char *)(buf2);
-  {
-    try {
-      write_workspace_flat(arg1,arg2);
-    }
-    finally {
-      SWIG_exception(SWIG_RuntimeError,nmt_error_message);
-    }
-  }
-  resultobj = SWIG_Py_Void();
-  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
-  return resultobj;
-fail:
-  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
   return NULL;
 }
 
@@ -15069,74 +15029,377 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_write_covar_workspace_flat(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_cwsp_flat_get_xi(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   nmt_covar_workspace_flat *arg1 = (nmt_covar_workspace_flat *) 0 ;
-  char *arg2 = (char *) 0 ;
+  int arg2 ;
+  double *arg3 = (double *) 0 ;
+  long arg4 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
-  int res2 ;
-  char *buf2 = 0 ;
-  int alloc2 = 0 ;
-  PyObject *swig_obj[2] ;
+  int val2 ;
+  int ecode2 = 0 ;
+  PyObject *array3 = NULL ;
+  PyObject *swig_obj[3] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "write_covar_workspace_flat", 2, 2, swig_obj)) SWIG_fail;
+  if (!SWIG_Python_UnpackTuple(args, "cwsp_flat_get_xi", 3, 3, swig_obj)) SWIG_fail;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_nmt_covar_workspace_flat, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "write_covar_workspace_flat" "', argument " "1"" of type '" "nmt_covar_workspace_flat *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "cwsp_flat_get_xi" "', argument " "1"" of type '" "nmt_covar_workspace_flat *""'"); 
   }
   arg1 = (nmt_covar_workspace_flat *)(argp1);
-  res2 = SWIG_AsCharPtrAndSize(swig_obj[1], &buf2, NULL, &alloc2);
-  if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "write_covar_workspace_flat" "', argument " "2"" of type '" "char *""'");
+  ecode2 = SWIG_AsVal_int(swig_obj[1], &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "cwsp_flat_get_xi" "', argument " "2"" of type '" "int""'");
+  } 
+  arg2 = (int)(val2);
+  {
+    npy_intp dims[1];
+    if (!PyInt_Check(swig_obj[2]))
+    {
+      const char* typestring = pytype_string(swig_obj[2]);
+      PyErr_Format(PyExc_TypeError,
+        "Int dimension expected.  '%s' given.",
+        typestring);
+      SWIG_fail;
+    }
+    arg4 = (long) PyInt_AsLong(swig_obj[2]);
+    dims[0] = (npy_intp) arg4;
+    array3 = PyArray_SimpleNew(1, dims, NPY_DOUBLE);
+    if (!array3) SWIG_fail;
+    arg3 = (double*) array_data(array3);
   }
-  arg2 = (char *)(buf2);
   {
     try {
-      write_covar_workspace_flat(arg1,arg2);
+      cwsp_flat_get_xi(arg1,arg2,arg3,arg4);
     }
     finally {
       SWIG_exception(SWIG_RuntimeError,nmt_error_message);
     }
   }
   resultobj = SWIG_Py_Void();
-  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
+  {
+    resultobj = SWIG_Python_AppendOutput(resultobj,(PyObject*)array3);
+  }
   return resultobj;
 fail:
-  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
   return NULL;
 }
 
 
-SWIGINTERN PyObject *_wrap_read_covar_workspace_flat(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_covar_workspace_flat_from_data(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  char *arg1 = (char *) 0 ;
-  int res1 ;
-  char *buf1 = 0 ;
-  int alloc1 = 0 ;
-  PyObject *swig_obj[1] ;
+  int arg1 ;
+  double *arg2 = (double *) 0 ;
+  int arg3 ;
+  double *arg4 = (double *) 0 ;
+  int arg5 ;
+  int arg6 ;
+  double *arg7 = (double *) 0 ;
+  int arg8 ;
+  int arg9 ;
+  double *arg10 = (double *) 0 ;
+  int arg11 ;
+  int arg12 ;
+  double *arg13 = (double *) 0 ;
+  int arg14 ;
+  int arg15 ;
+  double *arg16 = (double *) 0 ;
+  int arg17 ;
+  int arg18 ;
+  double *arg19 = (double *) 0 ;
+  int arg20 ;
+  int arg21 ;
+  double *arg22 = (double *) 0 ;
+  int arg23 ;
+  int arg24 ;
+  double *arg25 = (double *) 0 ;
+  int arg26 ;
+  int arg27 ;
+  double *arg28 = (double *) 0 ;
+  PyArrayObject *array1 = NULL ;
+  int is_new_object1 = 0 ;
+  PyArrayObject *array3 = NULL ;
+  int is_new_object3 = 0 ;
+  PyArrayObject *array5 = NULL ;
+  int is_new_object5 = 0 ;
+  PyArrayObject *array8 = NULL ;
+  int is_new_object8 = 0 ;
+  PyArrayObject *array11 = NULL ;
+  int is_new_object11 = 0 ;
+  PyArrayObject *array14 = NULL ;
+  int is_new_object14 = 0 ;
+  PyArrayObject *array17 = NULL ;
+  int is_new_object17 = 0 ;
+  PyArrayObject *array20 = NULL ;
+  int is_new_object20 = 0 ;
+  PyArrayObject *array23 = NULL ;
+  int is_new_object23 = 0 ;
+  PyArrayObject *array26 = NULL ;
+  int is_new_object26 = 0 ;
+  PyObject *swig_obj[10] ;
   nmt_covar_workspace_flat *result = 0 ;
   
-  if (!args) SWIG_fail;
-  swig_obj[0] = args;
-  res1 = SWIG_AsCharPtrAndSize(swig_obj[0], &buf1, NULL, &alloc1);
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "read_covar_workspace_flat" "', argument " "1"" of type '" "char *""'");
+  if (!SWIG_Python_UnpackTuple(args, "covar_workspace_flat_from_data", 10, 10, swig_obj)) SWIG_fail;
+  {
+    npy_intp size[1] = {
+      -1
+    };
+    array1 = obj_to_array_contiguous_allow_conversion(swig_obj[0],
+      NPY_DOUBLE,
+      &is_new_object1);
+    if (!array1 || !require_dimensions(array1, 1) ||
+      !require_size(array1, size, 1)) SWIG_fail;
+    arg1 = (int) array_size(array1,0);
+    arg2 = (double*) array_data(array1);
   }
-  arg1 = (char *)(buf1);
+  {
+    npy_intp size[1] = {
+      -1
+    };
+    array3 = obj_to_array_contiguous_allow_conversion(swig_obj[1],
+      NPY_DOUBLE,
+      &is_new_object3);
+    if (!array3 || !require_dimensions(array3, 1) ||
+      !require_size(array3, size, 1)) SWIG_fail;
+    arg3 = (int) array_size(array3,0);
+    arg4 = (double*) array_data(array3);
+  }
+  {
+    npy_intp size[2] = {
+      -1, -1 
+    };
+    array5 = obj_to_array_contiguous_allow_conversion(swig_obj[2],
+      NPY_DOUBLE,
+      &is_new_object5);
+    if (!array5 || !require_dimensions(array5, 2) ||
+      !require_size(array5, size, 2)) SWIG_fail;
+    arg5 = (int) array_size(array5,0);
+    arg6 = (int) array_size(array5,1);
+    arg7 = (double*) array_data(array5);
+  }
+  {
+    npy_intp size[2] = {
+      -1, -1 
+    };
+    array8 = obj_to_array_contiguous_allow_conversion(swig_obj[3],
+      NPY_DOUBLE,
+      &is_new_object8);
+    if (!array8 || !require_dimensions(array8, 2) ||
+      !require_size(array8, size, 2)) SWIG_fail;
+    arg8 = (int) array_size(array8,0);
+    arg9 = (int) array_size(array8,1);
+    arg10 = (double*) array_data(array8);
+  }
+  {
+    npy_intp size[2] = {
+      -1, -1 
+    };
+    array11 = obj_to_array_contiguous_allow_conversion(swig_obj[4],
+      NPY_DOUBLE,
+      &is_new_object11);
+    if (!array11 || !require_dimensions(array11, 2) ||
+      !require_size(array11, size, 2)) SWIG_fail;
+    arg11 = (int) array_size(array11,0);
+    arg12 = (int) array_size(array11,1);
+    arg13 = (double*) array_data(array11);
+  }
+  {
+    npy_intp size[2] = {
+      -1, -1 
+    };
+    array14 = obj_to_array_contiguous_allow_conversion(swig_obj[5],
+      NPY_DOUBLE,
+      &is_new_object14);
+    if (!array14 || !require_dimensions(array14, 2) ||
+      !require_size(array14, size, 2)) SWIG_fail;
+    arg14 = (int) array_size(array14,0);
+    arg15 = (int) array_size(array14,1);
+    arg16 = (double*) array_data(array14);
+  }
+  {
+    npy_intp size[2] = {
+      -1, -1 
+    };
+    array17 = obj_to_array_contiguous_allow_conversion(swig_obj[6],
+      NPY_DOUBLE,
+      &is_new_object17);
+    if (!array17 || !require_dimensions(array17, 2) ||
+      !require_size(array17, size, 2)) SWIG_fail;
+    arg17 = (int) array_size(array17,0);
+    arg18 = (int) array_size(array17,1);
+    arg19 = (double*) array_data(array17);
+  }
+  {
+    npy_intp size[2] = {
+      -1, -1 
+    };
+    array20 = obj_to_array_contiguous_allow_conversion(swig_obj[7],
+      NPY_DOUBLE,
+      &is_new_object20);
+    if (!array20 || !require_dimensions(array20, 2) ||
+      !require_size(array20, size, 2)) SWIG_fail;
+    arg20 = (int) array_size(array20,0);
+    arg21 = (int) array_size(array20,1);
+    arg22 = (double*) array_data(array20);
+  }
+  {
+    npy_intp size[2] = {
+      -1, -1 
+    };
+    array23 = obj_to_array_contiguous_allow_conversion(swig_obj[8],
+      NPY_DOUBLE,
+      &is_new_object23);
+    if (!array23 || !require_dimensions(array23, 2) ||
+      !require_size(array23, size, 2)) SWIG_fail;
+    arg23 = (int) array_size(array23,0);
+    arg24 = (int) array_size(array23,1);
+    arg25 = (double*) array_data(array23);
+  }
+  {
+    npy_intp size[2] = {
+      -1, -1 
+    };
+    array26 = obj_to_array_contiguous_allow_conversion(swig_obj[9],
+      NPY_DOUBLE,
+      &is_new_object26);
+    if (!array26 || !require_dimensions(array26, 2) ||
+      !require_size(array26, size, 2)) SWIG_fail;
+    arg26 = (int) array_size(array26,0);
+    arg27 = (int) array_size(array26,1);
+    arg28 = (double*) array_data(array26);
+  }
   {
     try {
-      result = (nmt_covar_workspace_flat *)read_covar_workspace_flat(arg1);
+      result = (nmt_covar_workspace_flat *)covar_workspace_flat_from_data(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13,arg14,arg15,arg16,arg17,arg18,arg19,arg20,arg21,arg22,arg23,arg24,arg25,arg26,arg27,arg28);
     }
     finally {
       SWIG_exception(SWIG_RuntimeError,nmt_error_message);
     }
   }
   resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_nmt_covar_workspace_flat, 0 |  0 );
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
+  {
+    if (is_new_object1 && array1)
+    {
+      Py_DECREF(array1); 
+    }
+  }
+  {
+    if (is_new_object3 && array3)
+    {
+      Py_DECREF(array3); 
+    }
+  }
+  {
+    if (is_new_object5 && array5)
+    {
+      Py_DECREF(array5); 
+    }
+  }
+  {
+    if (is_new_object8 && array8)
+    {
+      Py_DECREF(array8); 
+    }
+  }
+  {
+    if (is_new_object11 && array11)
+    {
+      Py_DECREF(array11); 
+    }
+  }
+  {
+    if (is_new_object14 && array14)
+    {
+      Py_DECREF(array14); 
+    }
+  }
+  {
+    if (is_new_object17 && array17)
+    {
+      Py_DECREF(array17); 
+    }
+  }
+  {
+    if (is_new_object20 && array20)
+    {
+      Py_DECREF(array20); 
+    }
+  }
+  {
+    if (is_new_object23 && array23)
+    {
+      Py_DECREF(array23); 
+    }
+  }
+  {
+    if (is_new_object26 && array26)
+    {
+      Py_DECREF(array26); 
+    }
+  }
   return resultobj;
 fail:
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
+  {
+    if (is_new_object1 && array1)
+    {
+      Py_DECREF(array1); 
+    }
+  }
+  {
+    if (is_new_object3 && array3)
+    {
+      Py_DECREF(array3); 
+    }
+  }
+  {
+    if (is_new_object5 && array5)
+    {
+      Py_DECREF(array5); 
+    }
+  }
+  {
+    if (is_new_object8 && array8)
+    {
+      Py_DECREF(array8); 
+    }
+  }
+  {
+    if (is_new_object11 && array11)
+    {
+      Py_DECREF(array11); 
+    }
+  }
+  {
+    if (is_new_object14 && array14)
+    {
+      Py_DECREF(array14); 
+    }
+  }
+  {
+    if (is_new_object17 && array17)
+    {
+      Py_DECREF(array17); 
+    }
+  }
+  {
+    if (is_new_object20 && array20)
+    {
+      Py_DECREF(array20); 
+    }
+  }
+  {
+    if (is_new_object23 && array23)
+    {
+      Py_DECREF(array23); 
+    }
+  }
+  {
+    if (is_new_object26 && array26)
+    {
+      Py_DECREF(array26); 
+    }
+  }
   return NULL;
 }
 
@@ -16285,9 +16548,6 @@ static PyMethodDef SwigMethods[] = {
 	 { "covar_workspace_flat_free", _wrap_covar_workspace_flat_free, METH_O, NULL},
 	 { "covar_workspace_flat_init", _wrap_covar_workspace_flat_init, METH_VARARGS, NULL},
 	 { "compute_gaussian_covariance_flat", _wrap_compute_gaussian_covariance_flat, METH_VARARGS, NULL},
-	 { "workspace_flat_write_fits", _wrap_workspace_flat_write_fits, METH_VARARGS, NULL},
-	 { "covar_workspace_flat_write_fits", _wrap_covar_workspace_flat_write_fits, METH_VARARGS, NULL},
-	 { "covar_workspace_flat_read_fits", _wrap_covar_workspace_flat_read_fits, METH_O, NULL},
 	 { "get_xis", _wrap_get_xis, METH_VARARGS, NULL},
 	 { "get_nell_list", _wrap_get_nell_list, METH_VARARGS, NULL},
 	 { "get_nell", _wrap_get_nell, METH_VARARGS, NULL},
@@ -16320,12 +16580,11 @@ static PyMethodDef SwigMethods[] = {
 	 { "wsp_flat_get_mcm", _wrap_wsp_flat_get_mcm, METH_VARARGS, NULL},
 	 { "wsp_flat_get_perm", _wrap_wsp_flat_get_perm, METH_VARARGS, NULL},
 	 { "wsp_flat_get_fs_ellmin", _wrap_wsp_flat_get_fs_ellmin, METH_VARARGS, NULL},
-	 { "wsp_flat_get_bin_ls", _wrap_wsp_flat_get_bin_ls, METH_VARARGS, NULL},
+	 { "bins_flat_get_ls", _wrap_bins_flat_get_ls, METH_VARARGS, NULL},
 	 { "wsp_flat_get_lcuts", _wrap_wsp_flat_get_lcuts, METH_VARARGS, NULL},
-	 { "write_workspace_flat", _wrap_write_workspace_flat, METH_VARARGS, NULL},
 	 { "comp_deproj_bias_flat", _wrap_comp_deproj_bias_flat, METH_VARARGS, NULL},
-	 { "write_covar_workspace_flat", _wrap_write_covar_workspace_flat, METH_VARARGS, NULL},
-	 { "read_covar_workspace_flat", _wrap_read_covar_workspace_flat, METH_O, NULL},
+	 { "cwsp_flat_get_xi", _wrap_cwsp_flat_get_xi, METH_VARARGS, NULL},
+	 { "covar_workspace_flat_from_data", _wrap_covar_workspace_flat_from_data, METH_VARARGS, NULL},
 	 { "covar_workspace_flat_init_py", _wrap_covar_workspace_flat_init_py, METH_VARARGS, NULL},
 	 { "comp_gaussian_covariance_flat", _wrap_comp_gaussian_covariance_flat, METH_VARARGS, NULL},
 	 { "comp_pspec_coupled_flat", _wrap_comp_pspec_coupled_flat, METH_VARARGS, NULL},

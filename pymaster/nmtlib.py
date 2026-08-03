@@ -350,15 +350,6 @@ def covar_workspace_flat_init(fla1, fla2, ba, flb1, flb2, bb):
 def compute_gaussian_covariance_flat(cw, spin_a, spin_b, spin_c, spin_d, wa, wb, nl, larr, clac, clad, clbc, clbd, covar_out):
     return _nmtlib.compute_gaussian_covariance_flat(cw, spin_a, spin_b, spin_c, spin_d, wa, wb, nl, larr, clac, clad, clbc, clbd, covar_out)
 
-def workspace_flat_write_fits(w, fname):
-    return _nmtlib.workspace_flat_write_fits(w, fname)
-
-def covar_workspace_flat_write_fits(cw, fname):
-    return _nmtlib.covar_workspace_flat_write_fits(cw, fname)
-
-def covar_workspace_flat_read_fits(fname):
-    return _nmtlib.covar_workspace_flat_read_fits(fname)
-
 def get_xis(lmax, lmax_mask, ncl1, s1, s2, pure_any, do_teb, l_toeplitz, l_exact, dl_band, ldout):
     return _nmtlib.get_xis(lmax, lmax_mask, ncl1, s1, s2, pure_any, do_teb, l_toeplitz, l_exact, dl_band, ldout)
 
@@ -455,23 +446,20 @@ def wsp_flat_get_perm(w, iout):
 def wsp_flat_get_fs_ellmin(w, dout):
     return _nmtlib.wsp_flat_get_fs_ellmin(w, dout)
 
-def wsp_flat_get_bin_ls(w, dout):
-    return _nmtlib.wsp_flat_get_bin_ls(w, dout)
+def bins_flat_get_ls(bin, dout):
+    return _nmtlib.bins_flat_get_ls(bin, dout)
 
 def wsp_flat_get_lcuts(w, dout):
     return _nmtlib.wsp_flat_get_lcuts(w, dout)
 
-def write_workspace_flat(w, fname):
-    return _nmtlib.write_workspace_flat(w, fname)
-
 def comp_deproj_bias_flat(fl1, fl2, bin, lmn_x, lmx_x, lmn_y, lmx_y, nell3, ncl1, dout):
     return _nmtlib.comp_deproj_bias_flat(fl1, fl2, bin, lmn_x, lmx_x, lmn_y, lmx_y, nell3, ncl1, dout)
 
-def write_covar_workspace_flat(cw, fname):
-    return _nmtlib.write_covar_workspace_flat(cw, fname)
+def cwsp_flat_get_xi(cw, xi_type, ldout):
+    return _nmtlib.cwsp_flat_get_xi(cw, xi_type, ldout)
 
-def read_covar_workspace_flat(fname):
-    return _nmtlib.read_covar_workspace_flat(fname)
+def covar_workspace_flat_from_data(nlb1, nlb2, ncl11, ncl12, ncl21, ncl22, ncl1, ncl2, ncl3, nl1):
+    return _nmtlib.covar_workspace_flat_from_data(nlb1, nlb2, ncl11, ncl12, ncl21, ncl22, ncl1, ncl2, ncl3, nl1)
 
 def covar_workspace_flat_init_py(fa1, fa2, ba, fb1, fb2, bb):
     return _nmtlib.covar_workspace_flat_init_py(fa1, fa2, ba, fb1, fb2, bb)

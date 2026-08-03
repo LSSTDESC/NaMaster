@@ -752,15 +752,93 @@ class NmtWorkspaceFlat(object):
     used in the flat-sky version of the MASTER algorithm. When initialized,
     this object is practically empty. The information describing the
     coupling matrix must be computed or read from a file afterwards.
+
+    Args:
+        fl1 (:class:`~pymaster.field.NmtFieldFlat`): First field to
+            correlate.
+        fl2 (:class:`~pymaster.field.NmtFieldFlat`): Second field to
+            correlate.
+        bin (:class:`~pymaster.bins.NmtBinFlat`): Binning scheme.
+        ell_cut_x (`array`): Sequence of two elements determining the
+            range of :math:`l_x` to remove from the calculation. No
+            Fourier modes removed by default.
+        ell_cut_y (`array`): Sequence of two elements determining the
+            range of :math:`l_y` to remove from the calculation. No
+            Fourier modes removed by default.
+        is_teb (:obj:`bool`): If ``True``, all mode-coupling matrices
+            (0-0,0-s,s-s) will be computed at the same time. In this
+            case, ``fl1`` must be a spin-0 field and ``fl2`` must be
+            spin-s.
+        fname (:obj:`str`): Input file name. If not `None`, this
+            workspace will be initialised from file, and the values
+            of ``fl1``, ``fl2``, and ``bin`` will be ignored.
     """
-    def __init__(self):
+    def __init__(self, fl1=None, fl2=None, bins=None, ell_cut_x=[1., -1.],
+                 ell_cut_y=[1., -1.], is_teb=False, fname=None):
         self.wsp = None
+
+        if ((fl1 is None) and (fl2 is None) and (bins is None) and
+                (fname is None)):
+            warnings.warn("The bare constructor for `NmtWorkspaceFlat` "
+                          "objects is deprecated and will be removed "
+                          "in future versions of NaMaster. Consider "
+                          "using the class methods "
+                          "`from_fields` and `from_file`, or pass "
+                          "the necessary arguments to the constructor.",
+                          category=DeprecationWarning)
+            return
+
+        if (fname is not None):
+            self.read_from(fname)
+            return
+
+        self.compute_coupling_matrix(fl1, fl2, bins, is_teb=is_teb,
+                                     ell_cut_x=ell_cut_x,
+                                     ell_cut_y=ell_cut_y)
 
     def __del__(self):
         if self.wsp is not None:
             if lib.workspace_flat_free is not None:
                 lib.workspace_flat_free(self.wsp)
             self.wsp = None
+
+    @classmethod
+    def from_fields(cls, fl1, fl2, bins, ell_cut_x=[1., -1.],
+                    ell_cut_y=[1., -1.], is_teb=False):
+        """ Creates an :obj:`NmtWorkspaceFlat` object containing the
+        mode-coupling matrix associated with the cross-power
+        spectrum of two :class:`~pymaster.field.NmtFieldFlat` s and an
+        :class:`~pymaster.bins.NmtBinFlat` binning scheme.
+
+        Args:
+            fl1 (:class:`~pymaster.field.NmtFieldFlat`): First field to
+                correlate.
+            fl2 (:class:`~pymaster.field.NmtFieldFlat`): Second field to
+                correlate.
+            bin (:class:`~pymaster.bins.NmtBinFlat`): Binning scheme.
+            ell_cut_x (`array`): Sequence of two elements determining the
+                range of :math:`l_x` to remove from the calculation. No
+                Fourier modes removed by default.
+            ell_cut_y (`array`): Sequence of two elements determining the
+                range of :math:`l_y` to remove from the calculation. No
+                Fourier modes removed by default.
+            is_teb (:obj:`bool`): If ``True``, all mode-coupling matrices
+                (0-0,0-s,s-s) will be computed at the same time. In this
+                case, ``fl1`` must be a spin-0 field and ``fl2`` must be
+                spin-s.
+        """
+        return cls(fl1=fl1, fl2=fl2, bins=bins, is_teb=is_teb,
+                   ell_cut_x=ell_cut_x, ell_cut_y=ell_cut_y)
+
+    @classmethod
+    def from_file(cls, fname):
+        """ Creates an :obj:`NmtWorkspaceFlat` object from a mode-coupling
+        matrix stored in a FITS file. See :meth:`write_to`.
+
+        Args:
+            fname (:obj:`str`): Input file name.
+        """
+        return cls(fname=fname)
 
     def read_from(self, fname):
         """ Reads the contents of an :obj:`NmtWorkspaceFlat` object from a
@@ -934,8 +1012,8 @@ class NmtWorkspaceFlat(object):
         mcm_perm = lib.wsp_flat_get_perm(self.wsp, ncls*nbands)
         f.write(mcm_perm, extname='MCM_PERM')
 
-        ell_0, ell_f = lib.wsp_flat_get_bin_ls(
-            self.wsp, 2*nbands).reshape([2, -1])
+        ell_0, ell_f = lib.bins_flat_get_ls(
+            self.wsp.bin, 2*nbands).reshape([2, -1])
         f.write([ell_0, ell_f], names=['ELL_0', 'ELL_F'],
                 extname='BINS_SUMMARY')
 

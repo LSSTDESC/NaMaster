@@ -663,13 +663,13 @@ void wsp_flat_get_fs_ellmin(nmt_workspace_flat *w,
   memcpy(dout,w->fs->ell_min,ndout*sizeof(double));
 }
 
-void wsp_flat_get_bin_ls(nmt_workspace_flat *w,
-			 double *dout,int ndout)
+void bins_flat_get_ls(nmt_binning_scheme_flat *bin,
+		      double *dout,int ndout)
 {
-  asserting(ndout==2*w->bin->n_bands);
-  memcpy(dout,w->bin->ell_0_list,w->bin->n_bands*sizeof(double));
-  memcpy(&(dout[w->bin->n_bands]),
-	 w->bin->ell_f_list,w->bin->n_bands*sizeof(double));
+  asserting(ndout==2*bin->n_bands);
+  memcpy(dout,bin->ell_0_list,bin->n_bands*sizeof(double));
+  memcpy(&(dout[bin->n_bands]),
+	 bin->ell_f_list,bin->n_bands*sizeof(double));
 }
 
 void wsp_flat_get_lcuts(nmt_workspace_flat *w,
@@ -707,14 +707,108 @@ void comp_deproj_bias_flat(nmt_field_flat *fl1,nmt_field_flat *fl2,
   free(cl_guess);
 }
 
-void write_covar_workspace_flat(nmt_covar_workspace_flat *cw,char *fname)
+void cwsp_flat_get_xi(nmt_covar_workspace_flat *cw,
+		      int xi_type,double *ldout,long nldout)
 {
-  nmt_covar_workspace_flat_write_fits(cw,fname);
+  int ii,nband=cw->bin->n_bands;
+  double **xi=NULL;
+
+  asserting(nldout==nband*nband);
+
+  if(xi_type==0)
+    xi=cw->xi00_1122;
+  else if(xi_type==1)
+    xi=cw->xi00_1221;
+  else if(xi_type==2)
+    xi=cw->xi02_1122;
+  else if(xi_type==3)
+    xi=cw->xi02_1221;
+  else if(xi_type==4)
+    xi=cw->xi22p_1122;
+  else if(xi_type==5)
+    xi=cw->xi22p_1221;
+  else if(xi_type==6)
+    xi=cw->xi22m_1122;
+  else if(xi_type==7)
+    xi=cw->xi22m_1221;
+  for(ii=0;ii<nband;ii++)
+    memcpy(&(ldout[ii*nband]), xi[ii], nband*sizeof(double));
 }
 
-nmt_covar_workspace_flat *read_covar_workspace_flat(char *fname)
+nmt_covar_workspace_flat *covar_workspace_flat_from_data(int nlb1,double *beam1, // bin.l0
+							 int nlb2,double *beam2, // bin.lf
+							 int ncl11,int nell11,double *c11, //00_1122
+							 int ncl12,int nell12,double *c12, //00_1221
+							 int ncl21,int nell21,double *c21, //02_1122
+							 int ncl22,int nell22,double *c22, //02_1221
+							 int ncl1,int nell1,double *cls1, //22P_1122
+							 int ncl2,int nell2,double *cls2, //22P_1221
+							 int ncl3,int nell3,double *cls3, //22M_1122
+							 int nl1,int ncell1,double *cell1) //22M_1221
 {
-  return nmt_covar_workspace_flat_read_fits(fname);
+  int ii,nband=nlb1;
+  asserting(nlb2==nband);
+  asserting(ncl11==nband);
+  asserting(nell11==nband);
+  asserting(ncl12==nband);
+  asserting(nell12==nband);
+  asserting(ncl21==nband);
+  asserting(nell21==nband);
+  asserting(ncl22==nband);
+  asserting(nell22==nband);
+  asserting(ncl1==nband);
+  asserting(nell1==nband);
+  asserting(ncl2==nband);
+  asserting(nell2==nband);
+  asserting(ncl3==nband);
+  asserting(nell3==nband);
+  asserting(nl1==nband);
+  asserting(ncell1==nband);
+
+  nmt_covar_workspace_flat *cw=my_malloc(sizeof(nmt_workspace_flat));
+  cw->bin=nmt_bins_flat_create(nlb1,beam1,beam2);
+  cw->xi00_1122=my_malloc(nband*sizeof(double *));
+  for(ii=0;ii<nband;ii++) {
+    cw->xi00_1122[ii]=my_malloc(nband*sizeof(double));
+    memcpy(cw->xi00_1122[ii], &(c11[ii*nband]), nband*sizeof(double));
+  }
+  cw->xi00_1221=my_malloc(nband*sizeof(double *));
+  for(ii=0;ii<nband;ii++) {
+    cw->xi00_1221[ii]=my_malloc(nband*sizeof(double));
+    memcpy(cw->xi00_1221[ii], &(c12[ii*nband]), nband*sizeof(double));
+  }
+  cw->xi02_1122=my_malloc(nband*sizeof(double *));
+  for(ii=0;ii<nband;ii++) {
+    cw->xi02_1122[ii]=my_malloc(nband*sizeof(double));
+    memcpy(cw->xi02_1122[ii], &(c21[ii*nband]), nband*sizeof(double));
+  }
+  cw->xi02_1221=my_malloc(nband*sizeof(double *));
+  for(ii=0;ii<nband;ii++) {
+    cw->xi02_1221[ii]=my_malloc(nband*sizeof(double));
+    memcpy(cw->xi02_1221[ii], &(c22[ii*nband]), nband*sizeof(double));
+  }
+  cw->xi22p_1122=my_malloc(nband*sizeof(double *));
+  for(ii=0;ii<nband;ii++) {
+    cw->xi22p_1122[ii]=my_malloc(nband*sizeof(double));
+    memcpy(cw->xi22p_1122[ii], &(cls1[ii*nband]), nband*sizeof(double));
+  }
+  cw->xi22p_1221=my_malloc(nband*sizeof(double *));
+  for(ii=0;ii<nband;ii++) {
+    cw->xi22p_1221[ii]=my_malloc(nband*sizeof(double));
+    memcpy(cw->xi22p_1221[ii], &(cls2[ii*nband]), nband*sizeof(double));
+  }
+  cw->xi22m_1122=my_malloc(nband*sizeof(double *));
+  for(ii=0;ii<nband;ii++) {
+    cw->xi22m_1122[ii]=my_malloc(nband*sizeof(double));
+    memcpy(cw->xi22m_1122[ii], &(cls3[ii*nband]), nband*sizeof(double));
+  }
+  cw->xi22m_1221=my_malloc(nband*sizeof(double *));
+  for(ii=0;ii<nband;ii++) {
+    cw->xi22m_1221[ii]=my_malloc(nband*sizeof(double));
+    memcpy(cw->xi22m_1221[ii], &(cell1[ii*nband]), nband*sizeof(double));
+  }
+
+  return cw;
 }
 
 nmt_covar_workspace_flat *covar_workspace_flat_init_py(nmt_field_flat *fa1,nmt_field_flat *fa2,

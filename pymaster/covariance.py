@@ -5,6 +5,7 @@ import pymaster.utils as ut
 import pymaster.master as mt
 from pymaster import (compute_coupled_cell, NmtBin, NmtWorkspace,
                       NmtFieldCatalog)
+import warnings
 
 
 def _get_mask_prod_alm(f1, f2):
@@ -340,7 +341,8 @@ class NmtCovarianceWorkspace(object):
             3 of the paper. Ignored if ``l_toeplitz<=0``.
         fname (:obj:`str`): Input file name. If not `None`, the values of
             all input fields will be ignored, and all mode-coupling
-            coefficients will be read from file."""
+            coefficients will be read from file.
+    """
     def __init__(self, fla1, fla2, flb1=None, flb2=None,
                  l_toeplitz=-1, l_exact=-1,
                  dl_band=-1, fname=None):
@@ -877,9 +879,91 @@ class NmtCovarianceWorkspaceFlat(object):
     <https://arxiv.org/abs/1906.11765>`_. When initialized, this object
     is practically empty. The information describing the coupling
     coefficients must be computed or read from a file afterwards.
+
+
+    Args:
+        fla1 (:class:`~pymaster.field.NmtFieldFlat`): First field
+            contributing to the first power spectrum whose covariance
+            you want to compute.
+        fla2 (:class:`~pymaster.field.NmtFieldFlat`): Second field
+            contributing to the first power spectrum whose covariance
+            you want to compute.
+        bin_a (:class:`~pymaster.bins.NmtBinFlat`): Binning scheme for the
+            first power spectrum.
+        flb1 (:class:`~pymaster.field.NmtFieldFlat`): As ``fla1`` for the
+            second power spectrum. If ``None``, it will be set to
+            ``fla1``.
+        flb2 (:class:`~pymaster.field.NmtFieldFlat`): As ``fla2`` for the
+            second power spectrum. If ``None``, it will be set to
+            ``fla2``.
+        bin_b (:class:`~pymaster.bins.NmtBinFlat`): Binning scheme for the
+            second power spectrum. If ``None``, ``bin_a`` will be used.
+        fname (:obj:`str`): Input file name. If not `None`, the values of
+            all input fields will be ignored, and all mode-coupling
+            coefficients will be read from file.
     """
-    def __init__(self):
+    def __init__(self, fla1=None, fla2=None, bin_a=None,
+                 flb1=None, flb2=None, bin_b=None, fname=None):
         self.wsp = None
+        if (fname is not None):
+            self.read_from(fname)
+            return
+
+        if (((fla1 is None) or (fla2 is None) or (bin_a is None)) and
+                (fname is None)):
+            warnings.warn("The bare constructor for "
+                          "`NmtCovarianceWorkspaceFlat` "
+                          "objects is deprecated and will be removed "
+                          "in future versions of NaMaster. Consider "
+                          "using the class methods "
+                          "`from_fields` and `from_file`, or pass "
+                          "the necessary arguments to the constructor.",
+                          category=DeprecationWarning)
+            return
+
+        self.compute_coupling_coefficients(fla1, fla2, bin_a,
+                                           flb1=flb1, flb2=flb2, bin_b=bin_b)
+
+    @classmethod
+    def from_fields(cls, fla1, fla2, bin_a, flb1=None, flb2=None, bin_b=None):
+        """ Creates an :obj:`NmtCovarianceWorkspaceFlat` containing the
+        coupling coefficients of the Gaussian covariance between the power
+        spectra of two pairs of :class:`~pymaster.field.NmtFieldFlat` objects
+        (``fla1``, ``fla2``, ``flb1``, and ``flb2``). Note that you can reuse
+        this workspace for the covariance of power spectra between any pairs
+        of fields as long as the fields have the same masks as those passed
+        to this function, and as long as the binning schemes used are also
+        the same.
+
+        Args:
+            fla1 (:class:`~pymaster.field.NmtFieldFlat`): First field
+                contributing to the first power spectrum whose covariance
+                you want to compute.
+            fla2 (:class:`~pymaster.field.NmtFieldFlat`): Second field
+                contributing to the first power spectrum whose covariance
+                you want to compute.
+            bin_a (:class:`~pymaster.bins.NmtBinFlat`): Binning scheme for the
+                first power spectrum.
+            flb1 (:class:`~pymaster.field.NmtFieldFlat`): As ``fla1`` for the
+                second power spectrum. If ``None``, it will be set to
+                ``fla1``.
+            flb2 (:class:`~pymaster.field.NmtFieldFlat`): As ``fla2`` for the
+                second power spectrum. If ``None``, it will be set to
+                ``fla2``.
+            bin_b (:class:`~pymaster.bins.NmtBinFlat`): Binning scheme for the
+                second power spectrum. If ``None``, ``bin_a`` will be used.
+        """
+        return cls(fla1, fla2, bin_a, flb1=flb1, flb2=flb2, bin_b=bin_b)
+
+    @classmethod
+    def from_file(cls, fname):
+        """ Creates an :obj:`NmtCovarianceWorkspaceFlat` object from the
+        mode-coupling coefficients stored in a FITS file.
+        See :meth:`write_to`.
+
+        Args:
+            fname (:obj:`str`): Input file name."""
+        return cls(None, None, fname=fname)
 
     def __del__(self):
         if self.wsp is not None:
@@ -897,7 +981,36 @@ class NmtCovarianceWorkspaceFlat(object):
         if self.wsp is not None:
             lib.covar_workspace_flat_free(self.wsp)
             self.wsp = None
-        self.wsp = lib.read_covar_workspace_flat(fname)
+
+        import fitsio as fts
+        f = fts.FITS(fname)
+
+        # Binning
+        d = f['BINS_SUMMARY'].read()
+        ell_0 = d['ELL_0']
+        ell_f = d['ELL_F']
+
+        # Read coefficients
+        x00_1122 = f['XI00_1122'].read()
+        x00_1221 = f['XI00_1221'].read()
+        x02_1122 = f['XI02_1122'].read()
+        x02_1221 = f['XI02_1221'].read()
+        x22P_1122 = f['XI22P_1122'].read()
+        x22P_1221 = f['XI22P_1221'].read()
+        x22M_1122 = f['XI22M_1122'].read()
+        x22M_1221 = f['XI22M_1221'].read()
+        f.close()
+
+        self.wsp = lib.covar_workspace_flat_from_data(
+            ell_0.astype(np.float64), ell_f.astype(np.float64),
+            x00_1122.astype(np.float64),
+            x00_1221.astype(np.float64),
+            x02_1122.astype(np.float64),
+            x02_1221.astype(np.float64),
+            x22P_1122.astype(np.float64),
+            x22P_1221.astype(np.float64),
+            x22M_1122.astype(np.float64),
+            x22M_1221.astype(np.float64))
 
     def compute_coupling_coefficients(self, fla1, fla2, bin_a,
                                       flb1=None, flb2=None, bin_b=None):
@@ -960,7 +1073,25 @@ class NmtCovarianceWorkspaceFlat(object):
         """
         if self.wsp is None:
             raise ValueError("Must initialize workspace before writing")
-        lib.write_covar_workspace_flat(self.wsp, "!"+fname)
+
+        import fitsio as fts
+        nbands = self.wsp.bin.n_bands
+        xis = ['00_1122', '00_1221', '02_1122', '02_1221',
+               '22P_1122', '22P_1221', '22M_1122', '22M_1221']
+
+        f = fts.FITS(fname, 'rw', clobber=True)
+        f.write(np.array([[0.0]], dtype=np.float64),
+                extname='CWSP_PRIMARY')
+        ell_0, ell_f = lib.bins_flat_get_ls(
+            self.wsp.bin, 2*nbands).reshape([2, -1])
+        f.write([ell_0, ell_f], names=['ELL_0', 'ELL_F'],
+                extname='BINS_SUMMARY')
+
+        for i, name in enumerate(xis):
+            xi = lib.cwsp_flat_get_xi(
+                self.wsp, int(i), nbands**2).reshape([nbands, nbands])
+            f.write(xi, extname='XI'+name)
+        f.close()
 
     def gaussian_covariance(self,
                             spin_a1, spin_a2, spin_b1, spin_b2, larr,

@@ -1,4 +1,5 @@
 import numpy as np
+import os
 import pymaster as nmt
 import healpy as hp
 import warnings
@@ -452,6 +453,12 @@ def test_workspace_io():
     w = nmt.NmtWorkspace.from_file("test/benchmarks/bm_yc_yp_w02.fits")
     assert w.lmax == 3*64-1
     w.get_coupling_matrix()  # Read mode coupling matrix
+    # OK write
+    w.write_to("test/wspc.fits")
+    # ... and then read again
+    w = nmt.NmtWorkspace.from_file("test/wspc.fits")
+    assert w.lmax == 3*64-1
+    os.system('rm -f test/wspc.fits')
     # Updating mode-coupling matrix
     # 1. Wrong update
     with pytest.raises(ValueError):  # Uninitialised
