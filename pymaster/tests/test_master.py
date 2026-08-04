@@ -60,6 +60,32 @@ class WorkspaceTester(object):
 WT = WorkspaceTester()
 
 
+def test_get_master_coeff():
+    lmax = 100
+    pcl_mask = np.zeros(lmax+1)
+    pcl_mask[0] = 1.0
+    xid = nmt.get_master_coefficients(pcl_mask, lmax, 0, 0)
+    assert xid['spins'] == (0, 0)
+    for xi in ['0s', 'pp', 'mm']:
+        assert xid[xi] is None
+    assert xid['00'].shape == (lmax+1, lmax+1)
+    xidiag = np.diag(xid['00'])
+    # Test analytical result
+    assert np.allclose(xidiag, 1/(4*np.pi*(2*np.arange(lmax+1)+1)))
+
+    with pytest.raises(ValueError):  # Wrong spins for TEB
+        xid = nmt.get_master_coefficients(pcl_mask, lmax,
+                                          0, 0, is_teb=True)
+    xid = nmt.get_master_coefficients(pcl_mask, lmax,
+                                      0, 2, is_teb=True)
+    for xi in ['00', '0s', 'pp', 'mm']:
+        assert xid[xi] is not None
+
+    with pytest.raises(ValueError):  # Purification only for spin-2
+        xid = nmt.get_master_coefficients(pcl_mask, lmax,
+                                          0, 1, pure_any=True)
+
+
 def test_toeplitz_raises():
     fp = nmt.NmtField(WT.msk, [WT.mps[1], WT.mps[2]],
                       purify_b=True)

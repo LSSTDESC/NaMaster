@@ -24,6 +24,7 @@ class CovarTester(object):
                                    dtype=float))
         self.b = nmt.NmtBin.from_nside_linear(self.nside, self.nlb)
         self.f0 = nmt.NmtField(msk, [mps[0]])
+        self.f1 = nmt.NmtField(msk, [mps[1], mps[2]], spin=1)
         self.f2 = nmt.NmtField(msk, [mps[1], mps[2]])
         self.f0_half = nmt.NmtField(msk[:self.npix//4],
                                     [mps[0, :self.npix//4]])  # Half nside
@@ -163,6 +164,9 @@ def test_workspace_covar_errors():
                                 0*CT.clee, CT.clbb],
                                CT.w22, wb=CT.w22)
 
+    with pytest.raises(ValueError):  # Covariances only for spin = 0, 2
+        cw = nmt.NmtCovarianceWorkspace.from_fields(CT.f0, CT.f0,
+                                                    CT.f0, CT.f1)
     cw = nmt.NmtCovarianceWorkspace.from_file(
         'test/benchmarks/bm_nc_np_cw00.fits')  # Correct reading
     # Test that old files are read correctly
@@ -268,4 +272,10 @@ def test_covar_deprecated():
                                      [CT.cltt], [CT.cltt],
                                      [CT.cltt], [CT.cltt],
                                      CT.w)
+    with pytest.raises(ValueError):  # Spins different from cw
+        nmt.gaussian_covariance(cw, 0, 0, 0, 2,
+                                [CT.cltt],
+                                [CT.cltt, CT.cltt],
+                                [CT.cltt, CT.cltt],
+                                [CT.cltt], CT.w)
     assert np.all((covar1 == covar2).flatten())

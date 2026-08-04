@@ -494,13 +494,10 @@ class NmtCovarianceWorkspace(object):
         h = f['CWSP_PRIMARY'].read_header()
         self.lmax = h['LMAX']
         self.lmax_mask = h['LMAX_MASK'] if 'LMAX_MASK' in h else self.lmax
-        if 'ALL_SPINS' in h:
-            self.spin_a1 = h['SPIN_A1']
-            self.spin_a2 = h['SPIN_A2']
-            self.spin_b1 = h['SPIN_B1']
-            self.spin_b2 = h['SPIN_B2']
-        else:
-            self.spin_a1 = self.spin_a2 = self.spin_b1 = self.spin_b2 = 0
+        self.spin_a1 = h.get('SPIN_A1', 0)
+        self.spin_a2 = h.get('SPIN_A2', 0)
+        self.spin_b1 = h.get('SPIN_B1', 0)
+        self.spin_b2 = h.get('SPIN_B2', 0)
         self.l_toeplitz = h['L_TOEPLITZ'] if 'L_TOEPLITZ' in h else -1
         self.l_exact = h['L_EXACT'] if 'L_EXACT' in h else -1
         self.dl_band = h['DL_BAND'] if 'DL_BAND' in h else -1
