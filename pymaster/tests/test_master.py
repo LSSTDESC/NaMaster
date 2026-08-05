@@ -1,10 +1,10 @@
 import numpy as np
+import os
 import pymaster as nmt
 import healpy as hp
 import warnings
 import pytest
 import sys
-import os
 
 
 class WorkspaceTester(object):
@@ -58,6 +58,32 @@ class WorkspaceTester(object):
 
 
 WT = WorkspaceTester()
+
+
+def test_get_master_coeff():
+    lmax = 100
+    pcl_mask = np.zeros(lmax+1)
+    pcl_mask[0] = 1.0
+    xid = nmt.get_master_coefficients(pcl_mask, lmax, 0, 0)
+    assert xid['spins'] == (0, 0)
+    for xi in ['0s', 'pp', 'mm']:
+        assert xid[xi] is None
+    assert xid['00'].shape == (lmax+1, lmax+1)
+    xidiag = np.diag(xid['00'])
+    # Test analytical result
+    assert np.allclose(xidiag, 1/(4*np.pi*(2*np.arange(lmax+1)+1)))
+
+    with pytest.raises(ValueError):  # Wrong spins for TEB
+        xid = nmt.get_master_coefficients(pcl_mask, lmax,
+                                          0, 0, is_teb=True)
+    xid = nmt.get_master_coefficients(pcl_mask, lmax,
+                                      0, 2, is_teb=True)
+    for xi in ['00', '0s', 'pp', 'mm']:
+        assert xid[xi] is not None
+
+    with pytest.raises(ValueError):  # Purification only for spin-2
+        xid = nmt.get_master_coefficients(pcl_mask, lmax,
+                                          0, 1, pure_any=True)
 
 
 def test_toeplitz_raises():
@@ -400,7 +426,7 @@ def test_workspace_master_healpy():
 def test_workspace_shorten():
     # OK read
     w = nmt.NmtWorkspace.from_file("test/benchmarks/bm_yc_yp_w02.fits")
-    lmax = w.wsp.lmax
+    lmax = w.lmax
     larr = np.arange(lmax + 1)
     larr_long = np.arange(2 * lmax + 1)
     cls = 100. / (larr + 10.)
@@ -414,7 +440,7 @@ def test_workspace_shorten():
 def test_workspace_rebeam():
     # OK read
     w = nmt.NmtWorkspace.from_file("test/benchmarks/bm_yc_yp_w02.fits")
-    lmax = w.wsp.lmax_fields
+    lmax = w.lmax
     b = np.ones(lmax+1)*2.
     w.update_beams(b, b)  # All good
     b2 = np.ones(lmax//2+1)*2.  # Too short
@@ -430,49 +456,50 @@ def test_workspace_rebin():
     # OK read
     w = nmt.NmtWorkspace.from_file("test/benchmarks/bm_yc_yp_w02.fits")
     w.update_bins(b4)
-    assert (w.wsp.bin.n_bands == b4.bin.n_bands)
+    assert (w.nbands == b4.get_n_bands())
     b4 = nmt.NmtBin.from_nside_linear(WT.nside//2, 4)
-    with pytest.raises(RuntimeError):  # Wrong lmax
+    with pytest.raises(ValueError):  # Wrong lmax
         w.update_bins(b4)
 
     # Uninitialised
-    with pytest.raises(ValueError):
+    with pytest.raises(AttributeError):
         b4.bin = None
-        w.update_bins(b4)
-    with pytest.raises(ValueError):
-        w = nmt.NmtWorkspace()
         w.update_bins(b4)
 
 
 def test_workspace_io():
-    with pytest.raises(RuntimeError):  # Uninitialised
-        w = nmt.NmtWorkspace()
-        w.get_coupling_matrix()
-    with pytest.raises(RuntimeError):  # Uninitialised
+    with pytest.raises(AttributeError):  # Uninitialised
+        w = nmt.NmtWorkspace.from_fields(WT.f0, WT.f0, WT.b)
         w.update_coupling_matrix(None)
-    with pytest.raises(RuntimeError):  # Invalid writing
+    with pytest.raises(TypeError):  # Invalid writing
         w = nmt.NmtWorkspace()
         w.write_to("test/wspc.fits")
 
     # OK read
     w = nmt.NmtWorkspace.from_file("test/benchmarks/bm_yc_yp_w02.fits")
-    assert w.wsp.lmax == 3*64-1
+    assert w.lmax == 3*64-1
     w.get_coupling_matrix()  # Read mode coupling matrix
+    # OK write
+    w.write_to("test/wspc.fits")
+    # ... and then read again
+    w = nmt.NmtWorkspace.from_file("test/wspc.fits")
+    assert w.lmax == 3*64-1
+    os.system('rm -f test/wspc.fits')
     # Updating mode-coupling matrix
     # 1. Wrong update
     with pytest.raises(ValueError):  # Uninitialised
         mcm_new = np.identity(3)
         w.update_coupling_matrix(mcm_new)
     # 2. Right update
-    mcm_new = np.identity(2*(w.wsp.lmax+1))
+    mcm_new = np.identity(2*(w.lmax+1))
     w.update_coupling_matrix(mcm_new)
     # Retireve MCM and check it's correct
     mcm_back = w.get_coupling_matrix()
     assert (np.fabs(np.sum(np.diagonal(mcm_back)) -
-                    2*(w.wsp.lmax+1)) <= 1E-16)
-    with pytest.raises(RuntimeError):  # Can't write on that file
+                    2*(w.lmax+1)) <= 1E-16)
+    with pytest.raises(OSError):  # Can't write on that file
         w.write_to("tests/wspc.fits")
-    with pytest.raises(RuntimeError):  # File doesn't exist
+    with pytest.raises(OSError):  # File doesn't exist
         w.read_from("none")
 
 
@@ -526,19 +553,19 @@ def test_lite_errors():
 def test_workspace_methods():
     # OK init
     w = nmt.NmtWorkspace.from_fields(WT.f0, WT.f0, WT.b)
-    assert w.wsp.lmax == 3*64-1
+    assert w.lmax == 3*64-1
     with pytest.raises(ValueError):  # Incompatible bandpowers
         w.compute_coupling_matrix(WT.f0, WT.f0, WT.b_doub)
     with pytest.raises(ValueError):  # Incompatible resolutions
         w.compute_coupling_matrix(WT.f0, WT.f0_half, WT.b)
-    with pytest.raises(RuntimeError):  # Wrong fields for TEB
+    with pytest.raises(ValueError):  # Wrong fields for TEB
         w.compute_coupling_matrix(WT.f0, WT.f0, WT.b, is_teb=True)
 
     w.compute_coupling_matrix(WT.f0, WT.f0, WT.b)
 
     # Test couple_cell
     c = w.couple_cell(WT.n_good)
-    assert c.shape == (1, w.wsp.lmax+1)
+    assert c.shape == (1, w.lmax+1)
     with pytest.raises(ValueError):
         w.couple_cell(WT.n_bad)
     with pytest.raises(ValueError):
@@ -546,7 +573,7 @@ def test_workspace_methods():
 
     # Test decouple_cell
     c = w.decouple_cell(WT.n_good)
-    assert c.shape == (1, WT.b.bin.n_bands)
+    assert c.shape == (1, WT.b.get_n_bands())
     with pytest.raises(ValueError):
         w.decouple_cell(WT.n_bad)
     with pytest.raises(ValueError):
@@ -647,40 +674,6 @@ def test_workspace_compute_coupled_cell():
     assert c.shape == (1, WT.f0.ainfo.lmax+1)
     with pytest.raises(ValueError):  # Different resolutions
         nmt.compute_coupled_cell(WT.f0, WT.f0_half)
-
-
-def test_unbinned_mcm_io():
-    f0 = nmt.NmtField(WT.msk, [WT.mps[0]])
-    w = nmt.NmtWorkspace.from_fields(f0, f0, WT.b)
-    w.write_to("test/wspc.fits")
-    assert w.has_unbinned
-
-    w1 = nmt.NmtWorkspace.from_file("test/wspc.fits")
-    assert w1.has_unbinned
-
-    w2 = nmt.NmtWorkspace.from_file("test/wspc.fits",
-                                    read_unbinned_MCM=False)
-    assert w2.has_unbinned is False
-
-    with pytest.raises(ValueError):
-        w2.check_unbinned()
-
-    with pytest.raises(ValueError):
-        w2.write_to("dum")
-
-    with pytest.raises(ValueError):
-        w2.get_coupling_matrix()
-
-    with pytest.raises(ValueError):
-        w2.update_coupling_matrix(None)
-
-    with pytest.raises(ValueError):
-        w2.couple_cell(np.ones([1, 3*WT.nside]))
-
-    with pytest.raises(ValueError):
-        w2.get_bandpower_windows()
-
-    os.system("rm test/wspc.fits")
 
 
 def test_fkp_normalization():

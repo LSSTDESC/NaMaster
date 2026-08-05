@@ -1,4 +1,5 @@
 import pytest
+import os
 import numpy as np
 import pymaster as nmt
 import warnings
@@ -72,8 +73,7 @@ def test_lite_pure():
                            None, purify_b=True,
                            lite=True, spin=2)
     nlth = np.array([WT.nlte, 0*WT.nlte])
-    w = nmt.NmtWorkspaceFlat()
-    w.compute_coupling_matrix(f0, f2e, WT.b)
+    w = nmt.NmtWorkspaceFlat.from_fields(f0, f2e, WT.b)
     clb = w.couple_cell(WT.ll, nlth)
     cl = w.decouple_cell(nmt.compute_coupled_cell_flat(f0,
                                                        f2l,
@@ -101,8 +101,7 @@ def test_lite_cont():
                            None, lite=True, spin=2)
     clth = np.array([WT.clte, 0*WT.clte])
     nlth = np.array([WT.nlte, 0*WT.nlte])
-    w = nmt.NmtWorkspaceFlat()
-    w.compute_coupling_matrix(f0, f2e, WT.b)
+    w = nmt.NmtWorkspaceFlat.from_fields(f0, f2e, WT.b)
     clb = w.couple_cell(WT.ll, nlth)
     dlb = nmt.deprojection_bias_flat(f0, f2,
                                      WT.b, WT.ll,
@@ -135,8 +134,7 @@ def test_spin1():
 
     for ip1 in range(2):
         for ip2 in range(ip1, 2):
-            w = nmt.NmtWorkspaceFlat()
-            w.compute_coupling_matrix(f[ip1], f[ip2], WT.b)
+            w = nmt.NmtWorkspaceFlat.from_fields(f[ip1], f[ip2], WT.b)
             cl = w.decouple_cell(nmt.compute_coupled_cell_flat(f[ip1],
                                                                f[ip2],
                                                                WT.b))[0]
@@ -186,8 +184,7 @@ def mastest(wtemp, wpure, do_teb=False):
             else:
                 clth = np.array([WT.clte, 0*WT.clte])
                 nlth = np.array([WT.nlte, 0*WT.nlte])
-            w = nmt.NmtWorkspaceFlat()
-            w.compute_coupling_matrix(f[ip1], f[ip2], WT.b)
+            w = nmt.NmtWorkspaceFlat.from_fields(f[ip1], f[ip2], WT.b)
             clb = w.couple_cell(WT.ll, nlth)
             if wtemp:
                 dlb = nmt.deprojection_bias_flat(f[ip1], f[ip2],
@@ -215,8 +212,8 @@ def mastest(wtemp, wpure, do_teb=False):
                          0*WT.clee, 0*WT.clbb, WT.clbb])
         nlth = np.array([WT.nltt, WT.nlte, 0*WT.nlte, WT.nlee,
                          0*WT.nlee, 0*WT.nlbb, WT.nlbb])
-        w = nmt.NmtWorkspaceFlat()
-        w.compute_coupling_matrix(f[0], f[1], WT.b, is_teb=True)
+        w = nmt.NmtWorkspaceFlat.from_fields(f[0], f[1], WT.b,
+                                             is_teb=True)
         c00 = nmt.compute_coupled_cell_flat(f[0], f[0], WT.b)
         c02 = nmt.compute_coupled_cell_flat(f[0], f[1], WT.b)
         c22 = nmt.compute_coupled_cell_flat(f[1], f[1], WT.b)
@@ -250,15 +247,23 @@ def test_workspace_flat_io():
         w.write_to("test/wspc.fits")
     w.read_from("test/benchmarks/bm_f_yc_yp_w02.fits")  # OK read
     assert WT.msk.shape == (w.wsp.fs.ny, w.wsp.fs.nx)
-    with pytest.raises(RuntimeError):  # Can't write on that file
+
+    # Write and read again
+    w.write_to("test/wspc.fits")
+    w = nmt.NmtWorkspaceFlat.from_file(
+        "test/benchmarks/bm_f_yc_yp_w02.fits")  # OK read
+    assert WT.msk.shape == (w.wsp.fs.ny, w.wsp.fs.nx)
+    os.system('rm -f test/wspc.fits')
+
+    with pytest.raises(OSError):  # Can't write on that file
         w.write_to("tests/wspc.fits")
-    with pytest.raises(RuntimeError):  # File doesn't exist
+    with pytest.raises(OSError):  # File doesn't exist
         w.read_from("none")
 
 
 def test_workspace_flat_methods():
-    w = nmt.NmtWorkspaceFlat()
-    w.compute_coupling_matrix(WT.f0, WT.f0, WT.b)  # OK init
+    w = nmt.NmtWorkspaceFlat.from_fields(WT.f0, WT.f0,
+                                         WT.b)  # OK init
     assert WT.msk.shape == (w.wsp.fs.ny, w.wsp.fs.nx)
     with pytest.raises(RuntimeError):  # Incompatible resolutions
         w.compute_coupling_matrix(WT.f0, WT.f0_half, WT.b)
@@ -293,10 +298,9 @@ def test_workspace_flat_methods():
 
 
 def test_workspace_flat_full_master():
-    w = nmt.NmtWorkspaceFlat()
-    w.compute_coupling_matrix(WT.f0, WT.f0, WT.b)
-    w_half = nmt.NmtWorkspaceFlat()
-    w_half.compute_coupling_matrix(WT.f0_half, WT.f0_half, WT.b_half)
+    w = nmt.NmtWorkspaceFlat.from_fields(WT.f0, WT.f0, WT.b)
+    w_half = nmt.NmtWorkspaceFlat.from_fields(
+        WT.f0_half, WT.f0_half, WT.b_half)
 
     c = nmt.compute_full_master_flat(WT.f0, WT.f0, WT.b)
     assert c.shape == (1, WT.b.bin.n_bands)

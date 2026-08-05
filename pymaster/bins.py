@@ -172,6 +172,58 @@ class NmtBin(object):
         return cls(lmax=np.amax(ells), bpws=bpws, ells=ells, weights=weights,
                    f_ell=f_ell)
 
+    @classmethod
+    def _from_fits_file(cls, f, extname='BINS'):
+        """
+        Convenience constructor that reads the bandpower definition
+        from a FITS file. The FITS file must contain a binary table with
+        the following columns:
+
+            - ``BAND``: Bandpower indices.
+            - ``ELLS``: Multipole values.
+            - ``WEIGHTS``: Bandpower weights.
+            - ``F_ELL``: :math:`\\ell`-dependent function.
+
+        Args:
+            f (:obj:`str`): FITS file object from fitiso.
+            extname (:obj:`str`): Name of the extension to read.
+        """
+        hdu = f[extname]
+        h = hdu.read_header()
+        lmax = h['ELL_MAX']
+        bands = hdu['BAND'].read()
+        ells = hdu['ELLS'].read()
+        weights = hdu['WEIGHTS'].read().astype(np.float64)
+        f_ell = hdu['F_ELL'].read().astype(np.float64)
+        return cls(lmax=lmax, bpws=bands, ells=ells, weights=weights,
+                   f_ell=f_ell)
+
+    def _to_fits_file(self, f, extname='BINS'):
+        """
+        Writes the bandpower definition to a FITS file.
+
+        Args:
+            f (:obj:`str`): FITS file object from fitiso.
+            extname (:obj:`str`): Name of the extension to write.
+        """
+        # Write header with global information
+        nbands = self.get_n_bands()
+        lmax = self.bin.ell_max
+        h = {'ELL_MAX': lmax, 'N_BANDS': nbands}
+        nls = lmax + 1
+        ls = np.arange(nls, dtype=np.int32)
+        bands = np.zeros(nls, dtype=np.int32)-1
+        weights = np.zeros(nls, dtype=np.float64)
+        f_ell = np.zeros(nls, dtype=np.float64)
+        for ib in range(nbands):
+            ells = self.get_ell_list(ib)
+            bands[ells] = ib
+            weights[ells] = self.get_weight_list(ib)
+            f_ell[ells] = self.get_fell_list(ib)
+        f.write([bands, ls, weights, f_ell],
+                names=['BAND', 'ELLS', 'WEIGHTS', 'F_ELL'],
+                header=h, extname=extname)
+
     def __del__(self):
         if getattr(self, 'bin', None) is not None:
             if lib.bins_free is not None:
@@ -249,6 +301,21 @@ class NmtBin(object):
         return lib.get_weight_list(self.bin, int(b),
                                    lib.get_nell(self.bin, int(b)))
 
+    def get_fell_list(self, b):
+        """ Returns an array with the ell-dependent prefactor
+        associated with each multipole in the ``b``-th bandpower
+
+
+        Args:
+            b (:obj:`int`): Bandpower index.
+
+        Returns:
+            (`array`): prefactor associated to multipoles in bandpower
+            ``b``.
+        """
+        return lib.get_fell_list(self.bin, int(b),
+                                 lib.get_nell(self.bin, int(b)))
+
     def get_effective_ells(self):
         """ Returns an array with the effective multipole of each
         bandpower. These are computed as a weighted average of the
@@ -275,8 +342,9 @@ class NmtBin(object):
             cls_in = np.array([cls_in])
         if (cls_in.ndim > 2) or (len(cls_in[0]) != self.lmax + 1):
             raise ValueError("Input Cl has wrong size")
-        cl1d = lib.bin_cl(self.bin, cls_in, len(cls_in) * self.bin.n_bands)
-        clout = np.reshape(cl1d, [len(cls_in), self.bin.n_bands])
+        ncls = len(cls_in)
+        cl1d = lib.bin_cl(self.bin, cls_in.T, ncls * self.bin.n_bands)
+        clout = np.reshape(cl1d, [self.bin.n_bands, ncls]).T
         if oned:
             clout = clout[0]
         return clout
@@ -298,12 +366,34 @@ class NmtBin(object):
             cls_in = np.array([cls_in])
         if (cls_in.ndim > 2) or (len(cls_in[0]) != self.bin.n_bands):
             raise ValueError("Input Cl has wrong size")
-        cl1d = lib.unbin_cl(self.bin, cls_in,
-                            int(len(cls_in) * (self.lmax + 1)))
-        clout = np.reshape(cl1d, [len(cls_in), self.lmax + 1])
+        ncls = len(cls_in)
+        cl1d = lib.unbin_cl(self.bin, cls_in.T,
+                            int(ncls * (self.lmax + 1)))
+        clout = np.reshape(cl1d, [self.lmax + 1, ncls]).T
         if oned:
             clout = clout[0]
         return clout
+
+    def _bin_mcm(self, mcm_in, norm_type, w2, beam1, beam2, oneside):
+        nelem = len(mcm_in)
+        nls = self.lmax+1
+        ncls = nelem // nls
+        nbands = self.get_n_bands()
+        if oneside:
+            mcm_binned = lib.bin_mcmat_oneside(
+                self.bin, ncls, mcm_in.flatten().astype(np.float64),
+                beam1.astype(np.float64), beam2.astype(np.float64),
+                int(ncls**2*nls*nbands))
+            mcm_binned = np.reshape(mcm_binned, [nbands*ncls, nls*ncls])
+        else:
+            mcm_binned = lib.bin_mcmat(self.bin, ncls,
+                                       mcm_in.flatten().astype(np.float64),
+                                       int(norm_type), w2,
+                                       beam1.astype(np.float64),
+                                       beam2.astype(np.float64),
+                                       int((nbands*ncls)**2))
+            mcm_binned = np.reshape(mcm_binned, [nbands*ncls, nbands*ncls])
+        return mcm_binned
 
 
 class NmtBinFlat(object):

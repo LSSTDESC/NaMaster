@@ -1,4 +1,5 @@
 import pytest
+import os
 import numpy as np
 import pymaster as nmt
 from .utils import read_flat_map
@@ -23,12 +24,12 @@ class CovarTester(object):
         self.f2 = nmt.NmtFieldFlat(lx, ly, msk, [mps[1], mps[2]])
         self.f0_half = nmt.NmtFieldFlat(lx, ly, msk[:ny//2, :nx//2],
                                         [mps[0, :ny//2, :nx//2]])
-        self.w = nmt.NmtWorkspaceFlat()
-        self.w.read_from("test/benchmarks/bm_f_nc_np_w00.fits")
-        self.w02 = nmt.NmtWorkspaceFlat()
-        self.w02.read_from("test/benchmarks/bm_f_nc_np_w02.fits")
-        self.w22 = nmt.NmtWorkspaceFlat()
-        self.w22.read_from("test/benchmarks/bm_f_nc_np_w22.fits")
+        self.w = nmt.NmtWorkspaceFlat.from_file(
+            "test/benchmarks/bm_f_nc_np_w00.fits")
+        self.w02 = nmt.NmtWorkspaceFlat.from_file(
+            "test/benchmarks/bm_f_nc_np_w02.fits")
+        self.w22 = nmt.NmtWorkspaceFlat.from_file(
+            "test/benchmarks/bm_f_nc_np_w22.fits")
 
         cls = np.loadtxt("test/benchmarks/cls_lss.txt", unpack=True)
         l, cltt, clee, clbb, clte, nltt, nlee, nlbb, nlte = cls
@@ -52,8 +53,8 @@ def test_workspace_covar_flat_benchmark():
                     np.fmin(np.fabs(d),
                             np.fabs(db))*1E-4).all()
 
-    cw = nmt.NmtCovarianceWorkspaceFlat()
-    cw.compute_coupling_coefficients(CT.f0, CT.f0, CT.b)
+    cw = nmt.NmtCovarianceWorkspaceFlat.from_fields(
+        CT.f0, CT.f0, CT.b)
 
     # [0,0 ; 0,0]
     covar = cw.gaussian_covariance(0, 0, 0, 0, CT.ll,
@@ -112,39 +113,46 @@ def test_workspace_covar_flat_errors():
     with pytest.raises(ValueError):  # Write uninitialized
         cw.write_to("wsp.fits")
 
-    cw.compute_coupling_coefficients(CT.f0, CT.f0, CT.b)  # All good
+    cw = nmt.NmtCovarianceWorkspaceFlat.from_fields(
+        CT.f0, CT.f0, CT.b)  # All good
     assert cw.wsp.bin.n_bands == CT.w.wsp.bin.n_bands
 
-    with pytest.raises(RuntimeError):  # Write uninitialized
+    with pytest.raises(OSError):  # Wrong file name
         cw.write_to("tests/wsp.fits")
 
     cw.read_from('test/benchmarks/bm_f_nc_np_cw00.fits')  # Correct reading
     assert cw.wsp.bin.n_bands == CT.w.wsp.bin.n_bands
 
+    # Test you can write and read
+    cw.write_to("test/cwsp.fits")
+    cw = nmt.NmtCovarianceWorkspaceFlat.from_file("test/cwsp.fits")
+    assert cw.wsp.bin.n_bands == CT.w.wsp.bin.n_bands
+    os.system("rm -f test/cwsp.fits")
+
     # gaussian_covariance
     with pytest.raises(ValueError):  # Wrong input power spectra
-        cw = nmt.NmtCovarianceWorkspaceFlat()
-        cw.compute_coupling_coefficients(CT.f0, CT.f0, CT.b)
+        cw = nmt.NmtCovarianceWorkspaceFlat.from_fields(
+            CT.f0, CT.f0, CT.b)
         cw.gaussian_covariance(0, 0, 0, 0, CT.ll,
                                [CT.cltt], [CT.cltt],
                                [CT.cltt], [CT.cltt[:15]],
                                CT.w)
     with pytest.raises(ValueError):  # Wrong input power shapes
-        cw = nmt.NmtCovarianceWorkspaceFlat()
-        cw.compute_coupling_coefficients(CT.f0, CT.f0, CT.b)
+        cw = nmt.NmtCovarianceWorkspaceFlat.from_fields(
+            CT.f0, CT.f0, CT.b)
         cw.gaussian_covariance(0, 0, 0, 0, CT.ll,
                                [CT.cltt, CT.cltt],
                                [CT.cltt], [CT.cltt],
                                [CT.cltt[:15]], CT.w)
     with pytest.raises(ValueError):  # Wrong input spins
-        cw = nmt.NmtCovarianceWorkspaceFlat()
-        cw.compute_coupling_coefficients(CT.f0, CT.f0, CT.b)
+        cw = nmt.NmtCovarianceWorkspaceFlat.from_fields(
+            CT.f0, CT.f0, CT.b)
         cw.gaussian_covariance(0, 0, 0, 2, CT.ll,
                                [CT.cltt], [CT.cltt],
                                [CT.cltt], [CT.cltt],
                                CT.w)
 
-    with pytest.raises(RuntimeError):  # Incorrect reading
+    with pytest.raises(OSError):  # Incorrect reading
         cw.read_from('none')
     with pytest.raises(ValueError):  # Incompatible resolutions
         cw.compute_coupling_coefficients(CT.f0, CT.f0_half, CT.b)
@@ -154,8 +162,8 @@ def test_workspace_covar_flat_errors():
 
 
 def test_covar_deprecated():
-    cw = nmt.NmtCovarianceWorkspaceFlat()
-    cw.compute_coupling_coefficients(CT.f0, CT.f0, CT.b)
+    cw = nmt.NmtCovarianceWorkspaceFlat.from_fields(
+        CT.f0, CT.f0, CT.b)
 
     covar1 = cw.gaussian_covariance(0, 0, 0, 0, CT.ll,
                                     [CT.cltt], [CT.cltt],

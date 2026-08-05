@@ -24,6 +24,7 @@ class CovarTester(object):
                                    dtype=float))
         self.b = nmt.NmtBin.from_nside_linear(self.nside, self.nlb)
         self.f0 = nmt.NmtField(msk, [mps[0]])
+        self.f1 = nmt.NmtField(msk, [mps[1], mps[2]], spin=1)
         self.f2 = nmt.NmtField(msk, [mps[1], mps[2]])
         self.f0_half = nmt.NmtField(msk[:self.npix//4],
                                     [mps[0, :self.npix//4]])  # Half nside
@@ -124,32 +125,14 @@ def test_workspace_covar_benchmark():
     covar_bench = np.loadtxt("test/benchmarks/bm_nc_np_cov2222.txt")
     compare_covars(covar, covar_bench)
 
-    # Test `all_spins`
-    cw = nmt.NmtCovarianceWorkspace.from_fields(CT.f0, CT.f0,
-                                                all_spins=True)
-    covar = cw.gaussian_covariance([CT.clee, 0*CT.clee,
-                                    0*CT.clee, CT.clbb],
-                                   [CT.clee, 0*CT.clee,
-                                    0*CT.clee, CT.clbb],
-                                   [CT.clee, 0*CT.clee,
-                                    0*CT.clee, CT.clbb],
-                                   [CT.clee, 0*CT.clee,
-                                    0*CT.clee, CT.clbb],
-                                   CT.w22, wb=CT.w22,
-                                   spins=[2, 2, 2, 2])
-    covar_bench = np.loadtxt("test/benchmarks/bm_nc_np_cov2222.txt")
-    compare_covars(covar, covar_bench)
-
 
 def test_workspace_covar_io():
     import os
     fname = 'tmp.fits'
 
-    cw = nmt.NmtCovarianceWorkspace.from_fields(CT.f0, CT.f0,
-                                                all_spins=False)
+    cw = nmt.NmtCovarianceWorkspace.from_fields(CT.f0, CT.f0)
     cw.write_to(fname)
     cw = nmt.NmtCovarianceWorkspace.from_file(fname)
-    assert not cw.all_spins
     assert cw.spin_a1 == 0
     assert cw.spin_a2 == 0
     assert cw.spin_b1 == 0
@@ -158,14 +141,13 @@ def test_workspace_covar_io():
 
     cw = nmt.NmtCovarianceWorkspace.from_file(
         'test/benchmarks/bm_nc_np_cw00.fits')  # Correct reading
-    assert cw.all_spins
+    assert cw.spin_a1 == 0
 
 
 def test_workspace_covar_errors():
-    cw = nmt.NmtCovarianceWorkspace.from_fields(CT.f0, CT.f0,
-                                                all_spins=False)  # All good
-    assert cw.wsp.lmax == CT.w.wsp.lmax
-    assert cw.wsp.lmax == CT.w.wsp.lmax
+    cw = nmt.NmtCovarianceWorkspace.from_fields(CT.f0, CT.f0)  # All good
+    assert cw.lmax == CT.w.lmax
+    assert cw.lmax == CT.w.lmax
     cw.gaussian_covariance([CT.cltt], [CT.cltt],
                            [CT.cltt], [CT.cltt],
                            CT.w)  # Also fine
@@ -180,15 +162,16 @@ def test_workspace_covar_errors():
                                 0*CT.clee, CT.clbb],
                                [CT.clee, 0*CT.clee,
                                 0*CT.clee, CT.clbb],
-                               CT.w22, wb=CT.w22,
-                               spins=[2, 2, 2, 2])
+                               CT.w22, wb=CT.w22)
 
+    with pytest.raises(ValueError):  # Covariances only for spin = 0, 2
+        cw = nmt.NmtCovarianceWorkspace.from_fields(CT.f0, CT.f0,
+                                                    CT.f0, CT.f1)
     cw = nmt.NmtCovarianceWorkspace.from_file(
         'test/benchmarks/bm_nc_np_cw00.fits')  # Correct reading
     # Test that old files are read correctly
-    assert cw.wsp.all_spins == 1
-    assert cw.wsp.lmax == CT.w.wsp.lmax
-    assert cw.wsp.lmax == CT.w.wsp.lmax
+    assert cw.lmax == CT.w.lmax
+    assert cw.lmax_mask == CT.w.lmax_mask
 
     # Check that it can be updated via file
     cw._read_from("test/benchmarks/bm_nc_np_cw00.fits")
@@ -196,13 +179,8 @@ def test_workspace_covar_errors():
     cw._compute_coupling_coefficients(CT.f0, CT.f0,
                                       CT.f0, CT.f0)
 
-    cw = nmt.NmtCovarianceWorkspace.from_fields(CT.f0, CT.f0,
-                                                all_spins=True)
+    cw = nmt.NmtCovarianceWorkspace.from_fields(CT.f0, CT.f0)
     # gaussian_covariance
-    with pytest.raises(ValueError):  # Wrong number of spins
-        cw.gaussian_covariance([CT.cltt], [CT.cltt],
-                               [CT.cltt], [CT.cltt],
-                               CT.w, spins=[0, 0, 0])
     with pytest.raises(ValueError):  # Wrong input cl size
         cw.gaussian_covariance([CT.cltt], [CT.cltt],
                                [CT.cltt], [CT.cltt[:15]],
@@ -294,4 +272,10 @@ def test_covar_deprecated():
                                      [CT.cltt], [CT.cltt],
                                      [CT.cltt], [CT.cltt],
                                      CT.w)
+    with pytest.raises(ValueError):  # Spins different from cw
+        nmt.gaussian_covariance(cw, 0, 0, 0, 2,
+                                [CT.cltt],
+                                [CT.cltt, CT.cltt],
+                                [CT.cltt, CT.cltt],
+                                [CT.cltt], CT.w)
     assert np.all((covar1 == covar2).flatten())

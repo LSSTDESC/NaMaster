@@ -217,7 +217,7 @@ void nmt_bins_free(nmt_binning_scheme *bin);
  *        Should be allocated to the number of bandpowers defined \p bin.
  * @param ncls Number of input/output power spectra.
  */
-void nmt_bin_cls(nmt_binning_scheme *bin,flouble **cls_in,flouble **cls_out,int ncls);
+void nmt_bin_cls(nmt_binning_scheme *bin,int ncls,flouble *cls_in,flouble *cls_out);
 
 /**
  * @brief Returns binned power spectra interpolated into output multipoles.
@@ -230,7 +230,14 @@ void nmt_bin_cls(nmt_binning_scheme *bin,flouble **cls_in,flouble **cls_out,int 
  * @param cls_out Array of \p ncls interpolated output power spectra.
  * @param ncls Number of input/output power spectra.
  */
-void nmt_unbin_cls(nmt_binning_scheme *bin,flouble **cls_in,flouble **cls_out,int ncls);
+void nmt_unbin_cls(nmt_binning_scheme *bin,int ncls,flouble *cls_in,flouble *cls_out);
+
+void nmt_bin_mcm_oneside(nmt_binning_scheme *bin,int ncls,
+			 flouble *mcm_in,flouble *mcm_out,
+			 flouble *beam1,flouble *beam2);
+
+void nmt_bin_mcm(nmt_binning_scheme *bin,int ncls,flouble *mcm_in,flouble *mcm_out,
+		 int norm_type,flouble w2,flouble *beam1,flouble *beam2);
 
 /**
  * @brief Returns effective multipoles.
@@ -593,21 +600,6 @@ void nmt_compute_deprojection_bias_flat(nmt_field_flat *fl1,nmt_field_flat *fl2,
  */
 void nmt_couple_cl_l_flat_fast(nmt_workspace_flat *w,int nl,flouble *larr,flouble **cl_in,
 				 flouble **cl_out);
-/**
- * @brief Mode-couples an input power spectrum
- *
- * Faster (but less accurate) version of nmt_couple_cl_l_flat_fast().
- * @param w nmt_workspace_flat structure containing the mode-coupling matrix
- * @param nl Number of multipoles on which the input power spectrum is defined.
- * @param larr Array of multipoles on which the input power spectrum is defined.
- * @param cl_in Array of input power spectra. Should have shape [ncls][nl], where ncls is the
-          appropriate number of power spectra given the fields being correlated (e.g. ncls=4=2*2
-	  for two spin-2 fields.
- * @param cl_out Array of output power spectra. Should have shape [ncls][nbpw], where ncls is
-          defined above and nbpw is the number of bandpowers used to define \p w.
- */
-void nmt_couple_cl_l_flat_quick(nmt_workspace_flat *w,int nl,flouble *larr,flouble **cl_in,
-				flouble **cl_out);
 
 /**
  * @brief Inverts mode-coupling matrix
@@ -687,27 +679,6 @@ nmt_workspace_flat *nmt_compute_power_spectra_flat(nmt_field_flat *fl1,nmt_field
 						   int nl_prop,flouble *l_prop,flouble **cl_prop,
 						   flouble **cl_out);
 
-/**
- * @brief Full-sky mode-coupling matrix.
- *
- * Structure containing information about the mode-coupling matrix (MCM) for full-sky pseudo-CLs.
- */
-typedef struct {
-  int lmax; //!< Maximum multipole used
-  int lmax_fields; //!< Resolution of fields being correlated.
-  int lmax_mask; //!< Mask resolution
-  int is_teb; //!< Does it hold all MCM elements to compute all of spin0-spin0, 0-2 and 2-2 correlations?
-  int ncls; //!< Number of power spectra (1, 2 or 4 depending of the spins of the fields being correlated.
-  flouble *beam_prod; //!< Product of field beams.
-  flouble *pcl_masks; //!< Pseudo-CL of the masks.
-  flouble **coupling_matrix_unbinned; //!< Unbinned mode-coupling matrix
-  nmt_binning_scheme *bin; //!< Bandpowers defining the binning
-  int norm_type;  //!< Normalisation used for final bandpower window functions (0 == full binned matrix inversion, 1 == unit response to white spectrum).
-  flouble w2;  //!< mean of mask product (needed if norm_type == 1.
-  gsl_matrix *coupling_matrix_binned; //!< GSL version of MCM (prepared for inversion)
-  gsl_permutation *coupling_matrix_perm; //!< Complements \p coupling_matrix_binned_gsl for inversion.
-} nmt_workspace;
-  
 typedef struct {
   int lmax;
   int lmax_mask;
@@ -722,10 +693,6 @@ typedef struct {
   flouble ****xi_pp;
   flouble ****xi_mm;
   double *lfac;
-  int pure_e1;
-  int pure_e2;
-  int pure_b1;
-  int pure_b2;
   int pure_any;
   int npure_0s;
   int npure_ss;
@@ -733,28 +700,10 @@ typedef struct {
 
 nmt_master_calculator *nmt_compute_master_coefficients(int lmax, int lmax_mask,
                                                        int npcl, flouble **pcl_masks,
-                                                       int s1, int s2,
-                                                       int pure_e1, int pure_b1,
-                                                       int pure_e2, int pure_b2,
+                                                       int s1, int s2, int pure_any,
                                                        int do_teb, int l_toeplitz,
                                                        int l_exact, int dl_band);
 void nmt_master_calculator_free(nmt_master_calculator *c);
-
-nmt_workspace *nmt_compute_coupling_matrix_anisotropic(int spin1, int spin2,
-						       int mask_aniso_1, int mask_aniso_2,
-						       int lmax, int lmax_mask,
-						       flouble *pcl_masks_00,
-						       flouble *pcl_masks_0e,
-						       flouble *pcl_masks_e0,
-						       flouble *pcl_masks_0b,
-						       flouble *pcl_masks_b0,
-						       flouble *pcl_masks_ee,
-						       flouble *pcl_masks_eb,
-						       flouble *pcl_masks_be,
-						       flouble *pcl_masks_bb,
-						       flouble *beam1,flouble *beam2,
-						       nmt_binning_scheme *bin,
-						       int norm_type,flouble w2);
 
 void nmt_compute_general_coupling_matrix(int lmax,
 					 flouble *pcl_mask,
@@ -762,103 +711,6 @@ void nmt_compute_general_coupling_matrix(int lmax,
 					 int n1, int n2,
 					 int parity,
 					 flouble *xi_out);
-
-nmt_workspace *nmt_compute_coupling_matrix(int spin1,int spin2,
-					   int lmax, int lmax_mask,
-					   int pure_e1,int pure_b1,
-					   int pure_e2,int pure_b2,
-					   flouble *pcl_masks,
-					   flouble *beam1,flouble *beam2,
-					   nmt_binning_scheme *bin,int is_teb,
-                                           int l_toeplitz,int l_exact,int dl_band,
-					   int norm_type,flouble w2);
-
-/**
- * @brief Updates the mode coupling matrix with a new one.Saves nmt_workspace structure to file
- *
- * The new matrix must be provided as a single 1D array of size n_rows\f$^2\f$.
- * Here n_rows=n_cls * n_ell is the size of the flattened power spectra, where n_cls is the number
- * of power spectra (1, 2 or 4 for spin0-0, spin0-2 and spin2-2 correlations) and n_ells=lmax+1
- * (by default lmax=3*nside-1 for HEALPix, and pi/dx for CAR (where dx is the minimum angular pixel size)). The ordering of the power spectra should be such that the
- * l-th element of the i-th power spectrum is stored with index l * n_cls + i.
- * @param w nmt_workspace to be updated.
- * @param n_rows size of the flattened power spectra.
- * @param new_matrix new mode-coupling matrix (flattened).
- */
-void nmt_update_coupling_matrix(nmt_workspace *w,int n_rows,double *new_matrix);
-
-/**
- * @brief Updates the binning scheme associated to this workspace.
- *
- * Also rebins the MCM and re-inverts it.
- * @param w nmt_workspace to be updated.
- * @param bin new nmt_binning_scheme.
- */
-void nmt_workspace_update_binning(nmt_workspace *w,
-				  nmt_binning_scheme *bin);
-
-/**
- * @brief Updates the beams associated to this workspace.
- *
- * Also recomputes the binned MCM and its inverse
- * @param w workspace.
- * @param nl1 Number of elements of b1.
- * @param b1 First field's beam (harmonic space). One element per multipole.
- * @param nl2 Number of elements of b1.
- * @param b2 Second field's beam (harmonic space). One element per multipole.
- */
-void nmt_workspace_update_beams(nmt_workspace *w,
-				int nl1,double *b1,
-				int nl2,double *b2);
-
-/**
- * @brief nmt_workspace destructor
- */
-void nmt_workspace_free(nmt_workspace *w);
-
-/**
- * @brief Mode-couples an input power spectrum
- *
- * This function applies the effects of the mode-coupling the pseudo-CL estimator for a given
- * input power spectrum. This function should be used in conjunction with nmt_decouple_cl_l()
- * to compute the theory prediction of the pseudo-CL estimator.
- * See notes about power spectrum ordering in the main page of this documentation.
- * @param w nmt_workspace structure containing the mode-coupling matrix
- * @param cl_in Array of input power spectra. Should have shape [ncls][lmax+1], where ncls
-          is the appropriate number of power spectra given the fields being correlated
-	  (e.g. ncls=4=2*2 for two spin-2 fields).
- * @param cl_out Array of output power spectra. Should have shape [ncls][lmax+1], where
-          ncls is defined above.
- */
-void nmt_couple_cl_l(nmt_workspace *w,flouble **cl_in,flouble **cl_out);
-
-/**
- * @brief Inverts mode-coupling matrix
- *
- * Multiplies coupled power spectra by inverse mode-coupling matrix.
- * See notes about power spectrum ordering in the main page of this documentation.
- * @param w nmt_workspace containing the mode-coupling matrix.
- * @param cl_in Input coupled power spectra. Should have shape [ncls][lmax+1], where
-          \p ncls is the appropriate number of power spectra given the fields used
-	  to define \p w (e.g. 4=2*2 for two spin-2 fields).
- * @param cl_noise_in Noise bias (same shape as \p cl_in).
- * @param cl_bias Deprojection bias (same shape as \p cl_in, see nmt_compute_deprojection_bias()).
- * @param cl_out Mode-decoupled power spectrum. Should have shape [ncls][nbpw], where
-          ncls is defined above and nbpw is the number of bandpowers used to define \p w.
- */
-void nmt_decouple_cl_l(nmt_workspace *w,flouble **cl_in,flouble **cl_noise_in,
-		       flouble **cl_bias,flouble **cl_out);
-
-/**
- * @brief Returns the bandpower window functions for this workspace.
- *
- * This function returns, in a flattened array, the bandpower window functions associated with the
- * mode-coupling matrix stored in this workspace. The effect of the PCL estimator on the unbinned
- * theory prediction can be fully accounted for by convolving it with these window functions.
- * @param w nmt_workspace containing the mode-coupling matrix.
- * @param bpw_win_out output 1D array allocated to the right size (n_cls * n_bpw * n_cls * (lmax+1)).
- */
-void nmt_compute_bandpower_windows(nmt_workspace *w,double *bpw_win_out);
 
 /**
  * @brief Flat-sky Gaussian covariance matrix
@@ -929,185 +781,5 @@ void nmt_compute_gaussian_covariance_flat(nmt_covar_workspace_flat *cw,
 					  int nl,flouble *larr,
 					  flouble **clac,flouble **clad,
 					  flouble **clbc,flouble **clbd,flouble *covar_out);
-
-/**
- * @brief Full-sky Gaussian covariance matrix
- *
- * Structure containing the information necessary to compute Gaussian covariance matrices
- * for the pseudo-CL spectra of two full-sky spin-0 fields.
- */
-typedef struct {
-  int lmax; //!< Maximum multipole for the first set of power spectra
-  int lmax_mask; //!< Maximum multipole for the first set of power spectra
-  int all_spins;
-  int spin_a1;
-  int spin_a2;
-  int spin_b1;
-  int spin_b2;
-  int has_1122;
-  int has_1221;
-  flouble **xi00_1122; //!< First (a1b1-a2b2), 00, mode coupling matrix (see scientific documentation)
-  flouble **xi00_1221; //!< Second (a1b2-a2b1), 00, mode coupling matrix (see scientific documentation)
-  flouble **xi02_1122; //!< First (a1b1-a2b2), 02, mode coupling matrix (see scientific documentation)
-  flouble **xi02_1221; //!< Second (a1b2-a2b1), 02, mode coupling matrix (see scientific documentation)
-  flouble **xi22p_1122; //!< First (a1b1-a2b2), 22+, mode coupling matrix (see scientific documentation)
-  flouble **xi22p_1221; //!< Second (a1b2-a2b1), 22+, mode coupling matrix (see scientific documentation)
-  flouble **xi22m_1122; //!< First (a1b1-a2b2), 22-, mode coupling matrix (see scientific documentation)
-  flouble **xi22m_1221; //!< Second (a1b2-a2b1), 22-, mode coupling matrix (see scientific documentation)
-} nmt_covar_workspace;
-
-void nmt_covar_workspace_free(nmt_covar_workspace *cw);
-
-nmt_covar_workspace *nmt_covar_workspace_init(int spin_a1, int spin_a2,
-					      int spin_b1, int spin_b2,
-					      int all_spins, int auto_any,
-					      int has_1122, int has_1221,
-					      flouble *cl_masks_11_22,
-					      flouble *cl_masks_12_21,
-					      int lmax,int lmax_mask,
-                                              int l_toeplitz,int l_exact,int dl_band);
-
-nmt_covar_workspace *nmt_covar_workspace_init_from_couplings(int spin_a1, int spin_a2,
-							     int spin_b1, int spin_b2,
-							     int all_spins,
-							     int lmax, int lmax_mask,
-							     flouble *xi00_1122,
-							     flouble *xi00_1221,
-							     flouble *xi02_1122,
-							     flouble *xi02_1221,
-							     flouble *xi22p_1122,
-							     flouble *xi22p_1221,
-							     flouble *xi22m_1122,
-							     flouble *xi22m_1221);
-
-/**
- * @brief Compute full-sky Gaussian covariance matrix
- *
- * Computes the covariance matrix for two sets of power spectra given input predicted spectra
- * and a nmt_covar_workspace structure.
- * @param cw nmt_covar_workspace structure containing the information necessary to compute the
-          covariance matrix.
- * @param spin_a field a spin.
- * @param spin_b field b spin.
- * @param spin_c field c spin.
- * @param spin_d field d spin.
- * @param wa nmt_workspace structure containing the mode-coupling matrix for the first power spectra.
- * @param wb nmt_workspace structure containing the mode-coupling matrix for the second power spectra.
- * @param clac Cross-power spectra between field 1 in the first set and field 1 in the second set (ac)
-          All power spectra should be defined for all ell < lmax.
- * @param clad Cross-power spectra between field 1 in the first set and field 2 in the second set (ad)
- * @param clbc Cross-power spectra between field 2 in the first set and field 1 in the second set (bc)
- * @param clbd Cross-power spectra between field 2 in the first set and field 2 in the second set (bd)
- * @param covar_out flattened covariance matrix. Should be allocated to shape [ncls_1 * nbpw_1 * ncls_2 * nbpw_2],
-          where nbpw_X and ncls_X are the number of bandpowers and different power spectra in the X-th set of fields.
- */
-void  nmt_compute_gaussian_covariance(nmt_covar_workspace *cw,
-				      int spin_a,int spin_b,int spin_c,int spin_d,
-				      nmt_workspace *wa,nmt_workspace *wb,
-				      flouble **clac,flouble **clad,
-				      flouble **clbc,flouble **clbd,
-				      int is_ac_noise,int is_ad_noise,
-				      int is_bc_noise,int is_bd_noise,
-				      flouble *covar_out);
-
-/**
- * @brief Compute full-sky Gaussian covariance matrix
- *
- * Computes the covariance matrix for two sets of power spectra given input predicted spectra
- * and a nmt_covar_workspace structure. Calculation done for the mode-coupled pseudo-Cls.
- * @param cw nmt_covar_workspace structure containing the information necessary to compute the
-          covariance matrix.
- * @param spin_a field a spin.
- * @param spin_b field b spin.
- * @param spin_c field c spin.
- * @param spin_d field d spin.
- * @param wa nmt_workspace structure containing the mode-coupling matrix for the first power spectra.
- * @param wb nmt_workspace structure containing the mode-coupling matrix for the second power spectra.
- * @param clac Cross-power spectra between field 1 in the first set and field 1 in the second set (ac)
-          All power spectra should be defined for all ell < lmax.
- * @param clad Cross-power spectra between field 1 in the first set and field 2 in the second set (ad)
- * @param clbc Cross-power spectra between field 2 in the first set and field 1 in the second set (bc)
- * @param clbd Cross-power spectra between field 2 in the first set and field 2 in the second set (bd)
- * @param covar_out flattened covariance matrix. Should be allocated to shape [ncls_1 * nbpw_1 * ncls_2 * nbpw_2],
-          where nbpw_X and ncls_X are the number of bandpowers and different power spectra in the X-th set of fields.
- */
-void  nmt_compute_gaussian_covariance_coupled(nmt_covar_workspace *cw,
-					      int spin_a,int spin_b,int spin_c,int spin_d,
-                                              nmt_workspace *wa,nmt_workspace *wb,
-                                              flouble **clac,flouble **clad,
-                                              flouble **clbc,flouble **clbd,
-					      int is_ac_noise,int is_ad_noise,
-					      int is_bc_noise,int is_bd_noise,
-                                              flouble *covar_out);
-
-/**
- * @brief Saves nmt_workspace structure to file
- *
- * The output file uses the FITS standard. In combination with nmt_workspace_read_fits(),
- * this can be used to save the information contained in a given workspace and reuse it for
- * future power spectrum computations. The same workspace can be used on any pair of fields
- * with the same masks.
- * @param w nmt_workspace to be saved.
- * @param fname Path to output file.
- */
-void nmt_workspace_write_fits(nmt_workspace *w,char *fname);
-
-/**
- * @brief Builds nmt_workspace structure from file
- *
- * The input file uses the FITS standard. In combination with nmt_workspace_write_fits(),
- * this can be used to save the information contained in a given workspace and reuse it for
- * future power spectrum computations. The same workspace can be used on any pair of fields
- * with the same masks.
- * @param fname Path to input file.
- * @param w_unbinned If zero, unbinned MCM will not be read.
- */
-nmt_workspace *nmt_workspace_read_fits(char *fname,int w_unbinned);
-
-/**
- * @brief Builds nmt_workspace_flat structure from file
- *
- * The input file uses the FITS standard. In combination with nmt_workspace_flat_write_fits(),
- * this can be used to save the information contained in a given workspace and reuse it for
- * future power spectrum computations. The same workspace can be used on any pair of fields
- * with the same masks.
- * @param fname Path to input file.
- */
-nmt_workspace_flat *nmt_workspace_flat_read_fits(char *fname);
-
-/**
- * @brief Saves nmt_workspace_flat structure to file
- *
- * The output file uses the FITS standard. In combination with nmt_workspace_flat_read_fits(),
- * this can be used to save the information contained in a given workspace and reuse it for
- * future power spectrum computations. The same workspace can be used on any pair of fields
- * with the same masks.
- * @param w nmt_workspace_flat to be saved.
- * @param fname Path to output file.
- */
-void nmt_workspace_flat_write_fits(nmt_workspace_flat *w,char *fname);
-
-/**
- * @brief Saves nmt_covar_workspace_flat structure to file
- *
- * The output file uses the FITS standard. In combination with nmt_covar_workspace_flat_read_fits(),
- * this can be used to save the information contained in a given workspace and reuse it for
- * future covariance matrix computations. The same workspace can be used on any pair of power spectra
- * between fields with the same masks.
- * @param cw nmt_covar_workspace_flat to be saved.
- * @param fname Path to output file.
- */
-void nmt_covar_workspace_flat_write_fits(nmt_covar_workspace_flat *cw,char *fname);
-
-/**
- * @brief Builds nmt_covar_workspace_flat structure from file
- *
- * The input file uses the FITS standard. In combination with nmt_covar_workspace_flat_write_fits(),
- * this can be used to save the information contained in a given workspace and reuse it for
- * future covariance matrix computations. The same workspace can be used on any pair of power spectra
- * between fields with the same masks.
- * @param fname Path to input file.
- */
-nmt_covar_workspace_flat *nmt_covar_workspace_flat_read_fits(char *fname);
 
 #endif //_NAMASTER_H_
